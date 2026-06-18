@@ -4,34 +4,63 @@ import { requireAdminPage } from "@/lib/auth";
 
 const setupSteps = [
   {
-    title: "1. Verifier le compte admin",
-    text: "Gardez votre email et votre mot de passe admin dans un gestionnaire de mots de passe. C'est ce compte qui protege l'espace atelier.",
+    title: "1. Faire le tour automatique",
+    text: "A la premiere connexion, LRT ouvre un tour guide. Il presente chaque page admin et l ordre conseille pour regler l espace atelier.",
     href: "/admin",
-    action: "Voir les reparations",
+    action: "Retour au tableau",
   },
   {
-    title: "2. Configurer les emails",
-    text: "Ajoutez l'adresse email du magasin, le mot de passe d'application SMTP et les informations de boutique. Sans SMTP, l'application continue de marcher, mais elle ne peut pas prevenir le client automatiquement.",
+    title: "2. Regler les informations email",
+    text: "Ajoutez l email du magasin, le mot de passe d application SMTP, le nom du magasin, l adresse, les horaires et le telephone. Ces infos servent au message envoye quand une reparation est PRETE.",
     href: "/admin/email",
     action: "Configurer l'email",
   },
   {
-    title: "3. Imprimer le QR code",
-    text: "Le QR code envoie les clients vers votre formulaire public. Imprimez-le et mettez-le au comptoir ou sur une affiche.",
+    title: "3. Imprimer le QR code client",
+    text: "Le QR code envoie vers le formulaire public de votre atelier. Imprimez-le, scannez-le avec votre telephone, puis verifiez que la fiche arrive dans l admin.",
     href: "/admin/qr-code",
     action: "Afficher le QR code",
   },
   {
-    title: "4. Faire une reparation test",
-    text: "Creez une fiche manuellement ou scannez le QR code avec votre telephone pour verifier que tout arrive bien dans l'admin.",
+    title: "4. Creer une reparation test",
+    text: "Creez une fiche depuis le bouton Nouvelle ou depuis le QR code. Mettez un vrai email de test pour verifier le fonctionnement complet.",
     href: "/admin/repairs/new",
     action: "Creer une fiche",
   },
   {
     title: "5. Tester le statut PRET",
-    text: "Ouvrez une fiche, passez le statut a PRET, puis enregistrez. L'email part une seule fois si la configuration SMTP est complete.",
+    text: "Ouvrez la fiche test, passez le statut a PRET, puis enregistrez. Si SMTP est correct, le client recoit l email une seule fois.",
     href: "/admin",
     action: "Ouvrir la liste",
+  },
+  {
+    title: "6. Nettoyer la fiche test",
+    text: "Quand tout marche, archivez la fiche test pour garder une trace ou supprimez-la definitivement si elle ne sert plus.",
+    href: "/admin",
+    action: "Retour aux fiches",
+  },
+];
+
+const configurationBlocks = [
+  {
+    title: "Page Reparations",
+    text: "C est la page de travail quotidienne. Elle sert a chercher, filtrer et ouvrir les dossiers clients.",
+  },
+  {
+    title: "Page Nouvelle",
+    text: "Elle sert a creer une reparation au comptoir sans demander au client de scanner le QR code.",
+  },
+  {
+    title: "Page QR code",
+    text: "Elle affiche le lien public de votre atelier et le QR code a imprimer pour les clients.",
+  },
+  {
+    title: "Page Email",
+    text: "Elle configure l envoi automatique du message PRET et les informations affichees dans l email.",
+  },
+  {
+    title: "Fiche detaillee",
+    text: "Elle permet de changer le statut, ajouter des notes internes, archiver ou supprimer une reparation.",
   },
 ];
 
@@ -59,8 +88,9 @@ export default async function AdminGuidePage() {
               Guide de demarrage
             </h1>
             <p className="max-w-3xl text-sm leading-6 text-slate-600">
-              Suivez ces etapes une seule fois pour rendre l&apos;espace admin pret
-              a utiliser au comptoir.
+              Suivez ces etapes une seule fois pour regler LRT pour votre
+              atelier. Le bouton Tour dans le menu permet de revoir le parcours
+              de premiere utilisation quand vous voulez.
             </p>
           </header>
 
@@ -84,6 +114,33 @@ export default async function AdminGuidePage() {
                 </Link>
               </article>
             ))}
+          </section>
+
+          <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="grid gap-2">
+              <h2 className="text-lg font-semibold text-slate-950">
+                A quoi sert chaque page
+              </h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Le tour automatique montre ces zones dans l ordre. Cette liste
+                sert de rappel rapide apres la premiere configuration.
+              </p>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              {configurationBlocks.map((block) => (
+                <article
+                  key={block.title}
+                  className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <h3 className="text-sm font-semibold text-slate-950">
+                    {block.title}
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-700">
+                    {block.text}
+                  </p>
+                </article>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-lg border border-slate-200 bg-slate-50 p-5">

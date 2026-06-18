@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
+import { FirstUseTour } from "./FirstUseTour";
 
 type AdminHeaderProps = {
   email: string;
 };
 
 export function AdminHeader({ email }: AdminHeaderProps) {
+  function openTour() {
+    window.dispatchEvent(new Event("lrt-admin-tour-open"));
+  }
+
   async function handleLogout() {
     await fetch("/api/admin/logout", {
       method: "POST",
@@ -60,6 +65,13 @@ export function AdminHeader({ email }: AdminHeaderProps) {
           </Link>
           <button
             type="button"
+            onClick={openTour}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
+          >
+            Tour
+          </button>
+          <button
+            type="button"
             onClick={handleLogout}
             className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
@@ -67,6 +79,7 @@ export function AdminHeader({ email }: AdminHeaderProps) {
           </button>
         </nav>
       </div>
+      <FirstUseTour email={email} />
     </header>
   );
 }
