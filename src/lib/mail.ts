@@ -116,6 +116,37 @@ export async function sendVerificationCodeEmail(input: {
   });
 }
 
+export async function sendSupportMessageEmail(input: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): Promise<SendMailResult> {
+  const supportEmail =
+    process.env.SUPPORT_EMAIL || process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  if (!supportEmail) {
+    return { sent: false, skipped: true };
+  }
+
+  const text = [
+    "Nouvelle demande service client LRT",
+    "",
+    `Nom : ${input.name}`,
+    `Email : ${input.email}`,
+    `Sujet : ${input.subject}`,
+    "",
+    "Message :",
+    input.message,
+  ].join("\n");
+
+  return sendWithEnvSmtp({
+    to: supportEmail,
+    subject: `Service client LRT - ${input.subject}`,
+    text,
+  });
+}
+
 async function getSmtpConfig(): Promise<SmtpConfig | null> {
   try {
     const settings = await prisma.emailSettings.findUnique({

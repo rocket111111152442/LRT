@@ -42,6 +42,7 @@ SMTP_USER
 SMTP_PASSWORD
 SMTP_FROM
 SMTP_SECURE
+SUPPORT_EMAIL
 SHOP_NAME
 SHOP_ADDRESS
 SHOP_OPENING_HOURS
@@ -93,6 +94,8 @@ Le statut initial d'une reparation creee par l'API publique est `PAS_ENCORE_EN_R
 La configuration email peut etre saisie dans l'admin sur `/admin/email`. Les variables SMTP du fichier `.env` restent disponibles comme secours.
 
 Les variables SMTP serveur sont aussi utilisees pour envoyer les codes de validation a l'inscription et a chaque connexion admin. En production, renseignez `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` et `SMTP_FROM` dans Vercel.
+
+La page `/service-client` envoie les demandes a `SUPPORT_EMAIL`. Si cette variable est vide, l'application utilise `SMTP_FROM` ou `SMTP_USER`.
 
 Quand une reparation passe au statut `PRET`, un email est envoye au client si la configuration email est complete et si `readyEmailSent` vaut `false`. Si l'email n'est pas configure, l'application continue sans erreur.
 
