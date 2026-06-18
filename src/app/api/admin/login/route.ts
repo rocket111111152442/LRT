@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Base de donnees indisponible. Relancez Prisma puis reessayez.",
+          "Base de donnees indisponible. Verifiez Prisma ou la configuration Firebase, puis reessayez.",
       },
       { status: 500 },
     );
