@@ -100,6 +100,18 @@ model PendingProSignup {
   @@index([slug])
 }
 
+model EmailVerificationCode {
+  id        String   @id
+  email     String
+  purpose   String
+  codeHash  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, purpose])
+}
+
 model EmailSettings {
   id               String   @id @default("default")
   smtpEmail        String?

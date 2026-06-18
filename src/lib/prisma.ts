@@ -502,6 +502,41 @@ function createFirestorePrisma() {
       },
     },
 
+    emailVerificationCode: {
+      async findUnique(args: { where: Dict; select?: Dict }) {
+        if (typeof args.where.id !== "string") {
+          return null;
+        }
+
+        return applySelect(
+          await findById("emailVerificationCodes", args.where.id),
+          args.select,
+        );
+      },
+      async upsert(args: { where: Dict; update: Dict; create: Dict }) {
+        const id = typeof args.where.id === "string" ? args.where.id : randomUUID();
+        const existing = await findById("emailVerificationCodes", id);
+        const timestamp = now();
+        const data = existing
+          ? { ...args.update, updatedAt: timestamp }
+          : { ...args.create, id, createdAt: timestamp, updatedAt: timestamp };
+
+        await collection("emailVerificationCodes").doc(id).set(data, {
+          merge: true,
+        });
+        return findById("emailVerificationCodes", id);
+      },
+      async delete(args: { where: Dict }) {
+        if (typeof args.where.id !== "string") {
+          throw new Error("Email verification code id missing.");
+        }
+
+        const existing = await findById("emailVerificationCodes", args.where.id);
+        await collection("emailVerificationCodes").doc(args.where.id).delete();
+        return existing;
+      },
+    },
+
     async $disconnect() {
       return undefined;
     },

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
 import { ProSignupForm } from "./ProSignupForm";
 
@@ -21,8 +21,9 @@ export default function ProSignupPage() {
             Creer votre espace admin
           </h1>
           <p className="text-sm leading-6 text-slate-600">
-            Le compte est active apres le paiement unique de 4,99 EUR. Chaque
-            compte obtient son QR code public avec son identifiant.
+            Le compte est active apres le paiement unique de 9,99 EUR. Chaque
+            compte obtient son QR code public avec son identifiant. Un code est
+            envoye par email pour valider l adresse avant le paiement.
           </p>
         </header>
         <ProSignupForm />

@@ -18,13 +18,17 @@ const initialValues: ProSignupInput = {
   firebaseProjectId: "",
   firebaseAppId: "",
   promoCode: "",
+  emailCode: "",
 };
 
 export function ProSignupForm() {
   const [values, setValues] = useState<ProSignupInput>(initialValues);
   const [errors, setErrors] = useState<ProSignupErrors>({});
   const [submitError, setSubmitError] = useState("");
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
   const [showFirebaseHelp, setShowFirebaseHelp] = useState(false);
   const [showQrHelp, setShowQrHelp] = useState(false);
 
@@ -35,16 +39,75 @@ export function ProSignupForm() {
     }));
     setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError("");
+    setMessage("");
+
+    if (name !== "emailCode" && name !== "promoCode") {
+      setCodeSent(false);
+    }
+  }
+
+  async function sendSignupCode(data: ProSignupInput) {
+    setSubmitError("");
+    setMessage("");
+    setIsSendingCode(true);
+
+    try {
+      const response = await fetch("/api/pro/email-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const apiErrors = payload.errors ?? {};
+
+        setErrors(apiErrors);
+        setSubmitError(
+          payload.error ??
+            (Object.keys(apiErrors).length > 0
+              ? "Corrigez les champs indiques en rouge."
+              : "Envoi du code impossible."),
+        );
+        return false;
+      }
+
+      setCodeSent(true);
+      setMessage(payload.message ?? "Code envoye. Verifiez votre boite email.");
+      return true;
+    } catch {
+      setSubmitError("Envoi du code impossible.");
+      return false;
+    } finally {
+      setIsSendingCode(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError("");
+    setMessage("");
 
     const validation = validateProSignupInput(values);
 
     if (!validation.ok) {
       setErrors(validation.errors);
+      return;
+    }
+
+    if (!codeSent) {
+      await sendSignupCode(validation.data);
+      return;
+    }
+
+    if (!validation.data.emailCode || validation.data.emailCode.length < 6) {
+      setErrors((current) => ({
+        ...current,
+        emailCode: "Code email requis.",
+      }));
+      setSubmitError("Entrez le code recu par email.");
       return;
     }
 
@@ -284,6 +347,53 @@ export function ProSignupForm() {
         </p>
       ) : null}
 
+      {message ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {message}
+        </p>
+      ) : null}
+
+      {codeSent ? (
+        <div className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-4">
+          <label
+            htmlFor="pro-emailCode"
+            className="text-sm font-medium text-slate-800"
+          >
+            Code recu par email
+          </label>
+          <input
+            id="pro-emailCode"
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={values.emailCode ?? ""}
+            onChange={(event) => updateField("emailCode", event.target.value)}
+            className="h-11 w-full max-w-[220px] rounded-md border border-slate-300 px-3 py-2 text-sm tracking-[0.2em] outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+            aria-invalid={Boolean(errors.emailCode)}
+          />
+          {errors.emailCode ? (
+            <p className="text-sm text-red-700">{errors.emailCode}</p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              const validation = validateProSignupInput(values);
+
+              if (!validation.ok) {
+                setErrors(validation.errors);
+                return;
+              }
+
+              void sendSignupCode(validation.data);
+            }}
+            disabled={isSendingCode}
+            className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
+          >
+            {isSendingCode ? "Envoi..." : "Renvoyer un code"}
+          </button>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="grid max-w-[180px] gap-1">
           <label htmlFor="pro-promoCode" className="text-xs font-medium text-slate-600">
@@ -303,10 +413,16 @@ export function ProSignupForm() {
         </div>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSendingCode}
           className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {isSubmitting ? "Validation..." : "Valider"}
+          {isSendingCode
+            ? "Envoi du code..."
+            : isSubmitting
+              ? "Validation..."
+              : codeSent
+                ? "Valider le code"
+                : "Envoyer le code"}
         </button>
       </div>
     </form>

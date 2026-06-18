@@ -1,6 +1,10 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { setAdminSessionCookie } from "@/lib/auth";
+import {
+  sendEmailVerificationCode,
+  verifyEmailCode,
+} from "@/lib/emailVerification";
 import { prisma } from "@/lib/prisma";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -22,6 +26,7 @@ export async function POST(request: Request) {
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const code = typeof body.code === "string" ? body.code.trim() : "";
 
   if (!email || !password) {
     return NextResponse.json(
@@ -68,6 +73,41 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Identifiants invalides." },
         { status: 401 },
+      );
+    }
+
+    if (!code) {
+      const result = await sendEmailVerificationCode(user.email, "LOGIN");
+
+      if (result.skipped) {
+        return NextResponse.json(
+          {
+            error:
+              "Connexion par code impossible : le SMTP serveur n est pas configure.",
+          },
+          { status: 503 },
+        );
+      }
+
+      if (!result.sent) {
+        return NextResponse.json(
+          { error: "Envoi du code impossible pour le moment." },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({
+        requiresCode: true,
+        message: "Code envoye. Verifiez votre boite email.",
+      });
+    }
+
+    const isValidCode = await verifyEmailCode(user.email, "LOGIN", code);
+
+    if (!isValidCode) {
+      return NextResponse.json(
+        { error: "Code email invalide ou expire." },
+        { status: 400 },
       );
     }
 

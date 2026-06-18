@@ -7,6 +7,7 @@ export type ProSignupInput = {
   firebaseProjectId: string;
   firebaseAppId: string;
   promoCode?: string;
+  emailCode?: string;
 };
 
 export type ProSignupErrors = Partial<Record<keyof ProSignupInput, string>>;
@@ -47,6 +48,7 @@ export function validateProSignupInput(input: unknown):
     firebaseProjectId: readText(input, "firebaseProjectId"),
     firebaseAppId: readText(input, "firebaseAppId"),
     promoCode: readText(input, "promoCode").toUpperCase() || undefined,
+    emailCode: readText(input, "emailCode"),
   };
 
   const errors: ProSignupErrors = {};

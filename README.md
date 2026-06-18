@@ -92,6 +92,8 @@ Le statut initial d'une reparation creee par l'API publique est `PAS_ENCORE_EN_R
 
 La configuration email peut etre saisie dans l'admin sur `/admin/email`. Les variables SMTP du fichier `.env` restent disponibles comme secours.
 
+Les variables SMTP serveur sont aussi utilisees pour envoyer les codes de validation a l'inscription et a chaque connexion admin. En production, renseignez `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` et `SMTP_FROM` dans Vercel.
+
 Quand une reparation passe au statut `PRET`, un email est envoye au client si la configuration email est complete et si `readyEmailSent` vaut `false`. Si l'email n'est pas configure, l'application continue sans erreur.
 
 Pour activer le paiement Stripe, renseigner `STRIPE_SECRET_KEY` cote serveur et `STRIPE_WEBHOOK_SECRET` pour le webhook. Une cle secrete visible dans une capture ou un message doit etre revoquee dans Stripe puis remplacee par une nouvelle.

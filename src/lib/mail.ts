@@ -14,6 +14,8 @@ type SendMailResult = {
   skipped: boolean;
 };
 
+type VerificationEmailPurpose = "SIGNUP" | "LOGIN";
+
 type SmtpConfig = {
   host: string;
   port: number;
@@ -38,7 +40,7 @@ function getEnvShopLines() {
 function getEnvSmtpConfig(): SmtpConfig | null {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
-  const from = process.env.SMTP_FROM;
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
 
   if (!host || !from || Number.isNaN(port)) {
     return null;
@@ -55,6 +57,63 @@ function getEnvSmtpConfig(): SmtpConfig | null {
     from,
     shopLines: getEnvShopLines(),
   };
+}
+
+async function sendWithEnvSmtp(input: {
+  to: string;
+  subject: string;
+  text: string;
+}): Promise<SendMailResult> {
+  const smtpConfig = getEnvSmtpConfig();
+
+  if (!smtpConfig) {
+    return { sent: false, skipped: true };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      auth: smtpConfig.auth,
+    });
+
+    await transporter.sendMail({
+      from: smtpConfig.from,
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+    });
+
+    return { sent: true, skipped: false };
+  } catch (error) {
+    console.error("Verification email failed", error);
+    return { sent: false, skipped: false };
+  }
+}
+
+export async function sendVerificationCodeEmail(input: {
+  email: string;
+  code: string;
+  purpose: VerificationEmailPurpose;
+}): Promise<SendMailResult> {
+  const isSignup = input.purpose === "SIGNUP";
+  const text = [
+    `Code LRT : ${input.code}`,
+    "",
+    isSignup
+      ? "Entrez ce code pour valider votre email et continuer la creation du compte pro."
+      : "Entrez ce code pour confirmer votre connexion a l espace admin.",
+    "",
+    "Ce code expire dans 10 minutes.",
+    "Si vous n etes pas a l origine de cette demande, ignorez cet email.",
+  ].join("\n");
+
+  return sendWithEnvSmtp({
+    to: input.email,
+    subject: isSignup ? "Code de validation LRT" : "Code de connexion LRT",
+    text,
+  });
 }
 
 async function getSmtpConfig(): Promise<SmtpConfig | null> {

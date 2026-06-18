@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyEmailCode } from "@/lib/emailVerification";
 import {
   createPaidProAccount,
   PaidProAccountData,
@@ -114,6 +115,22 @@ export async function POST(request: Request) {
 
     if (conflict) {
       return NextResponse.json(conflict, { status: 400 });
+    }
+
+    const isEmailVerified = await verifyEmailCode(
+      validation.data.ownerEmail,
+      "SIGNUP",
+      validation.data.emailCode ?? "",
+    );
+
+    if (!isEmailVerified) {
+      return NextResponse.json(
+        {
+          error: "Code email invalide ou expire.",
+          errors: { emailCode: "Code invalide ou expire." },
+        },
+        { status: 400 },
+      );
     }
 
     const passwordHash = await bcrypt.hash(validation.data.password, 12);

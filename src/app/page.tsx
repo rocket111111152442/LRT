@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
 
 const features = [
@@ -8,6 +8,7 @@ const features = [
   "Configuration email et Firebase par compte pro",
   "Recherche rapide par client, telephone, marque ou modele",
   "Statuts clairs pour garder l'atelier organise",
+  "Validation par code email a l'inscription et a chaque connexion",
 ];
 
 const workflow = [
@@ -72,7 +73,7 @@ const faqs = [
   },
   {
     question: "Le paiement est-il obligatoire ?",
-    answer: "Le paiement unique de 4,99 EUR limite les abus. Un code promo peut activer un compte gratuitement.",
+    answer: "Le paiement unique de 9,99 EUR limite les abus. Un code promo peut activer un compte gratuitement.",
   },
 ];
 
@@ -103,7 +104,7 @@ export default function HomePage() {
             </p>
             <dl className="mt-6 grid max-w-xl grid-cols-3 gap-3 text-sm">
               <div className="border-l border-white/40 pl-3">
-                <dt className="text-2xl font-semibold">4,99 EUR</dt>
+                <dt className="text-2xl font-semibold">9,99 EUR</dt>
                 <dd className="text-slate-200">compte pro</dd>
               </div>
               <div className="border-l border-white/40 pl-3">
@@ -120,7 +121,7 @@ export default function HomePage() {
                 href="/pro/inscription"
                 className="rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               >
-                Creer mon compte pro - 4,99 EUR
+                Creer mon compte pro - 9,99 EUR
               </Link>
               <Link
                 href="/admin/login"
@@ -260,7 +261,7 @@ export default function HomePage() {
       <section className="border-y border-slate-200 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Compte pro a 4,99 EUR</h2>
+            <h2 className="text-2xl font-semibold">Compte pro a 9,99 EUR</h2>
             <p className="mt-2 text-sm text-slate-300">
               Paiement unique pour activer l&apos;espace admin et limiter les abus de
               comptes.

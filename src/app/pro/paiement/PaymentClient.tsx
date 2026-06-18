@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -62,7 +62,7 @@ export function PaymentClient({
         disabled={isLoading || !canPay}
         className="min-h-12 rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
-        {isLoading ? "Ouverture du paiement..." : "Payer 4,99 EUR"}
+        {isLoading ? "Ouverture du paiement..." : "Payer 9,99 EUR"}
       </button>
     </div>
   );
