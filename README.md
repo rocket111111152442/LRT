@@ -1,6 +1,7 @@
 # LRT
 
-Application Next.js TypeScript avec Tailwind CSS, Prisma et PostgreSQL pour creer et gerer des reparations.
+Application Next.js TypeScript avec Tailwind CSS pour creer et gerer des reparations.
+Elle peut utiliser PostgreSQL avec Prisma ou Firebase Firestore.
 
 ## Installation
 
@@ -24,6 +25,10 @@ Variables importantes :
 
 ```text
 DATABASE_URL
+DATABASE_PROVIDER
+FIREBASE_PROJECT_ID
+FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY
 AUTH_SECRET
 ADMIN_EMAIL
 ADMIN_PASSWORD
@@ -61,6 +66,8 @@ Creer ou mettre a jour l'administrateur :
 npm run prisma:seed
 ```
 
+Si `DATABASE_PROVIDER="firebase"`, les commandes de migration Prisma ne sont pas necessaires.
+
 Lancer l'application :
 
 ```bash
@@ -88,3 +95,16 @@ La configuration email peut etre saisie dans l'admin sur `/admin/email`. Les var
 Quand une reparation passe au statut `PRET`, un email est envoye au client si la configuration email est complete et si `readyEmailSent` vaut `false`. Si l'email n'est pas configure, l'application continue sans erreur.
 
 Pour activer le paiement Stripe, renseigner `STRIPE_SECRET_KEY` cote serveur et `STRIPE_WEBHOOK_SECRET` pour le webhook. Une cle secrete visible dans une capture ou un message doit etre revoquee dans Stripe puis remplacee par une nouvelle.
+
+## Firebase sur Vercel
+
+Pour utiliser Firebase a la place de PostgreSQL sur Vercel :
+
+```text
+DATABASE_PROVIDER="firebase"
+FIREBASE_PROJECT_ID="id-du-projet"
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk-...@id-du-projet.iam.gserviceaccount.com"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+Dans Firebase, utilisez Firestore en mode production, puis creez une cle de compte de service dans les parametres du projet. La cle privee doit garder les `\n` dans Vercel.
