@@ -2,10 +2,14 @@ import { QuoteDecisionClient } from "./QuoteDecisionClient";
 
 type QuotePageProps = {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ decision?: string }>;
 };
 
-export default async function QuotePage({ params }: QuotePageProps) {
+export default async function QuotePage({ params, searchParams }: QuotePageProps) {
   const { token } = await params;
+  const { decision } = await searchParams;
+  const initialDecision =
+    decision === "ACCEPTED" || decision === "REFUSED" ? decision : undefined;
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
@@ -18,7 +22,7 @@ export default async function QuotePage({ params }: QuotePageProps) {
             Validation du devis
           </h1>
         </header>
-        <QuoteDecisionClient token={token} />
+        <QuoteDecisionClient token={token} initialDecision={initialDecision} />
       </div>
     </main>
   );

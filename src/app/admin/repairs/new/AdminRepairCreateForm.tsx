@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { RepairIntakeExtras } from "@/components/RepairIntakeExtras";
 import {
   emptyRepairInput,
   RepairInput,
@@ -9,8 +10,13 @@ import {
   validateRepairInput,
 } from "@/lib/repairValidation";
 
+type TextFieldName = Exclude<
+  keyof RepairInput,
+  "photos" | "customerDropOffSignature"
+>;
+
 type FieldConfig = {
-  name: Exclude<keyof RepairInput, "photos">;
+  name: TextFieldName;
   label: string;
   type?: string;
   multiline?: boolean;
@@ -47,7 +53,7 @@ export function AdminRepairCreateForm() {
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function updateField(name: keyof RepairInput, value: string) {
+  function updateField(name: keyof RepairInput, value: string | string[]) {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError("");
@@ -134,6 +140,17 @@ export function AdminRepairCreateForm() {
           ))}
         </div>
       </fieldset>
+
+      <RepairIntakeExtras
+        photos={values.photos ?? []}
+        signature={values.customerDropOffSignature ?? ""}
+        photoError={errors.photos}
+        signatureError={errors.customerDropOffSignature}
+        onPhotosChange={(photos) => updateField("photos", photos)}
+        onSignatureChange={(signature) =>
+          updateField("customerDropOffSignature", signature)
+        }
+      />
 
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">

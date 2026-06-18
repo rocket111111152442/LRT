@@ -259,6 +259,15 @@ function formatPrice(cents: number) {
   }).format(cents / 100);
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
@@ -267,6 +276,7 @@ async function sendWithRepairSmtp(input: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 }): Promise<SendMailResult> {
   const smtpConfig = await getSmtpConfig();
 
@@ -287,6 +297,7 @@ async function sendWithRepairSmtp(input: {
       to: input.to,
       subject: input.subject,
       text: input.text,
+      html: input.html,
     });
 
     return { sent: true, skipped: false };
@@ -300,20 +311,44 @@ export async function sendQuoteEmail(
   repair: QuoteEmailInput,
 ): Promise<SendMailResult> {
   const quoteUrl = `${getAppUrl()}/devis/${repair.quoteToken}`;
+  const acceptUrl = `${quoteUrl}?decision=ACCEPTED`;
+  const refuseUrl = `${quoteUrl}?decision=REFUSED`;
+  const device = `${repair.deviceType} ${repair.brand} ${repair.model}`;
+  const price = formatPrice(repair.estimatedPriceCents);
   const text = [
     `Bonjour ${repair.firstName},`,
     "",
-    `Votre devis pour ${repair.deviceType} ${repair.brand} ${repair.model} est de ${formatPrice(repair.estimatedPriceCents)}.`,
+    `Votre devis pour ${device} est de ${price}.`,
     repair.ticketNumber ? `Ticket : ${repair.ticketNumber}` : "",
     "",
-    "Pour accepter ou refuser le devis, ouvrez ce lien :",
-    quoteUrl,
+    "Pour accepter le devis :",
+    acceptUrl,
+    "",
+    "Pour refuser le devis :",
+    refuseUrl,
   ].filter(Boolean).join("\n");
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
+      <p>Bonjour ${escapeHtml(repair.firstName)},</p>
+      <p>Votre devis pour <strong>${escapeHtml(device)}</strong> est de <strong>${escapeHtml(price)}</strong>.</p>
+      ${
+        repair.ticketNumber
+          ? `<p>Ticket : <strong>${escapeHtml(repair.ticketNumber)}</strong></p>`
+          : ""
+      }
+      <p style="margin:24px 0">
+        <a href="${acceptUrl}" style="display:inline-block;background:#047857;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:6px;font-weight:bold;margin-right:8px">J'accepte</a>
+        <a href="${refuseUrl}" style="display:inline-block;background:#b91c1c;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:6px;font-weight:bold">Je refuse</a>
+      </p>
+      <p style="font-size:13px;color:#475569">Si les boutons ne fonctionnent pas, ouvrez ce lien : ${escapeHtml(quoteUrl)}</p>
+    </div>
+  `;
 
   return sendWithRepairSmtp({
     to: repair.email,
     subject: `Votre devis LRT ${repair.ticketNumber ?? ""}`.trim(),
     text,
+    html,
   });
 }
 

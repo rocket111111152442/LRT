@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type QuoteRepair = {
   ticketNumber: string | null;
@@ -24,11 +24,20 @@ function formatPrice(cents: number | null) {
   }).format(cents / 100);
 }
 
-export function QuoteDecisionClient({ token }: { token: string }) {
+type QuoteDecisionClientProps = {
+  token: string;
+  initialDecision?: "ACCEPTED" | "REFUSED";
+};
+
+export function QuoteDecisionClient({
+  token,
+  initialDecision,
+}: QuoteDecisionClientProps) {
   const [repair, setRepair] = useState<QuoteRepair | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const appliedInitialDecision = useRef(false);
 
   const loadQuote = useCallback(async () => {
     setIsLoading(true);
@@ -59,7 +68,7 @@ export function QuoteDecisionClient({ token }: { token: string }) {
     return () => window.clearTimeout(timeoutId);
   }, [loadQuote]);
 
-  async function answerQuote(action: "ACCEPTED" | "REFUSED") {
+  const answerQuote = useCallback(async (action: "ACCEPTED" | "REFUSED") => {
     setIsSaving(true);
     setError("");
 
@@ -82,7 +91,22 @@ export function QuoteDecisionClient({ token }: { token: string }) {
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    if (
+      !initialDecision ||
+      !repair ||
+      appliedInitialDecision.current ||
+      repair.quoteStatus === "ACCEPTED" ||
+      repair.quoteStatus === "REFUSED"
+    ) {
+      return;
+    }
+
+    appliedInitialDecision.current = true;
+    void answerQuote(initialDecision);
+  }, [answerQuote, initialDecision, repair]);
 
   if (isLoading) {
     return (

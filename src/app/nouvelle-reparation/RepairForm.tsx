@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { RepairIntakeExtras } from "@/components/RepairIntakeExtras";
 import {
   emptyRepairInput,
   RepairInput,
@@ -15,8 +17,13 @@ type CreatedRepair = {
   createdAt: string;
 };
 
+type TextFieldName = Exclude<
+  keyof RepairInput,
+  "photos" | "customerDropOffSignature"
+>;
+
 type FieldConfig = {
-  name: Exclude<keyof RepairInput, "photos">;
+  name: TextFieldName;
   label: string;
   type?: string;
   multiline?: boolean;
@@ -24,24 +31,24 @@ type FieldConfig = {
 };
 
 const customerFields: FieldConfig[] = [
-  { name: "firstName", label: "Prénom", autoComplete: "given-name" },
+  { name: "firstName", label: "Prenom", autoComplete: "given-name" },
   { name: "lastName", label: "Nom", autoComplete: "family-name" },
-  { name: "phone", label: "Téléphone", type: "tel", autoComplete: "tel" },
+  { name: "phone", label: "Telephone", type: "tel", autoComplete: "tel" },
   { name: "email", label: "Email", type: "email", autoComplete: "email" },
 ];
 
 const deviceFields: FieldConfig[] = [
   { name: "deviceType", label: "Type d'appareil" },
   { name: "brand", label: "Marque" },
-  { name: "model", label: "Modèle" },
+  { name: "model", label: "Modele" },
   {
     name: "issueDescription",
-    label: "Description du problème",
+    label: "Description du probleme",
     multiline: true,
   },
   {
     name: "unlockCodeOrNote",
-    label: "Code ou note de déverrouillage",
+    label: "Code ou note de deverrouillage",
     multiline: true,
   },
 ];
@@ -50,12 +57,10 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
   const [errors, setErrors] = useState<RepairInputErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createdRepair, setCreatedRepair] = useState<CreatedRepair | null>(
-    null,
-  );
+  const [createdRepair, setCreatedRepair] = useState<CreatedRepair | null>(null);
   const [submitError, setSubmitError] = useState("");
 
-  function updateField(name: keyof RepairInput, value: string) {
+  function updateField(name: keyof RepairInput, value: string | string[]) {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError("");
@@ -98,7 +103,7 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
           payload.error ??
             (Object.keys(apiErrors).length > 0
               ? ""
-              : "La demande n'a pas pu être enregistrée."),
+              : "La demande n'a pas pu etre enregistree."),
         );
         return;
       }
@@ -107,7 +112,7 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
       setErrors({});
       setCreatedRepair(payload.repair);
     } catch {
-      setSubmitError("La demande n'a pas pu être envoyée.");
+      setSubmitError("La demande n'a pas pu etre envoyee.");
     } finally {
       setIsSubmitting(false);
     }
@@ -153,6 +158,17 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
         </div>
       </fieldset>
 
+      <RepairIntakeExtras
+        photos={values.photos ?? []}
+        signature={values.customerDropOffSignature ?? ""}
+        photoError={errors.photos}
+        signatureError={errors.customerDropOffSignature}
+        onPhotosChange={(photos) => updateField("photos", photos)}
+        onSignatureChange={(signature) =>
+          updateField("customerDropOffSignature", signature)
+        }
+      />
+
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {submitError}
@@ -160,10 +176,18 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
       ) : null}
 
       {createdRepair ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          Réparation créée avec le statut {createdRepair.status}. Référence :{" "}
-          {createdRepair.id}.
-        </p>
+        <div className="grid gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <p>
+            Reparation creee. Ticket :{" "}
+            <strong>{createdRepair.ticketNumber ?? createdRepair.id}</strong>.
+          </p>
+          <Link
+            href="/suivi"
+            className="w-fit font-semibold text-emerald-950 underline-offset-4 hover:underline"
+          >
+            Suivre une reparation
+          </Link>
+        </div>
       ) : null}
 
       <div className="flex justify-end">
@@ -172,7 +196,7 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
           disabled={isSubmitting}
           className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {isSubmitting ? "Enregistrement..." : "Créer la réparation"}
+          {isSubmitting ? "Enregistrement..." : "Creer la reparation"}
         </button>
       </div>
     </form>
@@ -195,11 +219,7 @@ function FormField({
     "min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10";
 
   return (
-    <div
-      className={
-        field.multiline ? "grid gap-2 sm:col-span-2" : "grid gap-2"
-      }
-    >
+    <div className={field.multiline ? "grid gap-2 sm:col-span-2" : "grid gap-2"}>
       <label htmlFor={id} className="text-sm font-medium text-slate-800">
         {field.label}
       </label>

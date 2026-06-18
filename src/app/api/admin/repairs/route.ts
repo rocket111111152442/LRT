@@ -114,6 +114,24 @@ export async function POST(request: Request) {
       message: "Reparation creee manuellement depuis l'admin.",
     });
 
+    if (validation.data.photos && validation.data.photos.length > 0) {
+      await addRepairEvent({
+        repairId: repair.id,
+        proAccountId: admin.user.proAccountId,
+        type: "PHOTOS_ADDED",
+        message: "Photos de depot ajoutees.",
+      });
+    }
+
+    if (validation.data.customerDropOffSignature) {
+      await addRepairEvent({
+        repairId: repair.id,
+        proAccountId: admin.user.proAccountId,
+        type: "DROP_OFF_SIGNATURE_ADDED",
+        message: "Signature client au depot ajoutee.",
+      });
+    }
+
     return NextResponse.json({ repair }, { status: 201 });
   } catch {
     return NextResponse.json(
