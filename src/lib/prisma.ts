@@ -223,13 +223,29 @@ async function findPendingProSignup(where: Dict) {
   return null;
 }
 
+async function findInventoryItem(where: Dict) {
+  if (typeof where.id === "string") {
+    return findById("inventoryItems", where.id);
+  }
+
+  return null;
+}
+
 function now() {
   return new Date();
 }
 
 function matchesSearch(record: Dict, search: string) {
   const needle = search.toLowerCase();
-  const fields = ["firstName", "lastName", "phone", "email", "brand", "model"];
+  const fields = [
+    "ticketNumber",
+    "firstName",
+    "lastName",
+    "phone",
+    "email",
+    "brand",
+    "model",
+  ];
 
   return fields.some((field) =>
     String(record[field] ?? "")
@@ -446,11 +462,25 @@ function createFirestorePrisma() {
         return repairs.map((repair) => applySelect(repair, args.select));
       },
       async findUnique(args: { where: Dict; select?: Dict }) {
-        if (typeof args.where.id !== "string") {
-          return null;
+        if (typeof args.where.id === "string") {
+          return applySelect(await findById("repairs", args.where.id), args.select);
         }
 
-        return applySelect(await findById("repairs", args.where.id), args.select);
+        if (typeof args.where.ticketNumber === "string") {
+          return applySelect(
+            await findByField("repairs", "ticketNumber", args.where.ticketNumber),
+            args.select,
+          );
+        }
+
+        if (typeof args.where.quoteToken === "string") {
+          return applySelect(
+            await findByField("repairs", "quoteToken", args.where.quoteToken),
+            args.select,
+          );
+        }
+
+        return null;
       },
       async create(args: { data: Dict; select?: Dict }) {
         const id = randomUUID();
@@ -460,6 +490,11 @@ function createFirestorePrisma() {
           id,
           status: args.data.status ?? "PAS_ENCORE_EN_REPARATION",
           readyEmailSent: args.data.readyEmailSent ?? false,
+          smsReadySent: args.data.smsReadySent ?? false,
+          reviewEmailSent: args.data.reviewEmailSent ?? false,
+          quoteStatus: args.data.quoteStatus ?? "NONE",
+          photos: args.data.photos ?? [],
+          partsStatus: args.data.partsStatus ?? "NONE",
           archivedAt: args.data.archivedAt ?? null,
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -494,6 +529,111 @@ function createFirestorePrisma() {
       },
     },
 
+    repairEvent: {
+      async findMany(args: { where?: Dict; orderBy?: Dict; select?: Dict }) {
+        let query: Query = collection("repairEvents");
+        const where = args.where ?? {};
+
+        if (typeof where.repairId === "string") {
+          query = query.where("repairId", "==", where.repairId);
+        }
+
+        if (typeof where.proAccountId === "string") {
+          query = query.where("proAccountId", "==", where.proAccountId);
+        }
+
+        const snapshot = await query.get();
+        const events = snapshot.docs
+          .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+          .sort(
+            (left, right) =>
+              Number((right.createdAt as Date | undefined)?.getTime?.() ?? 0) -
+              Number((left.createdAt as Date | undefined)?.getTime?.() ?? 0),
+          );
+
+        return events.map((event) => applySelect(event, args.select));
+      },
+      async create(args: { data: Dict; select?: Dict }) {
+        const id = randomUUID();
+        const event = {
+          ...args.data,
+          id,
+          createdAt: now(),
+        };
+
+        await collection("repairEvents").doc(id).set(firestoreData(event));
+        return applySelect(event, args.select);
+      },
+    },
+
+    inventoryItem: {
+      async findMany(args: { where?: Dict; orderBy?: Dict; select?: Dict }) {
+        let query: Query = collection("inventoryItems");
+        const where = args.where ?? {};
+
+        if (typeof where.proAccountId === "string") {
+          query = query.where("proAccountId", "==", where.proAccountId);
+        }
+
+        const snapshot = await query.get();
+        const items = snapshot.docs
+          .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+          .sort((left, right) =>
+            String(left.name ?? "").localeCompare(String(right.name ?? "")),
+          );
+
+        return items.map((item) => applySelect(item, args.select));
+      },
+      async findUnique(args: { where: Dict; select?: Dict }) {
+        return applySelect(await findInventoryItem(args.where), args.select);
+      },
+      async create(args: { data: Dict; select?: Dict }) {
+        const id = randomUUID();
+        const timestamp = now();
+        const item = {
+          ...args.data,
+          id,
+          quantity: args.data.quantity ?? 0,
+          lowStockThreshold: args.data.lowStockThreshold ?? 1,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+
+        await collection("inventoryItems").doc(id).set(firestoreData(item));
+        return applySelect(item, args.select);
+      },
+      async update(args: { where: Dict; data: Dict; select?: Dict }) {
+        const item = await findInventoryItem(args.where);
+
+        if (!item) {
+          throw new Error("Inventory item not found.");
+        }
+
+        await collection("inventoryItems").doc(String(item.id)).set(
+          firestoreData({
+            ...args.data,
+            updatedAt: now(),
+          }),
+          { merge: true },
+        );
+
+        return applySelect(
+          await findById("inventoryItems", String(item.id)),
+          args.select,
+        );
+      },
+      async delete(args: { where: Dict }) {
+        const item = await findInventoryItem(args.where);
+
+        if (!item) {
+          throw new Error("Inventory item not found.");
+        }
+
+        await collection("inventoryItems").doc(String(item.id)).delete();
+        return item;
+      },
+    },
+
     emailSettings: {
       async findUnique(args: { where: Dict }) {
         if (typeof args.where.id !== "string") {
@@ -518,6 +658,7 @@ function createFirestorePrisma() {
           shopAddress: null,
           shopOpeningHours: null,
           shopPhone: null,
+          googleReviewUrl: null,
         };
         const data = existing
           ? { ...args.update, updatedAt: timestamp }

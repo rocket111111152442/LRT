@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { addRepairEvent } from "@/lib/repairEvents";
+import { generateTicketNumber } from "@/lib/repairTickets";
 import { validateRepairInput } from "@/lib/repairValidation";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -50,13 +52,22 @@ export async function POST(request: Request) {
       data: {
         ...validation.data,
         proAccountId,
+        ticketNumber: await generateTicketNumber(),
         status: "PAS_ENCORE_EN_REPARATION",
       },
       select: {
         id: true,
+        ticketNumber: true,
         status: true,
         createdAt: true,
       },
+    });
+
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId,
+      type: "CREATED",
+      message: "Reparation creee depuis le formulaire client.",
     });
 
     return NextResponse.json({ repair }, { status: 201 });

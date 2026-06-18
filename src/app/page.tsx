@@ -3,6 +3,7 @@ import { LrtLogo } from "@/components/LrtLogo";
 
 const features = [
   "Formulaire client public avec QR code unique",
+  "Suivi client avec ticket court",
   "Tableau admin pour suivre toutes les reparations",
   "Email automatique a chaque changement de statut",
   "Configuration email et Firebase par compte pro",
@@ -10,6 +11,8 @@ const features = [
   "Statuts clairs pour garder l'atelier organise",
   "Validation par code email a l'inscription et a chaque connexion",
   "Service client joignable 24h/24 par telephone et formulaire",
+  "Devis avec acceptation ou refus par le client",
+  "Stock simple avec alertes de pieces faibles",
 ];
 
 const workflow = [
@@ -41,6 +44,8 @@ const extraFeatures = [
   "Creation manuelle depuis l'admin",
   "QR code unique par compte pro",
   "QR code pret a imprimer",
+  "Numero de ticket court",
+  "Page de suivi client",
   "Liste complete des reparations",
   "Recherche par nom de client",
   "Recherche par telephone",
@@ -49,10 +54,26 @@ const extraFeatures = [
   "Filtre par statut",
   "Fiche detaillee par reparation",
   "Modification rapide du statut",
+  "Devis avant reparation",
+  "Validation du devis par bouton client",
   "Notes internes pour l'atelier",
+  "Photos de l'appareil",
+  "Signature client au depot",
+  "Signature client a la recuperation",
+  "Recu imprimable",
+  "Historique complet des actions",
   "Archivage des dossiers termines",
   "Suppression definitive avec confirmation",
   "Email automatique quand le statut change",
+  "SMS pret si Twilio est configure",
+  "Relance automatique apres 7 jours pret",
+  "Demande d'avis Google apres recuperation",
+  "Export CSV",
+  "Tableau de bord avec chiffres",
+  "Statistiques par marque",
+  "Gestion des pieces",
+  "Stock simple de pieces",
+  "Alertes stock bas",
   "Protection anti double envoi d'email",
   "Configuration SMTP depuis l'admin",
   "Informations du magasin dans les emails",
@@ -129,6 +150,12 @@ export default function HomePage() {
                 className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Connexion admin
+              </Link>
+              <Link
+                href="/suivi"
+                className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Suivre une reparation
               </Link>
               <Link
                 href="/service-client"

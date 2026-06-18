@@ -1,12 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import { REPAIR_STATUSES } from "@/lib/repairValidation";
-import type { RepairStatus } from "@/lib/repairValidation";
+import {
+  FormEvent,
+  PointerEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  PART_STATUSES,
+  REPAIR_STATUSES,
+  type PartStatus,
+  type RepairStatus,
+} from "@/lib/repairValidation";
+
+type RepairEvent = {
+  id: string;
+  type: string;
+  message: string;
+  createdAt: string;
+};
 
 type RepairDetail = {
   id: string;
+  ticketNumber: string | null;
   firstName: string;
   lastName: string;
   phone: string;
@@ -19,6 +38,18 @@ type RepairDetail = {
   status: RepairStatus;
   internalNotes: string | null;
   readyEmailSent: boolean;
+  smsReadySent: boolean;
+  reviewEmailSent: boolean;
+  readyReminderSentAt: string | null;
+  estimatedPriceCents: number | null;
+  quoteStatus: "NONE" | "SENT" | "ACCEPTED" | "REFUSED";
+  quoteSentAt: string | null;
+  quoteRespondedAt: string | null;
+  photos: string[];
+  customerDropOffSignature: string | null;
+  customerPickupSignature: string | null;
+  partsStatus: PartStatus;
+  partsDescription: string | null;
   archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -39,14 +70,80 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+function formatPrice(cents: number | null) {
+  if (!cents) {
+    return "-";
+  }
+
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
+
+function centsToInput(cents: number | null) {
+  return cents ? String((cents / 100).toFixed(2)) : "";
+}
+
+function inputToCents(value: string) {
+  if (!value.trim()) {
+    return null;
+  }
+
+  return Math.round(Number(value.replace(",", ".")) * 100);
+}
+
+async function readFiles(files: FileList | null) {
+  if (!files) {
+    return [];
+  }
+
+  const selectedFiles = Array.from(files).slice(0, 3);
+
+  return Promise.all(
+    selectedFiles.map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        }),
+    ),
+  );
+}
+
 export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [repair, setRepair] = useState<RepairDetail | null>(null);
+  const [events, setEvents] = useState<RepairEvent[]>([]);
   const [status, setStatus] = useState<RepairStatus>("PAS_ENCORE_EN_REPARATION");
   const [internalNotes, setInternalNotes] = useState("");
+  const [estimatedPrice, setEstimatedPrice] = useState("");
+  const [partsStatus, setPartsStatus] = useState<PartStatus>("NONE");
+  const [partsDescription, setPartsDescription] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [dropOffSignature, setDropOffSignature] = useState("");
+  const [pickupSignature, setPickupSignature] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+  function syncRepair(payloadRepair: RepairDetail, payloadEvents?: RepairEvent[]) {
+    setRepair(payloadRepair);
+    setStatus(payloadRepair.status);
+    setInternalNotes(payloadRepair.internalNotes ?? "");
+    setEstimatedPrice(centsToInput(payloadRepair.estimatedPriceCents));
+    setPartsStatus(payloadRepair.partsStatus);
+    setPartsDescription(payloadRepair.partsDescription ?? "");
+    setPhotos(payloadRepair.photos ?? []);
+    setDropOffSignature(payloadRepair.customerDropOffSignature ?? "");
+    setPickupSignature(payloadRepair.customerPickupSignature ?? "");
+
+    if (payloadEvents) {
+      setEvents(payloadEvents);
+    }
+  }
 
   const loadRepair = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
@@ -67,9 +164,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         return;
       }
 
-      setRepair(payload.repair);
-      setStatus(payload.repair.status);
-      setInternalNotes(payload.repair.internalNotes ?? "");
+      syncRepair(payload.repair, payload.events ?? []);
     } catch {
       if (!signal?.aborted) {
         setError("Chargement impossible.");
@@ -118,11 +213,11 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         return null;
       }
 
-      setRepair(payload.repair);
-      setStatus(payload.repair.status);
-      setInternalNotes(payload.repair.internalNotes ?? "");
+      syncRepair(payload.repair, payload.events ?? []);
 
-      if (payload.mail?.attempted && payload.mail?.sent) {
+      if (payload.mail?.quoteAttempted) {
+        setMessage("Devis enregistre et email tente.");
+      } else if (payload.mail?.attempted && payload.mail?.sent) {
         setMessage("Mise a jour enregistree. Email envoye au client.");
       } else if (payload.mail?.attempted && !payload.mail?.sent) {
         setMessage(
@@ -146,6 +241,16 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     await patchRepair({
       status,
       internalNotes,
+      estimatedPriceCents: inputToCents(estimatedPrice),
+      partsStatus,
+      partsDescription,
+    });
+  }
+
+  async function handleSendQuote() {
+    await patchRepair({
+      estimatedPriceCents: inputToCents(estimatedPrice),
+      sendQuote: true,
     });
   }
 
@@ -194,6 +299,24 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     }
   }
 
+  async function handlePhotoChange(files: FileList | null) {
+    const dataUrls = await readFiles(files);
+    setPhotos(dataUrls);
+    setMessage("");
+    setError("");
+  }
+
+  async function savePhotos() {
+    await patchRepair({ photos });
+  }
+
+  async function saveSignatures() {
+    await patchRepair({
+      customerDropOffSignature: dropOffSignature,
+      customerPickupSignature: pickupSignature,
+    });
+  }
+
   if (isLoading) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
@@ -226,6 +349,12 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           Retour aux reparations
         </Link>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/admin/repairs/${repair.id}/receipt`}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+          >
+            Recu
+          </Link>
           {!repair.archivedAt ? (
             <button
               type="button"
@@ -259,39 +388,122 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         </p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-950">Details</h2>
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <DetailItem label="Reference" value={repair.id} />
-            <DetailItem label="Statut" value={repair.status} />
-            <DetailItem
-              label="Client"
-              value={`${repair.firstName} ${repair.lastName}`}
+      <div className="grid gap-6 lg:grid-cols-[1fr_390px]">
+        <div className="grid gap-6">
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-950">Details</h2>
+            <dl className="grid gap-4 sm:grid-cols-2">
+              <DetailItem label="Ticket" value={repair.ticketNumber ?? repair.id} />
+              <DetailItem label="Statut" value={repair.status} />
+              <DetailItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
+              <DetailItem label="Telephone" value={repair.phone} />
+              <DetailItem label="Email" value={repair.email} />
+              <DetailItem label="Type" value={repair.deviceType} />
+              <DetailItem label="Marque" value={repair.brand} />
+              <DetailItem label="Modele" value={repair.model} />
+              <DetailItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
+              <DetailItem label="Devis" value={repair.quoteStatus} />
+              <DetailItem label="Email PRET envoye" value={repair.readyEmailSent ? "Oui" : "Non"} />
+              <DetailItem label="SMS PRET envoye" value={repair.smsReadySent ? "Oui" : "Non"} />
+              <DetailItem label="Avis envoye" value={repair.reviewEmailSent ? "Oui" : "Non"} />
+              <DetailItem label="Piece" value={repair.partsStatus} />
+              <DetailItem label="Archivee le" value={formatDate(repair.archivedAt)} />
+              <DetailItem label="Creee le" value={formatDate(repair.createdAt)} />
+              <DetailItem
+                label="Description du probleme"
+                value={repair.issueDescription}
+                wide
+              />
+              <DetailItem
+                label="Code ou note de deverrouillage"
+                value={repair.unlockCodeOrNote || "-"}
+                wide
+              />
+              <DetailItem
+                label="Details piece"
+                value={repair.partsDescription || "-"}
+                wide
+              />
+            </dl>
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-950">Photos</h2>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(event) => void handlePhotoChange(event.target.files)}
+              className="text-sm"
             />
-            <DetailItem label="Telephone" value={repair.phone} />
-            <DetailItem label="Email" value={repair.email} />
-            <DetailItem label="Type" value={repair.deviceType} />
-            <DetailItem label="Marque" value={repair.brand} />
-            <DetailItem label="Modele" value={repair.model} />
-            <DetailItem
-              label="Email PRET envoye"
-              value={repair.readyEmailSent ? "Oui" : "Non"}
-            />
-            <DetailItem label="Archivee le" value={formatDate(repair.archivedAt)} />
-            <DetailItem label="Creee le" value={formatDate(repair.createdAt)} />
-            <DetailItem label="Mise a jour le" value={formatDate(repair.updatedAt)} />
-            <DetailItem
-              label="Description du probleme"
-              value={repair.issueDescription}
-              wide
-            />
-            <DetailItem
-              label="Code ou note de deverrouillage"
-              value={repair.unlockCodeOrNote || "-"}
-              wide
-            />
-          </dl>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {photos.map((photo, index) => (
+                <img
+                  key={`${photo.slice(0, 24)}-${index}`}
+                  src={photo}
+                  alt={`Photo ${index + 1}`}
+                  className="aspect-[4/3] w-full rounded-md border border-slate-200 object-cover"
+                />
+              ))}
+              {photos.length === 0 ? (
+                <p className="text-sm text-slate-500">Aucune photo.</p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={savePhotos}
+              disabled={isSaving}
+              className="w-fit rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Enregistrer les photos
+            </button>
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-950">Signatures</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <SignatureBox
+                title="Depot client"
+                value={dropOffSignature}
+                onChange={setDropOffSignature}
+              />
+              <SignatureBox
+                title="Recuperation client"
+                value={pickupSignature}
+                onChange={setPickupSignature}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={saveSignatures}
+              disabled={isSaving}
+              className="w-fit rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Enregistrer les signatures
+            </button>
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-950">Historique</h2>
+            <div className="grid gap-3">
+              {events.map((event) => (
+                <div
+                  key={event.id}
+                  className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <p className="text-sm font-semibold text-slate-950">
+                    {event.message}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {event.type} - {formatDate(event.createdAt)}
+                  </p>
+                </div>
+              ))}
+              {events.length === 0 ? (
+                <p className="text-sm text-slate-500">Aucun historique.</p>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         <form
@@ -299,40 +511,49 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           className="grid content-start gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
         >
           <h2 className="text-xl font-semibold text-slate-950">Gestion</h2>
-          <div className="grid gap-2">
-            <label htmlFor="repair-status" className="text-sm font-medium text-slate-800">
-              Statut
-            </label>
-            <select
-              id="repair-status"
-              value={status}
-              onChange={(event) => setStatus(event.target.value as RepairStatus)}
-              className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-            >
-              {REPAIR_STATUSES.map((repairStatus) => (
-                <option key={repairStatus} value={repairStatus}>
-                  {repairStatus}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid gap-2">
-            <label
-              htmlFor="repair-internal-notes"
-              className="text-sm font-medium text-slate-800"
-            >
-              Notes internes
-            </label>
-            <textarea
-              id="repair-internal-notes"
-              value={internalNotes}
-              onChange={(event) => setInternalNotes(event.target.value)}
-              rows={8}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-            />
-          </div>
-
+          <SelectField
+            id="repair-status"
+            label="Statut"
+            value={status}
+            options={REPAIR_STATUSES}
+            onChange={(value) => setStatus(value as RepairStatus)}
+          />
+          <TextField
+            id="estimated-price"
+            label="Prix estime EUR"
+            type="number"
+            value={estimatedPrice}
+            onChange={setEstimatedPrice}
+          />
+          <button
+            type="button"
+            onClick={handleSendQuote}
+            disabled={isSaving}
+            className="min-h-11 rounded-md border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Envoyer le devis
+          </button>
+          <SelectField
+            id="parts-status"
+            label="Piece"
+            value={partsStatus}
+            options={PART_STATUSES}
+            onChange={(value) => setPartsStatus(value as PartStatus)}
+          />
+          <TextAreaField
+            id="parts-description"
+            label="Details piece"
+            value={partsDescription}
+            onChange={setPartsDescription}
+            rows={4}
+          />
+          <TextAreaField
+            id="repair-internal-notes"
+            label="Notes internes"
+            value={internalNotes}
+            onChange={setInternalNotes}
+            rows={7}
+          />
           <button
             type="submit"
             disabled={isSaving}
@@ -363,6 +584,207 @@ function DetailItem({
       <dd className="whitespace-pre-wrap break-words text-sm text-slate-900">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function TextField({
+  id,
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+}) {
+  return (
+    <label htmlFor={id} className="grid gap-2 text-sm font-medium text-slate-800">
+      {label}
+      <input
+        id={id}
+        type={type}
+        value={value}
+        min={type === "number" ? "0" : undefined}
+        step={type === "number" ? "0.01" : undefined}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+      />
+    </label>
+  );
+}
+
+function TextAreaField({
+  id,
+  label,
+  value,
+  onChange,
+  rows,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  rows: number;
+}) {
+  return (
+    <label htmlFor={id} className="grid gap-2 text-sm font-medium text-slate-800">
+      {label}
+      <textarea
+        id={id}
+        value={value}
+        rows={rows}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-md border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+      />
+    </label>
+  );
+}
+
+function SelectField({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: readonly string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label htmlFor={id} className="grid gap-2 text-sm font-medium text-slate-800">
+      {label}
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function SignatureBox({
+  title,
+  value,
+  onChange,
+}: {
+  title: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  function getPoint(event: PointerEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current;
+
+    if (!canvas) {
+      return null;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function startDrawing(event: PointerEvent<HTMLCanvasElement>) {
+    const point = getPoint(event);
+    const context = canvasRef.current?.getContext("2d");
+
+    if (!point || !context) {
+      return;
+    }
+
+    context.strokeStyle = "#0f172a";
+    context.lineWidth = 3;
+    context.lineCap = "round";
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+    setIsDrawing(true);
+  }
+
+  function draw(event: PointerEvent<HTMLCanvasElement>) {
+    if (!isDrawing) {
+      return;
+    }
+
+    const point = getPoint(event);
+    const context = canvasRef.current?.getContext("2d");
+
+    if (!point || !context) {
+      return;
+    }
+
+    context.lineTo(point.x, point.y);
+    context.stroke();
+  }
+
+  function stopDrawing() {
+    if (!isDrawing) {
+      return;
+    }
+
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+
+    if (canvas) {
+      onChange(canvas.toDataURL("image/png"));
+    }
+  }
+
+  function clearSignature() {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+
+    if (canvas && context) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    onChange("");
+  }
+
+  return (
+    <div className="grid gap-2">
+      <p className="text-sm font-medium text-slate-800">{title}</p>
+      {value ? (
+        <img
+          src={value}
+          alt={title}
+          className="h-28 w-full rounded-md border border-slate-200 bg-white object-contain"
+        />
+      ) : null}
+      <canvas
+        ref={canvasRef}
+        width={520}
+        height={180}
+        onPointerDown={startDrawing}
+        onPointerMove={draw}
+        onPointerUp={stopDrawing}
+        onPointerLeave={stopDrawing}
+        className="h-32 w-full touch-none rounded-md border border-slate-300 bg-white"
+      />
+      <button
+        type="button"
+        onClick={clearSignature}
+        className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline"
+      >
+        Effacer
+      </button>
     </div>
   );
 }

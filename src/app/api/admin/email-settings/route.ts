@@ -29,6 +29,7 @@ function serializeSettings(settings: {
   shopAddress: string | null;
   shopOpeningHours: string | null;
   shopPhone: string | null;
+  googleReviewUrl: string | null;
 }) {
   return {
     smtpEmail: settings.smtpEmail ?? "",
@@ -41,6 +42,7 @@ function serializeSettings(settings: {
     shopAddress: settings.shopAddress ?? "",
     shopOpeningHours: settings.shopOpeningHours ?? "",
     shopPhone: settings.shopPhone ?? "",
+    googleReviewUrl: settings.googleReviewUrl ?? "",
   };
 }
 
@@ -110,6 +112,7 @@ export async function PATCH(request: Request) {
       shopAddress: readOptionalText(body, "shopAddress"),
       shopOpeningHours: readOptionalText(body, "shopOpeningHours"),
       shopPhone: readOptionalText(body, "shopPhone"),
+      googleReviewUrl: readOptionalText(body, "googleReviewUrl"),
     },
     create: {
       id: SETTINGS_ID,
@@ -123,6 +126,7 @@ export async function PATCH(request: Request) {
       shopAddress: readOptionalText(body, "shopAddress"),
       shopOpeningHours: readOptionalText(body, "shopOpeningHours"),
       shopPhone: readOptionalText(body, "shopPhone"),
+      googleReviewUrl: readOptionalText(body, "googleReviewUrl"),
     },
   });
 

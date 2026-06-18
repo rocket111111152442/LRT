@@ -13,6 +13,12 @@ type RepairStatusEmailInput = ReadyRepairEmailInput & {
   status: string;
 };
 
+type QuoteEmailInput = ReadyRepairEmailInput & {
+  ticketNumber: string | null;
+  estimatedPriceCents: number;
+  quoteToken: string;
+};
+
 type SendMailResult = {
   sent: boolean;
   skipped: boolean;
@@ -30,6 +36,7 @@ type SmtpConfig = {
   };
   from: string;
   shopLines: string[];
+  googleReviewUrl?: string | null;
 };
 
 function getEnvShopLines() {
@@ -60,6 +67,7 @@ function getEnvSmtpConfig(): SmtpConfig | null {
     auth: user && pass ? { user, pass } : undefined,
     from,
     shopLines: getEnvShopLines(),
+    googleReviewUrl: process.env.GOOGLE_REVIEW_URL || null,
   };
 }
 
@@ -182,6 +190,7 @@ async function getSmtpConfig(): Promise<SmtpConfig | null> {
           ? `${settings.smtpFromName} <${settings.smtpEmail}>`
           : settings.smtpEmail,
         shopLines,
+        googleReviewUrl: settings.googleReviewUrl ?? process.env.GOOGLE_REVIEW_URL ?? null,
       };
     }
   } catch (error) {
@@ -189,6 +198,116 @@ async function getSmtpConfig(): Promise<SmtpConfig | null> {
   }
 
   return getEnvSmtpConfig();
+}
+
+function formatPrice(cents: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
+
+function getAppUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
+
+async function sendWithRepairSmtp(input: {
+  to: string;
+  subject: string;
+  text: string;
+}): Promise<SendMailResult> {
+  const smtpConfig = await getSmtpConfig();
+
+  if (!smtpConfig) {
+    return { sent: false, skipped: true };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      auth: smtpConfig.auth,
+    });
+
+    await transporter.sendMail({
+      from: smtpConfig.from,
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+    });
+
+    return { sent: true, skipped: false };
+  } catch (error) {
+    console.error("Repair email failed", error);
+    return { sent: false, skipped: false };
+  }
+}
+
+export async function sendQuoteEmail(
+  repair: QuoteEmailInput,
+): Promise<SendMailResult> {
+  const quoteUrl = `${getAppUrl()}/devis/${repair.quoteToken}`;
+  const text = [
+    `Bonjour ${repair.firstName},`,
+    "",
+    `Votre devis pour ${repair.deviceType} ${repair.brand} ${repair.model} est de ${formatPrice(repair.estimatedPriceCents)}.`,
+    repair.ticketNumber ? `Ticket : ${repair.ticketNumber}` : "",
+    "",
+    "Pour accepter ou refuser le devis, ouvrez ce lien :",
+    quoteUrl,
+  ].filter(Boolean).join("\n");
+
+  return sendWithRepairSmtp({
+    to: repair.email,
+    subject: `Votre devis LRT ${repair.ticketNumber ?? ""}`.trim(),
+    text,
+  });
+}
+
+export async function sendReviewRequestEmail(
+  repair: ReadyRepairEmailInput,
+): Promise<SendMailResult> {
+  const smtpConfig = await getSmtpConfig();
+  const reviewUrl = smtpConfig?.googleReviewUrl;
+
+  if (!smtpConfig || !reviewUrl) {
+    return { sent: false, skipped: true };
+  }
+
+  const text = [
+    `Bonjour ${repair.firstName},`,
+    "",
+    `Merci pour votre confiance pour votre ${repair.deviceType} ${repair.brand} ${repair.model}.`,
+    "Vous pouvez laisser un avis ici :",
+    reviewUrl,
+    "",
+    ...smtpConfig.shopLines,
+  ].join("\n");
+
+  return sendWithRepairSmtp({
+    to: repair.email,
+    subject: "Votre avis compte pour nous",
+    text,
+  });
+}
+
+export async function sendReadyReminderEmail(
+  repair: ReadyRepairEmailInput & { ticketNumber?: string | null },
+): Promise<SendMailResult> {
+  const text = [
+    `Bonjour ${repair.firstName},`,
+    "",
+    `Petit rappel : votre ${repair.deviceType} ${repair.brand} ${repair.model} est pret au magasin.`,
+    repair.ticketNumber ? `Ticket : ${repair.ticketNumber}` : "",
+    "Vous pouvez venir le recuperer pendant les horaires d'ouverture.",
+  ].filter(Boolean).join("\n");
+
+  return sendWithRepairSmtp({
+    to: repair.email,
+    subject: "Rappel : votre appareil est pret",
+    text,
+  });
 }
 
 export async function sendReadyRepairEmail(

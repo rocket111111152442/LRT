@@ -13,6 +13,7 @@ type EmailSettingsFormState = {
   shopAddress: string;
   shopOpeningHours: string;
   shopPhone: string;
+  googleReviewUrl: string;
 };
 
 type FieldHelp = {
@@ -32,6 +33,7 @@ const emptySettings: EmailSettingsFormState = {
   shopAddress: "",
   shopOpeningHours: "",
   shopPhone: "",
+  googleReviewUrl: "",
 };
 
 export function EmailSettingsForm() {
@@ -77,6 +79,7 @@ export function EmailSettingsForm() {
           shopAddress: payload.settings.shopAddress ?? "",
           shopOpeningHours: payload.settings.shopOpeningHours ?? "",
           shopPhone: payload.settings.shopPhone ?? "",
+          googleReviewUrl: payload.settings.googleReviewUrl ?? "",
         });
         setHasAppPassword(Boolean(payload.settings.hasAppPassword));
       } catch {
@@ -268,6 +271,20 @@ export function EmailSettingsForm() {
             label="Horaires"
             value={values.shopOpeningHours}
             onChange={(value) => updateField("shopOpeningHours", value)}
+          />
+          <TextField
+            id="google-review-url"
+            label="Lien Google Avis"
+            value={values.googleReviewUrl}
+            onChange={(value) => updateField("googleReviewUrl", value)}
+            help={{
+              title: "Lien utilise apres recuperation",
+              steps: [
+                "Copiez le lien de demande d'avis Google de votre fiche entreprise.",
+                "Quand une reparation passe a RECUPERE, LRT peut envoyer ce lien au client.",
+                "Si ce champ est vide, aucun email d'avis n'est envoye.",
+              ],
+            }}
           />
         </div>
       </fieldset>

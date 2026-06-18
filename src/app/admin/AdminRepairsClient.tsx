@@ -7,6 +7,7 @@ import type { RepairStatus } from "@/lib/repairValidation";
 
 type RepairListItem = {
   id: string;
+  ticketNumber: string | null;
   firstName: string;
   lastName: string;
   phone: string;
@@ -139,6 +140,7 @@ export function AdminRepairsClient() {
             <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
               <tr>
                 <th className="px-4 py-3 font-semibold">Client</th>
+                <th className="px-4 py-3 font-semibold">Ticket</th>
                 <th className="px-4 py-3 font-semibold">Contact</th>
                 <th className="px-4 py-3 font-semibold">Appareil</th>
                 <th className="px-4 py-3 font-semibold">Statut</th>
@@ -158,6 +160,9 @@ export function AdminRepairsClient() {
                         Archivee
                       </div>
                     ) : null}
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-slate-950">
+                    {repair.ticketNumber ?? repair.id.slice(0, 8)}
                   </td>
                   <td className="px-4 py-3 text-slate-700">
                     <div>{repair.phone}</div>
@@ -185,14 +190,14 @@ export function AdminRepairsClient() {
               ))}
               {!isLoading && repairs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-600">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-600">
                     Aucune reparation trouvee.
                   </td>
                 </tr>
               ) : null}
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-600">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-600">
                     Chargement...
                   </td>
                 </tr>

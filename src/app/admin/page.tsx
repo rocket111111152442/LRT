@@ -1,5 +1,6 @@
 import { AdminHeader } from "./AdminHeader";
 import { AdminRepairsClient } from "./AdminRepairsClient";
+import { AdminStatsClient } from "./AdminStatsClient";
 import { requireAdminPage } from "@/lib/auth";
 import Link from "next/link";
 
@@ -20,13 +21,23 @@ export default async function AdminPage() {
                 Recherchez, filtrez et ouvrez les fiches de l&apos;atelier.
               </p>
             </div>
-            <Link
-              href="/admin/repairs/new"
-              className="w-fit rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              Nouvelle reparation
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/api/admin/repairs/export"
+                prefetch={false}
+                className="w-fit rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              >
+                Export CSV
+              </Link>
+              <Link
+                href="/admin/repairs/new"
+                className="w-fit rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Nouvelle reparation
+              </Link>
+            </div>
           </header>
+          <AdminStatsClient />
           <AdminRepairsClient />
         </div>
       </main>

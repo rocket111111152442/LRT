@@ -10,7 +10,7 @@ import {
 } from "@/lib/repairValidation";
 
 type FieldConfig = {
-  name: keyof RepairInput;
+  name: Exclude<keyof RepairInput, "photos">;
   label: string;
   type?: string;
   multiline?: boolean;
@@ -110,7 +110,7 @@ export function AdminRepairCreateForm() {
             <FormField
               key={field.name}
               field={field}
-              value={values[field.name] ?? ""}
+              value={String(values[field.name] ?? "")}
               error={errors[field.name]}
               onChange={updateField}
             />
@@ -127,7 +127,7 @@ export function AdminRepairCreateForm() {
             <FormField
               key={field.name}
               field={field}
-              value={values[field.name] ?? ""}
+              value={String(values[field.name] ?? "")}
               error={errors[field.name]}
               onChange={updateField}
             />

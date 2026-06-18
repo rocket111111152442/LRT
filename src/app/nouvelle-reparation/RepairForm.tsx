@@ -10,12 +10,13 @@ import {
 
 type CreatedRepair = {
   id: string;
+  ticketNumber?: string | null;
   status: string;
   createdAt: string;
 };
 
 type FieldConfig = {
-  name: keyof RepairInput;
+  name: Exclude<keyof RepairInput, "photos">;
   label: string;
   type?: string;
   multiline?: boolean;
@@ -127,7 +128,7 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
             <FormField
               key={field.name}
               field={field}
-              value={values[field.name] ?? ""}
+              value={String(values[field.name] ?? "")}
               error={errors[field.name]}
               onChange={updateField}
             />
@@ -144,7 +145,7 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
             <FormField
               key={field.name}
               field={field}
-              value={values[field.name] ?? ""}
+              value={String(values[field.name] ?? "")}
               error={errors[field.name]}
               onChange={updateField}
             />
