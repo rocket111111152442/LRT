@@ -48,6 +48,8 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
   const code = typeof body.code === "string" ? body.code.trim() : "";
+  const verificationId =
+    typeof body.verificationId === "string" ? body.verificationId.trim() : "";
 
   if (!email || !password) {
     return NextResponse.json(
@@ -116,10 +118,16 @@ export async function POST(request: Request) {
       return NextResponse.json({
         requiresCode: true,
         message: "Code envoye. Verifiez votre boite email.",
+        verificationId: result.verificationId,
       });
     }
 
-    const isValidCode = await verifyEmailCode(user.email, "LOGIN", code);
+    const isValidCode = await verifyEmailCode(
+      user.email,
+      "LOGIN",
+      code,
+      verificationId,
+    );
 
     if (!isValidCode) {
       return NextResponse.json(

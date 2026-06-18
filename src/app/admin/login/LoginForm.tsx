@@ -11,11 +11,13 @@ export function LoginForm() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requiresCode, setRequiresCode] = useState(false);
+  const [loginVerificationId, setLoginVerificationId] = useState("");
   const [isResetMode, setIsResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [resetRequiresCode, setResetRequiresCode] = useState(false);
+  const [resetVerificationId, setResetVerificationId] = useState("");
 
   function cleanCode(value: string) {
     return value.replace(/\D/g, "").slice(0, 6);
@@ -31,6 +33,7 @@ export function LoginForm() {
         email,
         password,
         code: nextCode || undefined,
+        verificationId: nextCode ? loginVerificationId : undefined,
       }),
     });
     const payload = await response.json();
@@ -41,6 +44,9 @@ export function LoginForm() {
     }
 
     if (payload.requiresCode) {
+      if (typeof payload.verificationId === "string") {
+        setLoginVerificationId(payload.verificationId);
+      }
       setRequiresCode(true);
       setCode("");
       setMessage(payload.message ?? "Code envoye. Verifiez votre boite email.");
@@ -102,6 +108,7 @@ export function LoginForm() {
     setResetCode("");
     setNewPassword("");
     setResetRequiresCode(false);
+    setResetVerificationId("");
     setError("");
     setMessage("");
   }
@@ -111,6 +118,7 @@ export function LoginForm() {
     setResetCode("");
     setNewPassword("");
     setResetRequiresCode(false);
+    setResetVerificationId("");
     setError("");
     setMessage("");
   }
@@ -125,6 +133,8 @@ export function LoginForm() {
         email: resetEmail,
         code: !sendOnlyCode && resetRequiresCode ? resetCode : undefined,
         password: !sendOnlyCode && resetRequiresCode ? newPassword : undefined,
+        verificationId:
+          !sendOnlyCode && resetRequiresCode ? resetVerificationId : undefined,
       }),
     });
     const payload = await response.json();
@@ -135,6 +145,9 @@ export function LoginForm() {
     }
 
     if (payload.requiresCode) {
+      if (typeof payload.verificationId === "string") {
+        setResetVerificationId(payload.verificationId);
+      }
       setResetRequiresCode(true);
       setResetCode("");
       setMessage(
@@ -147,8 +160,10 @@ export function LoginForm() {
     setPassword("");
     setCode("");
     setRequiresCode(false);
+    setLoginVerificationId("");
     setIsResetMode(false);
     setResetRequiresCode(false);
+    setResetVerificationId("");
     setMessage(payload.message ?? "Mot de passe modifie. Vous pouvez vous connecter.");
   }
 
@@ -189,6 +204,7 @@ export function LoginForm() {
     setResetCode("");
     setNewPassword("");
     setResetRequiresCode(false);
+    setResetVerificationId("");
     setIsSubmitting(true);
 
     try {
@@ -231,6 +247,7 @@ export function LoginForm() {
             onChange={(event) => {
               setResetEmail(event.target.value);
               setResetRequiresCode(false);
+              setResetVerificationId("");
               setResetCode("");
               setNewPassword("");
               setMessage("");
@@ -338,6 +355,7 @@ export function LoginForm() {
           onChange={(event) => {
             setEmail(event.target.value);
             setRequiresCode(false);
+            setLoginVerificationId("");
             setCode("");
             setMessage("");
           }}
@@ -359,6 +377,7 @@ export function LoginForm() {
           onChange={(event) => {
             setPassword(event.target.value);
             setRequiresCode(false);
+            setLoginVerificationId("");
             setCode("");
             setMessage("");
           }}

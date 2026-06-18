@@ -26,6 +26,8 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const code = typeof body.code === "string" ? body.code.trim() : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const verificationId =
+    typeof body.verificationId === "string" ? body.verificationId.trim() : "";
 
   if (!email) {
     return NextResponse.json({ error: "Email requis." }, { status: 400 });
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         requiresCode: true,
         message: "Code de recuperation envoye. Verifiez votre boite email.",
+        verificationId: result.verificationId,
       });
     }
 
@@ -81,7 +84,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const isValidCode = await verifyEmailCode(user.email, "PASSWORD_RESET", code);
+    const isValidCode = await verifyEmailCode(
+      user.email,
+      "PASSWORD_RESET",
+      code,
+      verificationId,
+    );
 
     if (!isValidCode) {
       return NextResponse.json(
@@ -111,4 +119,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
