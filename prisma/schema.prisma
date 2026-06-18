@@ -108,6 +108,7 @@ model ProAccount {
   users                     User[]
   repairs                   Repair[]
   inventoryItems            InventoryItem[]
+  setupAppointments         SetupAppointment[]
   createdAt                 DateTime      @default(now())
   updatedAt                 DateTime      @updatedAt
 }
@@ -188,4 +189,21 @@ model EmailSettings {
   googleReviewUrl  String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model SetupAppointment {
+  id              String      @id @default(cuid())
+  proAccountId    String?
+  proAccount      ProAccount? @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  stripeSessionId String      @unique
+  companyName     String
+  ownerEmail      String
+  requestedAt     DateTime
+  contactPhone    String?
+  notes           String?
+  createdAt       DateTime    @default(now())
+
+  @@index([proAccountId])
+  @@index([requestedAt])
+  @@index([ownerEmail])
 }

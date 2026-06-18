@@ -231,6 +231,22 @@ async function findInventoryItem(where: Dict) {
   return null;
 }
 
+async function findSetupAppointment(where: Dict) {
+  if (typeof where.id === "string") {
+    return findById("setupAppointments", where.id);
+  }
+
+  if (typeof where.stripeSessionId === "string") {
+    return findByField(
+      "setupAppointments",
+      "stripeSessionId",
+      where.stripeSessionId,
+    );
+  }
+
+  return null;
+}
+
 function now() {
   return new Date();
 }
@@ -375,7 +391,13 @@ function createFirestorePrisma() {
         const usersSnapshot = await collection("users")
           .where("proAccountId", "==", String(account.id))
           .get();
+        const appointmentsSnapshot = await collection("setupAppointments")
+          .where("proAccountId", "==", String(account.id))
+          .get();
         await Promise.all(usersSnapshot.docs.map((doc) => doc.ref.delete()));
+        await Promise.all(
+          appointmentsSnapshot.docs.map((doc) => doc.ref.delete()),
+        );
         await collection("proAccounts").doc(String(account.id)).delete();
 
         return account;
@@ -704,6 +726,25 @@ function createFirestorePrisma() {
         const existing = await findById("emailVerificationCodes", args.where.id);
         await collection("emailVerificationCodes").doc(args.where.id).delete();
         return existing;
+      },
+    },
+
+    setupAppointment: {
+      async findUnique(args: { where: Dict; select?: Dict }) {
+        return applySelect(await findSetupAppointment(args.where), args.select);
+      },
+      async create(args: { data: Dict; select?: Dict }) {
+        const id = randomUUID();
+        const appointment = {
+          ...args.data,
+          id,
+          createdAt: now(),
+        };
+
+        await collection("setupAppointments")
+          .doc(id)
+          .set(firestoreData(appointment));
+        return applySelect(appointment, args.select);
       },
     },
 

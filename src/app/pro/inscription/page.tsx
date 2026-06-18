@@ -21,7 +21,7 @@ export default function ProSignupPage() {
             Creer votre espace admin
           </h1>
           <p className="text-sm leading-6 text-slate-600">
-            Le compte est active apres le paiement unique de 9,99 EUR. Chaque
+            Le compte est active apres le paiement unique de 49 EUR. Chaque
             compte obtient son QR code public avec son identifiant. Un code est
             envoye par email pour valider l adresse avant le paiement.
           </p>

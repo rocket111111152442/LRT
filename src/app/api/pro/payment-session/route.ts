@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import type { PaidProAccountData } from "@/lib/pro/paymentActivation";
 import { readSignupToken } from "@/lib/pro/signupToken";
 
-const PRO_PRICE_CENTS = 999;
+const PRO_PRICE_CENTS = 4900;
+const SETUP_HELP_PRICE_CENTS = 1999;
 
 function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -57,6 +58,47 @@ function buildSignupMetadata(data: PaidProAccountData) {
   return metadata;
 }
 
+function buildLineItems(input: {
+  companyName: string;
+  setupHelp: boolean;
+}): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  const items: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+    {
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: "Compte pro LRT",
+          description: `Activation du compte ${input.companyName}.`,
+        },
+        unit_amount: PRO_PRICE_CENTS,
+      },
+      quantity: 1,
+    },
+  ];
+
+  if (input.setupHelp) {
+    items.push({
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: "Aide parametrage LRT",
+          description:
+            "Rendez-vous pour aider a parametrer et installer le compte.",
+        },
+        unit_amount: SETUP_HELP_PRICE_CENTS,
+      },
+      quantity: 1,
+    });
+  }
+
+  return items;
+}
+
+function successUrl(setupHelp: boolean) {
+  const path = setupHelp ? "/pro/aide-installation" : "/pro/merci";
+  return `${getAppUrl()}${path}?session_id={CHECKOUT_SESSION_ID}`;
+}
+
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -75,6 +117,7 @@ export async function POST(request: Request) {
   const signupToken =
     typeof body.signupToken === "string" ? body.signupToken.trim() : "";
   const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+  const setupHelp = body.setupHelp === true;
 
   if (!pendingSignupId && !signupToken && !slug) {
     return NextResponse.json({ error: "Compte introuvable." }, { status: 400 });
@@ -107,21 +150,15 @@ export async function POST(request: Request) {
         payment_method_types: ["card"],
         customer_email: signup.ownerEmail,
         client_reference_id: signup.slug,
-        line_items: [
-          {
-            price_data: {
-              currency: "eur",
-              product_data: {
-                name: "Compte pro LRT",
-                description: `Activation du compte ${signup.companyName}.`,
-              },
-              unit_amount: PRO_PRICE_CENTS,
-            },
-            quantity: 1,
-          },
-        ],
-        metadata: buildSignupMetadata(signup),
-        success_url: `${getAppUrl()}/pro/merci?session_id={CHECKOUT_SESSION_ID}`,
+        line_items: buildLineItems({
+          companyName: signup.companyName,
+          setupHelp,
+        }),
+        metadata: {
+          ...buildSignupMetadata(signup),
+          setupHelp: setupHelp ? "1" : "0",
+        },
+        success_url: successUrl(setupHelp),
         cancel_url: `${getAppUrl()}/pro/paiement?inscriptionToken=${encodeURIComponent(
           signupToken,
         )}`,
@@ -171,23 +208,15 @@ export async function POST(request: Request) {
         payment_method_types: ["card"],
         customer_email: pendingSignup.ownerEmail,
         client_reference_id: pendingSignup.id,
-        line_items: [
-          {
-            price_data: {
-              currency: "eur",
-              product_data: {
-                name: "Compte pro LRT",
-                description: `Activation du compte ${pendingSignup.companyName}.`,
-              },
-              unit_amount: PRO_PRICE_CENTS,
-            },
-            quantity: 1,
-          },
-        ],
+        line_items: buildLineItems({
+          companyName: pendingSignup.companyName,
+          setupHelp,
+        }),
         metadata: {
           pendingProSignupId: pendingSignup.id,
+          setupHelp: setupHelp ? "1" : "0",
         },
-        success_url: `${getAppUrl()}/pro/merci?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: successUrl(setupHelp),
         cancel_url: `${getAppUrl()}/pro/paiement?inscription=${pendingSignup.id}`,
       });
 
@@ -239,23 +268,15 @@ export async function POST(request: Request) {
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: proAccount.ownerEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: "Compte pro LRT",
-              description: `Activation du compte ${proAccount.companyName}.`,
-            },
-            unit_amount: PRO_PRICE_CENTS,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: buildLineItems({
+        companyName: proAccount.companyName,
+        setupHelp,
+      }),
       metadata: {
         proAccountId: proAccount.id,
+        setupHelp: setupHelp ? "1" : "0",
       },
-      success_url: `${getAppUrl()}/pro/merci?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl(setupHelp),
       cancel_url: `${getAppUrl()}/pro/paiement?compte=${proAccount.slug}`,
     });
 

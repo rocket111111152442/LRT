@@ -159,6 +159,42 @@ export async function sendSupportMessageEmail(input: {
   });
 }
 
+export async function sendSetupAppointmentEmail(input: {
+  companyName: string;
+  ownerEmail: string;
+  requestedAt: Date;
+  contactPhone?: string | null;
+  notes?: string | null;
+}): Promise<SendMailResult> {
+  const supportEmail =
+    process.env.SUPPORT_EMAIL || process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  if (!supportEmail) {
+    return { sent: false, skipped: true };
+  }
+
+  const text = [
+    "Nouveau rendez-vous aide installation LRT",
+    "",
+    `Atelier : ${input.companyName}`,
+    `Email admin : ${input.ownerEmail}`,
+    `Date demandee : ${new Intl.DateTimeFormat("fr-FR", {
+      dateStyle: "full",
+      timeStyle: "short",
+    }).format(input.requestedAt)}`,
+    input.contactPhone ? `Telephone : ${input.contactPhone}` : "",
+    "",
+    input.notes ? "Notes :" : "",
+    input.notes ?? "",
+  ].filter(Boolean).join("\n");
+
+  return sendWithEnvSmtp({
+    to: supportEmail,
+    subject: `Aide installation LRT - ${input.companyName}`,
+    text,
+  });
+}
+
 async function getSmtpConfig(): Promise<SmtpConfig | null> {
   try {
     const settings = await prisma.emailSettings.findUnique({
