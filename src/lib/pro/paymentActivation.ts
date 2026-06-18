@@ -111,6 +111,49 @@ async function findExistingAccount(data: PaidProAccountData) {
   });
 }
 
+async function createOrReusePaidAccount(
+  accountData: PaidProAccountData,
+  pendingSignupId?: string,
+) {
+  const existingAccount = await findExistingAccount(accountData);
+
+  if (existingAccount) {
+    if (getStringField(existingAccount, "paymentStatus") === "PAID") {
+      if (pendingSignupId) {
+        await deletePendingSignup(pendingSignupId);
+      }
+
+      return { ok: true, slug: getStringField(existingAccount, "slug") } as const;
+    }
+
+    await prisma.proAccount.delete({
+      where: { id: getStringField(existingAccount, "id") ?? "" },
+    });
+  }
+
+  try {
+    const proAccount = await createPaidProAccount(accountData);
+
+    if (pendingSignupId) {
+      await deletePendingSignup(pendingSignupId);
+    }
+
+    return { ok: true, slug: getStringField(proAccount, "slug") } as const;
+  } catch {
+    const account = await findExistingAccount(accountData);
+
+    if (account) {
+      if (pendingSignupId) {
+        await deletePendingSignup(pendingSignupId);
+      }
+
+      return { ok: true, slug: getStringField(account, "slug") } as const;
+    }
+
+    throw new Error("Paid pro account creation failed.");
+  }
+}
+
 export async function activatePaidCheckoutSession(
   session: Stripe.Checkout.Session,
 ): Promise<ActivationResult> {
@@ -130,6 +173,12 @@ export async function activatePaidCheckoutSession(
     });
 
     return { ok: true, slug: getStringField(proAccount, "slug") };
+  }
+
+  const directAccountData = readPaidProAccountData(session.metadata, session.id);
+
+  if (directAccountData) {
+    return createOrReusePaidAccount(directAccountData);
   }
 
   const pendingSignupId =
@@ -153,31 +202,5 @@ export async function activatePaidCheckoutSession(
     return { ok: false, reason: "missing-signup" };
   }
 
-  const existingAccount = await findExistingAccount(accountData);
-
-  if (existingAccount) {
-    if (getStringField(existingAccount, "paymentStatus") === "PAID") {
-      await deletePendingSignup(pendingSignupId);
-      return { ok: true, slug: getStringField(existingAccount, "slug") };
-    }
-
-    await prisma.proAccount.delete({
-      where: { id: getStringField(existingAccount, "id") ?? "" },
-    });
-  }
-
-  try {
-    const proAccount = await createPaidProAccount(accountData);
-    await deletePendingSignup(pendingSignupId);
-    return { ok: true, slug: getStringField(proAccount, "slug") };
-  } catch {
-    const account = await findExistingAccount(accountData);
-
-    if (account) {
-      await deletePendingSignup(pendingSignupId);
-      return { ok: true, slug: getStringField(account, "slug") };
-    }
-
-    throw new Error("Paid pro account creation failed.");
-  }
+  return createOrReusePaidAccount(accountData, pendingSignupId);
 }

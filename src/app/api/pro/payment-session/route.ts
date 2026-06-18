@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import type { PaidProAccountData } from "@/lib/pro/paymentActivation";
+import { readSignupToken } from "@/lib/pro/signupToken";
 
 const PRO_PRICE_CENTS = 999;
 
@@ -31,6 +33,30 @@ function getStripeErrorMessage(error: unknown) {
   return "Paiement impossible pour le moment.";
 }
 
+function buildSignupMetadata(data: PaidProAccountData) {
+  const metadata: Record<string, string> = {
+    directProSignup: "1",
+    companyName: data.companyName,
+    slug: data.slug,
+    ownerEmail: data.ownerEmail,
+    passwordHash: data.passwordHash,
+    firebaseApiKey: data.firebaseApiKey,
+    firebaseAuthDomain: data.firebaseAuthDomain,
+    firebaseProjectId: data.firebaseProjectId,
+    firebaseAppId: data.firebaseAppId,
+  };
+
+  if (data.firebaseStorageBucket) {
+    metadata.firebaseStorageBucket = data.firebaseStorageBucket;
+  }
+
+  if (data.firebaseMessagingSenderId) {
+    metadata.firebaseMessagingSenderId = data.firebaseMessagingSenderId;
+  }
+
+  return metadata;
+}
+
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -46,9 +72,11 @@ export async function POST(request: Request) {
 
   const pendingSignupId =
     typeof body.pendingSignupId === "string" ? body.pendingSignupId.trim() : "";
+  const signupToken =
+    typeof body.signupToken === "string" ? body.signupToken.trim() : "";
   const slug = typeof body.slug === "string" ? body.slug.trim() : "";
 
-  if (!pendingSignupId && !slug) {
+  if (!pendingSignupId && !signupToken && !slug) {
     return NextResponse.json({ error: "Compte introuvable." }, { status: 400 });
   }
 
@@ -57,6 +85,62 @@ export async function POST(request: Request) {
       { error: "Paiement non configure pour le moment." },
       { status: 503 },
     );
+  }
+
+  if (signupToken) {
+    const signup = readSignupToken(signupToken);
+
+    if (!signup) {
+      return NextResponse.json(
+        {
+          error:
+            "Inscription expiree. Retournez a l inscription et validez le formulaire a nouveau.",
+        },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        customer_email: signup.ownerEmail,
+        client_reference_id: signup.slug,
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: "Compte pro LRT",
+                description: `Activation du compte ${signup.companyName}.`,
+              },
+              unit_amount: PRO_PRICE_CENTS,
+            },
+            quantity: 1,
+          },
+        ],
+        metadata: buildSignupMetadata(signup),
+        success_url: `${getAppUrl()}/pro/merci?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${getAppUrl()}/pro/paiement?inscriptionToken=${encodeURIComponent(
+          signupToken,
+        )}`,
+      });
+
+      if (!session.url) {
+        return NextResponse.json(
+          { error: "Session Stripe impossible a creer." },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({ checkoutUrl: session.url });
+    } catch (error) {
+      return NextResponse.json(
+        { error: getStripeErrorMessage(error) },
+        { status: 500 },
+      );
+    }
   }
 
   if (pendingSignupId) {

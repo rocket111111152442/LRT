@@ -1,12 +1,17 @@
 ﻿import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
 import { prisma } from "@/lib/prisma";
+import { readSignupToken } from "@/lib/pro/signupToken";
 import { PaymentClient } from "./PaymentClient";
 
 export const dynamic = "force-dynamic";
 
 type PaymentPageProps = {
-  searchParams: Promise<{ compte?: string; inscription?: string }>;
+  searchParams: Promise<{
+    compte?: string;
+    inscription?: string;
+    inscriptionToken?: string;
+  }>;
 };
 
 const reasons = [
@@ -17,7 +22,8 @@ const reasons = [
 ];
 
 type PendingSignupSummary = {
-  id: string;
+  id?: string;
+  signupToken?: string;
   slug: string;
   companyName: string;
   ownerEmail: string;
@@ -45,9 +51,30 @@ async function getPendingSignupSummary(
   }
 }
 
+function getSignupTokenSummary(token?: string): PendingSignupSummary {
+  if (!token) {
+    return null;
+  }
+
+  const signup = readSignupToken(token);
+
+  if (!signup) {
+    return null;
+  }
+
+  return {
+    signupToken: token,
+    slug: signup.slug,
+    companyName: signup.companyName,
+    ownerEmail: signup.ownerEmail,
+  };
+}
+
 export default async function PaymentPage({ searchParams }: PaymentPageProps) {
-  const { compte, inscription } = await searchParams;
-  const pendingSignup = await getPendingSignupSummary(inscription);
+  const { compte, inscription, inscriptionToken } = await searchParams;
+  const pendingSignup =
+    getSignupTokenSummary(inscriptionToken) ??
+    (await getPendingSignupSummary(inscription));
   const accountName = pendingSignup?.slug ?? compte ?? "";
 
   return (
@@ -94,7 +121,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
             </p>
             {pendingSignup ? (
               <p className="mt-2 text-sm text-slate-300">
-                Atelier : {pendingSignup.companyName} Â· Email admin :{" "}
+                Atelier : {pendingSignup.companyName} - Email admin :{" "}
                 {pendingSignup.ownerEmail}
               </p>
             ) : null}
@@ -109,6 +136,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
 
           <PaymentClient
             pendingSignupId={pendingSignup?.id}
+            signupToken={pendingSignup?.signupToken}
             slug={compte ?? undefined}
           />
         </section>

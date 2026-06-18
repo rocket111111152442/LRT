@@ -31,7 +31,6 @@ export function ProSignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
-  const [showFirebaseHelp, setShowFirebaseHelp] = useState(false);
   const [showQrHelp, setShowQrHelp] = useState(false);
   const usesFreeAccessCode =
     values.promoCode?.trim().toUpperCase() === FREE_ACCESS_CODE;
@@ -235,118 +234,11 @@ export function ProSignupForm() {
         </div>
       </fieldset>
 
-      <fieldset className="grid gap-4">
-        <legend className="mb-2 flex items-center gap-2 text-base font-semibold text-slate-950">
-          Firebase
-          <button
-            type="button"
-            onClick={() => setShowFirebaseHelp((current) => !current)}
-            aria-expanded={showFirebaseHelp}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-300 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
-          >
-            ?
-          </button>
-        </legend>
-        {showFirebaseHelp ? (
-          <div className="grid gap-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-slate-800">
-            <div>
-              <h3 className="font-semibold text-slate-950">
-                Si vous partez de zero
-              </h3>
-              <ol className="mt-2 grid list-decimal gap-2 pl-5">
-                <li>
-                  Ouvrez <strong>console.firebase.google.com</strong> et
-                  connectez-vous avec votre compte Google.
-                </li>
-                <li>
-                  Cliquez sur <strong>Ajouter un projet</strong> ou{" "}
-                  <strong>Create a project</strong>.
-                </li>
-                <li>
-                  Mettez le nom de votre atelier, par exemple{" "}
-                  <strong>atelier-centre</strong>, puis continuez.
-                </li>
-                <li>
-                  Google Analytics peut etre desactive pour aller plus vite.
-                </li>
-                <li>
-                  Quand le projet est ouvert, cliquez sur l icone{" "}
-                  <strong>Web</strong> qui ressemble a <strong>&lt;/&gt;</strong>.
-                </li>
-                <li>
-                  Donnez un nom a l application web, par exemple{" "}
-                  <strong>site atelier</strong>, puis cliquez sur{" "}
-                  <strong>Enregistrer l application</strong>.
-                </li>
-                <li>
-                  Firebase affiche un bloc de configuration. Cherchez seulement
-                  ces trois lignes : <strong>apiKey</strong>,{" "}
-                  <strong>projectId</strong> et <strong>appId</strong>.
-                </li>
-              </ol>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-slate-950">
-                Si vous avez deja un projet Firebase
-              </h3>
-              <ol className="mt-2 grid list-decimal gap-2 pl-5">
-                <li>Ouvrez votre projet dans la console Firebase.</li>
-                <li>
-                  Cliquez sur la roue dentee pres de{" "}
-                  <strong>Vue d ensemble du projet</strong>.
-                </li>
-                <li>
-                  Cliquez sur <strong>Parametres du projet</strong>.
-                </li>
-                <li>
-                  Dans l onglet <strong>General</strong>, descendez jusqu a{" "}
-                  <strong>Vos applications</strong>.
-                </li>
-                <li>
-                  Si aucune application web n existe, ajoutez-en une avec l
-                  icone <strong>&lt;/&gt;</strong>.
-                </li>
-                <li>
-                  Copiez les valeurs <strong>apiKey</strong>,{" "}
-                  <strong>projectId</strong> et <strong>appId</strong> dans les
-                  trois champs ci-dessous.
-                </li>
-              </ol>
-            </div>
-
-            <div className="rounded-md bg-white p-3 text-xs leading-5 text-slate-700">
-              Ne copiez pas tout le code Firebase, seulement les valeurs entre
-              guillemets. La cle Firebase web peut etre visible dans une app web,
-              mais les donnees doivent etre protegees plus tard avec les regles
-              de securite Firebase.
-            </div>
-          </div>
-        ) : null}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextField
-            name="firebaseApiKey"
-            label="apiKey"
-            value={values.firebaseApiKey}
-            error={errors.firebaseApiKey}
-            onChange={updateField}
-          />
-          <TextField
-            name="firebaseProjectId"
-            label="projectId"
-            value={values.firebaseProjectId}
-            error={errors.firebaseProjectId}
-            onChange={updateField}
-          />
-          <TextField
-            name="firebaseAppId"
-            label="appId"
-            value={values.firebaseAppId}
-            error={errors.firebaseAppId}
-            onChange={updateField}
-          />
-        </div>
-      </fieldset>
+      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
+        Vous n avez aucune configuration Firebase a faire. LRT utilise la base
+        en ligne configuree sur Vercel et separe automatiquement les donnees de
+        chaque atelier.
+      </p>
 
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">

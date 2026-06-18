@@ -8,7 +8,7 @@ const supportPhoneHref = "tel:+33753305452";
 const supportPoints = [
   "Demande envoyable 24h/24 depuis le site",
   `Contact telephone : ${supportPhoneDisplay}`,
-  "Aide pour la connexion, le paiement, Firebase et les emails",
+  "Aide pour la connexion, le paiement et les emails",
 ];
 
 const commonRequests = [

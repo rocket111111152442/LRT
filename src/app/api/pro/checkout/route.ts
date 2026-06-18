@@ -6,6 +6,7 @@ import {
   createPaidProAccount,
   PaidProAccountData,
 } from "@/lib/pro/paymentActivation";
+import { createSignupToken } from "@/lib/pro/signupToken";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
 
 const FREE_ACCESS_CODE = "REP2026";
@@ -156,19 +157,19 @@ export async function POST(request: Request) {
       });
     }
 
-    const pendingSignup = await prisma.pendingProSignup.create({
-      data: accountData,
-      select: { id: true },
-    });
+    const signupToken = createSignupToken(accountData);
 
     return NextResponse.json({
-      redirectUrl: `${getAppUrl()}/pro/paiement?inscription=${pendingSignup.id}`,
+      redirectUrl: `${getAppUrl()}/pro/paiement?inscriptionToken=${encodeURIComponent(
+        signupToken,
+      )}`,
     });
-  } catch {
+  } catch (error) {
+    console.error("Pro signup checkout failed", error);
     return NextResponse.json(
       {
         error:
-          "Base de donnees indisponible. Verifiez Prisma ou la configuration Firebase, puis reessayez.",
+          "Inscription impossible pour le moment. Verifiez la configuration de la base LRT sur Vercel, puis reessayez.",
       },
       { status: 500 },
     );

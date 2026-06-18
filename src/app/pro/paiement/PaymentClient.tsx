@@ -4,14 +4,16 @@ import { useState } from "react";
 
 export function PaymentClient({
   pendingSignupId,
+  signupToken,
   slug,
 }: {
   pendingSignupId?: string;
+  signupToken?: string;
   slug?: string;
 }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const canPay = Boolean(pendingSignupId || slug);
+  const canPay = Boolean(pendingSignupId || signupToken || slug);
 
   async function handlePayment() {
     setError("");
@@ -23,7 +25,7 @@ export function PaymentClient({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pendingSignupId, slug }),
+        body: JSON.stringify({ pendingSignupId, signupToken, slug }),
       });
       const payload = await response
         .json()

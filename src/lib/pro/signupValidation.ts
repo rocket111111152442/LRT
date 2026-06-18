@@ -44,9 +44,9 @@ export function validateProSignupInput(input: unknown):
     slug: normalizeSlug(readText(input, "slug")),
     ownerEmail: readText(input, "ownerEmail").toLowerCase(),
     password: readText(input, "password"),
-    firebaseApiKey: readText(input, "firebaseApiKey"),
-    firebaseProjectId: readText(input, "firebaseProjectId"),
-    firebaseAppId: readText(input, "firebaseAppId"),
+    firebaseApiKey: readText(input, "firebaseApiKey") || "managed-by-lrt",
+    firebaseProjectId: readText(input, "firebaseProjectId") || "managed-by-lrt",
+    firebaseAppId: readText(input, "firebaseAppId") || "managed-by-lrt",
     promoCode: readText(input, "promoCode").toUpperCase() || undefined,
     emailCode: readText(input, "emailCode"),
   };
@@ -67,18 +67,6 @@ export function validateProSignupInput(input: unknown):
 
   if (data.password.length < 8) {
     errors.password = "Mot de passe requis, 8 caracteres minimum.";
-  }
-
-  if (!data.firebaseApiKey) {
-    errors.firebaseApiKey = "Cle API Firebase requise.";
-  }
-
-  if (!data.firebaseProjectId) {
-    errors.firebaseProjectId = "Project ID Firebase requis.";
-  }
-
-  if (!data.firebaseAppId) {
-    errors.firebaseAppId = "App ID Firebase requis.";
   }
 
   if (Object.keys(errors).length > 0) {

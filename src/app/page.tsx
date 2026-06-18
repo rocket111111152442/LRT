@@ -6,7 +6,7 @@ const features = [
   "Suivi client avec ticket court",
   "Tableau admin pour suivre toutes les reparations",
   "Email automatique a chaque changement de statut",
-  "Configuration email et Firebase par compte pro",
+  "Configuration email par compte pro",
   "Recherche rapide par client, telephone, marque ou modele",
   "Statuts clairs pour garder l'atelier organise",
   "Validation par code email a l'inscription et a chaque connexion",
@@ -36,7 +36,7 @@ const adminTools = [
   "Archivage et suppression avec confirmation",
   "Configuration email directement dans l'admin",
   "QR code imprimable pour le comptoir",
-  "Compte pro avec Firebase dedie",
+  "Donnees separees par compte pro",
 ];
 
 const extraFeatures = [
@@ -90,8 +90,8 @@ const faqs = [
     answer: "Oui. Chaque compte pro obtient un lien unique avec son identifiant.",
   },
   {
-    question: "A quoi sert Firebase ?",
-    answer: "Firebase permet de connecter le compte pro a son propre projet et de preparer une base separee par client.",
+    question: "Est-ce que je dois configurer Firebase ?",
+    answer: "Non. Firebase est une configuration technique cote LRT. L atelier cree simplement son compte pro.",
   },
   {
     question: "Le paiement est-il obligatoire ?",

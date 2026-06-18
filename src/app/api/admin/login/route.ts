@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Base de donnees indisponible. Verifiez Prisma ou la configuration Firebase, puis reessayez.",
+          "Base LRT indisponible. Verifiez les variables d environnement sur Vercel, puis reessayez.",
       },
       { status: 500 },
     );
