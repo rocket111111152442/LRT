@@ -125,6 +125,26 @@ function normalizeDoc(id: string, data: Dict | undefined) {
   return normalizeValue({ id, ...data }) as Dict;
 }
 
+function removeUndefinedValues(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(removeUndefinedValues);
+  }
+
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value as Dict)
+        .filter(([, nestedValue]) => nestedValue !== undefined)
+        .map(([key, nestedValue]) => [key, removeUndefinedValues(nestedValue)]),
+    );
+  }
+
+  return value;
+}
+
+function firestoreData<T extends Dict>(data: T): T {
+  return removeUndefinedValues(data) as T;
+}
+
 function applySelect<T extends Dict | null>(record: T, select?: Dict): T {
   if (!record || !select) {
     return record;
@@ -252,10 +272,10 @@ function createFirestorePrisma() {
 
         if (existing) {
           await collection("users").doc(String(existing.id)).set(
-            {
+            firestoreData({
               ...args.update,
               updatedAt: timestamp,
-            },
+            }),
             { merge: true },
           );
           return findById("users", String(existing.id));
@@ -269,7 +289,7 @@ function createFirestorePrisma() {
           createdAt: timestamp,
         };
 
-        await collection("users").doc(id).set(user);
+        await collection("users").doc(id).set(firestoreData(user));
         return user;
       },
     },
@@ -293,17 +313,21 @@ function createFirestorePrisma() {
           updatedAt: timestamp,
         };
 
-        await collection("proAccounts").doc(id).set(proAccount);
+        await collection("proAccounts").doc(id).set(firestoreData(proAccount));
 
         if (nestedUser) {
           const userId = randomUUID();
-          await collection("users").doc(userId).set({
-            ...nestedUser,
-            id: userId,
-            proAccountId: id,
-            role: nestedUser.role ?? "ADMIN",
-            createdAt: timestamp,
-          });
+          await collection("users")
+            .doc(userId)
+            .set(
+              firestoreData({
+                ...nestedUser,
+                id: userId,
+                proAccountId: id,
+                role: nestedUser.role ?? "ADMIN",
+                createdAt: timestamp,
+              }),
+            );
         }
 
         return proAccount;
@@ -316,10 +340,10 @@ function createFirestorePrisma() {
         }
 
         await collection("proAccounts").doc(String(account.id)).set(
-          {
+          firestoreData({
             ...args.data,
             updatedAt: now(),
-          },
+          }),
           { merge: true },
         );
 
@@ -356,7 +380,9 @@ function createFirestorePrisma() {
           updatedAt: timestamp,
         };
 
-        await collection("pendingProSignups").doc(id).set(pendingSignup);
+        await collection("pendingProSignups")
+          .doc(id)
+          .set(firestoreData(pendingSignup));
         return applySelect(pendingSignup, args.select);
       },
       async update(args: { where: Dict; data: Dict; select?: Dict }) {
@@ -367,10 +393,10 @@ function createFirestorePrisma() {
         }
 
         await collection("pendingProSignups").doc(String(pendingSignup.id)).set(
-          {
+          firestoreData({
             ...args.data,
             updatedAt: now(),
-          },
+          }),
           { merge: true },
         );
 
@@ -439,7 +465,7 @@ function createFirestorePrisma() {
           updatedAt: timestamp,
         };
 
-        await collection("repairs").doc(id).set(repair);
+        await collection("repairs").doc(id).set(firestoreData(repair));
         return applySelect(repair, args.select);
       },
       async update(args: { where: Dict; data: Dict; select?: Dict }) {
@@ -448,10 +474,10 @@ function createFirestorePrisma() {
         }
 
         await collection("repairs").doc(args.where.id).set(
-          {
+          firestoreData({
             ...args.data,
             updatedAt: now(),
-          },
+          }),
           { merge: true },
         );
 
@@ -497,7 +523,9 @@ function createFirestorePrisma() {
           ? { ...args.update, updatedAt: timestamp }
           : { ...defaults, ...args.create, id, createdAt: timestamp, updatedAt: timestamp };
 
-        await collection("emailSettings").doc(id).set(data, { merge: true });
+        await collection("emailSettings")
+          .doc(id)
+          .set(firestoreData(data), { merge: true });
         return findById("emailSettings", id);
       },
     },
@@ -521,9 +549,11 @@ function createFirestorePrisma() {
           ? { ...args.update, updatedAt: timestamp }
           : { ...args.create, id, createdAt: timestamp, updatedAt: timestamp };
 
-        await collection("emailVerificationCodes").doc(id).set(data, {
-          merge: true,
-        });
+        await collection("emailVerificationCodes")
+          .doc(id)
+          .set(firestoreData(data), {
+            merge: true,
+          });
         return findById("emailVerificationCodes", id);
       },
       async delete(args: { where: Dict }) {
