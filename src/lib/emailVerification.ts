@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { randomInt } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationCodeEmail } from "@/lib/mail";
 
@@ -7,8 +7,14 @@ export type EmailVerificationPurpose = "SIGNUP" | "LOGIN" | "PASSWORD_RESET";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 
-function verificationId(email: string, purpose: EmailVerificationPurpose) {
-  return Buffer.from(`${purpose}:${email.toLowerCase()}`).toString("base64url");
+function verificationId(
+  email: string,
+  purpose: EmailVerificationPurpose,
+  requestId = "latest",
+) {
+  return Buffer.from(`${purpose}:${email.toLowerCase()}:${requestId}`).toString(
+    "base64url",
+  );
 }
 
 function generateCode() {
@@ -46,12 +52,15 @@ export async function sendEmailVerificationCode(
   purpose: EmailVerificationPurpose,
 ) {
   const normalizedEmail = email.trim().toLowerCase();
+  const requestId = randomUUID();
+  const uniqueVerificationId = verificationId(normalizedEmail, purpose, requestId);
+  const latestVerificationId = verificationId(normalizedEmail, purpose);
   const code = generateCode();
   const codeHash = await bcrypt.hash(code, 10);
   const expiresAt = new Date(Date.now() + CODE_TTL_MS);
 
   await prisma.emailVerificationCode.upsert({
-    where: { id: verificationId(normalizedEmail, purpose) },
+    where: { id: uniqueVerificationId },
     update: {
       email: normalizedEmail,
       purpose,
@@ -59,7 +68,24 @@ export async function sendEmailVerificationCode(
       expiresAt,
     },
     create: {
-      id: verificationId(normalizedEmail, purpose),
+      id: uniqueVerificationId,
+      email: normalizedEmail,
+      purpose,
+      codeHash,
+      expiresAt,
+    },
+  });
+
+  await prisma.emailVerificationCode.upsert({
+    where: { id: latestVerificationId },
+    update: {
+      email: normalizedEmail,
+      purpose,
+      codeHash,
+      expiresAt,
+    },
+    create: {
+      id: latestVerificationId,
       email: normalizedEmail,
       purpose,
       codeHash,
@@ -74,14 +100,19 @@ export async function sendEmailVerificationCode(
   });
 
   if (!result.sent) {
-    await prisma.emailVerificationCode
-      .delete({ where: { id: verificationId(normalizedEmail, purpose) } })
-      .catch(() => null);
+    await Promise.all([
+      prisma.emailVerificationCode
+        .delete({ where: { id: uniqueVerificationId } })
+        .catch(() => null),
+      prisma.emailVerificationCode
+        .delete({ where: { id: latestVerificationId } })
+        .catch(() => null),
+    ]);
   }
 
   return {
     ...result,
-    verificationId: verificationId(normalizedEmail, purpose),
+    verificationId: uniqueVerificationId,
   };
 }
 
@@ -93,6 +124,7 @@ export async function verifyEmailCode(
 ) {
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedCode = normalizeCode(code);
+  const latestVerificationId = verificationId(normalizedEmail, purpose);
 
   if (normalizedCode.length !== 6) {
     return false;
@@ -111,7 +143,7 @@ export async function verifyEmailCode(
 
   if (!storedCode && emailVerificationId) {
     storedCode = await prisma.emailVerificationCode.findUnique({
-      where: { id: verificationId(normalizedEmail, purpose) },
+      where: { id: latestVerificationId },
       select: {
         id: true,
         email: true,
@@ -143,6 +175,11 @@ export async function verifyEmailCode(
   await prisma.emailVerificationCode
     .delete({ where: { id: storedCode.id } })
     .catch(() => null);
+  if (storedCode.id !== latestVerificationId) {
+    await prisma.emailVerificationCode
+      .delete({ where: { id: latestVerificationId } })
+      .catch(() => null);
+  }
 
   return true;
 }
