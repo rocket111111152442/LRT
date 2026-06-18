@@ -21,6 +21,8 @@ const initialValues: ProSignupInput = {
   emailCode: "",
 };
 
+const FREE_ACCESS_CODE = "REP2026";
+
 export function ProSignupForm() {
   const [values, setValues] = useState<ProSignupInput>(initialValues);
   const [errors, setErrors] = useState<ProSignupErrors>({});
@@ -31,6 +33,8 @@ export function ProSignupForm() {
   const [codeSent, setCodeSent] = useState(false);
   const [showFirebaseHelp, setShowFirebaseHelp] = useState(false);
   const [showQrHelp, setShowQrHelp] = useState(false);
+  const usesFreeAccessCode =
+    values.promoCode?.trim().toUpperCase() === FREE_ACCESS_CODE;
 
   function updateField(name: keyof ProSignupInput, value: string) {
     setValues((current) => ({
@@ -97,12 +101,15 @@ export function ProSignupForm() {
       return;
     }
 
-    if (!codeSent) {
+    if (!usesFreeAccessCode && !codeSent) {
       await sendSignupCode(validation.data);
       return;
     }
 
-    if (!validation.data.emailCode || validation.data.emailCode.length < 6) {
+    if (
+      !usesFreeAccessCode &&
+      (!validation.data.emailCode || validation.data.emailCode.length < 6)
+    ) {
       setErrors((current) => ({
         ...current,
         emailCode: "Code email requis.",
@@ -353,7 +360,14 @@ export function ProSignupForm() {
         </p>
       ) : null}
 
-      {codeSent ? (
+      {usesFreeAccessCode ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Code gratuit reconnu. Cliquez sur Activer gratuitement pour creer le
+          compte sans paiement.
+        </p>
+      ) : null}
+
+      {codeSent && !usesFreeAccessCode ? (
         <div className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-4">
           <label
             htmlFor="pro-emailCode"
@@ -419,10 +433,14 @@ export function ProSignupForm() {
           {isSendingCode
             ? "Envoi du code..."
             : isSubmitting
-              ? "Validation..."
-              : codeSent
-                ? "Valider le code"
-                : "Envoyer le code"}
+              ? usesFreeAccessCode
+                ? "Activation..."
+                : "Validation..."
+              : usesFreeAccessCode
+                ? "Activer gratuitement"
+                : codeSent
+                  ? "Valider le code"
+                  : "Envoyer le code"}
         </button>
       </div>
     </form>

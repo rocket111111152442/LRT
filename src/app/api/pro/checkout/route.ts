@@ -117,20 +117,22 @@ export async function POST(request: Request) {
       return NextResponse.json(conflict, { status: 400 });
     }
 
-    const isEmailVerified = await verifyEmailCode(
-      validation.data.ownerEmail,
-      "SIGNUP",
-      validation.data.emailCode ?? "",
-    );
-
-    if (!isEmailVerified) {
-      return NextResponse.json(
-        {
-          error: "Code email invalide ou expire.",
-          errors: { emailCode: "Code invalide ou expire." },
-        },
-        { status: 400 },
+    if (!usesFreeAccessCode) {
+      const isEmailVerified = await verifyEmailCode(
+        validation.data.ownerEmail,
+        "SIGNUP",
+        validation.data.emailCode ?? "",
       );
+
+      if (!isEmailVerified) {
+        return NextResponse.json(
+          {
+            error: "Code email invalide ou expire.",
+            errors: { emailCode: "Code invalide ou expire." },
+          },
+          { status: 400 },
+        );
+      }
     }
 
     const passwordHash = await bcrypt.hash(validation.data.password, 12);
