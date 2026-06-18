@@ -18,15 +18,75 @@ type RepairListItem = {
   status: RepairStatus;
   readyEmailSent: boolean;
   archivedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: unknown;
+  updatedAt: unknown;
 };
 
-function formatDate(value: string) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function readBoolean(value: unknown) {
+  return typeof value === "boolean" ? value : false;
+}
+
+function readDate(value: unknown) {
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (isRecord(value)) {
+    const seconds = value.seconds ?? value._seconds;
+
+    if (typeof seconds === "number") {
+      return new Date(seconds * 1000);
+    }
+  }
+
+  return null;
+}
+
+function formatDate(value: unknown) {
+  const date = readDate(value);
+
+  if (!date) {
+    return "-";
+  }
+
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(date);
+}
+
+function normalizeRepairs(value: unknown): RepairListItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(isRecord).map((repair) => ({
+    id: readString(repair.id),
+    ticketNumber: readString(repair.ticketNumber) || null,
+    firstName: readString(repair.firstName, "-"),
+    lastName: readString(repair.lastName),
+    phone: readString(repair.phone, "-"),
+    email: readString(repair.email, "-"),
+    deviceType: readString(repair.deviceType, "-"),
+    brand: readString(repair.brand),
+    model: readString(repair.model),
+    status: REPAIR_STATUSES.includes(repair.status as RepairStatus)
+      ? (repair.status as RepairStatus)
+      : "PAS_ENCORE_EN_REPARATION",
+    readyEmailSent: readBoolean(repair.readyEmailSent),
+    archivedAt: readString(repair.archivedAt) || null,
+    createdAt: repair.createdAt,
+    updatedAt: repair.updatedAt,
+  }));
 }
 
 export function AdminRepairsClient() {
@@ -74,7 +134,7 @@ export function AdminRepairsClient() {
           return;
         }
 
-        setRepairs(Array.isArray(payload.repairs) ? payload.repairs : []);
+        setRepairs(normalizeRepairs(payload.repairs));
       } catch {
         if (!controller.signal.aborted) {
           setError("Chargement impossible.");
@@ -149,8 +209,11 @@ export function AdminRepairsClient() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {repairs.map((repair) => (
-                <tr key={repair.id} className="align-top">
+              {repairs.map((repair, index) => (
+                <tr
+                  key={repair.id || repair.ticketNumber || `repair-${index}`}
+                  className="align-top"
+                >
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-950">
                       {repair.firstName} {repair.lastName}
@@ -162,7 +225,7 @@ export function AdminRepairsClient() {
                     ) : null}
                   </td>
                   <td className="px-4 py-3 font-semibold text-slate-950">
-                    {repair.ticketNumber ?? repair.id.slice(0, 8)}
+                    {repair.ticketNumber ?? (repair.id ? repair.id.slice(0, 8) : "-")}
                   </td>
                   <td className="px-4 py-3 text-slate-700">
                     <div>{repair.phone}</div>
@@ -179,12 +242,16 @@ export function AdminRepairsClient() {
                     {formatDate(repair.createdAt)}
                   </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/repairs/${repair.id}`}
-                      className="font-semibold text-slate-950 underline-offset-4 hover:underline"
-                    >
-                      Voir
-                    </Link>
+                    {repair.id ? (
+                      <Link
+                        href={`/admin/repairs/${repair.id}`}
+                        className="font-semibold text-slate-950 underline-offset-4 hover:underline"
+                      >
+                        Voir
+                      </Link>
+                    ) : (
+                      <span className="text-sm text-slate-500">Indisponible</span>
+                    )}
                   </td>
                 </tr>
               ))}
