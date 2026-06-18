@@ -7,8 +7,29 @@ import {
 } from "@/lib/emailVerification";
 import { prisma } from "@/lib/prisma";
 
+type ProAccountSummary = {
+  slug: string;
+  paymentStatus: string;
+} | null;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+async function getProAccountSummary(
+  proAccountId: string | null,
+): Promise<ProAccountSummary> {
+  if (!proAccountId) {
+    return null;
+  }
+
+  return prisma.proAccount.findUnique({
+    where: { id: proAccountId },
+    select: {
+      slug: true,
+      paymentStatus: true,
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -44,12 +65,6 @@ export async function POST(request: Request) {
         passwordHash: true,
         role: true,
         proAccountId: true,
-        proAccount: {
-          select: {
-            slug: true,
-            paymentStatus: true,
-          },
-        },
       },
     });
 
@@ -60,7 +75,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (user.proAccount && user.proAccount.paymentStatus !== "PAID") {
+    const proAccount = await getProAccountSummary(user.proAccountId);
+
+    if (proAccount && proAccount.paymentStatus !== "PAID") {
       return NextResponse.json(
         { error: "Paiement en attente pour ce compte pro." },
         { status: 403 },
@@ -117,7 +134,7 @@ export async function POST(request: Request) {
         email: user.email,
         role: "ADMIN",
         proAccountId: user.proAccountId,
-        proAccountSlug: user.proAccount?.slug ?? null,
+        proAccountSlug: proAccount?.slug ?? null,
       },
     });
 
@@ -126,11 +143,12 @@ export async function POST(request: Request) {
       email: user.email,
       role: "ADMIN",
       proAccountId: user.proAccountId,
-      proAccountSlug: user.proAccount?.slug ?? null,
+      proAccountSlug: proAccount?.slug ?? null,
     });
 
     return response;
-  } catch {
+  } catch (error) {
+    console.error("Admin login failed", error);
     return NextResponse.json(
       {
         error:

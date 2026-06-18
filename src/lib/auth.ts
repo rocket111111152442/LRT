@@ -21,6 +21,11 @@ export type AdminUser = {
   proAccountSlug: string | null;
 };
 
+type ProAccountSummary = {
+  slug: string;
+  paymentStatus: string;
+} | null;
+
 function getAuthSecret() {
   return process.env.AUTH_SECRET || "dev-secret-change-me";
 }
@@ -114,12 +119,6 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
       email: true,
       role: true,
       proAccountId: true,
-      proAccount: {
-        select: {
-          slug: true,
-          paymentStatus: true,
-        },
-      },
     },
   });
 
@@ -127,7 +126,19 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     return null;
   }
 
-  if (user.proAccount && user.proAccount.paymentStatus !== "PAID") {
+  let proAccount: ProAccountSummary = null;
+
+  if (user.proAccountId) {
+    proAccount = await prisma.proAccount.findUnique({
+      where: { id: user.proAccountId },
+      select: {
+        slug: true,
+        paymentStatus: true,
+      },
+    });
+  }
+
+  if (proAccount && proAccount.paymentStatus !== "PAID") {
     return null;
   }
 
@@ -136,7 +147,7 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     email: user.email,
     role: "ADMIN",
     proAccountId: user.proAccountId,
-    proAccountSlug: user.proAccount?.slug ?? null,
+    proAccountSlug: proAccount?.slug ?? null,
   };
 }
 

@@ -19,6 +19,28 @@ function normalizeCode(code: string) {
   return code.replace(/\D/g, "").slice(0, 6);
 }
 
+function toDate(value: unknown) {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof value.toDate === "function"
+  ) {
+    return value.toDate() as Date;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  return null;
+}
+
 export async function sendEmailVerificationCode(
   email: string,
   purpose: EmailVerificationPurpose,
@@ -81,7 +103,9 @@ export async function verifyEmailCode(
     },
   });
 
-  if (!storedCode || storedCode.expiresAt.getTime() < Date.now()) {
+  const expiresAt = toDate(storedCode?.expiresAt);
+
+  if (!storedCode || !expiresAt || expiresAt.getTime() < Date.now()) {
     return false;
   }
 
