@@ -490,7 +490,6 @@ function createFirestorePrisma() {
           id,
           status: args.data.status ?? "PAS_ENCORE_EN_REPARATION",
           readyEmailSent: args.data.readyEmailSent ?? false,
-          smsReadySent: args.data.smsReadySent ?? false,
           reviewEmailSent: args.data.reviewEmailSent ?? false,
           quoteStatus: args.data.quoteStatus ?? "NONE",
           photos: args.data.photos ?? [],

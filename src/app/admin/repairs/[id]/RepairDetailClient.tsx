@@ -38,7 +38,6 @@ type RepairDetail = {
   status: RepairStatus;
   internalNotes: string | null;
   readyEmailSent: boolean;
-  smsReadySent: boolean;
   reviewEmailSent: boolean;
   readyReminderSentAt: string | null;
   estimatedPriceCents: number | null;
@@ -404,7 +403,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               <DetailItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
               <DetailItem label="Devis" value={repair.quoteStatus} />
               <DetailItem label="Email PRET envoye" value={repair.readyEmailSent ? "Oui" : "Non"} />
-              <DetailItem label="SMS PRET envoye" value={repair.smsReadySent ? "Oui" : "Non"} />
               <DetailItem label="Avis envoye" value={repair.reviewEmailSent ? "Oui" : "Non"} />
               <DetailItem label="Piece" value={repair.partsStatus} />
               <DetailItem label="Archivee le" value={formatDate(repair.archivedAt)} />

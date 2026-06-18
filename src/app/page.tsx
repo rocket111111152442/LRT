@@ -65,7 +65,7 @@ const extraFeatures = [
   "Archivage des dossiers termines",
   "Suppression definitive avec confirmation",
   "Email automatique quand le statut change",
-  "SMS pret si Twilio est configure",
+  "Notifications gratuites par email",
   "Relance automatique apres 7 jours pret",
   "Demande d'avis Google apres recuperation",
   "Export CSV",

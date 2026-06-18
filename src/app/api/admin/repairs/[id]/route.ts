@@ -9,7 +9,6 @@ import {
 import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
 import { PART_STATUSES, REPAIR_STATUSES } from "@/lib/repairValidation";
-import { sendReadyRepairSms } from "@/lib/sms";
 import type {
   PartStatus as PrismaPartStatus,
   RepairStatus as PrismaRepairStatus,
@@ -95,7 +94,6 @@ function repairSelect() {
     status: true,
     internalNotes: true,
     readyEmailSent: true,
-    smsReadySent: true,
     reviewEmailSent: true,
     readyReminderSentAt: true,
     estimatedPriceCents: true,
@@ -280,8 +278,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     (data.internalNotes ?? null) !== (currentRepair.internalNotes ?? null);
   const shouldSendStatusEmail =
     statusChanged && (nextStatus !== "PRET" || !currentRepair.readyEmailSent);
-  const shouldSendReadySms =
-    statusChanged && nextStatus === "PRET" && !currentRepair.smsReadySent;
   const shouldSendReviewEmail =
     statusChanged && nextStatus === "RECUPERE" && !currentRepair.reviewEmailSent;
 
@@ -382,7 +378,6 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   let statusEmailSentNow = false;
-  let smsSentNow = false;
   let reviewEmailSentNow = false;
 
   if (shouldSendStatusEmail) {
@@ -404,26 +399,6 @@ export async function PATCH(request: Request, context: RouteContext) {
         proAccountId: repair.proAccountId,
         type: "EMAIL_SENT",
         message: `Email envoye pour le statut ${nextStatus}.`,
-      });
-    }
-  }
-
-  if (shouldSendReadySms) {
-    const smsResult = await sendReadyRepairSms(repair);
-
-    if (smsResult.sent) {
-      smsSentNow = true;
-      repair = await prisma.repair.update({
-        where: { id },
-        data: { smsReadySent: true },
-        select: repairSelect(),
-      });
-
-      await addRepairEvent({
-        repairId: repair.id,
-        proAccountId: repair.proAccountId,
-        type: "SMS_SENT",
-        message: "SMS pret envoye au client.",
       });
     }
   }
@@ -455,8 +430,6 @@ export async function PATCH(request: Request, context: RouteContext) {
       attempted: shouldSendStatusEmail,
       sent: statusEmailSentNow,
       quoteAttempted: sendQuote,
-      smsAttempted: shouldSendReadySms,
-      smsSent: smsSentNow,
       reviewAttempted: shouldSendReviewEmail,
       reviewSent: reviewEmailSentNow,
     },
