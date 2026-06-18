@@ -74,7 +74,7 @@ export function AdminRepairsClient() {
           return;
         }
 
-        setRepairs(payload.repairs ?? []);
+        setRepairs(Array.isArray(payload.repairs) ? payload.repairs : []);
       } catch {
         if (!controller.signal.aborted) {
           setError("Chargement impossible.");

@@ -78,7 +78,12 @@ export function AdminStatsClient() {
     );
   }
 
-  const brandEntries = Object.entries(stats.byBrand)
+  const byBrand = stats.byBrand ?? {};
+  const byStatus = stats.byStatus ?? {};
+  const lowStockItems = Array.isArray(stats.lowStockItems)
+    ? stats.lowStockItems
+    : [];
+  const brandEntries = Object.entries(byBrand)
     .sort((left, right) => right[1] - left[1])
     .slice(0, 5);
 
@@ -112,10 +117,10 @@ export function AdminStatsClient() {
         <StatCard label="Total" value={String(stats.totalRepairs)} />
         <StatCard
           label="En reparation"
-          value={String(stats.byStatus.EN_REPARATION ?? 0)}
+          value={String(byStatus.EN_REPARATION ?? 0)}
         />
-        <StatCard label="Prets" value={String(stats.byStatus.PRET ?? 0)} />
-        <StatCard label="Recuperes" value={String(stats.byStatus.RECUPERE ?? 0)} />
+        <StatCard label="Prets" value={String(byStatus.PRET ?? 0)} />
+        <StatCard label="Recuperes" value={String(byStatus.RECUPERE ?? 0)} />
         <StatCard
           label="CA estime"
           value={formatPrice(stats.estimatedRevenueCents)}
@@ -156,7 +161,7 @@ export function AdminStatsClient() {
             Valeur achat stock : {formatPrice(stats.inventoryValueCents ?? 0)}
           </p>
           <div className="mt-3 grid gap-2">
-            {stats.lowStockItems.map((item) => (
+            {lowStockItems.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
                 <span className="text-slate-700">{item.name}</span>
                 <strong className="text-red-700">
@@ -164,7 +169,7 @@ export function AdminStatsClient() {
                 </strong>
               </div>
             ))}
-            {stats.lowStockItems.length === 0 ? (
+            {lowStockItems.length === 0 ? (
               <p className="text-sm text-slate-500">Aucune alerte.</p>
             ) : null}
           </div>

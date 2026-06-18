@@ -104,6 +104,30 @@ function activeTourKey(email: string) {
   return `lrt-admin-first-tour-active:${email}`;
 }
 
+function readStorage(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // The tour is optional. If storage is blocked, the admin must still load.
+  }
+}
+
+function removeStorage(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // The tour is optional. If storage is blocked, the admin must still load.
+  }
+}
+
 export function FirstUseTour({ email }: { email: string }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -119,17 +143,17 @@ export function FirstUseTour({ email }: { email: string }) {
 
   useEffect(() => {
     const openTour = () => {
-      localStorage.setItem(keys.active, "1");
-      localStorage.setItem(keys.step, "0");
+      writeStorage(keys.active, "1");
+      writeStorage(keys.step, "0");
       setStepIndex(0);
       setIsOpen(true);
     };
 
     window.addEventListener("lrt-admin-tour-open", openTour);
 
-    const savedStep = Number(localStorage.getItem(keys.step) ?? "0");
-    const hasActiveTour = localStorage.getItem(keys.active) === "1";
-    const hasSeenTour = localStorage.getItem(keys.done) === "1";
+    const savedStep = Number(readStorage(keys.step) ?? "0");
+    const hasActiveTour = readStorage(keys.active) === "1";
+    const hasSeenTour = readStorage(keys.done) === "1";
 
     let cancelled = false;
 
@@ -145,7 +169,7 @@ export function FirstUseTour({ email }: { email: string }) {
 
         setStepIndex(initialStep);
         setIsOpen(true);
-        localStorage.setItem(keys.active, "1");
+        writeStorage(keys.active, "1");
       });
     }
 
@@ -166,21 +190,21 @@ export function FirstUseTour({ email }: { email: string }) {
 
   function goToStep(nextStep: number) {
     const safeStep = Math.min(Math.max(nextStep, 0), steps.length - 1);
-    localStorage.setItem(keys.active, "1");
-    localStorage.setItem(keys.step, String(safeStep));
+    writeStorage(keys.active, "1");
+    writeStorage(keys.step, String(safeStep));
     setStepIndex(safeStep);
   }
 
   function closeTour() {
-    localStorage.setItem(keys.done, "1");
-    localStorage.removeItem(keys.active);
-    localStorage.removeItem(keys.step);
+    writeStorage(keys.done, "1");
+    removeStorage(keys.active);
+    removeStorage(keys.step);
     setIsOpen(false);
   }
 
   function rememberCurrentStep() {
-    localStorage.setItem(keys.active, "1");
-    localStorage.setItem(keys.step, String(stepIndex));
+    writeStorage(keys.active, "1");
+    writeStorage(keys.step, String(stepIndex));
   }
 
   return (

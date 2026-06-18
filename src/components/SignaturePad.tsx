@@ -1,6 +1,6 @@
 "use client";
 
-import { PointerEvent, useRef, useState } from "react";
+import { type PointerEvent, useRef, useState } from "react";
 
 type SignaturePadProps = {
   title: string;
