@@ -7,8 +7,15 @@ import { readSignupToken } from "@/lib/pro/signupToken";
 const PRO_PRICE_CENTS = 4900;
 const SETUP_HELP_PRICE_CENTS = 1999;
 
-function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+function getAppUrl(request: Request) {
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return new URL(request.url).origin;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -94,9 +101,9 @@ function buildLineItems(input: {
   return items;
 }
 
-function successUrl(setupHelp: boolean) {
+function successUrl(request: Request, setupHelp: boolean) {
   const path = setupHelp ? "/pro/aide-installation" : "/pro/merci";
-  return `${getAppUrl()}${path}?session_id={CHECKOUT_SESSION_ID}`;
+  return `${getAppUrl(request)}${path}?session_id={CHECKOUT_SESSION_ID}`;
 }
 
 export async function POST(request: Request) {
@@ -158,8 +165,8 @@ export async function POST(request: Request) {
           ...buildSignupMetadata(signup),
           setupHelp: setupHelp ? "1" : "0",
         },
-        success_url: successUrl(setupHelp),
-        cancel_url: `${getAppUrl()}/pro/paiement?inscriptionToken=${encodeURIComponent(
+        success_url: successUrl(request, setupHelp),
+        cancel_url: `${getAppUrl(request)}/pro/paiement?inscriptionToken=${encodeURIComponent(
           signupToken,
         )}`,
       });
@@ -216,8 +223,8 @@ export async function POST(request: Request) {
           pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
         },
-        success_url: successUrl(setupHelp),
-        cancel_url: `${getAppUrl()}/pro/paiement?inscription=${pendingSignup.id}`,
+        success_url: successUrl(request, setupHelp),
+        cancel_url: `${getAppUrl(request)}/pro/paiement?inscription=${pendingSignup.id}`,
       });
 
       if (!session.url) {
@@ -258,7 +265,7 @@ export async function POST(request: Request) {
 
   if (proAccount.paymentStatus === "PAID") {
     return NextResponse.json({
-      redirectUrl: `${getAppUrl()}/pro/premium?compte=${proAccount.slug}`,
+      redirectUrl: `/pro/premium?compte=${proAccount.slug}`,
     });
   }
 
@@ -276,8 +283,8 @@ export async function POST(request: Request) {
         proAccountId: proAccount.id,
         setupHelp: setupHelp ? "1" : "0",
       },
-      success_url: successUrl(setupHelp),
-      cancel_url: `${getAppUrl()}/pro/paiement?compte=${proAccount.slug}`,
+      success_url: successUrl(request, setupHelp),
+      cancel_url: `${getAppUrl(request)}/pro/paiement?compte=${proAccount.slug}`,
     });
 
     await prisma.proAccount.update({

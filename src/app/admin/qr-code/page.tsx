@@ -1,9 +1,22 @@
+import { headers } from "next/headers";
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { QrCodeClient } from "./QrCodeClient";
 
-function getNewRepairUrl(slug?: string | null) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+async function getBaseUrl() {
+  const headerStore = await headers();
+  const forwardedHost = headerStore.get("x-forwarded-host");
+  const forwardedProto = headerStore.get("x-forwarded-proto") || "https";
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
+
+async function getNewRepairUrl(slug?: string | null) {
+  const baseUrl = await getBaseUrl();
   const url = new URL("/nouvelle-reparation", baseUrl);
 
   if (slug) {
@@ -15,13 +28,14 @@ function getNewRepairUrl(slug?: string | null) {
 
 export default async function AdminQrCodePage() {
   const admin = await requireAdminPage();
+  const newRepairUrl = await getNewRepairUrl(admin.proAccountSlug);
 
   return (
     <>
       <AdminHeader email={admin.email} />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-3xl gap-6">
-          <QrCodeClient url={getNewRepairUrl(admin.proAccountSlug)} />
+          <QrCodeClient url={newRepairUrl} />
         </div>
       </main>
     </>

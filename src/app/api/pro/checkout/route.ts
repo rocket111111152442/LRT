@@ -11,10 +11,6 @@ import { validateProSignupInput } from "@/lib/pro/signupValidation";
 
 const FREE_ACCESS_CODE = "REP2026";
 
-function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-}
-
 async function deleteUnpaidProAccount(id: string | null | undefined) {
   if (!id) {
     return;
@@ -154,14 +150,14 @@ export async function POST(request: Request) {
       const proAccount = await createPaidProAccount(accountData);
 
       return NextResponse.json({
-        redirectUrl: `${getAppUrl()}/pro/premium?compte=${proAccount.slug}`,
+        redirectUrl: `/pro/premium?compte=${proAccount.slug}`,
       });
     }
 
     const signupToken = createSignupToken(accountData);
 
     return NextResponse.json({
-      redirectUrl: `${getAppUrl()}/pro/paiement?inscriptionToken=${encodeURIComponent(
+      redirectUrl: `/pro/paiement?inscriptionToken=${encodeURIComponent(
         signupToken,
       )}`,
     });
