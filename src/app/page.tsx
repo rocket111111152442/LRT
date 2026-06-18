@@ -9,7 +9,7 @@ const features = [
   "Recherche rapide par client, telephone, marque ou modele",
   "Statuts clairs pour garder l'atelier organise",
   "Validation par code email a l'inscription et a chaque connexion",
-  "Service client joignable 24h/24 par formulaire",
+  "Service client joignable 24h/24 par telephone et formulaire",
 ];
 
 const workflow = [

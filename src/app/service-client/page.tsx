@@ -2,10 +2,13 @@ import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
 import { SupportForm } from "./SupportForm";
 
+const supportPhoneDisplay = "07 53 30 54 52";
+const supportPhoneHref = "tel:+33753305452";
+
 const supportPoints = [
   "Demande envoyable 24h/24 depuis le site",
+  `Contact telephone : ${supportPhoneDisplay}`,
   "Aide pour la connexion, le paiement, Firebase et les emails",
-  "Message transmis directement par email au support LRT",
 ];
 
 const commonRequests = [
@@ -37,10 +40,15 @@ export default function SupportPage() {
               Support disponible 24h/24 pour envoyer une demande.
             </h1>
             <p className="text-sm leading-6 text-slate-600">
-              Vous pouvez contacter le service client a tout moment. La demande
-              est transmise par email avec vos informations pour pouvoir vous
-              repondre proprement.
+              Vous pouvez contacter le service client a tout moment par
+              telephone ou envoyer une demande ecrite avec vos informations.
             </p>
+            <a
+              href={supportPhoneHref}
+              className="w-fit rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Appeler le {supportPhoneDisplay}
+            </a>
           </div>
         </header>
 
