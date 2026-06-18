@@ -80,6 +80,26 @@ model ProAccount {
   updatedAt                 DateTime      @updatedAt
 }
 
+model PendingProSignup {
+  id                        String   @id @default(cuid())
+  stripeSessionId           String?  @unique
+  companyName               String
+  slug                      String
+  ownerEmail                String
+  passwordHash              String
+  firebaseApiKey            String
+  firebaseAuthDomain        String
+  firebaseProjectId         String
+  firebaseStorageBucket     String?
+  firebaseMessagingSenderId String?
+  firebaseAppId             String
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@index([ownerEmail])
+  @@index([slug])
+}
+
 model EmailSettings {
   id               String   @id @default("default")
   smtpEmail        String?

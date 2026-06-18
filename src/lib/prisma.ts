@@ -187,6 +187,22 @@ async function findUser(where: Dict) {
   return null;
 }
 
+async function findPendingProSignup(where: Dict) {
+  if (typeof where.id === "string") {
+    return findById("pendingProSignups", where.id);
+  }
+
+  if (typeof where.stripeSessionId === "string") {
+    return findByField(
+      "pendingProSignups",
+      "stripeSessionId",
+      where.stripeSessionId,
+    );
+  }
+
+  return null;
+}
+
 function now() {
   return new Date();
 }
@@ -308,6 +324,72 @@ function createFirestorePrisma() {
         );
 
         return findById("proAccounts", String(account.id));
+      },
+      async delete(args: { where: Dict }) {
+        const account = await findProAccount(args.where);
+
+        if (!account) {
+          throw new Error("Pro account not found.");
+        }
+
+        const usersSnapshot = await collection("users")
+          .where("proAccountId", "==", String(account.id))
+          .get();
+        await Promise.all(usersSnapshot.docs.map((doc) => doc.ref.delete()));
+        await collection("proAccounts").doc(String(account.id)).delete();
+
+        return account;
+      },
+    },
+
+    pendingProSignup: {
+      async findUnique(args: { where: Dict; select?: Dict }) {
+        return applySelect(await findPendingProSignup(args.where), args.select);
+      },
+      async create(args: { data: Dict; select?: Dict }) {
+        const id = typeof args.data.id === "string" ? args.data.id : randomUUID();
+        const timestamp = now();
+        const pendingSignup = {
+          ...args.data,
+          id,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+
+        await collection("pendingProSignups").doc(id).set(pendingSignup);
+        return applySelect(pendingSignup, args.select);
+      },
+      async update(args: { where: Dict; data: Dict; select?: Dict }) {
+        const pendingSignup = await findPendingProSignup(args.where);
+
+        if (!pendingSignup) {
+          throw new Error("Pending pro signup not found.");
+        }
+
+        await collection("pendingProSignups").doc(String(pendingSignup.id)).set(
+          {
+            ...args.data,
+            updatedAt: now(),
+          },
+          { merge: true },
+        );
+
+        return applySelect(
+          await findById("pendingProSignups", String(pendingSignup.id)),
+          args.select,
+        );
+      },
+      async delete(args: { where: Dict }) {
+        const pendingSignup = await findPendingProSignup(args.where);
+
+        if (!pendingSignup) {
+          throw new Error("Pending pro signup not found.");
+        }
+
+        await collection("pendingProSignups")
+          .doc(String(pendingSignup.id))
+          .delete();
+        return pendingSignup;
       },
     },
 
