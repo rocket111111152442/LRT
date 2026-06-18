@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendRepairCreatedEmail } from "@/lib/mail";
 import { addRepairEvent } from "@/lib/repairEvents";
 import { generateTicketNumber } from "@/lib/repairTickets";
 import { validateRepairInput } from "@/lib/repairValidation";
@@ -58,6 +59,11 @@ export async function POST(request: Request) {
       select: {
         id: true,
         ticketNumber: true,
+        firstName: true,
+        email: true,
+        deviceType: true,
+        brand: true,
+        model: true,
         status: true,
         createdAt: true,
       },
@@ -87,6 +93,17 @@ export async function POST(request: Request) {
         message: "Signature client au depot ajoutee.",
       });
     }
+
+    const mailResult = await sendRepairCreatedEmail(repair);
+
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId,
+      type: mailResult.sent ? "EMAIL_SENT" : "EMAIL_SKIPPED",
+      message: mailResult.sent
+        ? "Email de ticket envoye au client."
+        : "Email de ticket non envoye. Verifiez la configuration SMTP si besoin.",
+    });
 
     return NextResponse.json({ repair }, { status: 201 });
   } catch {

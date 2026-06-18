@@ -64,10 +64,16 @@ function formatDate(value: string | null) {
     return "-";
   }
 
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function formatPrice(cents: number | null) {
@@ -90,7 +96,13 @@ function inputToCents(value: string) {
     return null;
   }
 
-  return Math.round(Number(value.replace(",", ".")) * 100);
+  const numberValue = Number(value.replace(",", "."));
+
+  if (!Number.isFinite(numberValue) || numberValue < 0) {
+    return null;
+  }
+
+  return Math.round(numberValue * 100);
 }
 
 async function readFiles(files: FileList | null) {

@@ -14,10 +14,29 @@ type TrackedRepair = {
 };
 
 function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(date);
+}
+
+function normalizeTicket(value: string) {
+  const normalized = value
+    .toUpperCase()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
+  if (/^LRT\d{6}$/.test(normalized)) {
+    return `LRT-${normalized.slice(3)}`;
+  }
+
+  return normalized;
 }
 
 export function TrackingClient() {
@@ -31,10 +50,18 @@ export function TrackingClient() {
     setIsLoading(true);
     setError("");
     setRepair(null);
+    const normalizedTicket = normalizeTicket(ticket).trim().replace(/^-|-$/g, "");
+    setTicket(normalizedTicket);
+
+    if (!normalizedTicket) {
+      setError("Ticket requis.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(
-        `/api/track-repair?ticket=${encodeURIComponent(ticket.trim())}`,
+        `/api/track-repair?ticket=${encodeURIComponent(normalizedTicket)}`,
       );
       const payload = await response.json();
 
@@ -57,7 +84,7 @@ export function TrackingClient() {
         <input
           type="text"
           value={ticket}
-          onChange={(event) => setTicket(event.target.value.toUpperCase())}
+          onChange={(event) => setTicket(normalizeTicket(event.target.value))}
           placeholder="LRT-000123"
           className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
         />

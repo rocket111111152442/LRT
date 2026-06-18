@@ -126,6 +126,104 @@ async function getEvents(repairId: string) {
   });
 }
 
+function readString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function readNullableString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function readBoolean(value: unknown) {
+  return typeof value === "boolean" ? value : false;
+}
+
+function readNullableNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function readDateString(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  return null;
+}
+
+function readRepairStatus(value: unknown): PrismaRepairStatus {
+  return typeof value === "string" && isRepairStatus(value)
+    ? value
+    : "PAS_ENCORE_EN_REPARATION";
+}
+
+function readPartStatus(value: unknown): PrismaPartStatus {
+  return typeof value === "string" && isPartStatus(value) ? value : "NONE";
+}
+
+function readQuoteStatus(value: unknown) {
+  return ["NONE", "SENT", "ACCEPTED", "REFUSED"].includes(String(value))
+    ? String(value)
+    : "NONE";
+}
+
+function readPhotosForResponse(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((photo): photo is string => typeof photo === "string")
+    : [];
+}
+
+function normalizeRepairForResponse(value: unknown) {
+  const repair = isRecord(value) ? value : {};
+
+  return {
+    id: readString(repair.id),
+    ticketNumber: readNullableString(repair.ticketNumber),
+    firstName: readString(repair.firstName, "-"),
+    lastName: readString(repair.lastName),
+    phone: readString(repair.phone, "-"),
+    email: readString(repair.email, "-"),
+    deviceType: readString(repair.deviceType, "-"),
+    brand: readString(repair.brand),
+    model: readString(repair.model),
+    issueDescription: readString(repair.issueDescription, "-"),
+    unlockCodeOrNote: readNullableString(repair.unlockCodeOrNote),
+    status: readRepairStatus(repair.status),
+    internalNotes: readNullableString(repair.internalNotes),
+    readyEmailSent: readBoolean(repair.readyEmailSent),
+    reviewEmailSent: readBoolean(repair.reviewEmailSent),
+    readyReminderSentAt: readDateString(repair.readyReminderSentAt),
+    estimatedPriceCents: readNullableNumber(repair.estimatedPriceCents),
+    partsCostCents: readNullableNumber(repair.partsCostCents),
+    quoteStatus: readQuoteStatus(repair.quoteStatus),
+    quoteSentAt: readDateString(repair.quoteSentAt),
+    quoteRespondedAt: readDateString(repair.quoteRespondedAt),
+    photos: readPhotosForResponse(repair.photos),
+    customerDropOffSignature: readNullableString(repair.customerDropOffSignature),
+    customerPickupSignature: readNullableString(repair.customerPickupSignature),
+    partsStatus: readPartStatus(repair.partsStatus),
+    partsDescription: readNullableString(repair.partsDescription),
+    archivedAt: readDateString(repair.archivedAt),
+    createdAt: readDateString(repair.createdAt) ?? new Date().toISOString(),
+    updatedAt: readDateString(repair.updatedAt) ?? new Date().toISOString(),
+  };
+}
+
+function normalizeEventsForResponse(values: unknown) {
+  return Array.isArray(values)
+    ? values.filter(isRecord).map((event) => ({
+        id: readString(event.id),
+        type: readString(event.type, "INFO"),
+        message: readString(event.message, "Action enregistree."),
+        createdAt: readDateString(event.createdAt) ?? new Date().toISOString(),
+      }))
+    : [];
+}
+
 export async function GET(_request: Request, context: RouteContext) {
   const admin = await requireAdminApi();
 
@@ -143,7 +241,10 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Reparation introuvable." }, { status: 404 });
   }
 
-  return NextResponse.json({ repair, events: await getEvents(repair.id) });
+  return NextResponse.json({
+    repair: normalizeRepairForResponse(repair),
+    events: normalizeEventsForResponse(await getEvents(repair.id)),
+  });
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -447,8 +548,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   return NextResponse.json({
-    repair,
-    events: await getEvents(repair.id),
+    repair: normalizeRepairForResponse(repair),
+    events: normalizeEventsForResponse(await getEvents(repair.id)),
     mail: {
       attempted: shouldSendStatusEmail,
       sent: statusEmailSentNow,

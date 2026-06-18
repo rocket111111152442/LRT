@@ -74,6 +74,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Donnees invalides." }, { status: 400 });
   }
 
+  const existingItems = await prisma.inventoryItem.findMany({
+    where: {
+      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      quantity: true,
+    },
+  });
+  const existingItem = existingItems.find(
+    (item) => item.name.trim().toLowerCase() === name.toLowerCase(),
+  );
+
+  if (existingItem) {
+    const item = await prisma.inventoryItem.update({
+      where: { id: existingItem.id },
+      data: {
+        name: existingItem.name,
+        quantity: existingItem.quantity + quantity,
+        lowStockThreshold,
+        unitCostCents,
+      },
+    });
+
+    return NextResponse.json({ item, merged: true });
+  }
+
   const item = await prisma.inventoryItem.create({
     data: {
       proAccountId: admin.user.proAccountId ?? undefined,

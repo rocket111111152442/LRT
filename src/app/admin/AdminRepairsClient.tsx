@@ -94,9 +94,10 @@ export function AdminRepairsClient() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState("");
 
-  const apiUrl = useMemo(() => {
+  const queryString = useMemo(() => {
     const params = new URLSearchParams();
 
     if (search.trim()) {
@@ -107,9 +108,13 @@ export function AdminRepairsClient() {
       params.set("status", status);
     }
 
-    const query = params.toString();
-    return query ? `/api/admin/repairs?${query}` : "/api/admin/repairs";
+    return params.toString();
   }, [search, status]);
+
+  const apiUrl = queryString ? `/api/admin/repairs?${queryString}` : "/api/admin/repairs";
+  const exportUrl = queryString
+    ? `/api/admin/repairs/export?${queryString}`
+    : "/api/admin/repairs/export";
 
   useEffect(() => {
     const controller = new AbortController();
@@ -152,9 +157,48 @@ export function AdminRepairsClient() {
     };
   }, [apiUrl]);
 
+  async function downloadCsv() {
+    setIsExporting(true);
+    setError("");
+
+    try {
+      const response = await fetch(exportUrl);
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        setError(
+          isRecord(payload)
+            ? readString(payload.error, "Export impossible.")
+            : "Export impossible.",
+        );
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "repairs-lrt.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError("Export impossible.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return (
     <section className="grid gap-5">
-      <div className="grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
+      <div className="grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)_auto]">
         <div className="grid min-w-0 gap-2">
           <label htmlFor="repair-search" className="text-sm font-medium text-slate-800">
             Recherche
@@ -185,6 +229,16 @@ export function AdminRepairsClient() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="flex items-end">
+          <button
+            type="button"
+            onClick={downloadCsv}
+            disabled={isExporting}
+            className="min-h-11 w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 lg:w-fit"
+          >
+            {isExporting ? "Export..." : "Export CSV"}
+          </button>
         </div>
       </div>
 

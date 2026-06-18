@@ -93,6 +93,18 @@ export function InventoryClient() {
     return () => window.clearTimeout(timeoutId);
   }, [loadItems]);
 
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setMessage("");
+    }, 2800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [message]);
+
   const summary = useMemo(() => {
     return items.reduce(
       (totals, item) => {
@@ -117,7 +129,7 @@ export function InventoryClient() {
       lowStockThreshold: String(item.lowStockThreshold),
       unitCost: centsToInput(item.unitCostCents),
     });
-    setMessage(`Modification de "${item.name}" en cours.`);
+    setMessage("");
     setError("");
 
     window.setTimeout(() => {
@@ -165,7 +177,13 @@ export function InventoryClient() {
       }
 
       setForm(emptyForm);
-      setMessage(form.id ? "Piece modifiee." : "Piece ajoutee.");
+      setMessage(
+        form.id
+          ? "Piece modifiee."
+          : payload.merged
+            ? "Quantite ajoutee a la piece existante."
+            : "Piece ajoutee.",
+      );
       await loadItems();
     } catch {
       setError("Enregistrement impossible.");
@@ -202,6 +220,48 @@ export function InventoryClient() {
       setMessage("Piece supprimee.");
     } catch {
       setError("Suppression impossible.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function adjustQuantity(item: InventoryItem, change: number) {
+    const nextQuantity = item.quantity + change;
+
+    if (nextQuantity < 0 || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/inventory/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: item.name,
+          quantity: nextQuantity,
+          lowStockThreshold: item.lowStockThreshold,
+          unitCostCents: item.unitCostCents ?? 0,
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setError(payload.error ?? "Mise a jour impossible.");
+        return;
+      }
+
+      if (form.id === item.id) {
+        setForm((current) => ({ ...current, quantity: String(nextQuantity) }));
+      }
+
+      await loadItems();
+      setMessage(change > 0 ? "Piece ajoutee au stock." : "Piece retiree du stock.");
+    } catch {
+      setError("Mise a jour impossible.");
     } finally {
       setIsSaving(false);
     }
@@ -316,7 +376,7 @@ export function InventoryClient() {
           </div>
         </form>
 
-        <div className="grid gap-4">
+        <div className="grid content-start gap-4">
           {error ? (
             <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
               {error}
@@ -365,7 +425,31 @@ export function InventoryClient() {
                         <td className="px-4 py-3 font-medium text-slate-950">
                           {item.name}
                         </td>
-                        <td className="px-4 py-3 text-slate-700">{item.quantity}</td>
+                        <td className="px-4 py-3 text-slate-700">
+                          <div className="flex w-fit items-center overflow-hidden rounded-md border border-slate-300 bg-white">
+                            <button
+                              type="button"
+                              onClick={() => adjustQuantity(item, -1)}
+                              disabled={isSaving || item.quantity <= 0}
+                              aria-label={`Retirer une piece ${item.name}`}
+                              className="grid h-9 w-9 place-items-center text-base font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                            >
+                              -
+                            </button>
+                            <span className="min-w-10 border-x border-slate-200 px-3 text-center font-semibold text-slate-950">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => adjustQuantity(item, 1)}
+                              disabled={isSaving}
+                              aria-label={`Ajouter une piece ${item.name}`}
+                              className="grid h-9 w-9 place-items-center text-base font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-slate-700">
                           {formatPrice(unitCostCents)}
                         </td>

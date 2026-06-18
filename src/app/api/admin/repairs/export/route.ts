@@ -1,22 +1,78 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { REPAIR_STATUSES } from "@/lib/repairValidation";
+import type { RepairStatus as PrismaRepairStatus } from "../../../../../../generated/prisma/client";
 
 function csvEscape(value: unknown) {
   const text = String(value ?? "");
   return `"${text.replace(/"/g, '""')}"`;
 }
 
-export async function GET() {
+function isRepairStatus(value: string): value is PrismaRepairStatus {
+  return REPAIR_STATUSES.includes(value as (typeof REPAIR_STATUSES)[number]);
+}
+
+function safeText(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function safeCents(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function centsToEuro(value: unknown) {
+  const cents = safeCents(value);
+  return cents === null ? "" : (cents / 100).toFixed(2);
+}
+
+function dateToIso(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+  }
+
+  return "";
+}
+
+export async function GET(request: Request) {
   const admin = await requireAdminApi();
 
   if (!admin.ok) {
     return admin.response;
   }
 
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get("search")?.trim();
+  const status = searchParams.get("status")?.trim();
+
+  if (status && !isRepairStatus(status)) {
+    return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
+  }
+
+  const statusFilter: PrismaRepairStatus | undefined =
+    status && isRepairStatus(status) ? status : undefined;
+
   const repairs = await prisma.repair.findMany({
     where: {
       ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      ...(statusFilter ? { status: statusFilter } : {}),
+      ...(search
+        ? {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+              { phone: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+              { brand: { contains: search, mode: "insensitive" } },
+              { model: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     orderBy: { createdAt: "desc" },
     select: {
@@ -58,25 +114,28 @@ export async function GET() {
       "mis_a_jour_le",
     ],
     ...repairs.map((repair) => [
-      repair.ticketNumber,
-      repair.firstName,
-      repair.lastName,
-      repair.phone,
-      repair.email,
-      repair.deviceType,
-      repair.brand,
-      repair.model,
-      repair.status,
-      repair.quoteStatus,
-      repair.estimatedPriceCents ? (repair.estimatedPriceCents / 100).toFixed(2) : "",
-      repair.partsCostCents ? (repair.partsCostCents / 100).toFixed(2) : "",
-      repair.estimatedPriceCents
-        ? (((repair.estimatedPriceCents ?? 0) - (repair.partsCostCents ?? 0)) / 100)
-            .toFixed(2)
+      safeText(repair.ticketNumber),
+      safeText(repair.firstName),
+      safeText(repair.lastName),
+      safeText(repair.phone),
+      safeText(repair.email),
+      safeText(repair.deviceType),
+      safeText(repair.brand),
+      safeText(repair.model),
+      safeText(repair.status),
+      safeText(repair.quoteStatus),
+      centsToEuro(repair.estimatedPriceCents),
+      centsToEuro(repair.partsCostCents),
+      safeCents(repair.estimatedPriceCents) !== null
+        ? (
+            ((safeCents(repair.estimatedPriceCents) ?? 0) -
+              (safeCents(repair.partsCostCents) ?? 0)) /
+            100
+          ).toFixed(2)
         : "",
-      repair.partsStatus,
-      repair.createdAt.toISOString(),
-      repair.updatedAt.toISOString(),
+      safeText(repair.partsStatus),
+      dateToIso(repair.createdAt),
+      dateToIso(repair.updatedAt),
     ]),
   ];
 

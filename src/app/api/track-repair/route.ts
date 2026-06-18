@@ -1,9 +1,41 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+function normalizeTicket(value: string) {
+  const normalized = value
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  if (/^LRT\d{6}$/.test(normalized)) {
+    return `LRT-${normalized.slice(3)}`;
+  }
+
+  return normalized;
+}
+
+function readString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function readDateString(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+  }
+
+  return new Date().toISOString();
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const ticketNumber = searchParams.get("ticket")?.trim().toUpperCase();
+  const ticketNumber = normalizeTicket(searchParams.get("ticket") ?? "");
 
   if (!ticketNumber) {
     return NextResponse.json({ error: "Ticket requis." }, { status: 400 });
@@ -28,5 +60,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ticket introuvable." }, { status: 404 });
   }
 
-  return NextResponse.json({ repair });
+  return NextResponse.json({
+    repair: {
+      ticketNumber: readString(repair.ticketNumber, ticketNumber),
+      firstName: readString(repair.firstName, "-"),
+      deviceType: readString(repair.deviceType, "-"),
+      brand: readString(repair.brand),
+      model: readString(repair.model),
+      status: readString(repair.status, "PAS_ENCORE_EN_REPARATION"),
+      quoteStatus: readString(repair.quoteStatus, "NONE"),
+      updatedAt: readDateString(repair.updatedAt),
+    },
+  });
 }

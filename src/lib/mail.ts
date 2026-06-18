@@ -13,6 +13,10 @@ type RepairStatusEmailInput = ReadyRepairEmailInput & {
   status: string;
 };
 
+type CreatedRepairEmailInput = ReadyRepairEmailInput & {
+  ticketNumber: string | null;
+};
+
 type QuoteEmailInput = ReadyRepairEmailInput & {
   ticketNumber: string | null;
   estimatedPriceCents: number;
@@ -347,6 +351,45 @@ export async function sendQuoteEmail(
   return sendWithRepairSmtp({
     to: repair.email,
     subject: `Votre devis LRT ${repair.ticketNumber ?? ""}`.trim(),
+    text,
+    html,
+  });
+}
+
+export async function sendRepairCreatedEmail(
+  repair: CreatedRepairEmailInput,
+): Promise<SendMailResult> {
+  const ticket = repair.ticketNumber ?? "non attribue";
+  const trackingUrl = `${getAppUrl()}/suivi`;
+  const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
+  const text = [
+    `Bonjour ${repair.firstName},`,
+    "",
+    "Votre demande de reparation a bien ete recue.",
+    device ? `Appareil : ${device}` : "",
+    `Ticket : ${ticket}`,
+    "",
+    "Pour suivre votre reparation, ouvrez ce lien :",
+    trackingUrl,
+    "",
+    "Entrez votre numero de ticket sur la page de suivi.",
+  ].filter(Boolean).join("\n");
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
+      <p>Bonjour ${escapeHtml(repair.firstName)},</p>
+      <p>Votre demande de reparation a bien ete recue.</p>
+      ${device ? `<p>Appareil : <strong>${escapeHtml(device)}</strong></p>` : ""}
+      <p>Ticket : <strong>${escapeHtml(ticket)}</strong></p>
+      <p style="margin:24px 0">
+        <a href="${trackingUrl}" style="display:inline-block;background:#020617;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:6px;font-weight:bold">Suivre ma reparation</a>
+      </p>
+      <p style="font-size:13px;color:#475569">Si le bouton ne fonctionne pas, ouvrez ce lien : ${escapeHtml(trackingUrl)}</p>
+    </div>
+  `;
+
+  return sendWithRepairSmtp({
+    to: repair.email,
+    subject: `Votre ticket LRT ${ticket}`.trim(),
     text,
     html,
   });
