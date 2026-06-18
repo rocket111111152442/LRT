@@ -19,6 +19,7 @@ const initialValues: ProSignupInput = {
   firebaseAppId: "",
   promoCode: "",
   emailCode: "",
+  emailVerificationId: "",
 };
 
 const FREE_ACCESS_CODE = "REP2026";
@@ -78,6 +79,12 @@ export function ProSignupForm() {
       }
 
       setCodeSent(true);
+      if (typeof payload.verificationId === "string") {
+        setValues((current) => ({
+          ...current,
+          emailVerificationId: payload.verificationId,
+        }));
+      }
       setMessage(payload.message ?? "Code envoye. Verifiez votre boite email.");
       return true;
     } catch {
@@ -234,12 +241,6 @@ export function ProSignupForm() {
         </div>
       </fieldset>
 
-      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
-        Vous n avez aucune configuration Firebase a faire. LRT utilise la base
-        en ligne configuree sur Vercel et separe automatiquement les donnees de
-        chaque atelier.
-      </p>
-
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {submitError}
@@ -273,7 +274,12 @@ export function ProSignupForm() {
             inputMode="numeric"
             maxLength={6}
             value={values.emailCode ?? ""}
-            onChange={(event) => updateField("emailCode", event.target.value)}
+            onChange={(event) =>
+              updateField(
+                "emailCode",
+                event.target.value.replace(/\D/g, "").slice(0, 6),
+              )
+            }
             className="h-11 w-full max-w-[220px] rounded-md border border-slate-300 px-3 py-2 text-sm tracking-[0.2em] outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
             aria-invalid={Boolean(errors.emailCode)}
           />

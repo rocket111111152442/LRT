@@ -93,7 +93,7 @@ Le statut initial d'une reparation creee par l'API publique est `PAS_ENCORE_EN_R
 
 La configuration email peut etre saisie dans l'admin sur `/admin/email`. Les variables SMTP du fichier `.env` restent disponibles comme secours.
 
-Les variables SMTP serveur sont aussi utilisees pour envoyer les codes de validation a l'inscription et a chaque connexion admin. En production, renseignez `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` et `SMTP_FROM` dans Vercel.
+Les variables SMTP serveur sont aussi utilisees pour envoyer les codes de validation a l'inscription, a chaque connexion admin et pour la recuperation de mot de passe. En production, renseignez `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` et `SMTP_FROM` dans Vercel. L'adresse service client conseillee est `lrt.service.client@gmail.com`.
 
 La page `/service-client` envoie les demandes a `SUPPORT_EMAIL`. Si cette variable est vide, l'application utilise `SMTP_FROM` ou `SMTP_USER`.
 

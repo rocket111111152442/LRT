@@ -3,7 +3,7 @@ import { randomInt } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationCodeEmail } from "@/lib/mail";
 
-export type EmailVerificationPurpose = "SIGNUP" | "LOGIN";
+export type EmailVerificationPurpose = "SIGNUP" | "LOGIN" | "PASSWORD_RESET";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 
@@ -79,13 +79,17 @@ export async function sendEmailVerificationCode(
       .catch(() => null);
   }
 
-  return result;
+  return {
+    ...result,
+    verificationId: verificationId(normalizedEmail, purpose),
+  };
 }
 
 export async function verifyEmailCode(
   email: string,
   purpose: EmailVerificationPurpose,
   code: string,
+  emailVerificationId?: string,
 ) {
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedCode = normalizeCode(code);
@@ -94,18 +98,39 @@ export async function verifyEmailCode(
     return false;
   }
 
-  const storedCode = await prisma.emailVerificationCode.findUnique({
-    where: { id: verificationId(normalizedEmail, purpose) },
+  let storedCode = await prisma.emailVerificationCode.findUnique({
+    where: { id: emailVerificationId || verificationId(normalizedEmail, purpose) },
     select: {
       id: true,
+      email: true,
+      purpose: true,
       codeHash: true,
       expiresAt: true,
     },
   });
 
+  if (!storedCode && emailVerificationId) {
+    storedCode = await prisma.emailVerificationCode.findUnique({
+      where: { id: verificationId(normalizedEmail, purpose) },
+      select: {
+        id: true,
+        email: true,
+        purpose: true,
+        codeHash: true,
+        expiresAt: true,
+      },
+    });
+  }
+
   const expiresAt = toDate(storedCode?.expiresAt);
 
-  if (!storedCode || !expiresAt || expiresAt.getTime() < Date.now()) {
+  if (
+    !storedCode ||
+    storedCode.email !== normalizedEmail ||
+    storedCode.purpose !== purpose ||
+    !expiresAt ||
+    expiresAt.getTime() < Date.now()
+  ) {
     return false;
   }
 

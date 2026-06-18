@@ -123,6 +123,7 @@ export async function POST(request: Request) {
         validation.data.ownerEmail,
         "SIGNUP",
         validation.data.emailCode ?? "",
+        validation.data.emailVerificationId,
       );
 
       if (!isEmailVerified) {

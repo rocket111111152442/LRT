@@ -24,7 +24,9 @@ type SendMailResult = {
   skipped: boolean;
 };
 
-type VerificationEmailPurpose = "SIGNUP" | "LOGIN";
+type VerificationEmailPurpose = "SIGNUP" | "LOGIN" | "PASSWORD_RESET";
+
+const DEFAULT_SERVICE_EMAIL = "lrt.service.client@gmail.com";
 
 type SmtpConfig = {
   host: string;
@@ -51,13 +53,14 @@ function getEnvShopLines() {
 function getEnvSmtpConfig(): SmtpConfig | null {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || DEFAULT_SERVICE_EMAIL;
 
   if (!host || !from || Number.isNaN(port)) {
     return null;
   }
 
-  const user = process.env.SMTP_USER;
+  const user =
+    process.env.SMTP_USER || (process.env.SMTP_PASSWORD ? DEFAULT_SERVICE_EMAIL : "");
   const pass = process.env.SMTP_PASSWORD;
 
   return {
@@ -110,12 +113,15 @@ export async function sendVerificationCodeEmail(input: {
   purpose: VerificationEmailPurpose;
 }): Promise<SendMailResult> {
   const isSignup = input.purpose === "SIGNUP";
+  const isPasswordReset = input.purpose === "PASSWORD_RESET";
   const text = [
     `Code LRT : ${input.code}`,
     "",
     isSignup
       ? "Entrez ce code pour valider votre email et continuer la creation du compte pro."
-      : "Entrez ce code pour confirmer votre connexion a l espace admin.",
+      : isPasswordReset
+        ? "Entrez ce code pour changer le mot de passe de votre espace admin."
+        : "Entrez ce code pour confirmer votre connexion a l espace admin.",
     "",
     "Ce code expire dans 10 minutes.",
     "Si vous n etes pas a l origine de cette demande, ignorez cet email.",
@@ -123,7 +129,11 @@ export async function sendVerificationCodeEmail(input: {
 
   return sendWithEnvSmtp({
     to: input.email,
-    subject: isSignup ? "Code de validation LRT" : "Code de connexion LRT",
+    subject: isSignup
+      ? "Code de validation LRT"
+      : isPasswordReset
+        ? "Code de recuperation LRT"
+        : "Code de connexion LRT",
     text,
   });
 }
@@ -135,7 +145,10 @@ export async function sendSupportMessageEmail(input: {
   message: string;
 }): Promise<SendMailResult> {
   const supportEmail =
-    process.env.SUPPORT_EMAIL || process.env.SMTP_FROM || process.env.SMTP_USER;
+    process.env.SUPPORT_EMAIL ||
+    process.env.SMTP_FROM ||
+    process.env.SMTP_USER ||
+    DEFAULT_SERVICE_EMAIL;
 
   if (!supportEmail) {
     return { sent: false, skipped: true };
@@ -167,7 +180,10 @@ export async function sendSetupAppointmentEmail(input: {
   notes?: string | null;
 }): Promise<SendMailResult> {
   const supportEmail =
-    process.env.SUPPORT_EMAIL || process.env.SMTP_FROM || process.env.SMTP_USER;
+    process.env.SUPPORT_EMAIL ||
+    process.env.SMTP_FROM ||
+    process.env.SMTP_USER ||
+    DEFAULT_SERVICE_EMAIL;
 
   if (!supportEmail) {
     return { sent: false, skipped: true };

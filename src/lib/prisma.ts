@@ -324,6 +324,19 @@ function createFirestorePrisma() {
         await collection("users").doc(id).set(firestoreData(user));
         return user;
       },
+      async update(args: { where: Dict; data: Dict; select?: Dict }) {
+        const user = await findUser(args.where);
+
+        if (!user) {
+          throw new Error("User not found.");
+        }
+
+        await collection("users")
+          .doc(String(user.id))
+          .set(firestoreData(args.data), { merge: true });
+
+        return applySelect(await findById("users", String(user.id)), args.select);
+      },
     },
 
     proAccount: {

@@ -11,6 +11,15 @@ export function LoginForm() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requiresCode, setRequiresCode] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetRequiresCode, setResetRequiresCode] = useState(false);
+
+  function cleanCode(value: string) {
+    return value.replace(/\D/g, "").slice(0, 6);
+  }
 
   async function submitLogin(nextCode = code) {
     const response = await fetch("/api/admin/login", {
@@ -87,6 +96,231 @@ export function LoginForm() {
     }
   }
 
+  function openResetMode() {
+    setIsResetMode(true);
+    setResetEmail(email);
+    setResetCode("");
+    setNewPassword("");
+    setResetRequiresCode(false);
+    setError("");
+    setMessage("");
+  }
+
+  function backToLogin() {
+    setIsResetMode(false);
+    setResetCode("");
+    setNewPassword("");
+    setResetRequiresCode(false);
+    setError("");
+    setMessage("");
+  }
+
+  async function submitPasswordReset(sendOnlyCode = false) {
+    const response = await fetch("/api/admin/password-reset", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: resetEmail,
+        code: !sendOnlyCode && resetRequiresCode ? resetCode : undefined,
+        password: !sendOnlyCode && resetRequiresCode ? newPassword : undefined,
+      }),
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      setError(payload.error ?? "Recuperation impossible.");
+      return;
+    }
+
+    if (payload.requiresCode) {
+      setResetRequiresCode(true);
+      setResetCode("");
+      setMessage(
+        payload.message ?? "Code de recuperation envoye. Verifiez votre boite email.",
+      );
+      return;
+    }
+
+    setEmail(resetEmail);
+    setPassword("");
+    setCode("");
+    setRequiresCode(false);
+    setIsResetMode(false);
+    setResetRequiresCode(false);
+    setMessage(payload.message ?? "Mot de passe modifie. Vous pouvez vous connecter.");
+  }
+
+  async function handleResetSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!resetEmail.trim()) {
+      setError("Email requis.");
+      return;
+    }
+
+    if (resetRequiresCode && resetCode.replace(/\D/g, "").length !== 6) {
+      setError("Code de recuperation requis.");
+      return;
+    }
+
+    if (resetRequiresCode && newPassword.length < 8) {
+      setError("Le nouveau mot de passe doit faire au moins 8 caracteres.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await submitPasswordReset();
+    } catch {
+      setError("Recuperation impossible.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function resendResetCode() {
+    setError("");
+    setMessage("");
+    setResetCode("");
+    setNewPassword("");
+    setResetRequiresCode(false);
+    setIsSubmitting(true);
+
+    try {
+      await submitPasswordReset(true);
+    } catch {
+      setError("Envoi du code impossible.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (isResetMode) {
+    return (
+      <form
+        onSubmit={handleResetSubmit}
+        className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+      >
+        <div className="grid gap-2">
+          <h2 className="text-xl font-semibold text-slate-950">
+            Mot de passe oublie
+          </h2>
+          <p className="text-sm leading-6 text-slate-600">
+            Entrez l email admin du compte. LRT envoie un code de recuperation
+            pour choisir un nouveau mot de passe.
+          </p>
+        </div>
+
+        <div className="grid gap-2">
+          <label
+            htmlFor="reset-email"
+            className="text-sm font-medium text-slate-800"
+          >
+            Email admin
+          </label>
+          <input
+            id="reset-email"
+            type="email"
+            autoComplete="email"
+            value={resetEmail}
+            onChange={(event) => {
+              setResetEmail(event.target.value);
+              setResetRequiresCode(false);
+              setResetCode("");
+              setNewPassword("");
+              setMessage("");
+            }}
+            className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          />
+        </div>
+
+        {resetRequiresCode ? (
+          <div className="grid gap-4 rounded-md border border-slate-200 bg-slate-50 p-4">
+            <label
+              htmlFor="reset-code"
+              className="grid gap-2 text-sm font-medium text-slate-800"
+            >
+              Code recu par email
+              <input
+                id="reset-code"
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                autoComplete="one-time-code"
+                value={resetCode}
+                onChange={(event) => setResetCode(cleanCode(event.target.value))}
+                className="min-h-11 max-w-[220px] rounded-md border border-slate-300 px-3 py-2 text-sm tracking-[0.2em] outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+              />
+            </label>
+
+            <label
+              htmlFor="reset-password"
+              className="grid gap-2 text-sm font-medium text-slate-800"
+            >
+              Nouveau mot de passe
+              <input
+                id="reset-password"
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+              />
+            </label>
+
+            <button
+              type="button"
+              onClick={resendResetCode}
+              disabled={isSubmitting}
+              className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              Renvoyer un code
+            </button>
+          </div>
+        ) : null}
+
+        {error ? (
+          <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {error}
+          </p>
+        ) : null}
+
+        {message ? (
+          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {message}
+          </p>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {isSubmitting
+            ? resetRequiresCode
+              ? "Modification..."
+              : "Envoi du code..."
+            : resetRequiresCode
+              ? "Changer le mot de passe"
+              : "Envoyer le code"}
+        </button>
+
+        <button
+          type="button"
+          onClick={backToLogin}
+          className="text-sm font-semibold text-slate-950 underline-offset-4 hover:underline"
+        >
+          Retour a la connexion
+        </button>
+      </form>
+    );
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -130,6 +364,13 @@ export function LoginForm() {
           }}
           className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
         />
+        <button
+          type="button"
+          onClick={openResetMode}
+          className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline"
+        >
+          Mot de passe oublie ?
+        </button>
       </div>
 
       {requiresCode ? (
@@ -147,7 +388,7 @@ export function LoginForm() {
             maxLength={6}
             autoComplete="one-time-code"
             value={code}
-            onChange={(event) => setCode(event.target.value)}
+            onChange={(event) => setCode(cleanCode(event.target.value))}
             className="min-h-11 max-w-[220px] rounded-md border border-slate-300 px-3 py-2 text-sm tracking-[0.2em] outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
           />
           <button
