@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
+import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { FirstUseTour } from "./FirstUseTour";
 
 type AdminHeaderProps = {
@@ -91,7 +92,9 @@ export function AdminHeader({ email }: AdminHeaderProps) {
           </button>
         </nav>
       </div>
-      <FirstUseTour email={email} />
+      <ClientErrorBoundary name="First use tour" fallback={null}>
+        <FirstUseTour email={email} />
+      </ClientErrorBoundary>
     </header>
   );
 }

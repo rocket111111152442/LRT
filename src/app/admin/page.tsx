@@ -1,8 +1,11 @@
 import { AdminHeader } from "./AdminHeader";
 import { AdminRepairsClient } from "./AdminRepairsClient";
 import { AdminStatsClient } from "./AdminStatsClient";
+import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { requireAdminPage } from "@/lib/auth";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const admin = await requireAdminPage();
@@ -37,8 +40,28 @@ export default async function AdminPage() {
               </Link>
             </div>
           </header>
-          <AdminStatsClient />
-          <AdminRepairsClient />
+          <ClientErrorBoundary
+            name="Admin stats"
+            fallback={
+              <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Les statistiques n&apos;ont pas pu charger. La liste des
+                reparations reste disponible.
+              </p>
+            }
+          >
+            <AdminStatsClient />
+          </ClientErrorBoundary>
+          <ClientErrorBoundary
+            name="Admin repairs list"
+            fallback={
+              <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                La liste des reparations n&apos;a pas pu charger. Essayez de
+                recharger la page ou creez une nouvelle reparation.
+              </p>
+            }
+          >
+            <AdminRepairsClient />
+          </ClientErrorBoundary>
         </div>
       </main>
     </>
