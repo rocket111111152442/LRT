@@ -11,7 +11,7 @@ const setupSteps = [
   },
   {
     title: "2. Regler les informations email",
-    text: "Ajoutez l email du magasin, le mot de passe d application SMTP, le nom du magasin, l adresse, les horaires et le telephone. Ces infos servent au message envoye quand une reparation est PRETE.",
+    text: "Ajoutez l email du magasin, le mot de passe d application SMTP, le nom du magasin, l adresse, les horaires et le telephone. Ces infos servent aux messages envoyes quand le statut d une reparation change.",
     href: "/admin/email",
     action: "Configurer l'email",
   },
@@ -28,8 +28,8 @@ const setupSteps = [
     action: "Creer une fiche",
   },
   {
-    title: "5. Tester le statut PRET",
-    text: "Ouvrez la fiche test, passez le statut a PRET, puis enregistrez. Si SMTP est correct, le client recoit l email une seule fois.",
+    title: "5. Tester les emails de statut",
+    text: "Ouvrez la fiche test, changez le statut, puis enregistrez. Si SMTP est correct, le client recoit un email. Le statut PRET garde une protection anti double envoi.",
     href: "/admin",
     action: "Ouvrir la liste",
   },
@@ -56,7 +56,7 @@ const configurationBlocks = [
   },
   {
     title: "Page Email",
-    text: "Elle configure l envoi automatique du message PRET et les informations affichees dans l email.",
+    text: "Elle configure l envoi automatique des messages de statut et les informations affichees dans l email.",
   },
   {
     title: "Fiche detaillee",
@@ -69,7 +69,7 @@ const dailyTips = [
   "Gardez les notes internes pour les informations reservees a l'atelier.",
   "Archivez les anciennes reparations au lieu de les supprimer si vous voulez garder l'historique.",
   "Supprimez definitivement seulement les fiches creees par erreur.",
-  "Si un email PRET ne part pas, verifiez d'abord la page Email et le mot de passe d'application.",
+  "Si un email de statut ne part pas, verifiez d'abord la page Email et le mot de passe d'application.",
 ];
 
 export default async function AdminGuidePage() {

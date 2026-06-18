@@ -58,7 +58,7 @@ const steps: TourStep[] = [
   },
   {
     title: "Configuration email",
-    text: "Cette page sert a regler l envoi automatique du mail quand une reparation passe au statut PRET.",
+    text: "Cette page sert a regler l envoi automatique des mails quand le statut d'une reparation change.",
     details: [
       "Renseignez l email du magasin et le mot de passe d application SMTP.",
       "Ajoutez le nom, l adresse, les horaires et le telephone du magasin.",
@@ -73,7 +73,8 @@ const steps: TourStep[] = [
     details: [
       "Changez le statut quand l appareil avance.",
       "Ajoutez des notes internes visibles seulement par l atelier.",
-      "Quand le statut devient PRET, LRT tente d envoyer l email client une seule fois.",
+      "Quand le statut change, LRT tente d envoyer un email au client.",
+      "Pour le statut PRET, LRT garde une protection anti double envoi.",
     ],
     path: "/admin",
     action: "Choisir une reparation",
@@ -83,7 +84,7 @@ const steps: TourStep[] = [
     text: "Avant de l utiliser avec de vrais clients, faites un test complet.",
     details: [
       "Creez une reparation test depuis l admin ou le QR code.",
-      "Ouvrez la fiche, mettez une note interne, puis passez le statut a PRET.",
+      "Ouvrez la fiche, mettez une note interne, puis testez un changement de statut.",
       "Verifiez que l email part si SMTP est configure, puis archivez ou supprimez la fiche test.",
     ],
     path: "/admin/guide",

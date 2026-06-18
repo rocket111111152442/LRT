@@ -9,6 +9,10 @@ type ReadyRepairEmailInput = {
   model: string;
 };
 
+type RepairStatusEmailInput = ReadyRepairEmailInput & {
+  status: string;
+};
+
 type SendMailResult = {
   sent: boolean;
   skipped: boolean;
@@ -223,6 +227,107 @@ export async function sendReadyRepairEmail(
     return { sent: true, skipped: false };
   } catch (error) {
     console.error("Ready repair email failed", error);
+    return { sent: false, skipped: false };
+  }
+}
+
+function buildRepairStatusEmail(repair: RepairStatusEmailInput) {
+  const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
+
+  switch (repair.status) {
+    case "PAS_ENCORE_EN_REPARATION":
+      return {
+        subject: "Votre reparation est bien enregistree",
+        lines: [
+          `Votre ${device} est bien enregistre.`,
+          "Il n'est pas encore en reparation.",
+          "Nous vous previendrons des que son statut change.",
+        ],
+      };
+    case "EN_REPARATION":
+      return {
+        subject: "Votre reparation est en cours",
+        lines: [
+          `Votre ${device} est maintenant en reparation.`,
+          "Notre equipe s'en occupe.",
+        ],
+      };
+    case "EN_ATTENTE_PIECE":
+      return {
+        subject: "Votre reparation attend une piece",
+        lines: [
+          `Votre ${device} est en attente d'une piece.`,
+          "Nous vous previendrons des que la piece sera disponible.",
+        ],
+      };
+    case "PRET":
+      return {
+        subject: "Votre reparation est prete",
+        lines: [
+          `Votre ${device} est pret.`,
+          "Vous pouvez venir le recuperer au magasin.",
+        ],
+      };
+    case "RECUPERE":
+      return {
+        subject: "Votre appareil a ete recupere",
+        lines: [
+          `Votre ${device} a ete indique comme recupere.`,
+          "Merci pour votre confiance.",
+        ],
+      };
+    case "ANNULE":
+      return {
+        subject: "Votre reparation a ete annulee",
+        lines: [
+          `La reparation de votre ${device} a ete annulee.`,
+          "Contactez le magasin si vous avez une question.",
+        ],
+      };
+    default:
+      return {
+        subject: "Mise a jour de votre reparation",
+        lines: [`Le statut de votre ${device} a ete mis a jour.`],
+      };
+  }
+}
+
+export async function sendRepairStatusEmail(
+  repair: RepairStatusEmailInput,
+): Promise<SendMailResult> {
+  const smtpConfig = await getSmtpConfig();
+
+  if (!smtpConfig) {
+    return { sent: false, skipped: true };
+  }
+
+  const email = buildRepairStatusEmail(repair);
+  const text = [
+    `Bonjour ${repair.firstName},`,
+    "",
+    ...email.lines,
+    "",
+    ...smtpConfig.shopLines,
+  ].join("\n");
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      auth: smtpConfig.auth,
+    });
+
+    await transporter.sendMail({
+      from: smtpConfig.from,
+      to: repair.email,
+      subject: email.subject,
+      text,
+    });
+
+    return { sent: true, skipped: false };
+  } catch (error) {
+    console.error("Repair status email failed", error);
     return { sent: false, skipped: false };
   }
 }

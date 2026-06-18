@@ -4,7 +4,7 @@ import { LrtLogo } from "@/components/LrtLogo";
 const features = [
   "Formulaire client public avec QR code unique",
   "Tableau admin pour suivre toutes les reparations",
-  "Email automatique quand l'appareil est pret",
+  "Email automatique a chaque changement de statut",
   "Configuration email et Firebase par compte pro",
   "Recherche rapide par client, telephone, marque ou modele",
   "Statuts clairs pour garder l'atelier organise",
@@ -23,7 +23,7 @@ const workflow = [
   },
   {
     title: "3. Le client est prevenu",
-    text: "Quand le statut passe a PRET, l'email de recuperation peut partir automatiquement.",
+    text: "Quand le statut change, le client peut recevoir un email automatique.",
   },
 ];
 
@@ -52,7 +52,7 @@ const extraFeatures = [
   "Notes internes pour l'atelier",
   "Archivage des dossiers termines",
   "Suppression definitive avec confirmation",
-  "Email automatique quand le statut passe a PRET",
+  "Email automatique quand le statut change",
   "Protection anti double envoi d'email",
   "Configuration SMTP depuis l'admin",
   "Informations du magasin dans les emails",

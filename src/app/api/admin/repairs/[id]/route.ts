@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
-import { sendReadyRepairEmail } from "@/lib/mail";
+import { sendRepairStatusEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { REPAIR_STATUSES } from "@/lib/repairValidation";
 import type { RepairStatus as PrismaRepairStatus } from "../../../../../../generated/prisma/client";
@@ -118,9 +118,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const nextStatus = data.status ?? currentRepair.status;
-  const shouldSendReadyEmail =
-    nextStatus === "PRET" &&
-    !currentRepair.readyEmailSent;
+  const statusChanged = Boolean(
+    data.status && data.status !== currentRepair.status,
+  );
+  const shouldSendStatusEmail =
+    statusChanged && (nextStatus !== "PRET" || !currentRepair.readyEmailSent);
 
   let repair = await prisma.repair.update({
     where: { id },
@@ -128,26 +130,29 @@ export async function PATCH(request: Request, context: RouteContext) {
     select: repairSelect(),
   });
 
-  let readyEmailSentNow = false;
+  let statusEmailSentNow = false;
 
-  if (shouldSendReadyEmail) {
-    const mailResult = await sendReadyRepairEmail(repair);
+  if (shouldSendStatusEmail) {
+    const mailResult = await sendRepairStatusEmail(repair);
 
     if (mailResult.sent) {
-      repair = await prisma.repair.update({
-        where: { id },
-        data: { readyEmailSent: true },
-        select: repairSelect(),
-      });
-      readyEmailSentNow = true;
+      statusEmailSentNow = true;
+
+      if (nextStatus === "PRET" && !repair.readyEmailSent) {
+        repair = await prisma.repair.update({
+          where: { id },
+          data: { readyEmailSent: true },
+          select: repairSelect(),
+        });
+      }
     }
   }
 
   return NextResponse.json({
     repair,
     mail: {
-      attempted: shouldSendReadyEmail,
-      sent: readyEmailSentNow,
+      attempted: shouldSendStatusEmail,
+      sent: statusEmailSentNow,
     },
   });
 }
