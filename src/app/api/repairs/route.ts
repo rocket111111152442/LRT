@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { validateRepairInput } from "@/lib/repairValidation";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export async function POST(request: Request) {
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { errors: { firstName: "Le corps de la requête doit être en JSON." } },
+      { status: 400 },
+    );
+  }
+
+  const validation = validateRepairInput(body);
+
+  if (!validation.ok) {
+    return NextResponse.json({ errors: validation.errors }, { status: 400 });
+  }
+
+  try {
+    let proAccountId: string | undefined;
+
+    if (isRecord(body) && typeof body.proAccountSlug === "string" && body.proAccountSlug.trim()) {
+      const proAccount = await prisma.proAccount.findUnique({
+        where: { slug: body.proAccountSlug.trim() },
+        select: {
+          id: true,
+          paymentStatus: true,
+        },
+      });
+
+      if (!proAccount || proAccount.paymentStatus !== "PAID") {
+        return NextResponse.json(
+          { error: "Ce compte pro n'est pas actif." },
+          { status: 400 },
+        );
+      }
+
+      proAccountId = proAccount.id;
+    }
+
+    const repair = await prisma.repair.create({
+      data: {
+        ...validation.data,
+        proAccountId,
+        status: "PAS_ENCORE_EN_REPARATION",
+      },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({ repair }, { status: 201 });
+  } catch {
+    return NextResponse.json(
+      { error: "La réparation n'a pas pu être créée." },
+      { status: 500 },
+    );
+  }
+}

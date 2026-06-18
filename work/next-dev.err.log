@@ -1,0 +1,186 @@
+⨯ Error: Connection terminated unexpectedly
+    at async POST (src\app\api\pro\checkout\route.ts:54:22)
+  52 |   const passwordHash = await bcrypt.hash(validation.data.password, 12);
+  53 |
+> 54 |   const proAccount = await prisma.proAccount.create({
+     |                      ^
+  55 |     data: {
+  56 |       companyName: validation.data.companyName,
+  57 |       slug: validation.data.slug, {
+  clientVersion: '7.8.0'
+}
+⨯ Error: Connection terminated unexpectedly
+    at async POST (src\app\api\pro\checkout\route.ts:54:22)
+  52 |   const passwordHash = await bcrypt.hash(validation.data.password, 12);
+  53 |
+> 54 |   const proAccount = await prisma.proAccount.create({
+     |                      ^
+  55 |     data: {
+  56 |       companyName: validation.data.companyName,
+  57 |       slug: validation.data.slug, {
+  clientVersion: '7.8.0'
+}
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+⨯ Error: Connection terminated unexpectedly
+    at ignore-listed frames {
+  clientVersion: '7.8.0',
+  digest: '2212383070'
+}
+⨯ Error: Connection terminated unexpectedly
+    at ignore-listed frames {
+  clientVersion: '7.8.0',
+  digest: '2212383070'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.findUnique()` invocation in
+C:\Users\Utilisateur\Documents\Codex\2026-06-17\cr-e-une-application-next-js\.next\dev\server\chunks\ssr\[root-of-the-server]__1f32kr5._.js:526:156
+
+  523 if (!payload) {
+  524     return null;
+  525 }
+→ 526 const user = await {imported module ./src/lib/prisma.ts}["prisma"].user.findUnique(
+
+    at <unknown> (src\lib\auth.ts:110:34)
+    at async getCurrentAdmin (src\lib\auth.ts:110:16)
+    at async requireAdminPage (src\lib\auth.ts:144:17)
+    at async AdminPage (src\app\admin\page.tsx:6:17)
+  108 |   }
+  109 |
+> 110 |   const user = await prisma.user.findUnique({
+      |                                  ^
+  111 |     where: { id: payload.userId },
+  112 |     select: {
+  113 |       id: true, {
+  code: 'ECONNREFUSED',
+  meta: { modelName: 'User' },
+  clientVersion: '7.8.0',
+  digest: '1012355764'
+}
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.findUnique()` invocation in
+C:\Users\Utilisateur\Documents\Codex\2026-06-17\cr-e-une-application-next-js\.next\dev\server\chunks\ssr\[root-of-the-server]__1f32kr5._.js:526:156
+
+  523 if (!payload) {
+  524     return null;
+  525 }
+→ 526 const user = await {imported module ./src/lib/prisma.ts}["prisma"].user.findUnique(
+
+    at <unknown> (src\lib\auth.ts:110:34)
+    at async getCurrentAdmin (src\lib\auth.ts:110:16)
+    at async requireAdminPage (src\lib\auth.ts:144:17)
+    at async AdminPage (src\app\admin\page.tsx:6:17)
+  108 |   }
+  109 |
+> 110 |   const user = await prisma.user.findUnique({
+      |                                  ^
+  111 |     where: { id: payload.userId },
+  112 |     select: {
+  113 |       id: true, {
+  code: 'ECONNREFUSED',
+  meta: { modelName: 'User' },
+  clientVersion: '7.8.0',
+  digest: '1012355764'
+}
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.findUnique()` invocation in
+C:\Users\Utilisateur\Documents\Codex\2026-06-17\cr-e-une-application-next-js\.next\dev\server\chunks\ssr\[root-of-the-server]__1f32kr5._.js:526:156
+
+  523 if (!payload) {
+  524     return null;
+  525 }
+→ 526 const user = await {imported module ./src/lib/prisma.ts}["prisma"].user.findUnique(
+
+    at <unknown> (src\lib\auth.ts:110:34)
+    at async getCurrentAdmin (src\lib\auth.ts:110:16)
+    at async requireAdminPage (src\lib\auth.ts:144:17)
+    at async AdminPage (src\app\admin\page.tsx:7:17)
+  108 |   }
+  109 |
+> 110 |   const user = await prisma.user.findUnique({
+      |                                  ^
+  111 |     where: { id: payload.userId },
+  112 |     select: {
+  113 |       id: true, {
+  code: 'ECONNREFUSED',
+  meta: { modelName: 'User' },
+  clientVersion: '7.8.0',
+  digest: '3385332854'
+}
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.findUnique()` invocation in
+C:\Users\Utilisateur\Documents\Codex\2026-06-17\cr-e-une-application-next-js\.next\dev\server\chunks\ssr\[root-of-the-server]__1f32kr5._.js:526:156
+
+  523 if (!payload) {
+  524     return null;
+  525 }
+→ 526 const user = await {imported module ./src/lib/prisma.ts}["prisma"].user.findUnique(
+
+    at <unknown> (src\lib\auth.ts:110:34)
+    at async getCurrentAdmin (src\lib\auth.ts:110:16)
+    at async requireAdminPage (src\lib\auth.ts:144:17)
+    at async AdminPage (src\app\admin\page.tsx:7:17)
+  108 |   }
+  109 |
+> 110 |   const user = await prisma.user.findUnique({
+      |                                  ^
+  111 |     where: { id: payload.userId },
+  112 |     select: {
+  113 |       id: true, {
+  code: 'ECONNREFUSED',
+  meta: { modelName: 'User' },
+  clientVersion: '7.8.0',
+  digest: '3385332854'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.findUnique()` invocation in
+C:\Users\Utilisateur\Documents\Codex\2026-06-17\cr-e-une-application-next-js\.next\dev\server\chunks\ssr\[root-of-the-server]__1f32kr5._.js:526:156
+
+  523 if (!payload) {
+  524     return null;
+  525 }
+→ 526 const user = await {imported module ./src/lib/prisma.ts}["prisma"].user.findUnique(
+
+    at <unknown> (src\lib\auth.ts:110:34)
+    at async getCurrentAdmin (src\lib\auth.ts:110:16)
+    at async requireAdminPage (src\lib\auth.ts:144:17)
+    at async AdminPage (src\app\admin\page.tsx:7:17)
+  108 |   }
+  109 |
+> 110 |   const user = await prisma.user.findUnique({
+      |                                  ^
+  111 |     where: { id: payload.userId },
+  112 |     select: {
+  113 |       id: true, {
+  code: 'ECONNREFUSED',
+  meta: { modelName: 'User' },
+  clientVersion: '7.8.0',
+  digest: '3385332854'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].user.findUnique()` invocation in
+C:\Users\Utilisateur\Documents\Codex\2026-06-17\cr-e-une-application-next-js\.next\dev\server\chunks\ssr\[root-of-the-server]__1f32kr5._.js:526:156
+
+  523 if (!payload) {
+  524     return null;
+  525 }
+→ 526 const user = await {imported module ./src/lib/prisma.ts}["prisma"].user.findUnique(
+
+    at <unknown> (src\lib\auth.ts:110:34)
+    at async getCurrentAdmin (src\lib\auth.ts:110:16)
+    at async requireAdminPage (src\lib\auth.ts:144:17)
+    at async AdminPage (src\app\admin\page.tsx:7:17)
+  108 |   }
+  109 |
+> 110 |   const user = await prisma.user.findUnique({
+      |                                  ^
+  111 |     where: { id: payload.userId },
+  112 |     select: {
+  113 |       id: true, {
+  code: 'ECONNREFUSED',
+  meta: { modelName: 'User' },
+  clientVersion: '7.8.0',
+  digest: '3385332854'
+}

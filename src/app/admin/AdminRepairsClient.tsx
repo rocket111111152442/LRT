@@ -1,0 +1,206 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { REPAIR_STATUSES } from "@/lib/repairValidation";
+import type { RepairStatus } from "@/lib/repairValidation";
+
+type RepairListItem = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  deviceType: string;
+  brand: string;
+  model: string;
+  status: RepairStatus;
+  readyEmailSent: boolean;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+export function AdminRepairsClient() {
+  const [repairs, setRepairs] = useState<RepairListItem[]>([]);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const apiUrl = useMemo(() => {
+    const params = new URLSearchParams();
+
+    if (search.trim()) {
+      params.set("search", search.trim());
+    }
+
+    if (status) {
+      params.set("status", status);
+    }
+
+    const query = params.toString();
+    return query ? `/api/admin/repairs?${query}` : "/api/admin/repairs";
+  }, [search, status]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const response = await fetch(apiUrl, {
+          signal: controller.signal,
+        });
+
+        if (response.status === 401) {
+          window.location.href = "/admin/login";
+          return;
+        }
+
+        const payload = await response.json();
+
+        if (!response.ok) {
+          setError(payload.error ?? "Chargement impossible.");
+          return;
+        }
+
+        setRepairs(payload.repairs ?? []);
+      } catch {
+        if (!controller.signal.aborted) {
+          setError("Chargement impossible.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [apiUrl]);
+
+  return (
+    <section className="grid gap-5">
+      <div className="grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
+        <div className="grid min-w-0 gap-2">
+          <label htmlFor="repair-search" className="text-sm font-medium text-slate-800">
+            Recherche
+          </label>
+          <input
+            id="repair-search"
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Nom, telephone, email, marque ou modele"
+            className="min-h-11 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          />
+        </div>
+        <div className="grid min-w-0 gap-2">
+          <label htmlFor="repair-status" className="text-sm font-medium text-slate-800">
+            Statut
+          </label>
+          <select
+            id="repair-status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            className="min-h-11 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          >
+            <option value="">Tous les statuts</option>
+            {REPAIR_STATUSES.map((repairStatus) => (
+              <option key={repairStatus} value={repairStatus}>
+                {repairStatus}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {error ? (
+        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse text-left text-sm">
+            <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Client</th>
+                <th className="px-4 py-3 font-semibold">Contact</th>
+                <th className="px-4 py-3 font-semibold">Appareil</th>
+                <th className="px-4 py-3 font-semibold">Statut</th>
+                <th className="px-4 py-3 font-semibold">Creee le</th>
+                <th className="px-4 py-3 font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {repairs.map((repair) => (
+                <tr key={repair.id} className="align-top">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-950">
+                      {repair.firstName} {repair.lastName}
+                    </div>
+                    {repair.archivedAt ? (
+                      <div className="mt-1 text-xs font-semibold text-slate-500">
+                        Archivee
+                      </div>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">
+                    <div>{repair.phone}</div>
+                    <div>{repair.email}</div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">
+                    <div>{repair.deviceType}</div>
+                    <div>
+                      {repair.brand} {repair.model}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">{repair.status}</td>
+                  <td className="px-4 py-3 text-slate-700">
+                    {formatDate(repair.createdAt)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/repairs/${repair.id}`}
+                      className="font-semibold text-slate-950 underline-offset-4 hover:underline"
+                    >
+                      Voir
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+              {!isLoading && repairs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-600">
+                    Aucune reparation trouvee.
+                  </td>
+                </tr>
+              ) : null}
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-600">
+                    Chargement...
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
