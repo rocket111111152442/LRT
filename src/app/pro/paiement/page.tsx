@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
+import { prisma } from "@/lib/prisma";
 import { PaymentClient } from "./PaymentClient";
 
+export const dynamic = "force-dynamic";
+
 type PaymentPageProps = {
-  searchParams: Promise<{ compte?: string }>;
+  searchParams: Promise<{ compte?: string; inscription?: string }>;
 };
 
 const reasons = [
@@ -13,8 +16,39 @@ const reasons = [
   "Acces aux reparations, statuts, notes internes et emails client",
 ];
 
+type PendingSignupSummary = {
+  id: string;
+  slug: string;
+  companyName: string;
+  ownerEmail: string;
+} | null;
+
+async function getPendingSignupSummary(
+  id?: string,
+): Promise<PendingSignupSummary> {
+  if (!id) {
+    return null;
+  }
+
+  try {
+    return await prisma.pendingProSignup.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        slug: true,
+        companyName: true,
+        ownerEmail: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export default async function PaymentPage({ searchParams }: PaymentPageProps) {
-  const { compte } = await searchParams;
+  const { compte, inscription } = await searchParams;
+  const pendingSignup = await getPendingSignupSummary(inscription);
+  const accountName = pendingSignup?.slug ?? compte ?? "";
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
@@ -36,8 +70,9 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
             </h1>
             <p className="text-sm leading-6 text-slate-700">
               Le paiement unique de 4,99 EUR sert a activer le compte pro et a
-              eviter la creation massive de comptes inutiles. Apres paiement,
-              vous pourrez vous connecter a l admin et utiliser votre QR code.
+              eviter la creation massive de comptes inutiles. A ce stade, aucun
+              compte admin n est encore cree. Il sera cree automatiquement apres
+              le paiement reussi.
             </p>
           </header>
 
@@ -54,10 +89,28 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
 
           <div className="rounded-md bg-slate-950 p-4 text-white">
             <p className="text-sm text-slate-300">Compte</p>
-            <p className="mt-1 text-lg font-semibold">{compte || "Non precise"}</p>
+            <p className="mt-1 text-lg font-semibold">
+              {accountName || "Non precise"}
+            </p>
+            {pendingSignup ? (
+              <p className="mt-2 text-sm text-slate-300">
+                Atelier : {pendingSignup.companyName} · Email admin :{" "}
+                {pendingSignup.ownerEmail}
+              </p>
+            ) : null}
           </div>
 
-          <PaymentClient slug={compte ?? ""} />
+          {!pendingSignup && !compte ? (
+            <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              Inscription introuvable. Retournez a l inscription et validez a
+              nouveau le formulaire.
+            </p>
+          ) : null}
+
+          <PaymentClient
+            pendingSignupId={pendingSignup?.id}
+            slug={compte ?? undefined}
+          />
         </section>
       </div>
     </main>

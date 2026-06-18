@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 
-export function PaymentClient({ slug }: { slug: string }) {
+export function PaymentClient({
+  pendingSignupId,
+  slug,
+}: {
+  pendingSignupId?: string;
+  slug?: string;
+}) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const canPay = Boolean(pendingSignupId || slug);
 
   async function handlePayment() {
     setError("");
@@ -16,7 +23,7 @@ export function PaymentClient({ slug }: { slug: string }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ pendingSignupId, slug }),
       });
       const payload = await response
         .json()
@@ -52,7 +59,7 @@ export function PaymentClient({ slug }: { slug: string }) {
       <button
         type="button"
         onClick={handlePayment}
-        disabled={isLoading || !slug}
+        disabled={isLoading || !canPay}
         className="min-h-12 rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
         {isLoading ? "Ouverture du paiement..." : "Payer 4,99 EUR"}

@@ -40,12 +40,96 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
   }
 
-  if (!isRecord(body) || typeof body.slug !== "string" || !body.slug.trim()) {
+  if (!isRecord(body)) {
     return NextResponse.json({ error: "Compte introuvable." }, { status: 400 });
   }
 
+  const pendingSignupId =
+    typeof body.pendingSignupId === "string" ? body.pendingSignupId.trim() : "";
+  const slug = typeof body.slug === "string" ? body.slug.trim() : "";
+
+  if (!pendingSignupId && !slug) {
+    return NextResponse.json({ error: "Compte introuvable." }, { status: 400 });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json(
+      { error: "Paiement non configure pour le moment." },
+      { status: 503 },
+    );
+  }
+
+  if (pendingSignupId) {
+    const pendingSignup = await prisma.pendingProSignup.findUnique({
+      where: { id: pendingSignupId },
+      select: {
+        id: true,
+        companyName: true,
+        slug: true,
+        ownerEmail: true,
+      },
+    });
+
+    if (!pendingSignup) {
+      return NextResponse.json(
+        {
+          error:
+            "Inscription introuvable. Recommencez l inscription pour ouvrir le paiement.",
+        },
+        { status: 404 },
+      );
+    }
+
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        customer_email: pendingSignup.ownerEmail,
+        client_reference_id: pendingSignup.id,
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: "Compte pro LRT",
+                description: `Activation du compte ${pendingSignup.companyName}.`,
+              },
+              unit_amount: PRO_PRICE_CENTS,
+            },
+            quantity: 1,
+          },
+        ],
+        metadata: {
+          pendingProSignupId: pendingSignup.id,
+        },
+        success_url: `${getAppUrl()}/pro/merci?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${getAppUrl()}/pro/paiement?inscription=${pendingSignup.id}`,
+      });
+
+      if (!session.url) {
+        return NextResponse.json(
+          { error: "Session Stripe impossible a creer." },
+          { status: 500 },
+        );
+      }
+
+      await prisma.pendingProSignup.update({
+        where: { id: pendingSignup.id },
+        data: { stripeSessionId: session.id },
+      });
+
+      return NextResponse.json({ checkoutUrl: session.url });
+    } catch (error) {
+      return NextResponse.json(
+        { error: getStripeErrorMessage(error) },
+        { status: 500 },
+      );
+    }
+  }
+
   const proAccount = await prisma.proAccount.findUnique({
-    where: { slug: body.slug.trim() },
+    where: { slug },
     select: {
       id: true,
       slug: true,
@@ -63,13 +147,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       redirectUrl: `${getAppUrl()}/pro/premium?compte=${proAccount.slug}`,
     });
-  }
-
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return NextResponse.json(
-      { error: "Paiement non configure pour le moment." },
-      { status: 503 },
-    );
   }
 
   try {
