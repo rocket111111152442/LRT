@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
 
 export async function POST(request: Request) {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -32,18 +33,7 @@ export async function POST(request: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const proAccountId = session.metadata?.proAccountId;
-
-    if (proAccountId) {
-      await prisma.proAccount.update({
-        where: { id: proAccountId },
-        data: {
-          paymentStatus: "PAID",
-          stripeSessionId: session.id,
-        },
-      });
-    }
+    await activatePaidCheckoutSession(event.data.object);
   }
 
   if (event.type === "checkout.session.expired") {
