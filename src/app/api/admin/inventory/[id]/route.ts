@@ -20,6 +20,11 @@ function readInt(body: Record<string, unknown>, key: string, fallback: number) {
   return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
+function readCents(body: Record<string, unknown>, key: string, fallback = 0) {
+  const value = Number(body[key] ?? fallback);
+  return Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
+}
+
 async function getAuthorizedItem(id: string, proAccountId: string | null) {
   const item = await prisma.inventoryItem.findUnique({
     where: { id },
@@ -59,8 +64,14 @@ export async function PATCH(request: Request, context: RouteContext) {
   const name = readText(body, "name");
   const quantity = readInt(body, "quantity", 0);
   const lowStockThreshold = readInt(body, "lowStockThreshold", 1);
+  const unitCostCents = readCents(body, "unitCostCents");
 
-  if (!name || quantity === null || lowStockThreshold === null) {
+  if (
+    !name ||
+    quantity === null ||
+    lowStockThreshold === null ||
+    unitCostCents === null
+  ) {
     return NextResponse.json({ error: "Donnees invalides." }, { status: 400 });
   }
 
@@ -70,6 +81,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       name,
       quantity,
       lowStockThreshold,
+      unitCostCents,
     },
   });
 

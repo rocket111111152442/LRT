@@ -13,7 +13,8 @@ export default async function AdminStockPage() {
           <header className="grid gap-2">
             <h1 className="text-3xl font-semibold text-slate-950">Stock</h1>
             <p className="text-sm leading-6 text-slate-600">
-              Suivez les pieces disponibles et les alertes de stock bas.
+              Suivez les pieces, leur cout d&apos;achat, la valeur du stock et les
+              alertes de stock bas.
             </p>
           </header>
           <InventoryClient />

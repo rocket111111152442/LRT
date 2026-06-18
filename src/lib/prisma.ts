@@ -529,6 +529,7 @@ function createFirestorePrisma() {
           quoteStatus: args.data.quoteStatus ?? "NONE",
           photos: args.data.photos ?? [],
           partsStatus: args.data.partsStatus ?? "NONE",
+          partsCostCents: args.data.partsCostCents ?? null,
           archivedAt: args.data.archivedAt ?? null,
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -629,6 +630,7 @@ function createFirestorePrisma() {
           id,
           quantity: args.data.quantity ?? 0,
           lowStockThreshold: args.data.lowStockThreshold ?? 1,
+          unitCostCents: args.data.unitCostCents ?? 0,
           createdAt: timestamp,
           updatedAt: timestamp,
         };

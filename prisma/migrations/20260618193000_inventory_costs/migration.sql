@@ -1,0 +1,2 @@
+ALTER TABLE "Repair" ADD COLUMN "partsCostCents" INTEGER;
+ALTER TABLE "InventoryItem" ADD COLUMN "unitCostCents" INTEGER NOT NULL DEFAULT 0;

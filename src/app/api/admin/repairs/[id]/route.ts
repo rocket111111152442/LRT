@@ -97,6 +97,7 @@ function repairSelect() {
     reviewEmailSent: true,
     readyReminderSentAt: true,
     estimatedPriceCents: true,
+    partsCostCents: true,
     quoteStatus: true,
     quoteToken: true,
     quoteSentAt: true,
@@ -203,6 +204,16 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     data.estimatedPriceCents = estimatedPriceCents;
+  }
+
+  if ("partsCostCents" in body) {
+    const partsCostCents = readOptionalCents(body, "partsCostCents");
+
+    if (partsCostCents === undefined) {
+      return NextResponse.json({ error: "Cout des pieces invalide." }, { status: 400 });
+    }
+
+    data.partsCostCents = partsCostCents;
   }
 
   if ("partsStatus" in body) {
@@ -314,6 +325,18 @@ export async function PATCH(request: Request, context: RouteContext) {
       proAccountId: repair.proAccountId,
       type: "PRICE_UPDATED",
       message: "Prix estime mis a jour.",
+    });
+  }
+
+  if (
+    "partsCostCents" in data &&
+    data.partsCostCents !== currentRepair.partsCostCents
+  ) {
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: "PARTS_COST_UPDATED",
+      message: "Cout des pieces mis a jour.",
     });
   }
 

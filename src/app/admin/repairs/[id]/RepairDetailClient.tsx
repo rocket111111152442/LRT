@@ -41,6 +41,7 @@ type RepairDetail = {
   reviewEmailSent: boolean;
   readyReminderSentAt: string | null;
   estimatedPriceCents: number | null;
+  partsCostCents: number | null;
   quoteStatus: "NONE" | "SENT" | "ACCEPTED" | "REFUSED";
   quoteSentAt: string | null;
   quoteRespondedAt: string | null;
@@ -118,6 +119,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [status, setStatus] = useState<RepairStatus>("PAS_ENCORE_EN_REPARATION");
   const [internalNotes, setInternalNotes] = useState("");
   const [estimatedPrice, setEstimatedPrice] = useState("");
+  const [partsCost, setPartsCost] = useState("");
   const [partsStatus, setPartsStatus] = useState<PartStatus>("NONE");
   const [partsDescription, setPartsDescription] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
@@ -133,6 +135,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     setStatus(payloadRepair.status);
     setInternalNotes(payloadRepair.internalNotes ?? "");
     setEstimatedPrice(centsToInput(payloadRepair.estimatedPriceCents));
+    setPartsCost(centsToInput(payloadRepair.partsCostCents));
     setPartsStatus(payloadRepair.partsStatus);
     setPartsDescription(payloadRepair.partsDescription ?? "");
     setPhotos(payloadRepair.photos ?? []);
@@ -241,6 +244,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
       status,
       internalNotes,
       estimatedPriceCents: inputToCents(estimatedPrice),
+      partsCostCents: inputToCents(partsCost),
       partsStatus,
       partsDescription,
     });
@@ -249,6 +253,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   async function handleSendQuote() {
     await patchRepair({
       estimatedPriceCents: inputToCents(estimatedPrice),
+      partsCostCents: inputToCents(partsCost),
       sendQuote: true,
     });
   }
@@ -338,6 +343,9 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     );
   }
 
+  const estimatedProfitCents =
+    (repair.estimatedPriceCents ?? 0) - (repair.partsCostCents ?? 0);
+
   return (
     <section className="grid gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -401,6 +409,15 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               <DetailItem label="Marque" value={repair.brand} />
               <DetailItem label="Modele" value={repair.model} />
               <DetailItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
+              <DetailItem label="Cout pieces" value={formatPrice(repair.partsCostCents)} />
+              <DetailItem
+                label="Benefice estime"
+                value={
+                  repair.estimatedPriceCents
+                    ? formatPrice(Math.max(estimatedProfitCents, 0))
+                    : "-"
+                }
+              />
               <DetailItem label="Devis" value={repair.quoteStatus} />
               <DetailItem label="Email PRET envoye" value={repair.readyEmailSent ? "Oui" : "Non"} />
               <DetailItem label="Avis envoye" value={repair.reviewEmailSent ? "Oui" : "Non"} />
@@ -523,6 +540,25 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             value={estimatedPrice}
             onChange={setEstimatedPrice}
           />
+          <TextField
+            id="parts-cost"
+            label="Cout des pieces EUR"
+            type="number"
+            value={partsCost}
+            onChange={setPartsCost}
+          />
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            Benefice estime :{" "}
+            <strong className="text-slate-950">
+              {formatPrice(
+                Math.max(
+                  (inputToCents(estimatedPrice) ?? 0) -
+                    (inputToCents(partsCost) ?? 0),
+                  0,
+                ),
+              )}
+            </strong>
+          </div>
           <button
             type="button"
             onClick={handleSendQuote}

@@ -7,11 +7,15 @@ type StatsPayload = {
   byStatus: Record<string, number>;
   byBrand: Record<string, number>;
   estimatedRevenueCents: number;
+  partsCostCents: number;
+  estimatedProfitCents: number;
+  inventoryValueCents: number;
   lowStockItems: Array<{
     id: string;
     name: string;
     quantity: number;
     lowStockThreshold: number;
+    unitCostCents?: number | null;
   }>;
 };
 
@@ -104,7 +108,7 @@ export function AdminStatsClient() {
 
   return (
     <section className="grid gap-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         <StatCard label="Total" value={String(stats.totalRepairs)} />
         <StatCard
           label="En reparation"
@@ -115,6 +119,14 @@ export function AdminStatsClient() {
         <StatCard
           label="CA estime"
           value={formatPrice(stats.estimatedRevenueCents)}
+        />
+        <StatCard
+          label="Cout pieces"
+          value={formatPrice(stats.partsCostCents ?? 0)}
+        />
+        <StatCard
+          label="Benefice"
+          value={formatPrice(stats.estimatedProfitCents ?? 0)}
         />
       </div>
 
@@ -140,12 +152,15 @@ export function AdminStatsClient() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Alertes stock
           </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Valeur achat stock : {formatPrice(stats.inventoryValueCents ?? 0)}
+          </p>
           <div className="mt-3 grid gap-2">
             {stats.lowStockItems.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
                 <span className="text-slate-700">{item.name}</span>
                 <strong className="text-red-700">
-                  {item.quantity} restant(s)
+                  {item.quantity} restant(s) - {formatPrice(item.unitCostCents ?? 0)}
                 </strong>
               </div>
             ))}

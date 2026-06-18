@@ -31,6 +31,7 @@ export async function GET() {
       status: true,
       quoteStatus: true,
       estimatedPriceCents: true,
+      partsCostCents: true,
       partsStatus: true,
       createdAt: true,
       updatedAt: true,
@@ -50,6 +51,8 @@ export async function GET() {
       "statut",
       "devis",
       "prix_estime_eur",
+      "cout_pieces_eur",
+      "benefice_estime_eur",
       "piece",
       "cree_le",
       "mis_a_jour_le",
@@ -66,6 +69,11 @@ export async function GET() {
       repair.status,
       repair.quoteStatus,
       repair.estimatedPriceCents ? (repair.estimatedPriceCents / 100).toFixed(2) : "",
+      repair.partsCostCents ? (repair.partsCostCents / 100).toFixed(2) : "",
+      repair.estimatedPriceCents
+        ? (((repair.estimatedPriceCents ?? 0) - (repair.partsCostCents ?? 0)) / 100)
+            .toFixed(2)
+        : "",
       repair.partsStatus,
       repair.createdAt.toISOString(),
       repair.updatedAt.toISOString(),

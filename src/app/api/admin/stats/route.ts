@@ -17,6 +17,7 @@ export async function GET() {
       status: true,
       brand: true,
       estimatedPriceCents: true,
+      partsCostCents: true,
     },
   });
 
@@ -29,6 +30,7 @@ export async function GET() {
       name: true,
       quantity: true,
       lowStockThreshold: true,
+      unitCostCents: true,
     },
   });
 
@@ -47,12 +49,23 @@ export async function GET() {
     (total, repair) => total + (repair.estimatedPriceCents ?? 0),
     0,
   );
+  const partsCostCents = repairs.reduce(
+    (total, repair) => total + (repair.partsCostCents ?? 0),
+    0,
+  );
+  const inventoryValueCents = inventoryItems.reduce(
+    (total, item) => total + (item.unitCostCents ?? 0) * item.quantity,
+    0,
+  );
 
   return NextResponse.json({
     totalRepairs: repairs.length,
     byStatus,
     byBrand,
     estimatedRevenueCents,
+    partsCostCents,
+    estimatedProfitCents: Math.max(estimatedRevenueCents - partsCostCents, 0),
+    inventoryValueCents,
     lowStockItems: inventoryItems.filter(
       (item) => item.quantity <= item.lowStockThreshold,
     ),
