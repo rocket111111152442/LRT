@@ -1,4 +1,4 @@
-# Repair Manager
+# LRT
 
 Application Next.js TypeScript avec Tailwind CSS, Prisma et PostgreSQL pour creer et gerer des reparations.
 

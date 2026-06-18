@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LrtLogo } from "@/components/LrtLogo";
 import { ProSignupForm } from "./ProSignupForm";
 
 export default function ProSignupPage() {
@@ -12,6 +13,7 @@ export default function ProSignupPage() {
           >
             Retour
           </Link>
+          <LrtLogo />
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Compte pro
           </p>

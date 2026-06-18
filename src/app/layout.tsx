@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gestion des réparations",
-  description: "Formulaire de création de réparation d'appareil.",
+  title: "LRT",
+  description: "Logiciel de gestion des reparations d'appareils.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

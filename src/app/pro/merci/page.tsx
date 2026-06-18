@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { LrtLogo } from "@/components/LrtLogo";
 
 export default function ProThanksPage() {
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-xl gap-5 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <LrtLogo />
         <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Paiement recu
         </p>

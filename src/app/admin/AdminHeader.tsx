@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LrtLogo } from "@/components/LrtLogo";
 
 type AdminHeaderProps = {
   email: string;
@@ -17,11 +18,14 @@ export function AdminHeader({ email }: AdminHeaderProps) {
   return (
     <header className="no-print border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-        <div className="grid gap-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Administration
-          </p>
-          <p className="text-sm text-slate-700">{email}</p>
+        <div className="flex items-center gap-3">
+          <LrtLogo showText={false} markClassName="h-11 w-11" />
+          <div className="grid gap-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Administration LRT
+            </p>
+            <p className="text-sm text-slate-700">{email}</p>
+          </div>
         </div>
         <nav className="flex flex-wrap items-center gap-2">
           <Link

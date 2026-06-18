@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LrtLogo } from "@/components/LrtLogo";
 import { PaymentClient } from "./PaymentClient";
 
 type PaymentPageProps = {
@@ -26,6 +27,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
         </Link>
         <section className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <header className="grid gap-2">
+            <LrtLogo />
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Activation premium
             </p>

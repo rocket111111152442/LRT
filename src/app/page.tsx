@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LrtLogo } from "@/components/LrtLogo";
 
 const features = [
   "Formulaire client public avec QR code unique",
@@ -87,11 +88,13 @@ export default function HomePage() {
       >
         <div className="mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-center gap-8">
           <div className="max-w-2xl">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-sky-200">
-              Repair Manager
-            </p>
+            <LrtLogo
+              className="mb-5"
+              markClassName="ring-1 ring-white/20"
+              textClassName="text-white"
+            />
             <h1 className="text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-              Le logiciel simple pour les reparateurs d&apos;appareils
+              LRT, le logiciel simple pour les reparateurs d&apos;appareils
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-100 sm:text-lg">
               Donnez un QR code a vos clients, centralisez les demandes,
@@ -151,7 +154,7 @@ export default function HomePage() {
               Moins d&apos;appels, moins d&apos;oublis, plus de reparations suivies.
             </h2>
             <p className="text-base leading-7 text-slate-600">
-              Repair Manager remplace les notes papier et les messages eparpilles
+              LRT remplace les notes papier et les messages eparpilles
               par un parcours clair : le client remplit sa demande, l&apos;atelier
               suit l&apos;avancement, puis l&apos;email de recuperation part au bon moment.
             </p>

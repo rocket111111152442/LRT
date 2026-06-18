@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LrtLogo } from "@/components/LrtLogo";
 
 type PremiumPageProps = {
   searchParams: Promise<{ compte?: string }>;
@@ -10,6 +11,7 @@ export default async function PremiumPage({ searchParams }: PremiumPageProps) {
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-xl gap-5 rounded-lg border border-emerald-200 bg-white p-6 shadow-sm">
+        <LrtLogo />
         <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
           Acces premium active
         </p>

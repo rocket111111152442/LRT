@@ -83,7 +83,7 @@ export async function POST(request: Request) {
           price_data: {
             currency: "eur",
             product_data: {
-              name: "Compte pro Repair Manager",
+              name: "Compte pro LRT",
               description: `Activation du compte ${proAccount.companyName}.`,
             },
             unit_amount: PRO_PRICE_CENTS,
