@@ -9,7 +9,7 @@ import {
 } from "@/lib/pro/promoCodes";
 
 const PRO_PRICE_CENTS = 4999;
-const SETUP_HELP_PRICE_CENTS = 1999;
+const SETUP_HELP_PRICE_CENTS = 999;
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -121,8 +121,8 @@ export function PaymentClient({
         </div>
         {hasPremiumDiscount ? (
           <p className="text-sm text-emerald-700">
-            Code de reduction applique : -10% sur le premium. L&apos;aide
-            parametrage reste a 19,99 EUR.
+            Code de reduction applique : -10% sur le premium. L&apos;assistance
+            annuelle reste a 9,99 EUR/an.
           </p>
         ) : null}
       </div>
@@ -136,11 +136,11 @@ export function PaymentClient({
         />
         <span className="grid gap-1 text-sm text-slate-700">
           <span className="font-semibold text-slate-950">
-            Ajouter l aide parametrage +19,99 EUR
+            Ajouter l&apos;assistance +9,99 EUR/an
           </span>
           <span>
-            Apres le paiement, vous choisissez un jour et une heure pour etre
-            contacte et aide a tout parametrer.
+            Ajoute le service client LRT, l&apos;appel telephonique et l&apos;aide
+            au parametrage. Sans cette option, le service client n&apos;est pas inclus.
           </span>
         </span>
       </label>
@@ -168,7 +168,7 @@ export function PaymentClient({
       >
         {isLoading
           ? "Ouverture du paiement..."
-          : `Payer ${formatPrice(totalCents)}`}
+          : `S'abonner pour ${formatPrice(totalCents)} / an`}
       </button>
     </div>
   );

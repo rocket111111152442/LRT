@@ -19,6 +19,7 @@ const reasons = [
   "QR code unique pour votre atelier",
   "Limitation des faux comptes et des abus",
   "Acces aux reparations, statuts, notes internes et emails client",
+  "Option assistance annuelle disponible pour le service client LRT",
 ];
 
 type PendingSignupSummary = {

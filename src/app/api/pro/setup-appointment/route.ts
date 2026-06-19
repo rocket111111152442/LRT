@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 
     if (session.metadata?.setupHelp !== "1") {
       return NextResponse.json(
-        { error: "L option aide installation n a pas ete payee." },
+        { error: "L option assistance annuelle n a pas ete payee." },
         { status: 403 },
       );
     }
@@ -146,4 +146,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

@@ -7,9 +7,10 @@ import { FirstUseTour } from "./FirstUseTour";
 
 type AdminHeaderProps = {
   email: string;
+  supportIncluded?: boolean;
 };
 
-export function AdminHeader({ email }: AdminHeaderProps) {
+export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps) {
   function openTour() {
     window.dispatchEvent(new Event("lrt-admin-tour-open"));
   }
@@ -76,12 +77,14 @@ export function AdminHeader({ email }: AdminHeaderProps) {
           >
             Guide
           </Link>
-          <Link
-            href="/service-client"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            Support
-          </Link>
+          {supportIncluded ? (
+            <Link
+              href="/service-client"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
+            >
+              Support
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={openTour}

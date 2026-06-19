@@ -67,7 +67,7 @@ async function loadSetupHelp(sessionId?: string): Promise<PageState> {
         ok: false,
         title: "Option non activee",
         message:
-          "L aide au parametrage n a pas ete ajoutee a ce paiement.",
+          "L assistance annuelle n a pas ete ajoutee a cet abonnement.",
       };
     }
 
@@ -116,14 +116,14 @@ export default async function SetupHelpPage({
           <section className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <header className="grid gap-2">
               <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-                Aide installation activee
+                Assistance activee
               </p>
               <h1 className="text-3xl font-semibold text-slate-950">
                 Choisissez votre rendez-vous
               </h1>
               <p className="text-sm leading-6 text-slate-700">
                 Votre compte est active. Choisissez maintenant le jour et
-                l heure ou vous voulez etre contacte pour l aide au parametrage.
+                l heure ou vous voulez etre contacte pour l assistance.
               </p>
             </header>
 
@@ -137,7 +137,7 @@ export default async function SetupHelpPage({
         ) : (
           <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Aide installation
+              Assistance LRT
             </p>
             <h1 className="text-3xl font-semibold text-slate-950">
               {state.title}
@@ -155,4 +155,3 @@ export default async function SetupHelpPage({
     </main>
   );
 }
-

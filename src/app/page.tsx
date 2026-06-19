@@ -10,7 +10,7 @@ const features = [
   "Recherche rapide par client, telephone, marque ou modele",
   "Statuts clairs pour garder l'atelier organise",
   "Validation par code email a l'inscription et a chaque connexion",
-  "Service client joignable 24h/24 par telephone et formulaire",
+  "Option assistance annuelle avec service client LRT",
   "Devis avec acceptation ou refus par le client",
   "Stock simple avec alertes de pieces faibles",
   "Agenda jour/semaine pour les reparations",
@@ -197,10 +197,10 @@ export default function HomePage() {
                 Suivre une reparation
               </Link>
               <Link
-                href="/service-client"
+                href="/pro/inscription"
                 className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Service client 24h/24
+                Option assistance 9,99 EUR/an
               </Link>
             </div>
           </div>

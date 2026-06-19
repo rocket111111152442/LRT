@@ -17,6 +17,7 @@ export type PaidProAccountData = {
   firebaseMessagingSenderId?: string | null;
   firebaseAppId: string;
   premiumDiscountCode?: string | null;
+  supportIncluded?: boolean;
   stripeSessionId?: string | null;
 };
 
@@ -44,6 +45,9 @@ function readPaidProAccountData(
     firebaseStorageBucket: getStringField(record, "firebaseStorageBucket"),
     firebaseMessagingSenderId: getStringField(record, "firebaseMessagingSenderId"),
     firebaseAppId: getStringField(record, "firebaseAppId"),
+    supportIncluded:
+      getStringField(record, "supportIncluded") === "1" ||
+      getStringField(record, "setupHelp") === "1",
     stripeSessionId,
   };
 
@@ -76,6 +80,7 @@ export async function createPaidProAccount(data: PaidProAccountData) {
       firebaseMessagingSenderId: data.firebaseMessagingSenderId,
       firebaseAppId: data.firebaseAppId,
       referralCode: `${data.slug.toUpperCase()}-LRT`,
+      supportIncluded: data.supportIncluded ?? false,
       paymentStatus: "PAID",
       stripeSessionId: data.stripeSessionId,
       users: {
@@ -164,12 +169,14 @@ export async function activatePaidCheckoutSession(
   }
 
   const proAccountId = session.metadata?.proAccountId;
+  const supportIncluded = session.metadata?.setupHelp === "1";
 
   if (proAccountId) {
     const proAccount = await prisma.proAccount.update({
       where: { id: proAccountId },
       data: {
         paymentStatus: "PAID",
+        supportIncluded,
         stripeSessionId: session.id,
       },
     });
@@ -180,6 +187,7 @@ export async function activatePaidCheckoutSession(
   const directAccountData = readPaidProAccountData(session.metadata, session.id);
 
   if (directAccountData) {
+    directAccountData.supportIncluded = supportIncluded;
     return createOrReusePaidAccount(directAccountData);
   }
 
@@ -204,5 +212,6 @@ export async function activatePaidCheckoutSession(
     return { ok: false, reason: "missing-signup" };
   }
 
+  accountData.supportIncluded = supportIncluded;
   return createOrReusePaidAccount(accountData, pendingSignupId);
 }

@@ -55,7 +55,7 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
   if (!repair || (admin.proAccountId && repair.proAccountId !== admin.proAccountId)) {
     return (
       <>
-        <AdminHeader email={admin.email} />
+        <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
         <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">
             Facture introuvable.
@@ -70,7 +70,7 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
 
   return (
     <>
-      <AdminHeader email={admin.email} />
+      <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-3xl gap-5">
           <div className="no-print flex flex-wrap items-center justify-between gap-3">

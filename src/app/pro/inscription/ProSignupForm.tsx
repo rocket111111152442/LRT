@@ -264,8 +264,8 @@ export function ProSignupForm() {
 
       {usesDiscountCode ? (
         <p className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-          Code de reduction reconnu : -10% sur le premium. L&apos;aide
-          parametrage reste au prix normal.
+          Code de reduction reconnu : -10% sur le premium. L&apos;assistance
+          annuelle reste au prix normal.
         </p>
       ) : null}
 

@@ -19,11 +19,13 @@ export type AdminUser = {
   role: "ADMIN";
   proAccountId: string | null;
   proAccountSlug: string | null;
+  supportIncluded: boolean;
 };
 
 type ProAccountSummary = {
   slug: string;
   paymentStatus: string;
+  supportIncluded?: boolean | null;
 } | null;
 
 function getAuthSecret() {
@@ -144,6 +146,7 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
         select: {
           slug: true,
           paymentStatus: true,
+          supportIncluded: true,
         },
       });
     }
@@ -158,6 +161,7 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
       role: "ADMIN",
       proAccountId: user.proAccountId,
       proAccountSlug: proAccount?.slug ?? null,
+      supportIncluded: proAccount?.supportIncluded === true,
     };
   } catch (error) {
     if (isDynamicServerUsageError(error)) {

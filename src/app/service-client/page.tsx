@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
+import { getCurrentAdmin } from "@/lib/auth";
 import { SupportForm } from "./SupportForm";
 
 const supportPhoneDisplay = "07 53 30 54 52";
@@ -18,7 +19,48 @@ const commonRequests = [
   "Je veux signaler un bug ou une erreur sur une fiche",
 ];
 
-export default function SupportPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SupportPage() {
+  const admin = await getCurrentAdmin();
+
+  if (!admin?.supportIncluded) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-2xl gap-6">
+          <header className="grid gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <LrtLogo />
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Service client LRT
+            </p>
+            <h1 className="text-3xl font-semibold text-slate-950">
+              Option assistance requise
+            </h1>
+            <p className="text-sm leading-6 text-slate-600">
+              Le service client est reserve aux comptes qui ajoutent l&apos;option
+              assistance annuelle a 9,99 EUR/an. Connectez-vous avec un compte
+              qui possede cette option pour envoyer une demande.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/admin/login"
+                className="rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Connexion admin
+              </Link>
+              <Link
+                href="/pro/inscription"
+                className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              >
+                Creer un compte avec assistance
+              </Link>
+            </div>
+          </header>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-6xl gap-8">

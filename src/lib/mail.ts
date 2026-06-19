@@ -220,7 +220,7 @@ export async function sendSetupAppointmentEmail(input: {
 
   return sendWithEnvSmtp({
     to: supportEmail,
-    subject: `Aide installation LRT - ${input.companyName}`,
+    subject: `Assistance LRT - ${input.companyName}`,
     text,
   });
 }

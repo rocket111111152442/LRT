@@ -11,7 +11,7 @@ import {
 import { readSignupToken } from "@/lib/pro/signupToken";
 
 const PRO_PRICE_CENTS = 4999;
-const SETUP_HELP_PRICE_CENTS = 1999;
+const SETUP_HELP_PRICE_CENTS = 999;
 
 function getAppUrl(request: Request) {
   const forwardedHost = request.headers.get("x-forwarded-host");
@@ -104,9 +104,12 @@ function buildLineItems(input: {
       price_data: {
         currency: "eur",
         product_data: {
-          name: "Aide parametrage LRT",
+          name: "Assistance LRT annuelle",
           description:
-            "Rendez-vous pour aider a parametrer et installer le compte.",
+            "Acces annuel au service client LRT et aide au parametrage.",
+        },
+        recurring: {
+          interval: "year",
         },
         unit_amount: SETUP_HELP_PRICE_CENTS,
       },

@@ -7,7 +7,7 @@ export default async function AdminEmailPage() {
 
   return (
     <>
-      <AdminHeader email={admin.email} />
+      <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-3xl gap-6">
           <header className="grid gap-2">

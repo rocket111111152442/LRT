@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 type ProAccountSummary = {
   slug: string;
   paymentStatus: string;
+  supportIncluded?: boolean | null;
 } | null;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -28,6 +29,7 @@ async function getProAccountSummary(
     select: {
       slug: true,
       paymentStatus: true,
+      supportIncluded: true,
     },
   });
 }
@@ -143,6 +145,7 @@ export async function POST(request: Request) {
         role: "ADMIN",
         proAccountId: user.proAccountId,
         proAccountSlug: proAccount?.slug ?? null,
+        supportIncluded: proAccount?.supportIncluded === true,
       },
     });
 
@@ -152,6 +155,7 @@ export async function POST(request: Request) {
       role: "ADMIN",
       proAccountId: user.proAccountId,
       proAccountSlug: proAccount?.slug ?? null,
+      supportIncluded: proAccount?.supportIncluded === true,
     });
 
     return response;

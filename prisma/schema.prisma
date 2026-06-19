@@ -150,6 +150,7 @@ model ProAccount {
   publicAddress             String?
   monthlyGoal               Int           @default(100)
   referralCode              String?
+  supportIncluded           Boolean       @default(false)
   paymentStatus             PaymentStatus @default(PENDING)
   stripeSessionId           String?
   users                     User[]

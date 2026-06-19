@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminApi } from "@/lib/auth";
 import { sendSupportMessageEmail } from "@/lib/mail";
 
 type SupportErrors = Partial<
@@ -15,6 +16,22 @@ function readText(source: Record<string, unknown>, key: string) {
 }
 
 export async function POST(request: Request) {
+  const admin = await requireAdminApi();
+
+  if (!admin.ok) {
+    return admin.response;
+  }
+
+  if (!admin.user.supportIncluded) {
+    return NextResponse.json(
+      {
+        error:
+          "Service client reserve aux comptes avec l'option assistance annuelle.",
+      },
+      { status: 403 },
+    );
+  }
+
   let body: unknown;
 
   try {

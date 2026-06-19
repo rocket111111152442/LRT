@@ -353,6 +353,7 @@ function createFirestorePrisma() {
         const proAccount = {
           ...data,
           id,
+          supportIncluded: data.supportIncluded ?? false,
           paymentStatus: data.paymentStatus ?? "PENDING",
           createdAt: timestamp,
           updatedAt: timestamp,
