@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import type { PaidProAccountData } from "@/lib/pro/paymentActivation";
+import {
+  applyPremiumDiscountCents,
+  isPremiumDiscountCode,
+  normalizePromoCode,
+  PREMIUM_DISCOUNT_CODE,
+  PREMIUM_DISCOUNT_PERCENT,
+} from "@/lib/pro/promoCodes";
 import { readSignupToken } from "@/lib/pro/signupToken";
 
 const PRO_PRICE_CENTS = 4900;
@@ -68,16 +75,23 @@ function buildSignupMetadata(data: PaidProAccountData) {
 function buildLineItems(input: {
   companyName: string;
   setupHelp: boolean;
+  promoCode: string;
 }): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  const hasPremiumDiscount = isPremiumDiscountCode(input.promoCode);
+  const premiumPriceCents = hasPremiumDiscount
+    ? applyPremiumDiscountCents(PRO_PRICE_CENTS)
+    : PRO_PRICE_CENTS;
   const items: Stripe.Checkout.SessionCreateParams.LineItem[] = [
     {
       price_data: {
         currency: "eur",
         product_data: {
           name: "Compte pro LRT",
-          description: `Activation du compte ${input.companyName}.`,
+          description: hasPremiumDiscount
+            ? `Activation du compte ${input.companyName} avec code ${PREMIUM_DISCOUNT_CODE}.`
+            : `Activation du compte ${input.companyName}.`,
         },
-        unit_amount: PRO_PRICE_CENTS,
+        unit_amount: premiumPriceCents,
       },
       quantity: 1,
     },
@@ -125,6 +139,16 @@ export async function POST(request: Request) {
     typeof body.signupToken === "string" ? body.signupToken.trim() : "";
   const slug = typeof body.slug === "string" ? body.slug.trim() : "";
   const setupHelp = body.setupHelp === true;
+  const promoCode = normalizePromoCode(
+    typeof body.promoCode === "string" ? body.promoCode : "",
+  );
+
+  if (promoCode && !isPremiumDiscountCode(promoCode)) {
+    return NextResponse.json(
+      { error: "Code de reduction invalide." },
+      { status: 400 },
+    );
+  }
 
   if (!pendingSignupId && !signupToken && !slug) {
     return NextResponse.json({ error: "Compte introuvable." }, { status: 400 });
@@ -160,15 +184,21 @@ export async function POST(request: Request) {
         line_items: buildLineItems({
           companyName: signup.companyName,
           setupHelp,
+          promoCode,
         }),
         metadata: {
           ...buildSignupMetadata(signup),
           setupHelp: setupHelp ? "1" : "0",
+          promoCode,
+          premiumDiscountPercent: isPremiumDiscountCode(promoCode)
+            ? String(PREMIUM_DISCOUNT_PERCENT)
+            : "0",
         },
         success_url: successUrl(request, setupHelp),
-        cancel_url: `${getAppUrl(request)}/pro/paiement?inscriptionToken=${encodeURIComponent(
-          signupToken,
-        )}`,
+        cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
+          inscriptionToken: signupToken,
+          ...(promoCode ? { promoCode } : {}),
+        }).toString()}`,
       });
 
       if (!session.url) {
@@ -218,13 +248,21 @@ export async function POST(request: Request) {
         line_items: buildLineItems({
           companyName: pendingSignup.companyName,
           setupHelp,
+          promoCode,
         }),
         metadata: {
           pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
+          promoCode,
+          premiumDiscountPercent: isPremiumDiscountCode(promoCode)
+            ? String(PREMIUM_DISCOUNT_PERCENT)
+            : "0",
         },
         success_url: successUrl(request, setupHelp),
-        cancel_url: `${getAppUrl(request)}/pro/paiement?inscription=${pendingSignup.id}`,
+        cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
+          inscription: pendingSignup.id,
+          ...(promoCode ? { promoCode } : {}),
+        }).toString()}`,
       });
 
       if (!session.url) {
@@ -278,13 +316,21 @@ export async function POST(request: Request) {
       line_items: buildLineItems({
         companyName: proAccount.companyName,
         setupHelp,
+        promoCode,
       }),
       metadata: {
         proAccountId: proAccount.id,
         setupHelp: setupHelp ? "1" : "0",
+        promoCode,
+        premiumDiscountPercent: isPremiumDiscountCode(promoCode)
+          ? String(PREMIUM_DISCOUNT_PERCENT)
+          : "0",
       },
       success_url: successUrl(request, setupHelp),
-      cancel_url: `${getAppUrl(request)}/pro/paiement?compte=${proAccount.slug}`,
+      cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
+        compte: proAccount.slug,
+        ...(promoCode ? { promoCode } : {}),
+      }).toString()}`,
     });
 
     await prisma.proAccount.update({

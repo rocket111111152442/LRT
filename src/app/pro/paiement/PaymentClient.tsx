@@ -2,24 +2,54 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import {
+  applyPremiumDiscountCents,
+  isPremiumDiscountCode,
+  normalizePromoCode,
+  PREMIUM_DISCOUNT_CODE,
+} from "@/lib/pro/promoCodes";
+
+const PRO_PRICE_CENTS = 4900;
+const SETUP_HELP_PRICE_CENTS = 1999;
+
+function formatPrice(cents: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
 
 export function PaymentClient({
   pendingSignupId,
   signupToken,
   slug,
+  initialPromoCode = "",
 }: {
   pendingSignupId?: string;
   signupToken?: string;
   slug?: string;
+  initialPromoCode?: string;
 }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [setupHelp, setSetupHelp] = useState(false);
+  const [promoCode, setPromoCode] = useState(initialPromoCode);
   const canPay = Boolean(pendingSignupId || signupToken || slug);
-  const total = setupHelp ? "68,99 EUR" : "49 EUR";
+  const normalizedPromoCode = normalizePromoCode(promoCode);
+  const hasPremiumDiscount = isPremiumDiscountCode(normalizedPromoCode);
+  const premiumPriceCents = hasPremiumDiscount
+    ? applyPremiumDiscountCents(PRO_PRICE_CENTS)
+    : PRO_PRICE_CENTS;
+  const totalCents = premiumPriceCents + (setupHelp ? SETUP_HELP_PRICE_CENTS : 0);
 
   async function handlePayment() {
     setError("");
+
+    if (normalizedPromoCode && !hasPremiumDiscount) {
+      setError("Code de reduction invalide.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -28,7 +58,13 @@ export function PaymentClient({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pendingSignupId, signupToken, slug, setupHelp }),
+        body: JSON.stringify({
+          pendingSignupId,
+          signupToken,
+          slug,
+          setupHelp,
+          promoCode: hasPremiumDiscount ? PREMIUM_DISCOUNT_CODE : "",
+        }),
       });
       const payload = await response
         .json()
@@ -56,6 +92,40 @@ export function PaymentClient({
 
   return (
     <div className="grid gap-4">
+      <div className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-4">
+        <label
+          htmlFor="payment-promo-code"
+          className="text-sm font-semibold text-slate-950"
+        >
+          Code de reduction
+        </label>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            id="payment-promo-code"
+            type="text"
+            value={promoCode}
+            onChange={(event) => {
+              setPromoCode(event.target.value.toUpperCase());
+              setError("");
+            }}
+            placeholder="LRT10"
+            className="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm uppercase outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          />
+          <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+            Premium :{" "}
+            <strong className="text-slate-950">
+              {formatPrice(premiumPriceCents)}
+            </strong>
+          </div>
+        </div>
+        {hasPremiumDiscount ? (
+          <p className="text-sm text-emerald-700">
+            Code {PREMIUM_DISCOUNT_CODE} applique : -10% sur le premium. L&apos;aide
+            parametrage reste a 19,99 EUR.
+          </p>
+        ) : null}
+      </div>
+
       <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
         <input
           type="checkbox"
@@ -95,7 +165,9 @@ export function PaymentClient({
         disabled={isLoading || !canPay}
         className="min-h-12 rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       >
-        {isLoading ? "Ouverture du paiement..." : `Payer ${total}`}
+        {isLoading
+          ? "Ouverture du paiement..."
+          : `Payer ${formatPrice(totalCents)}`}
       </button>
     </div>
   );

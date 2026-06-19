@@ -6,10 +6,13 @@ import {
   createPaidProAccount,
   PaidProAccountData,
 } from "@/lib/pro/paymentActivation";
+import {
+  isFreeAccessCode,
+  isPremiumDiscountCode,
+  PREMIUM_DISCOUNT_CODE,
+} from "@/lib/pro/promoCodes";
 import { createSignupToken } from "@/lib/pro/signupToken";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
-
-const FREE_ACCESS_CODE = "REP2026";
 
 async function deleteUnpaidProAccount(id: string | null | undefined) {
   if (!id) {
@@ -104,7 +107,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const usesFreeAccessCode = validation.data.promoCode === FREE_ACCESS_CODE;
+    const usesFreeAccessCode = isFreeAccessCode(validation.data.promoCode);
+    const usesPremiumDiscountCode = isPremiumDiscountCode(validation.data.promoCode);
     const conflict = await removeOldUnpaidAccounts(
       validation.data.ownerEmail,
       validation.data.slug,
@@ -155,11 +159,16 @@ export async function POST(request: Request) {
     }
 
     const signupToken = createSignupToken(accountData);
+    const paymentParams = new URLSearchParams({
+      inscriptionToken: signupToken,
+    });
+
+    if (usesPremiumDiscountCode) {
+      paymentParams.set("promoCode", PREMIUM_DISCOUNT_CODE);
+    }
 
     return NextResponse.json({
-      redirectUrl: `/pro/paiement?inscriptionToken=${encodeURIComponent(
-        signupToken,
-      )}`,
+      redirectUrl: `/pro/paiement?${paymentParams.toString()}`,
     });
   } catch (error) {
     console.error("Pro signup checkout failed", error);

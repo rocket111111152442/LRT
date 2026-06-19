@@ -8,6 +8,10 @@ import {
   ProSignupInput,
   validateProSignupInput,
 } from "@/lib/pro/signupValidation";
+import {
+  isFreeAccessCode,
+  isPremiumDiscountCode,
+} from "@/lib/pro/promoCodes";
 
 const initialValues: ProSignupInput = {
   companyName: "",
@@ -22,8 +26,6 @@ const initialValues: ProSignupInput = {
   emailVerificationId: "",
 };
 
-const FREE_ACCESS_CODE = "REP2026";
-
 export function ProSignupForm() {
   const [values, setValues] = useState<ProSignupInput>(initialValues);
   const [errors, setErrors] = useState<ProSignupErrors>({});
@@ -33,8 +35,8 @@ export function ProSignupForm() {
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [showQrHelp, setShowQrHelp] = useState(false);
-  const usesFreeAccessCode =
-    values.promoCode?.trim().toUpperCase() === FREE_ACCESS_CODE;
+  const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
+  const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
 
   function updateField(name: keyof ProSignupInput, value: string) {
     setValues((current) => ({
@@ -257,6 +259,13 @@ export function ProSignupForm() {
         <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Code gratuit reconnu. Cliquez sur Activer gratuitement pour creer le
           compte sans paiement.
+        </p>
+      ) : null}
+
+      {usesDiscountCode ? (
+        <p className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+          Code LRT10 reconnu : -10% sur le premium. L&apos;aide parametrage
+          reste au prix normal.
         </p>
       ) : null}
 

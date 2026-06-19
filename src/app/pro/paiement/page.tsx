@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
 import { prisma } from "@/lib/prisma";
+import { isPremiumDiscountCode, PREMIUM_DISCOUNT_CODE } from "@/lib/pro/promoCodes";
 import { readSignupToken } from "@/lib/pro/signupToken";
 import { PaymentClient } from "./PaymentClient";
 
@@ -11,6 +12,7 @@ type PaymentPageProps = {
     compte?: string;
     inscription?: string;
     inscriptionToken?: string;
+    promoCode?: string;
   }>;
 };
 
@@ -71,11 +73,14 @@ function getSignupTokenSummary(token?: string): PendingSignupSummary {
 }
 
 export default async function PaymentPage({ searchParams }: PaymentPageProps) {
-  const { compte, inscription, inscriptionToken } = await searchParams;
+  const { compte, inscription, inscriptionToken, promoCode } = await searchParams;
   const pendingSignup =
     getSignupTokenSummary(inscriptionToken) ??
     (await getPendingSignupSummary(inscription));
   const accountName = pendingSignup?.slug ?? compte ?? "";
+  const initialPromoCode = isPremiumDiscountCode(promoCode)
+    ? PREMIUM_DISCOUNT_CODE
+    : "";
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
@@ -138,6 +143,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
             pendingSignupId={pendingSignup?.id}
             signupToken={pendingSignup?.signupToken}
             slug={compte ?? undefined}
+            initialPromoCode={initialPromoCode}
           />
         </section>
       </div>
