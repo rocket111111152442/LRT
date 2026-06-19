@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export async function GET() {
   const admin = await requireAdminApi();
 
@@ -124,4 +128,38 @@ export async function GET() {
       (item) => item.quantity <= item.lowStockThreshold,
     ),
   });
+}
+
+export async function PATCH(request: Request) {
+  const admin = await requireAdminApi();
+
+  if (!admin.ok) {
+    return admin.response;
+  }
+
+  if (!admin.user.proAccountId) {
+    return NextResponse.json({ error: "Compte pro introuvable." }, { status: 404 });
+  }
+
+  const body = await request.json().catch(() => null);
+
+  if (!isRecord(body)) {
+    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+  }
+
+  const monthlyGoal = Number(body.monthlyGoal);
+
+  if (!Number.isInteger(monthlyGoal) || monthlyGoal < 1 || monthlyGoal > 100000) {
+    return NextResponse.json(
+      { error: "L'objectif mensuel doit etre un nombre entre 1 et 100000." },
+      { status: 400 },
+    );
+  }
+
+  const proAccount = await prisma.proAccount.update({
+    where: { id: admin.user.proAccountId },
+    data: { monthlyGoal },
+  });
+
+  return NextResponse.json({ monthlyGoal: proAccount.monthlyGoal });
 }

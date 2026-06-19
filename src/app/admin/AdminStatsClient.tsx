@@ -40,6 +40,10 @@ export function AdminStatsClient() {
   const [error, setError] = useState("");
   const [reminderMessage, setReminderMessage] = useState("");
   const [archiveMessage, setArchiveMessage] = useState("");
+  const [goalInput, setGoalInput] = useState("");
+  const [goalMessage, setGoalMessage] = useState("");
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [isSendingReminders, setIsSendingReminders] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
@@ -58,6 +62,7 @@ export function AdminStatsClient() {
 
         if (!cancelled) {
           setStats(payload);
+          setGoalInput(String(payload.monthlyGoal ?? 100));
         }
       } catch {
         if (!cancelled) {
@@ -130,6 +135,46 @@ export function AdminStatsClient() {
     }
   }
 
+  async function saveMonthlyGoal() {
+    const monthlyGoal = Number(goalInput);
+
+    if (!Number.isInteger(monthlyGoal) || monthlyGoal < 1) {
+      setError("Entrez un objectif mensuel valide.");
+      return;
+    }
+
+    setIsSavingGoal(true);
+    setGoalMessage("");
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/stats", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ monthlyGoal }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setError(payload.error ?? "Objectif impossible a modifier.");
+        return;
+      }
+
+      setStats((currentStats) =>
+        currentStats
+          ? { ...currentStats, monthlyGoal: payload.monthlyGoal }
+          : currentStats,
+      );
+      setGoalInput(String(payload.monthlyGoal));
+      setIsEditingGoal(false);
+      setGoalMessage("Objectif mensuel mis a jour.");
+    } catch {
+      setError("Objectif impossible a modifier.");
+    } finally {
+      setIsSavingGoal(false);
+    }
+  }
+
   async function archiveOldRepairs() {
     setIsArchiving(true);
     setArchiveMessage("");
@@ -182,9 +227,23 @@ export function AdminStatsClient() {
           label="Benefice reel"
           value={formatPrice(stats.realProfitCents ?? 0)}
         />
-        <StatCard
-          label="Mois"
-          value={`${stats.monthlyRepairs}/${stats.monthlyGoal}`}
+        <GoalStatCard
+          monthlyRepairs={stats.monthlyRepairs}
+          monthlyGoal={stats.monthlyGoal}
+          value={goalInput}
+          isEditing={isEditingGoal}
+          isSaving={isSavingGoal}
+          onChange={setGoalInput}
+          onEdit={() => {
+            setGoalInput(String(stats.monthlyGoal));
+            setGoalMessage("");
+            setIsEditingGoal(true);
+          }}
+          onCancel={() => {
+            setGoalInput(String(stats.monthlyGoal));
+            setIsEditingGoal(false);
+          }}
+          onSave={() => void saveMonthlyGoal()}
         />
       </div>
 
@@ -198,6 +257,11 @@ export function AdminStatsClient() {
               {stats.monthlyRepairs} reparation(s) ce mois-ci sur objectif{" "}
               {stats.monthlyGoal}.
             </p>
+            {goalMessage ? (
+              <p className="mt-1 text-sm font-semibold text-emerald-700">
+                {goalMessage}
+              </p>
+            ) : null}
           </div>
           <strong className="text-lg text-slate-950">{goalPercent}%</strong>
         </div>
@@ -326,6 +390,90 @@ function StatCard({ label, value }: { label: string; value: string }) {
         {label}
       </p>
       <p className="mt-2 text-2xl font-semibold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function GoalStatCard({
+  monthlyRepairs,
+  monthlyGoal,
+  value,
+  isEditing,
+  isSaving,
+  onChange,
+  onEdit,
+  onCancel,
+  onSave,
+}: {
+  monthlyRepairs: number;
+  monthlyGoal: number;
+  value: string;
+  isEditing: boolean;
+  isSaving: boolean;
+  onChange: (value: string) => void;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Mois
+        </p>
+        {!isEditing ? (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-xs font-semibold text-slate-700 underline-offset-4 hover:underline"
+          >
+            Modifier
+          </button>
+        ) : null}
+      </div>
+
+      {!isEditing ? (
+        <p className="mt-2 text-2xl font-semibold text-slate-950">
+          {monthlyRepairs}/{monthlyGoal}
+        </p>
+      ) : (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSave();
+          }}
+          className="mt-3 grid gap-2"
+        >
+          <label htmlFor="monthly-goal" className="text-xs font-semibold text-slate-600">
+            Objectif
+          </label>
+          <input
+            id="monthly-goal"
+            type="number"
+            min="1"
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            className="min-h-10 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          />
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-md bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {isSaving ? "..." : "OK"}
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isSaving}
+              className="rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
