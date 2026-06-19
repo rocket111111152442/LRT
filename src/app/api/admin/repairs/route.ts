@@ -92,9 +92,12 @@ export async function POST(request: Request) {
   }
 
   try {
+    const repairData = { ...validation.data };
+    delete repairData.customerDropOffSignature;
+
     const repair = await prisma.repair.create({
       data: {
-        ...validation.data,
+        ...repairData,
         proAccountId: admin.user.proAccountId ?? undefined,
         ticketNumber: await generateTicketNumber(),
         status: "PAS_ENCORE_EN_REPARATION",
@@ -120,15 +123,6 @@ export async function POST(request: Request) {
         proAccountId: admin.user.proAccountId,
         type: "PHOTOS_ADDED",
         message: "Photos de depot ajoutees.",
-      });
-    }
-
-    if (validation.data.customerDropOffSignature) {
-      await addRepairEvent({
-        repairId: repair.id,
-        proAccountId: admin.user.proAccountId,
-        type: "DROP_OFF_SIGNATURE_ADDED",
-        message: "Signature client au depot ajoutee.",
       });
     }
 

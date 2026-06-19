@@ -3,10 +3,8 @@
 import Link from "next/link";
 import {
   FormEvent,
-  PointerEvent,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import {
@@ -135,8 +133,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [partsStatus, setPartsStatus] = useState<PartStatus>("NONE");
   const [partsDescription, setPartsDescription] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
-  const [dropOffSignature, setDropOffSignature] = useState("");
-  const [pickupSignature, setPickupSignature] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -151,8 +147,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     setPartsStatus(payloadRepair.partsStatus);
     setPartsDescription(payloadRepair.partsDescription ?? "");
     setPhotos(payloadRepair.photos ?? []);
-    setDropOffSignature(payloadRepair.customerDropOffSignature ?? "");
-    setPickupSignature(payloadRepair.customerPickupSignature ?? "");
 
     if (payloadEvents) {
       setEvents(payloadEvents);
@@ -326,13 +320,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     await patchRepair({ photos });
   }
 
-  async function saveSignatures() {
-    await patchRepair({
-      customerDropOffSignature: dropOffSignature,
-      customerPickupSignature: pickupSignature,
-    });
-  }
-
   if (isLoading) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
@@ -488,26 +475,20 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
 
           <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-semibold text-slate-950">Signatures</h2>
+            <p className="text-sm leading-6 text-slate-600">
+              Les signatures sont en lecture seule dans l&apos;admin. Seul le client
+              peut signer depuis le formulaire client.
+            </p>
             <div className="grid gap-4 md:grid-cols-2">
-              <SignatureBox
+              <SignaturePreview
                 title="Depot client"
-                value={dropOffSignature}
-                onChange={setDropOffSignature}
+                value={repair.customerDropOffSignature}
               />
-              <SignatureBox
+              <SignaturePreview
                 title="Recuperation client"
-                value={pickupSignature}
-                onChange={setPickupSignature}
+                value={repair.customerPickupSignature}
               />
             </div>
-            <button
-              type="button"
-              onClick={saveSignatures}
-              disabled={isSaving}
-              className="w-fit rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Enregistrer les signatures
-            </button>
           </div>
 
           <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -722,88 +703,13 @@ function SelectField({
   );
 }
 
-function SignatureBox({
+function SignaturePreview({
   title,
   value,
-  onChange,
 }: {
   title: string;
-  value: string;
-  onChange: (value: string) => void;
+  value: string | null;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-
-  function getPoint(event: PointerEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current;
-
-    if (!canvas) {
-      return null;
-    }
-
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
-      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
-    };
-  }
-
-  function startDrawing(event: PointerEvent<HTMLCanvasElement>) {
-    const point = getPoint(event);
-    const context = canvasRef.current?.getContext("2d");
-
-    if (!point || !context) {
-      return;
-    }
-
-    context.strokeStyle = "#0f172a";
-    context.lineWidth = 3;
-    context.lineCap = "round";
-    context.beginPath();
-    context.moveTo(point.x, point.y);
-    setIsDrawing(true);
-  }
-
-  function draw(event: PointerEvent<HTMLCanvasElement>) {
-    if (!isDrawing) {
-      return;
-    }
-
-    const point = getPoint(event);
-    const context = canvasRef.current?.getContext("2d");
-
-    if (!point || !context) {
-      return;
-    }
-
-    context.lineTo(point.x, point.y);
-    context.stroke();
-  }
-
-  function stopDrawing() {
-    if (!isDrawing) {
-      return;
-    }
-
-    setIsDrawing(false);
-    const canvas = canvasRef.current;
-
-    if (canvas) {
-      onChange(canvas.toDataURL("image/png"));
-    }
-  }
-
-  function clearSignature() {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-
-    if (canvas && context) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    onChange("");
-  }
-
   return (
     <div className="grid gap-2">
       <p className="text-sm font-medium text-slate-800">{title}</p>
@@ -813,24 +719,11 @@ function SignatureBox({
           alt={title}
           className="h-28 w-full rounded-md border border-slate-200 bg-white object-contain"
         />
-      ) : null}
-      <canvas
-        ref={canvasRef}
-        width={520}
-        height={180}
-        onPointerDown={startDrawing}
-        onPointerMove={draw}
-        onPointerUp={stopDrawing}
-        onPointerLeave={stopDrawing}
-        className="h-32 w-full touch-none rounded-md border border-slate-300 bg-white"
-      />
-      <button
-        type="button"
-        onClick={clearSignature}
-        className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline"
-      >
-        Effacer
-      </button>
+      ) : (
+        <div className="grid h-28 place-items-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500">
+          Aucune signature.
+        </div>
+      )}
     </div>
   );
 }

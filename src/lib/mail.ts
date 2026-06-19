@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getPublicAppUrl } from "@/lib/appUrl";
 import { prisma } from "@/lib/prisma";
 
 type ReadyRepairEmailInput = {
@@ -272,10 +273,6 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#039;");
 }
 
-function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-}
-
 async function sendWithRepairSmtp(input: {
   to: string;
   subject: string;
@@ -314,7 +311,7 @@ async function sendWithRepairSmtp(input: {
 export async function sendQuoteEmail(
   repair: QuoteEmailInput,
 ): Promise<SendMailResult> {
-  const quoteUrl = `${getAppUrl()}/devis/${repair.quoteToken}`;
+  const quoteUrl = `${getPublicAppUrl()}/devis/${repair.quoteToken}`;
   const acceptUrl = `${quoteUrl}?decision=ACCEPTED`;
   const refuseUrl = `${quoteUrl}?decision=REFUSED`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`;
@@ -360,7 +357,7 @@ export async function sendRepairCreatedEmail(
   repair: CreatedRepairEmailInput,
 ): Promise<SendMailResult> {
   const ticket = repair.ticketNumber ?? "non attribue";
-  const trackingUrl = `${getAppUrl()}/suivi`;
+  const trackingUrl = `${getPublicAppUrl()}/suivi`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
   const text = [
     `Bonjour ${repair.firstName},`,

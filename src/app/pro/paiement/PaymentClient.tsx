@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export function PaymentClient({
@@ -77,6 +78,17 @@ export function PaymentClient({
           {error}
         </p>
       ) : null}
+      <p className="text-xs leading-5 text-slate-500">
+        En payant, vous acceptez les{" "}
+        <Link
+          href="/conditions-utilisation"
+          target="_blank"
+          className="font-semibold text-slate-800 underline-offset-4 hover:underline"
+        >
+          conditions d&apos;utilisation
+        </Link>
+        .
+      </p>
       <button
         type="button"
         onClick={handlePayment}

@@ -339,24 +339,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.photos = photos;
   }
 
-  if ("customerDropOffSignature" in body) {
-    const signature = readOptionalText(body, "customerDropOffSignature");
-
-    if (signature && (!isImageDataUrl(signature) || signature.length > 300000)) {
-      return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
-    }
-
-    data.customerDropOffSignature = signature || null;
-  }
-
-  if ("customerPickupSignature" in body) {
-    const signature = readOptionalText(body, "customerPickupSignature");
-
-    if (signature && (!isImageDataUrl(signature) || signature.length > 300000)) {
-      return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
-    }
-
-    data.customerPickupSignature = signature || null;
+  if ("customerDropOffSignature" in body || "customerPickupSignature" in body) {
+    return NextResponse.json(
+      { error: "Les signatures client ne sont pas modifiables depuis l'admin." },
+      { status: 403 },
+    );
   }
 
   if ("archived" in body && body.archived === true && !currentRepair.archivedAt) {
@@ -460,18 +447,6 @@ export async function PATCH(request: Request, context: RouteContext) {
       proAccountId: repair.proAccountId,
       type: "PHOTOS_UPDATED",
       message: "Photos de l'appareil mises a jour.",
-    });
-  }
-
-  if (
-    "customerDropOffSignature" in data ||
-    "customerPickupSignature" in data
-  ) {
-    await addRepairEvent({
-      repairId: repair.id,
-      proAccountId: repair.proAccountId,
-      type: "SIGNATURE_UPDATED",
-      message: "Signature client mise a jour.",
     });
   }
 

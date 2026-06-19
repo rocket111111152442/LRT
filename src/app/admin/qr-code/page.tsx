@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
+import { getPublicAppUrl } from "@/lib/appUrl";
 import { QrCodeClient } from "./QrCodeClient";
 
 async function getBaseUrl() {
@@ -12,7 +13,7 @@ async function getBaseUrl() {
     return `${forwardedProto}://${forwardedHost}`;
   }
 
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return getPublicAppUrl();
 }
 
 async function getNewRepairUrl(slug?: string | null) {

@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RepairIntakeExtras } from "@/components/RepairIntakeExtras";
 import {
   emptyRepairInput,
   RepairInput,
@@ -46,6 +45,26 @@ const deviceFields: FieldConfig[] = [
   },
 ];
 
+async function readFiles(files: FileList | null) {
+  if (!files) {
+    return [];
+  }
+
+  const selectedFiles = Array.from(files).slice(0, 3);
+
+  return Promise.all(
+    selectedFiles.map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        }),
+    ),
+  );
+}
+
 export function AdminRepairCreateForm() {
   const router = useRouter();
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
@@ -57,6 +76,11 @@ export function AdminRepairCreateForm() {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError("");
+  }
+
+  async function updatePhotos(files: FileList | null) {
+    const photos = await readFiles(files);
+    updateField("photos", photos);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -141,16 +165,34 @@ export function AdminRepairCreateForm() {
         </div>
       </fieldset>
 
-      <RepairIntakeExtras
-        photos={values.photos ?? []}
-        signature={values.customerDropOffSignature ?? ""}
-        photoError={errors.photos}
-        signatureError={errors.customerDropOffSignature}
-        onPhotosChange={(photos) => updateField("photos", photos)}
-        onSignatureChange={(signature) =>
-          updateField("customerDropOffSignature", signature)
-        }
-      />
+      <fieldset className="grid gap-4">
+        <legend className="mb-3 text-base font-semibold text-slate-950">
+          Photos de l&apos;appareil
+        </legend>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(event) => void updatePhotos(event.target.files)}
+          className="text-sm"
+        />
+        {errors.photos ? (
+          <p className="text-sm text-red-700">{errors.photos}</p>
+        ) : null}
+        <div className="grid gap-3 sm:grid-cols-3">
+          {(values.photos ?? []).map((photo, index) => (
+            <img
+              key={`${photo.slice(0, 24)}-${index}`}
+              src={photo}
+              alt={`Photo ${index + 1}`}
+              className="aspect-[4/3] w-full rounded-md border border-slate-200 object-cover"
+            />
+          ))}
+          {(values.photos ?? []).length === 0 ? (
+            <p className="text-sm text-slate-500">Aucune photo ajoutee.</p>
+          ) : null}
+        </div>
+      </fieldset>
 
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
