@@ -6,9 +6,18 @@ type StatsPayload = {
   totalRepairs: number;
   byStatus: Record<string, number>;
   byBrand: Record<string, number>;
+  byIssue: Record<string, number>;
+  monthlyGoal: number;
+  monthlyRepairs: number;
   estimatedRevenueCents: number;
+  paidRevenueCents: number;
   partsCostCents: number;
   estimatedProfitCents: number;
+  realProfitCents: number;
+  monthlyRevenueCents: number;
+  monthlyPaidRevenueCents: number;
+  monthlyPartsCostCents: number;
+  monthlyProfitCents: number;
   inventoryValueCents: number;
   lowStockItems: Array<{
     id: string;
@@ -30,7 +39,9 @@ export function AdminStatsClient() {
   const [stats, setStats] = useState<StatsPayload | null>(null);
   const [error, setError] = useState("");
   const [reminderMessage, setReminderMessage] = useState("");
+  const [archiveMessage, setArchiveMessage] = useState("");
   const [isSendingReminders, setIsSendingReminders] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +90,7 @@ export function AdminStatsClient() {
   }
 
   const byBrand = stats.byBrand ?? {};
+  const byIssue = stats.byIssue ?? {};
   const byStatus = stats.byStatus ?? {};
   const lowStockItems = Array.isArray(stats.lowStockItems)
     ? stats.lowStockItems
@@ -86,6 +98,13 @@ export function AdminStatsClient() {
   const brandEntries = Object.entries(byBrand)
     .sort((left, right) => right[1] - left[1])
     .slice(0, 5);
+  const issueEntries = Object.entries(byIssue)
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 5);
+  const goalPercent = Math.min(
+    Math.round((stats.monthlyRepairs / Math.max(stats.monthlyGoal, 1)) * 100),
+    100,
+  );
 
   async function sendReminders() {
     setIsSendingReminders(true);
@@ -111,6 +130,28 @@ export function AdminStatsClient() {
     }
   }
 
+  async function archiveOldRepairs() {
+    setIsArchiving(true);
+    setArchiveMessage("");
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/archive-old", { method: "POST" });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setError(payload.error ?? "Archivage impossible.");
+        return;
+      }
+
+      setArchiveMessage(`${payload.archived} reparation(s) archivee(s).`);
+    } catch {
+      setError("Archivage impossible.");
+    } finally {
+      setIsArchiving(false);
+    }
+  }
+
   return (
     <section className="grid gap-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -126,6 +167,10 @@ export function AdminStatsClient() {
           value={formatPrice(stats.estimatedRevenueCents)}
         />
         <StatCard
+          label="CA encaisse"
+          value={formatPrice(stats.paidRevenueCents ?? 0)}
+        />
+        <StatCard
           label="Cout pieces"
           value={formatPrice(stats.partsCostCents ?? 0)}
         />
@@ -133,9 +178,43 @@ export function AdminStatsClient() {
           label="Benefice"
           value={formatPrice(stats.estimatedProfitCents ?? 0)}
         />
+        <StatCard
+          label="Benefice reel"
+          value={formatPrice(stats.realProfitCents ?? 0)}
+        />
+        <StatCard
+          label="Mois"
+          value={`${stats.monthlyRepairs}/${stats.monthlyGoal}`}
+        />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Objectif mensuel
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {stats.monthlyRepairs} reparation(s) ce mois-ci sur objectif{" "}
+              {stats.monthlyGoal}.
+            </p>
+          </div>
+          <strong className="text-lg text-slate-950">{goalPercent}%</strong>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+          <div
+            className="h-full rounded-full bg-slate-950"
+            style={{ width: `${goalPercent}%` }}
+          />
+        </div>
+        <div className="mt-3 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
+          <span>CA mois : {formatPrice(stats.monthlyRevenueCents ?? 0)}</span>
+          <span>Encaisse : {formatPrice(stats.monthlyPaidRevenueCents ?? 0)}</span>
+          <span>Benefice mois : {formatPrice(stats.monthlyProfitCents ?? 0)}</span>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Marques
@@ -148,6 +227,23 @@ export function AdminStatsClient() {
               </div>
             ))}
             {brandEntries.length === 0 ? (
+              <p className="text-sm text-slate-500">Aucune donnee.</p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Top pannes
+          </h2>
+          <div className="mt-3 grid gap-2">
+            {issueEntries.map(([issue, count]) => (
+              <div key={issue} className="flex justify-between gap-3 text-sm">
+                <span className="truncate text-slate-700">{issue}</span>
+                <strong className="text-slate-950">{count}</strong>
+              </div>
+            ))}
+            {issueEntries.length === 0 ? (
               <p className="text-sm text-slate-500">Aucune donnee.</p>
             ) : null}
           </div>
@@ -195,6 +291,28 @@ export function AdminStatsClient() {
         </button>
         {reminderMessage ? (
           <p className="basis-full text-sm text-emerald-700">{reminderMessage}</p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Archivage intelligent
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Archive les reparations recuperees depuis plus de 30 jours.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={archiveOldRepairs}
+          disabled={isArchiving}
+          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isArchiving ? "Archivage..." : "Archiver automatiquement"}
+        </button>
+        {archiveMessage ? (
+          <p className="basis-full text-sm text-emerald-700">{archiveMessage}</p>
         ) : null}
       </div>
     </section>

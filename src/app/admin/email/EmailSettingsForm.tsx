@@ -14,6 +14,10 @@ type EmailSettingsFormState = {
   shopOpeningHours: string;
   shopPhone: string;
   googleReviewUrl: string;
+  createdEmailTemplate: string;
+  statusEmailTemplate: string;
+  quoteEmailTemplate: string;
+  reviewEmailTemplate: string;
 };
 
 type FieldHelp = {
@@ -34,6 +38,10 @@ const emptySettings: EmailSettingsFormState = {
   shopOpeningHours: "",
   shopPhone: "",
   googleReviewUrl: "",
+  createdEmailTemplate: "",
+  statusEmailTemplate: "",
+  quoteEmailTemplate: "",
+  reviewEmailTemplate: "",
 };
 
 export function EmailSettingsForm() {
@@ -80,6 +88,10 @@ export function EmailSettingsForm() {
           shopOpeningHours: payload.settings.shopOpeningHours ?? "",
           shopPhone: payload.settings.shopPhone ?? "",
           googleReviewUrl: payload.settings.googleReviewUrl ?? "",
+          createdEmailTemplate: payload.settings.createdEmailTemplate ?? "",
+          statusEmailTemplate: payload.settings.statusEmailTemplate ?? "",
+          quoteEmailTemplate: payload.settings.quoteEmailTemplate ?? "",
+          reviewEmailTemplate: payload.settings.reviewEmailTemplate ?? "",
         });
         setHasAppPassword(Boolean(payload.settings.hasAppPassword));
       } catch {
@@ -245,6 +257,44 @@ export function EmailSettingsForm() {
 
       <fieldset className="grid gap-4">
         <legend className="mb-2 text-base font-semibold text-slate-950">
+          Modeles de messages
+        </legend>
+        <p className="text-sm leading-6 text-slate-600">
+          Variables possibles : {"{{prenom}}"}, {"{{ticket}}"}, {"{{appareil}}"},{" "}
+          {"{{statut}}"}, {"{{prix}}"}, {"{{lien_suivi}}"},{" "}
+          {"{{lien_devis}}"}, {"{{lien_acceptation}}"}, {"{{lien_refus}}"},{" "}
+          {"{{lien_avis}}"}.
+        </p>
+        <div className="grid gap-4">
+          <TextAreaField
+            id="template-created"
+            label="Email de depot / ticket"
+            value={values.createdEmailTemplate}
+            onChange={(value) => updateField("createdEmailTemplate", value)}
+          />
+          <TextAreaField
+            id="template-status"
+            label="Email changement de statut"
+            value={values.statusEmailTemplate}
+            onChange={(value) => updateField("statusEmailTemplate", value)}
+          />
+          <TextAreaField
+            id="template-quote"
+            label="Email de devis"
+            value={values.quoteEmailTemplate}
+            onChange={(value) => updateField("quoteEmailTemplate", value)}
+          />
+          <TextAreaField
+            id="template-review"
+            label="Email avis client"
+            value={values.reviewEmailTemplate}
+            onChange={(value) => updateField("reviewEmailTemplate", value)}
+          />
+        </div>
+      </fieldset>
+
+      <fieldset className="grid gap-4">
+        <legend className="mb-2 text-base font-semibold text-slate-950">
           Magasin
         </legend>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -376,5 +426,30 @@ function TextField({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function TextAreaField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label htmlFor={id} className="grid gap-2 text-sm font-medium text-slate-800">
+      {label}
+      <textarea
+        id={id}
+        value={value}
+        rows={4}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-md border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+      />
+    </label>
   );
 }

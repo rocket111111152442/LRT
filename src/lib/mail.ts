@@ -44,6 +44,10 @@ type SmtpConfig = {
   from: string;
   shopLines: string[];
   googleReviewUrl?: string | null;
+  createdEmailTemplate?: string | null;
+  statusEmailTemplate?: string | null;
+  quoteEmailTemplate?: string | null;
+  reviewEmailTemplate?: string | null;
 };
 
 function getEnvShopLines() {
@@ -248,6 +252,10 @@ async function getSmtpConfig(): Promise<SmtpConfig | null> {
           : settings.smtpEmail,
         shopLines,
         googleReviewUrl: settings.googleReviewUrl ?? process.env.GOOGLE_REVIEW_URL ?? null,
+        createdEmailTemplate: settings.createdEmailTemplate,
+        statusEmailTemplate: settings.statusEmailTemplate,
+        quoteEmailTemplate: settings.quoteEmailTemplate,
+        reviewEmailTemplate: settings.reviewEmailTemplate,
       };
     }
   } catch (error) {
@@ -271,6 +279,22 @@ function escapeHtml(value: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function renderTemplate(
+  template: string | null | undefined,
+  variables: Record<string, string>,
+  fallback: string,
+) {
+  if (!template?.trim()) {
+    return fallback;
+  }
+
+  return Object.entries(variables).reduce(
+    (text, [key, value]) =>
+      text.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), value),
+    template,
+  );
 }
 
 async function sendWithRepairSmtp(input: {
@@ -311,12 +335,13 @@ async function sendWithRepairSmtp(input: {
 export async function sendQuoteEmail(
   repair: QuoteEmailInput,
 ): Promise<SendMailResult> {
+  const smtpConfig = await getSmtpConfig();
   const quoteUrl = `${getPublicAppUrl()}/devis/${repair.quoteToken}`;
   const acceptUrl = `${quoteUrl}?decision=ACCEPTED`;
   const refuseUrl = `${quoteUrl}?decision=REFUSED`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`;
   const price = formatPrice(repair.estimatedPriceCents);
-  const text = [
+  const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
     `Votre devis pour ${device} est de ${price}.`,
@@ -328,6 +353,19 @@ export async function sendQuoteEmail(
     "Pour refuser le devis :",
     refuseUrl,
   ].filter(Boolean).join("\n");
+  const text = renderTemplate(
+    smtpConfig?.quoteEmailTemplate,
+    {
+      prenom: repair.firstName,
+      appareil: device,
+      prix: price,
+      ticket: repair.ticketNumber ?? "",
+      lien_devis: quoteUrl,
+      lien_acceptation: acceptUrl,
+      lien_refus: refuseUrl,
+    },
+    defaultText,
+  );
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
       <p>Bonjour ${escapeHtml(repair.firstName)},</p>
@@ -356,10 +394,11 @@ export async function sendQuoteEmail(
 export async function sendRepairCreatedEmail(
   repair: CreatedRepairEmailInput,
 ): Promise<SendMailResult> {
+  const smtpConfig = await getSmtpConfig();
   const ticket = repair.ticketNumber ?? "non attribue";
   const trackingUrl = `${getPublicAppUrl()}/suivi`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
-  const text = [
+  const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
     "Votre demande de reparation a bien ete recue.",
@@ -371,6 +410,16 @@ export async function sendRepairCreatedEmail(
     "",
     "Entrez votre numero de ticket sur la page de suivi.",
   ].filter(Boolean).join("\n");
+  const text = renderTemplate(
+    smtpConfig?.createdEmailTemplate,
+    {
+      prenom: repair.firstName,
+      appareil: device,
+      ticket,
+      lien_suivi: trackingUrl,
+    },
+    defaultText,
+  );
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
       <p>Bonjour ${escapeHtml(repair.firstName)},</p>
@@ -402,7 +451,7 @@ export async function sendReviewRequestEmail(
     return { sent: false, skipped: true };
   }
 
-  const text = [
+  const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
     `Merci pour votre confiance pour votre ${repair.deviceType} ${repair.brand} ${repair.model}.`,
@@ -411,6 +460,15 @@ export async function sendReviewRequestEmail(
     "",
     ...smtpConfig.shopLines,
   ].join("\n");
+  const text = renderTemplate(
+    smtpConfig.reviewEmailTemplate,
+    {
+      prenom: repair.firstName,
+      appareil: `${repair.deviceType} ${repair.brand} ${repair.model}`,
+      lien_avis: reviewUrl,
+    },
+    defaultText,
+  );
 
   return sendWithRepairSmtp({
     to: repair.email,
@@ -422,7 +480,7 @@ export async function sendReviewRequestEmail(
 export async function sendReadyReminderEmail(
   repair: ReadyRepairEmailInput & { ticketNumber?: string | null },
 ): Promise<SendMailResult> {
-  const text = [
+  const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
     `Petit rappel : votre ${repair.deviceType} ${repair.brand} ${repair.model} est pret au magasin.`,
@@ -433,7 +491,7 @@ export async function sendReadyReminderEmail(
   return sendWithRepairSmtp({
     to: repair.email,
     subject: "Rappel : votre appareil est pret",
-    text,
+    text: defaultText,
   });
 }
 
@@ -446,7 +504,7 @@ export async function sendReadyRepairEmail(
     return { sent: false, skipped: true };
   }
 
-  const text = [
+  const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
     `Votre ${repair.deviceType} ${repair.brand} ${repair.model} est prêt.`,
@@ -454,6 +512,15 @@ export async function sendReadyRepairEmail(
     "",
     ...smtpConfig.shopLines,
   ].join("\n");
+  const text = renderTemplate(
+    smtpConfig.statusEmailTemplate,
+    {
+      prenom: repair.firstName,
+      appareil: `${repair.deviceType} ${repair.brand} ${repair.model}`.trim(),
+      statut: "PRET",
+    },
+    defaultText,
+  );
 
   try {
     const transporter = nodemailer.createTransport({
@@ -548,13 +615,22 @@ export async function sendRepairStatusEmail(
   }
 
   const email = buildRepairStatusEmail(repair);
-  const text = [
+  const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
     ...email.lines,
     "",
     ...smtpConfig.shopLines,
   ].join("\n");
+  const text = renderTemplate(
+    smtpConfig.statusEmailTemplate,
+    {
+      prenom: repair.firstName,
+      appareil: `${repair.deviceType} ${repair.brand} ${repair.model}`.trim(),
+      statut: repair.status,
+    },
+    defaultText,
+  );
 
   try {
     const transporter = nodemailer.createTransport({

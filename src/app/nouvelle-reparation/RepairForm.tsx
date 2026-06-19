@@ -53,6 +53,14 @@ const deviceFields: FieldConfig[] = [
   },
 ];
 
+const issueTemplates = [
+  "Ecran casse ou tactile defectueux",
+  "Batterie qui se decharge trop vite",
+  "Connecteur de charge defectueux",
+  "Telephone oxyde ou tombe dans l'eau",
+  "Probleme logiciel ou demarrage bloque",
+];
+
 export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string }) {
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
   const [errors, setErrors] = useState<RepairInputErrors>({});
@@ -145,6 +153,18 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
         <legend className="mb-3 text-base font-semibold text-slate-950">
           Appareil
         </legend>
+        <div className="flex flex-wrap gap-2">
+          {issueTemplates.map((template) => (
+            <button
+              key={template}
+              type="button"
+              onClick={() => updateField("issueDescription", template)}
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              {template}
+            </button>
+          ))}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {deviceFields.map((field) => (
             <FormField

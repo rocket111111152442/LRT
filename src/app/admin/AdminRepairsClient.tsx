@@ -16,6 +16,13 @@ type RepairListItem = {
   brand: string;
   model: string;
   status: RepairStatus;
+  urgent: boolean;
+  expectedPickupAt: unknown;
+  estimatedPriceCents: number | null;
+  partsCostCents: number | null;
+  paidAmountCents: number;
+  paymentStatus: string;
+  customerType: string;
   quoteStatus: "NONE" | "SENT" | "ACCEPTED" | "REFUSED";
   quoteRespondedAt: unknown;
   readyEmailSent: boolean;
@@ -72,6 +79,21 @@ function formatDate(value: unknown) {
   }).format(date);
 }
 
+function readNumber(value: unknown, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function formatPrice(cents: number | null) {
+  if (cents === null) {
+    return "-";
+  }
+
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
+
 function normalizeRepairs(value: unknown): RepairListItem[] {
   if (!Array.isArray(value)) {
     return [];
@@ -90,6 +112,17 @@ function normalizeRepairs(value: unknown): RepairListItem[] {
     status: REPAIR_STATUSES.includes(repair.status as RepairStatus)
       ? (repair.status as RepairStatus)
       : "PAS_ENCORE_EN_REPARATION",
+    urgent: readBoolean(repair.urgent),
+    expectedPickupAt: repair.expectedPickupAt,
+    estimatedPriceCents:
+      typeof repair.estimatedPriceCents === "number"
+        ? repair.estimatedPriceCents
+        : null,
+    partsCostCents:
+      typeof repair.partsCostCents === "number" ? repair.partsCostCents : null,
+    paidAmountCents: readNumber(repair.paidAmountCents),
+    paymentStatus: readString(repair.paymentStatus, "NON_PAYE"),
+    customerType: readString(repair.customerType, "STANDARD"),
     quoteStatus: readQuoteStatus(repair.quoteStatus),
     quoteRespondedAt: repair.quoteRespondedAt,
     readyEmailSent: readBoolean(repair.readyEmailSent),
@@ -103,6 +136,7 @@ export function AdminRepairsClient() {
   const [repairs, setRepairs] = useState<RepairListItem[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [exportMonth, setExportMonth] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState("");
@@ -122,8 +156,17 @@ export function AdminRepairsClient() {
   }, [search, status]);
 
   const apiUrl = queryString ? `/api/admin/repairs?${queryString}` : "/api/admin/repairs";
-  const exportUrl = queryString
-    ? `/api/admin/repairs/export?${queryString}`
+  const exportQueryString = useMemo(() => {
+    const params = new URLSearchParams(queryString);
+
+    if (exportMonth) {
+      params.set("month", exportMonth);
+    }
+
+    return params.toString();
+  }, [exportMonth, queryString]);
+  const exportUrl = exportQueryString
+    ? `/api/admin/repairs/export?${exportQueryString}`
     : "/api/admin/repairs/export";
   const quoteNotifications = repairs
     .filter(
@@ -225,7 +268,7 @@ export function AdminRepairsClient() {
 
   return (
     <section className="grid gap-5">
-      <div className="grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)_auto]">
+      <div className="grid min-w-0 gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(220px,280px)_minmax(180px,220px)_auto]">
         <div className="grid min-w-0 gap-2">
           <label htmlFor="repair-search" className="text-sm font-medium text-slate-800">
             Recherche
@@ -256,6 +299,20 @@ export function AdminRepairsClient() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="flex items-end">
+          <div className="grid min-w-0 gap-2">
+            <label htmlFor="export-month" className="text-sm font-medium text-slate-800">
+              Mois export
+            </label>
+            <input
+              id="export-month"
+              type="month"
+              value={exportMonth}
+              onChange={(event) => setExportMonth(event.target.value)}
+              className="min-h-11 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+            />
+          </div>
         </div>
         <div className="flex items-end">
           <button
@@ -331,6 +388,8 @@ export function AdminRepairsClient() {
                 <th className="px-4 py-3 font-semibold">Contact</th>
                 <th className="px-4 py-3 font-semibold">Appareil</th>
                 <th className="px-4 py-3 font-semibold">Statut</th>
+                <th className="px-4 py-3 font-semibold">Planning</th>
+                <th className="px-4 py-3 font-semibold">Paiement</th>
                 <th className="px-4 py-3 font-semibold">Devis</th>
                 <th className="px-4 py-3 font-semibold">Creee le</th>
                 <th className="px-4 py-3 font-semibold">Action</th>
@@ -351,6 +410,18 @@ export function AdminRepairsClient() {
                         Archivee
                       </div>
                     ) : null}
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {repair.urgent ? (
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                          Urgent
+                        </span>
+                      ) : null}
+                      {repair.customerType !== "STANDARD" ? (
+                        <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700">
+                          {repair.customerType}
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-4 py-3 font-semibold text-slate-950">
                     {repair.ticketNumber ?? (repair.id ? repair.id.slice(0, 8) : "-")}
@@ -366,6 +437,16 @@ export function AdminRepairsClient() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-700">{repair.status}</td>
+                  <td className="px-4 py-3 text-slate-700">
+                    {formatDate(repair.expectedPickupAt)}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">
+                    <div>{repair.paymentStatus}</div>
+                    <div className="text-xs text-slate-500">
+                      {formatPrice(repair.paidAmountCents)} /{" "}
+                      {formatPrice(repair.estimatedPriceCents)}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <QuoteBadge status={repair.quoteStatus} />
                   </td>
@@ -388,14 +469,14 @@ export function AdminRepairsClient() {
               ))}
               {!isLoading && repairs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-600">
+                  <td colSpan={10} className="px-4 py-8 text-center text-slate-600">
                     Aucune reparation trouvee.
                   </td>
                 </tr>
               ) : null}
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-600">
+                  <td colSpan={10} className="px-4 py-8 text-center text-slate-600">
                     Chargement...
                   </td>
                 </tr>

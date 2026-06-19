@@ -49,6 +49,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search")?.trim();
   const status = searchParams.get("status")?.trim();
+  const month = searchParams.get("month")?.trim();
 
   if (status && !isRepairStatus(status)) {
     return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
@@ -61,6 +62,18 @@ export async function GET(request: Request) {
     where: {
       ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
       ...(statusFilter ? { status: statusFilter } : {}),
+      ...(month && /^\d{4}-\d{2}$/.test(month)
+        ? {
+            createdAt: {
+              gte: new Date(`${month}-01T00:00:00.000Z`),
+              lt: new Date(
+                new Date(`${month}-01T00:00:00.000Z`).setUTCMonth(
+                  new Date(`${month}-01T00:00:00.000Z`).getUTCMonth() + 1,
+                ),
+              ),
+            },
+          }
+        : {}),
       ...(search
         ? {
             OR: [
@@ -85,9 +98,18 @@ export async function GET(request: Request) {
       brand: true,
       model: true,
       status: true,
+      urgent: true,
+      customerType: true,
       quoteStatus: true,
       estimatedPriceCents: true,
       partsCostCents: true,
+      paidAmountCents: true,
+      depositCents: true,
+      paymentStatus: true,
+      expectedPickupAt: true,
+      warrantyUntil: true,
+      technicianName: true,
+      timeSpentMinutes: true,
       partsStatus: true,
       createdAt: true,
       updatedAt: true,
@@ -105,10 +127,20 @@ export async function GET(request: Request) {
       "marque",
       "modele",
       "statut",
+      "urgent",
+      "type_client",
       "devis",
       "prix_estime_eur",
       "cout_pieces_eur",
       "benefice_estime_eur",
+      "montant_paye_eur",
+      "acompte_eur",
+      "reste_a_payer_eur",
+      "statut_paiement",
+      "date_recuperation_prevue",
+      "garantie_jusquau",
+      "technicien",
+      "temps_passe_minutes",
       "piece",
       "cree_le",
       "mis_a_jour_le",
@@ -123,6 +155,8 @@ export async function GET(request: Request) {
       safeText(repair.brand),
       safeText(repair.model),
       safeText(repair.status),
+      repair.urgent ? "oui" : "non",
+      safeText(repair.customerType),
       safeText(repair.quoteStatus),
       centsToEuro(repair.estimatedPriceCents),
       centsToEuro(repair.partsCostCents),
@@ -133,6 +167,20 @@ export async function GET(request: Request) {
             100
           ).toFixed(2)
         : "",
+      centsToEuro(repair.paidAmountCents),
+      centsToEuro(repair.depositCents),
+      safeCents(repair.estimatedPriceCents) !== null
+        ? (
+            ((safeCents(repair.estimatedPriceCents) ?? 0) -
+              (safeCents(repair.paidAmountCents) ?? 0)) /
+            100
+          ).toFixed(2)
+        : "",
+      safeText(repair.paymentStatus),
+      dateToIso(repair.expectedPickupAt),
+      dateToIso(repair.warrantyUntil),
+      safeText(repair.technicianName),
+      repair.timeSpentMinutes,
       safeText(repair.partsStatus),
       dateToIso(repair.createdAt),
       dateToIso(repair.updatedAt),

@@ -9,17 +9,32 @@ export async function GET() {
     return admin.response;
   }
 
-  const repairs = await prisma.repair.findMany({
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const [repairs, proAccount] = await Promise.all([
+    prisma.repair.findMany({
     where: {
       ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
     },
     select: {
       status: true,
       brand: true,
+      issueDescription: true,
       estimatedPriceCents: true,
       partsCostCents: true,
+      paidAmountCents: true,
+      createdAt: true,
     },
-  });
+    }),
+    admin.user.proAccountId
+      ? prisma.proAccount.findUnique({
+          where: { id: admin.user.proAccountId },
+          select: { monthlyGoal: true },
+        })
+      : Promise.resolve(null),
+  ]);
 
   const inventoryItems = await prisma.inventoryItem.findMany({
     where: {
@@ -45,11 +60,41 @@ export async function GET() {
     return accumulator;
   }, {});
 
+  const byIssue = repairs.reduce<Record<string, number>>((accumulator, repair) => {
+    const firstWords = repair.issueDescription
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .slice(0, 4)
+      .join(" ");
+    const issue = firstWords || "sans panne";
+    accumulator[issue] = (accumulator[issue] ?? 0) + 1;
+    return accumulator;
+  }, {});
+
+  const monthlyRepairs = repairs.filter((repair) => repair.createdAt >= monthStart);
+
   const estimatedRevenueCents = repairs.reduce(
     (total, repair) => total + (repair.estimatedPriceCents ?? 0),
     0,
   );
   const partsCostCents = repairs.reduce(
+    (total, repair) => total + (repair.partsCostCents ?? 0),
+    0,
+  );
+  const paidRevenueCents = repairs.reduce(
+    (total, repair) => total + (repair.paidAmountCents ?? 0),
+    0,
+  );
+  const monthlyRevenueCents = monthlyRepairs.reduce(
+    (total, repair) => total + (repair.estimatedPriceCents ?? 0),
+    0,
+  );
+  const monthlyPaidRevenueCents = monthlyRepairs.reduce(
+    (total, repair) => total + (repair.paidAmountCents ?? 0),
+    0,
+  );
+  const monthlyPartsCostCents = monthlyRepairs.reduce(
     (total, repair) => total + (repair.partsCostCents ?? 0),
     0,
   );
@@ -62,9 +107,18 @@ export async function GET() {
     totalRepairs: repairs.length,
     byStatus,
     byBrand,
+    byIssue,
+    monthlyGoal: proAccount?.monthlyGoal ?? 100,
+    monthlyRepairs: monthlyRepairs.length,
     estimatedRevenueCents,
+    paidRevenueCents,
     partsCostCents,
     estimatedProfitCents: Math.max(estimatedRevenueCents - partsCostCents, 0),
+    realProfitCents: Math.max(paidRevenueCents - partsCostCents, 0),
+    monthlyRevenueCents,
+    monthlyPaidRevenueCents,
+    monthlyPartsCostCents,
+    monthlyProfitCents: Math.max(monthlyPaidRevenueCents - monthlyPartsCostCents, 0),
     inventoryValueCents,
     lowStockItems: inventoryItems.filter(
       (item) => item.quantity <= item.lowStockThreshold,

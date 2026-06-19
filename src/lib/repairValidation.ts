@@ -8,9 +8,18 @@ export const REPAIR_STATUSES = [
 ] as const;
 
 export const PART_STATUSES = ["NONE", "ORDERED", "RECEIVED", "INSTALLED"] as const;
+export const REPAIR_PAYMENT_STATUSES = [
+  "NON_PAYE",
+  "ACOMPTE",
+  "PAYE",
+  "REMBOURSE",
+] as const;
+export const CUSTOMER_TYPES = ["STANDARD", "VIP", "PRO"] as const;
 
 export type RepairStatus = (typeof REPAIR_STATUSES)[number];
 export type PartStatus = (typeof PART_STATUSES)[number];
+export type RepairPaymentStatus = (typeof REPAIR_PAYMENT_STATUSES)[number];
+export type CustomerType = (typeof CUSTOMER_TYPES)[number];
 
 export type RepairInput = {
   firstName: string;

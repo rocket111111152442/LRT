@@ -51,6 +51,12 @@ export async function GET(request: Request) {
       model: true,
       status: true,
       quoteStatus: true,
+      estimatedPriceCents: true,
+      paidAmountCents: true,
+      paymentStatus: true,
+      expectedPickupAt: true,
+      warrantyUntil: true,
+      customerPickupSignature: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -69,6 +75,14 @@ export async function GET(request: Request) {
       model: readString(repair.model),
       status: readString(repair.status, "PAS_ENCORE_EN_REPARATION"),
       quoteStatus: readString(repair.quoteStatus, "NONE"),
+      estimatedPriceCents: repair.estimatedPriceCents ?? null,
+      paidAmountCents: repair.paidAmountCents ?? 0,
+      paymentStatus: readString(repair.paymentStatus, "NON_PAYE"),
+      expectedPickupAt: repair.expectedPickupAt
+        ? readDateString(repair.expectedPickupAt)
+        : null,
+      warrantyUntil: repair.warrantyUntil ? readDateString(repair.warrantyUntil) : null,
+      signatureDone: Boolean(repair.customerPickupSignature),
       updatedAt: readDateString(repair.updatedAt),
     },
   });

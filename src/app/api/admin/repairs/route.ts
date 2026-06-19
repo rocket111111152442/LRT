@@ -57,6 +57,13 @@ export async function GET(request: Request) {
       brand: true,
       model: true,
       status: true,
+      urgent: true,
+      expectedPickupAt: true,
+      estimatedPriceCents: true,
+      partsCostCents: true,
+      paidAmountCents: true,
+      paymentStatus: true,
+      customerType: true,
       quoteStatus: true,
       quoteRespondedAt: true,
       readyEmailSent: true,
@@ -96,6 +103,12 @@ export async function POST(request: Request) {
   try {
     const repairData = { ...validation.data };
     delete repairData.customerDropOffSignature;
+    const expressMode = body && typeof body === "object" && "expressMode" in body
+      ? (body as Record<string, unknown>).expressMode === true
+      : false;
+    const urgent = body && typeof body === "object" && "urgent" in body
+      ? (body as Record<string, unknown>).urgent === true
+      : false;
 
     const repair = await prisma.repair.create({
       data: {
@@ -103,6 +116,8 @@ export async function POST(request: Request) {
         proAccountId: admin.user.proAccountId ?? undefined,
         ticketNumber: await generateTicketNumber(),
         status: "PAS_ENCORE_EN_REPARATION",
+        expressMode,
+        urgent,
       },
       select: {
         id: true,
@@ -116,7 +131,9 @@ export async function POST(request: Request) {
       repairId: repair.id,
       proAccountId: admin.user.proAccountId,
       type: "CREATED",
-      message: "Reparation creee manuellement depuis l'admin.",
+      message: expressMode
+        ? "Reparation express creee depuis l'admin."
+        : "Reparation creee manuellement depuis l'admin.",
     });
 
     if (validation.data.photos && validation.data.photos.length > 0) {

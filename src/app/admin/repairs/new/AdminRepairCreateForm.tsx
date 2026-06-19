@@ -45,6 +45,14 @@ const deviceFields: FieldConfig[] = [
   },
 ];
 
+const issueTemplates = [
+  "Ecran casse ou tactile defectueux",
+  "Batterie qui se decharge trop vite",
+  "Connecteur de charge defectueux",
+  "Telephone oxyde ou tombe dans l'eau",
+  "Probleme logiciel ou demarrage bloque",
+];
+
 async function readFiles(files: FileList | null) {
   if (!files) {
     return [];
@@ -68,6 +76,8 @@ async function readFiles(files: FileList | null) {
 export function AdminRepairCreateForm() {
   const router = useRouter();
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
+  const [expressMode, setExpressMode] = useState(false);
+  const [urgent, setUrgent] = useState(false);
   const [errors, setErrors] = useState<RepairInputErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,7 +112,7 @@ export function AdminRepairCreateForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(validation.data),
+        body: JSON.stringify({ ...validation.data, expressMode, urgent }),
       });
       const payload = await response.json();
 
@@ -131,6 +141,30 @@ export function AdminRepairCreateForm() {
       className="grid gap-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
       noValidate
     >
+      <fieldset className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
+        <legend className="text-base font-semibold text-slate-950">
+          Mode rapide
+        </legend>
+        <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+          <input
+            type="checkbox"
+            checked={expressMode}
+            onChange={(event) => setExpressMode(event.target.checked)}
+            className="h-4 w-4"
+          />
+          Reparation express
+        </label>
+        <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+          <input
+            type="checkbox"
+            checked={urgent}
+            onChange={(event) => setUrgent(event.target.checked)}
+            className="h-4 w-4"
+          />
+          Priorite urgente
+        </label>
+      </fieldset>
+
       <fieldset className="grid gap-4">
         <legend className="mb-3 text-base font-semibold text-slate-950">
           Client
@@ -152,6 +186,18 @@ export function AdminRepairCreateForm() {
         <legend className="mb-3 text-base font-semibold text-slate-950">
           Appareil
         </legend>
+        <div className="flex flex-wrap gap-2">
+          {issueTemplates.map((template) => (
+            <button
+              key={template}
+              type="button"
+              onClick={() => updateField("issueDescription", template)}
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              {template}
+            </button>
+          ))}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {deviceFields.map((field) => (
             <FormField

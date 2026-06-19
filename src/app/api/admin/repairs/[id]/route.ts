@@ -8,9 +8,16 @@ import {
 } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
-import { PART_STATUSES, REPAIR_STATUSES } from "@/lib/repairValidation";
+import {
+  CUSTOMER_TYPES,
+  PART_STATUSES,
+  REPAIR_PAYMENT_STATUSES,
+  REPAIR_STATUSES,
+} from "@/lib/repairValidation";
 import type {
+  CustomerType as PrismaCustomerType,
   PartStatus as PrismaPartStatus,
+  RepairPaymentStatus as PrismaRepairPaymentStatus,
   RepairStatus as PrismaRepairStatus,
 } from "../../../../../../generated/prisma/client";
 
@@ -28,6 +35,16 @@ function isRepairStatus(value: string): value is PrismaRepairStatus {
 
 function isPartStatus(value: string): value is PrismaPartStatus {
   return PART_STATUSES.includes(value as (typeof PART_STATUSES)[number]);
+}
+
+function isRepairPaymentStatus(value: string): value is PrismaRepairPaymentStatus {
+  return REPAIR_PAYMENT_STATUSES.includes(
+    value as (typeof REPAIR_PAYMENT_STATUSES)[number],
+  );
+}
+
+function isCustomerType(value: string): value is PrismaCustomerType {
+  return CUSTOMER_TYPES.includes(value as (typeof CUSTOMER_TYPES)[number]);
 }
 
 function isImageDataUrl(value: string) {
@@ -53,6 +70,42 @@ function readOptionalCents(body: Record<string, unknown>, key: string) {
   }
 
   return Math.round(numberValue);
+}
+
+function readOptionalInteger(body: Record<string, unknown>, key: string) {
+  const value = body[key];
+
+  if (value === null || value === "") {
+    return 0;
+  }
+
+  const numberValue = Number(value);
+
+  if (!Number.isInteger(numberValue) || numberValue < 0) {
+    return undefined;
+  }
+
+  return numberValue;
+}
+
+function readOptionalDate(body: Record<string, unknown>, key: string) {
+  const value = body[key];
+
+  if (value === null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date;
 }
 
 function readPhotos(value: unknown) {
@@ -96,8 +149,30 @@ function repairSelect() {
     readyEmailSent: true,
     reviewEmailSent: true,
     readyReminderSentAt: true,
+    urgent: true,
+    expressMode: true,
     estimatedPriceCents: true,
     partsCostCents: true,
+    paidAmountCents: true,
+    depositCents: true,
+    paymentStatus: true,
+    warrantyUntil: true,
+    warrantyReturn: true,
+    expectedPickupAt: true,
+    technicianName: true,
+    timeSpentMinutes: true,
+    checklistDiagnostic: true,
+    checklistBackup: true,
+    checklistFunctionalTest: true,
+    checklistCleaning: true,
+    customerType: true,
+    satisfactionRating: true,
+    satisfactionComment: true,
+    supplierOrderNote: true,
+    partsUsed: true,
+    usedInventoryItemId: true,
+    usedInventoryItemName: true,
+    usedInventoryQuantity: true,
     quoteStatus: true,
     quoteToken: true,
     quoteSentAt: true,
@@ -121,6 +196,47 @@ async function getEvents(repairId: string) {
       id: true,
       type: true,
       message: true,
+      createdAt: true,
+    },
+  });
+}
+
+async function getInventoryItems(proAccountId: string | null) {
+  return prisma.inventoryItem.findMany({
+    where: {
+      ...(proAccountId ? { proAccountId } : {}),
+    },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      quantity: true,
+      unitCostCents: true,
+    },
+  });
+}
+
+async function getCustomerHistory(repair: {
+  id: string;
+  proAccountId: string | null;
+  email: string;
+  phone: string;
+}) {
+  return prisma.repair.findMany({
+    where: {
+      id: { not: repair.id },
+      ...(repair.proAccountId ? { proAccountId: repair.proAccountId } : {}),
+      OR: [{ email: repair.email }, { phone: repair.phone }],
+    },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    select: {
+      id: true,
+      ticketNumber: true,
+      deviceType: true,
+      brand: true,
+      model: true,
+      status: true,
       createdAt: true,
     },
   });
@@ -165,6 +281,16 @@ function readPartStatus(value: unknown): PrismaPartStatus {
   return typeof value === "string" && isPartStatus(value) ? value : "NONE";
 }
 
+function readRepairPaymentStatus(value: unknown): PrismaRepairPaymentStatus {
+  return typeof value === "string" && isRepairPaymentStatus(value)
+    ? value
+    : "NON_PAYE";
+}
+
+function readCustomerType(value: unknown): PrismaCustomerType {
+  return typeof value === "string" && isCustomerType(value) ? value : "STANDARD";
+}
+
 function readQuoteStatus(value: unknown) {
   return ["NONE", "SENT", "ACCEPTED", "REFUSED"].includes(String(value))
     ? String(value)
@@ -197,8 +323,30 @@ function normalizeRepairForResponse(value: unknown) {
     readyEmailSent: readBoolean(repair.readyEmailSent),
     reviewEmailSent: readBoolean(repair.reviewEmailSent),
     readyReminderSentAt: readDateString(repair.readyReminderSentAt),
+    urgent: readBoolean(repair.urgent),
+    expressMode: readBoolean(repair.expressMode),
     estimatedPriceCents: readNullableNumber(repair.estimatedPriceCents),
     partsCostCents: readNullableNumber(repair.partsCostCents),
+    paidAmountCents: readNullableNumber(repair.paidAmountCents) ?? 0,
+    depositCents: readNullableNumber(repair.depositCents) ?? 0,
+    paymentStatus: readRepairPaymentStatus(repair.paymentStatus),
+    warrantyUntil: readDateString(repair.warrantyUntil),
+    warrantyReturn: readBoolean(repair.warrantyReturn),
+    expectedPickupAt: readDateString(repair.expectedPickupAt),
+    technicianName: readNullableString(repair.technicianName),
+    timeSpentMinutes: readNullableNumber(repair.timeSpentMinutes) ?? 0,
+    checklistDiagnostic: readBoolean(repair.checklistDiagnostic),
+    checklistBackup: readBoolean(repair.checklistBackup),
+    checklistFunctionalTest: readBoolean(repair.checklistFunctionalTest),
+    checklistCleaning: readBoolean(repair.checklistCleaning),
+    customerType: readCustomerType(repair.customerType),
+    satisfactionRating: readNullableNumber(repair.satisfactionRating),
+    satisfactionComment: readNullableString(repair.satisfactionComment),
+    supplierOrderNote: readNullableString(repair.supplierOrderNote),
+    partsUsed: readNullableString(repair.partsUsed),
+    usedInventoryItemId: readNullableString(repair.usedInventoryItemId),
+    usedInventoryItemName: readNullableString(repair.usedInventoryItemName),
+    usedInventoryQuantity: readNullableNumber(repair.usedInventoryQuantity) ?? 0,
     quoteStatus: readQuoteStatus(repair.quoteStatus),
     quoteSentAt: readDateString(repair.quoteSentAt),
     quoteRespondedAt: readDateString(repair.quoteRespondedAt),
@@ -244,6 +392,16 @@ export async function GET(_request: Request, context: RouteContext) {
   return NextResponse.json({
     repair: normalizeRepairForResponse(repair),
     events: normalizeEventsForResponse(await getEvents(repair.id)),
+    inventoryItems: await getInventoryItems(repair.proAccountId),
+    customerHistory: (await getCustomerHistory(repair)).map((item) => ({
+      id: item.id,
+      ticketNumber: item.ticketNumber,
+      deviceType: item.deviceType,
+      brand: item.brand,
+      model: item.model,
+      status: item.status,
+      createdAt: item.createdAt.toISOString(),
+    })),
   });
 }
 
@@ -281,6 +439,14 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   const data: Record<string, unknown> = {};
 
+  if ("urgent" in body) {
+    data.urgent = body.urgent === true;
+  }
+
+  if ("expressMode" in body) {
+    data.expressMode = body.expressMode === true;
+  }
+
   if ("status" in body) {
     if (typeof body.status !== "string" || !isRepairStatus(body.status)) {
       return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
@@ -317,6 +483,119 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.partsCostCents = partsCostCents;
   }
 
+  if ("paidAmountCents" in body) {
+    const paidAmountCents = readOptionalCents(body, "paidAmountCents");
+
+    if (paidAmountCents === undefined) {
+      return NextResponse.json({ error: "Montant paye invalide." }, { status: 400 });
+    }
+
+    data.paidAmountCents = paidAmountCents ?? 0;
+  }
+
+  if ("depositCents" in body) {
+    const depositCents = readOptionalCents(body, "depositCents");
+
+    if (depositCents === undefined) {
+      return NextResponse.json({ error: "Acompte invalide." }, { status: 400 });
+    }
+
+    data.depositCents = depositCents ?? 0;
+  }
+
+  if ("paymentStatus" in body) {
+    if (
+      typeof body.paymentStatus !== "string" ||
+      !isRepairPaymentStatus(body.paymentStatus)
+    ) {
+      return NextResponse.json({ error: "Statut paiement invalide." }, { status: 400 });
+    }
+
+    data.paymentStatus = body.paymentStatus;
+  }
+
+  if ("warrantyUntil" in body) {
+    const warrantyUntil = readOptionalDate(body, "warrantyUntil");
+
+    if (warrantyUntil === undefined) {
+      return NextResponse.json({ error: "Date de garantie invalide." }, { status: 400 });
+    }
+
+    data.warrantyUntil = warrantyUntil;
+  }
+
+  if ("warrantyReturn" in body) {
+    data.warrantyReturn = body.warrantyReturn === true;
+  }
+
+  if ("expectedPickupAt" in body) {
+    const expectedPickupAt = readOptionalDate(body, "expectedPickupAt");
+
+    if (expectedPickupAt === undefined) {
+      return NextResponse.json({ error: "Date de recuperation invalide." }, { status: 400 });
+    }
+
+    data.expectedPickupAt = expectedPickupAt;
+  }
+
+  if ("technicianName" in body) {
+    data.technicianName = readOptionalText(body, "technicianName") || null;
+  }
+
+  if ("timeSpentMinutes" in body) {
+    const timeSpentMinutes = readOptionalInteger(body, "timeSpentMinutes");
+
+    if (timeSpentMinutes === undefined) {
+      return NextResponse.json({ error: "Temps passe invalide." }, { status: 400 });
+    }
+
+    data.timeSpentMinutes = timeSpentMinutes;
+  }
+
+  for (const key of [
+    "checklistDiagnostic",
+    "checklistBackup",
+    "checklistFunctionalTest",
+    "checklistCleaning",
+  ]) {
+    if (key in body) {
+      data[key] = body[key] === true;
+    }
+  }
+
+  if ("customerType" in body) {
+    if (typeof body.customerType !== "string" || !isCustomerType(body.customerType)) {
+      return NextResponse.json({ error: "Type client invalide." }, { status: 400 });
+    }
+
+    data.customerType = body.customerType;
+  }
+
+  if ("satisfactionRating" in body) {
+    const satisfactionRating = readOptionalInteger(body, "satisfactionRating");
+
+    if (
+      satisfactionRating === undefined ||
+      (satisfactionRating !== 0 && (satisfactionRating < 1 || satisfactionRating > 5))
+    ) {
+      return NextResponse.json({ error: "Note satisfaction invalide." }, { status: 400 });
+    }
+
+    data.satisfactionRating = satisfactionRating || null;
+  }
+
+  if ("satisfactionComment" in body) {
+    data.satisfactionComment = readOptionalText(body, "satisfactionComment") || null;
+  }
+
+  if ("supplierOrderNote" in body) {
+    data.supplierOrderNote = readOptionalText(body, "supplierOrderNote") || null;
+  }
+
+  if ("partsUsed" in body) {
+    data.partsUsed = readOptionalText(body, "partsUsed") || null;
+  }
+
   if ("partsStatus" in body) {
     if (typeof body.partsStatus !== "string" || !isPartStatus(body.partsStatus)) {
       return NextResponse.json({ error: "Statut piece invalide." }, { status: 400 });
@@ -327,6 +606,58 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if ("partsDescription" in body) {
     data.partsDescription = readOptionalText(body, "partsDescription") || null;
+  }
+
+  if ("usedInventoryItemId" in body || "usedInventoryQuantity" in body) {
+    const usedInventoryItemId = readOptionalText(body, "usedInventoryItemId");
+    const usedInventoryQuantity = readOptionalInteger(body, "usedInventoryQuantity");
+
+    if (usedInventoryQuantity === undefined) {
+      return NextResponse.json({ error: "Quantite de piece invalide." }, { status: 400 });
+    }
+
+    if (!usedInventoryItemId || usedInventoryQuantity === 0) {
+      data.usedInventoryItemId = null;
+      data.usedInventoryItemName = null;
+      data.usedInventoryQuantity = 0;
+    } else {
+      const item = await prisma.inventoryItem.findUnique({
+        where: { id: usedInventoryItemId },
+        select: {
+          id: true,
+          proAccountId: true,
+          name: true,
+          quantity: true,
+          unitCostCents: true,
+        },
+      });
+
+      if (
+        !item ||
+        (admin.user.proAccountId && item.proAccountId !== admin.user.proAccountId)
+      ) {
+        return NextResponse.json({ error: "Piece introuvable." }, { status: 404 });
+      }
+
+      const restoredOldQuantity =
+        currentRepair.usedInventoryItemId === item.id
+          ? currentRepair.usedInventoryQuantity
+          : 0;
+      const availableQuantity = item.quantity + restoredOldQuantity;
+
+      if (usedInventoryQuantity > availableQuantity) {
+        return NextResponse.json(
+          { error: "Stock insuffisant pour cette piece." },
+          { status: 400 },
+        );
+      }
+
+      data.usedInventoryItemId = item.id;
+      data.usedInventoryItemName = item.name;
+      data.usedInventoryQuantity = usedInventoryQuantity;
+      data.partsCostCents = item.unitCostCents * usedInventoryQuantity;
+      data.partsUsed = item.name;
+    }
   }
 
   if ("photos" in body) {
@@ -372,6 +703,18 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   const nextStatus = (data.status as PrismaRepairStatus | undefined) ?? currentRepair.status;
   const statusChanged = Boolean(data.status && data.status !== currentRepair.status);
+
+  if (
+    statusChanged &&
+    nextStatus === "RECUPERE" &&
+    !currentRepair.warrantyUntil &&
+    !("warrantyUntil" in data)
+  ) {
+    const warrantyUntil = new Date();
+    warrantyUntil.setDate(warrantyUntil.getDate() + 90);
+    data.warrantyUntil = warrantyUntil;
+  }
+
   const notesChanged =
     "internalNotes" in data &&
     (data.internalNotes ?? null) !== (currentRepair.internalNotes ?? null);
@@ -385,6 +728,25 @@ export async function PATCH(request: Request, context: RouteContext) {
     data,
     select: repairSelect(),
   });
+
+  const inventoryChanged =
+    "usedInventoryItemId" in data || "usedInventoryQuantity" in data;
+
+  if (inventoryChanged) {
+    if (currentRepair.usedInventoryItemId && currentRepair.usedInventoryQuantity > 0) {
+      await prisma.inventoryItem.updateMany({
+        where: { id: currentRepair.usedInventoryItemId },
+        data: { quantity: { increment: currentRepair.usedInventoryQuantity } },
+      });
+    }
+
+    if (repair.usedInventoryItemId && repair.usedInventoryQuantity > 0) {
+      await prisma.inventoryItem.updateMany({
+        where: { id: repair.usedInventoryItemId },
+        data: { quantity: { decrement: repair.usedInventoryQuantity } },
+      });
+    }
+  }
 
   if (statusChanged) {
     await addRepairEvent({
@@ -429,9 +791,68 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   if (
+    "paidAmountCents" in data ||
+    "depositCents" in data ||
+    "paymentStatus" in data
+  ) {
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: "PAYMENT_UPDATED",
+      message: "Paiement client mis a jour.",
+    });
+  }
+
+  if (
+    "urgent" in data ||
+    "expectedPickupAt" in data ||
+    "technicianName" in data ||
+    "timeSpentMinutes" in data
+  ) {
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: "PLANNING_UPDATED",
+      message: "Planning atelier mis a jour.",
+    });
+  }
+
+  if (
+    "warrantyUntil" in data ||
+    "warrantyReturn" in data ||
+    "customerType" in data ||
+    "satisfactionRating" in data ||
+    "satisfactionComment" in data
+  ) {
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: "CUSTOMER_UPDATED",
+      message: "Informations client mises a jour.",
+    });
+  }
+
+  if (
+    "checklistDiagnostic" in data ||
+    "checklistBackup" in data ||
+    "checklistFunctionalTest" in data ||
+    "checklistCleaning" in data
+  ) {
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: "CHECKLIST_UPDATED",
+      message: "Checklist atelier mise a jour.",
+    });
+  }
+
+  if (
     ("partsStatus" in data && data.partsStatus !== currentRepair.partsStatus) ||
     ("partsDescription" in data &&
-      data.partsDescription !== (currentRepair.partsDescription ?? null))
+      data.partsDescription !== (currentRepair.partsDescription ?? null)) ||
+    "supplierOrderNote" in data ||
+    "partsUsed" in data ||
+    inventoryChanged
   ) {
     await addRepairEvent({
       repairId: repair.id,
@@ -525,6 +946,16 @@ export async function PATCH(request: Request, context: RouteContext) {
   return NextResponse.json({
     repair: normalizeRepairForResponse(repair),
     events: normalizeEventsForResponse(await getEvents(repair.id)),
+    inventoryItems: await getInventoryItems(repair.proAccountId),
+    customerHistory: (await getCustomerHistory(repair)).map((item) => ({
+      id: item.id,
+      ticketNumber: item.ticketNumber,
+      deviceType: item.deviceType,
+      brand: item.brand,
+      model: item.model,
+      status: item.status,
+      createdAt: item.createdAt.toISOString(),
+    })),
     mail: {
       attempted: shouldSendStatusEmail,
       sent: statusEmailSentNow,

@@ -30,6 +30,10 @@ function serializeSettings(settings: {
   shopOpeningHours: string | null;
   shopPhone: string | null;
   googleReviewUrl: string | null;
+  createdEmailTemplate: string | null;
+  statusEmailTemplate: string | null;
+  quoteEmailTemplate: string | null;
+  reviewEmailTemplate: string | null;
 }) {
   return {
     smtpEmail: settings.smtpEmail ?? "",
@@ -43,6 +47,10 @@ function serializeSettings(settings: {
     shopOpeningHours: settings.shopOpeningHours ?? "",
     shopPhone: settings.shopPhone ?? "",
     googleReviewUrl: settings.googleReviewUrl ?? "",
+    createdEmailTemplate: settings.createdEmailTemplate ?? "",
+    statusEmailTemplate: settings.statusEmailTemplate ?? "",
+    quoteEmailTemplate: settings.quoteEmailTemplate ?? "",
+    reviewEmailTemplate: settings.reviewEmailTemplate ?? "",
   };
 }
 
@@ -113,6 +121,10 @@ export async function PATCH(request: Request) {
       shopOpeningHours: readOptionalText(body, "shopOpeningHours"),
       shopPhone: readOptionalText(body, "shopPhone"),
       googleReviewUrl: readOptionalText(body, "googleReviewUrl"),
+      createdEmailTemplate: readOptionalText(body, "createdEmailTemplate"),
+      statusEmailTemplate: readOptionalText(body, "statusEmailTemplate"),
+      quoteEmailTemplate: readOptionalText(body, "quoteEmailTemplate"),
+      reviewEmailTemplate: readOptionalText(body, "reviewEmailTemplate"),
     },
     create: {
       id: SETTINGS_ID,
@@ -127,6 +139,10 @@ export async function PATCH(request: Request) {
       shopOpeningHours: readOptionalText(body, "shopOpeningHours"),
       shopPhone: readOptionalText(body, "shopPhone"),
       googleReviewUrl: readOptionalText(body, "googleReviewUrl"),
+      createdEmailTemplate: readOptionalText(body, "createdEmailTemplate"),
+      statusEmailTemplate: readOptionalText(body, "statusEmailTemplate"),
+      quoteEmailTemplate: readOptionalText(body, "quoteEmailTemplate"),
+      reviewEmailTemplate: readOptionalText(body, "reviewEmailTemplate"),
     },
   });
 

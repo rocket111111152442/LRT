@@ -75,6 +75,7 @@ export async function createPaidProAccount(data: PaidProAccountData) {
       firebaseStorageBucket: data.firebaseStorageBucket,
       firebaseMessagingSenderId: data.firebaseMessagingSenderId,
       firebaseAppId: data.firebaseAppId,
+      referralCode: `${data.slug.toUpperCase()}-LRT`,
       paymentStatus: "PAID",
       stripeSessionId: data.stripeSessionId,
       users: {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 type ReceiptRepair = {
   id: string;
@@ -87,6 +88,9 @@ export function ReceiptClient({ repairId }: { repairId: string }) {
     );
   }
 
+  const trackingUrl =
+    typeof window === "undefined" ? "/suivi" : `${window.location.origin}/suivi`;
+
   return (
     <section className="grid gap-5">
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
@@ -118,18 +122,30 @@ export function ReceiptClient({ repairId }: { repairId: string }) {
           </p>
         </header>
 
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <ReceiptItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
-          <ReceiptItem label="Telephone" value={repair.phone} />
-          <ReceiptItem label="Email" value={repair.email} />
-          <ReceiptItem label="Statut" value={repair.status} />
-          <ReceiptItem
-            label="Appareil"
-            value={`${repair.deviceType} ${repair.brand} ${repair.model}`}
-          />
-          <ReceiptItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
-          <ReceiptItem label="Probleme" value={repair.issueDescription} wide />
-        </dl>
+        <div className="grid gap-6 sm:grid-cols-[1fr_auto]">
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <ReceiptItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
+            <ReceiptItem label="Telephone" value={repair.phone} />
+            <ReceiptItem label="Email" value={repair.email} />
+            <ReceiptItem label="Statut" value={repair.status} />
+            <ReceiptItem
+              label="Appareil"
+              value={`${repair.deviceType} ${repair.brand} ${repair.model}`}
+            />
+            <ReceiptItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
+            <ReceiptItem label="Probleme" value={repair.issueDescription} wide />
+          </dl>
+          <div className="grid content-start justify-items-center gap-2 rounded-md border border-slate-200 p-3">
+            <QRCodeSVG
+              value={trackingUrl}
+              size={128}
+              marginSize={2}
+            />
+            <p className="text-center text-xs text-slate-500">
+              Scanner pour suivre avec le ticket
+            </p>
+          </div>
+        </div>
       </article>
     </section>
   );

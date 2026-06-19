@@ -47,6 +47,12 @@ export function AdminHeader({ email }: AdminHeaderProps) {
             Nouvelle
           </Link>
           <Link
+            href="/admin/agenda"
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
+          >
+            Agenda
+          </Link>
+          <Link
             href="/admin/qr-code"
             className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
           >

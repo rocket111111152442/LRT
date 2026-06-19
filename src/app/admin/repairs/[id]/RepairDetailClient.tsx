@@ -8,9 +8,13 @@ import {
   useState,
 } from "react";
 import {
+  CUSTOMER_TYPES,
   PART_STATUSES,
+  REPAIR_PAYMENT_STATUSES,
   REPAIR_STATUSES,
+  type CustomerType,
   type PartStatus,
+  type RepairPaymentStatus,
   type RepairStatus,
 } from "@/lib/repairValidation";
 
@@ -38,8 +42,30 @@ type RepairDetail = {
   readyEmailSent: boolean;
   reviewEmailSent: boolean;
   readyReminderSentAt: string | null;
+  urgent: boolean;
+  expressMode: boolean;
   estimatedPriceCents: number | null;
   partsCostCents: number | null;
+  paidAmountCents: number;
+  depositCents: number;
+  paymentStatus: RepairPaymentStatus;
+  warrantyUntil: string | null;
+  warrantyReturn: boolean;
+  expectedPickupAt: string | null;
+  technicianName: string | null;
+  timeSpentMinutes: number;
+  checklistDiagnostic: boolean;
+  checklistBackup: boolean;
+  checklistFunctionalTest: boolean;
+  checklistCleaning: boolean;
+  customerType: CustomerType;
+  satisfactionRating: number | null;
+  satisfactionComment: string | null;
+  supplierOrderNote: string | null;
+  partsUsed: string | null;
+  usedInventoryItemId: string | null;
+  usedInventoryItemName: string | null;
+  usedInventoryQuantity: number;
   quoteStatus: "NONE" | "SENT" | "ACCEPTED" | "REFUSED";
   quoteSentAt: string | null;
   quoteRespondedAt: string | null;
@@ -51,6 +77,23 @@ type RepairDetail = {
   archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type InventoryItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  unitCostCents: number;
+};
+
+type CustomerHistoryItem = {
+  id: string;
+  ticketNumber: string | null;
+  deviceType: string;
+  brand: string;
+  model: string;
+  status: string;
+  createdAt: string;
 };
 
 type RepairDetailClientProps = {
@@ -75,7 +118,7 @@ function formatDate(value: string | null) {
 }
 
 function formatPrice(cents: number | null) {
-  if (!cents) {
+  if (cents === null) {
     return "-";
   }
 
@@ -87,6 +130,35 @@ function formatPrice(cents: number | null) {
 
 function centsToInput(cents: number | null) {
   return cents ? String((cents / 100).toFixed(2)) : "";
+}
+
+function dateToInput(value: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function dateTimeToInput(value: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 16);
 }
 
 function inputToCents(value: string) {
@@ -126,10 +198,34 @@ async function readFiles(files: FileList | null) {
 export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [repair, setRepair] = useState<RepairDetail | null>(null);
   const [events, setEvents] = useState<RepairEvent[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [customerHistory, setCustomerHistory] = useState<CustomerHistoryItem[]>([]);
   const [status, setStatus] = useState<RepairStatus>("PAS_ENCORE_EN_REPARATION");
   const [internalNotes, setInternalNotes] = useState("");
+  const [urgent, setUrgent] = useState(false);
+  const [expressMode, setExpressMode] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState("");
   const [partsCost, setPartsCost] = useState("");
+  const [paidAmount, setPaidAmount] = useState("");
+  const [deposit, setDeposit] = useState("");
+  const [paymentStatus, setPaymentStatus] =
+    useState<RepairPaymentStatus>("NON_PAYE");
+  const [warrantyUntil, setWarrantyUntil] = useState("");
+  const [warrantyReturn, setWarrantyReturn] = useState(false);
+  const [expectedPickupAt, setExpectedPickupAt] = useState("");
+  const [technicianName, setTechnicianName] = useState("");
+  const [timeSpentMinutes, setTimeSpentMinutes] = useState("0");
+  const [checklistDiagnostic, setChecklistDiagnostic] = useState(false);
+  const [checklistBackup, setChecklistBackup] = useState(false);
+  const [checklistFunctionalTest, setChecklistFunctionalTest] = useState(false);
+  const [checklistCleaning, setChecklistCleaning] = useState(false);
+  const [customerType, setCustomerType] = useState<CustomerType>("STANDARD");
+  const [satisfactionRating, setSatisfactionRating] = useState("");
+  const [satisfactionComment, setSatisfactionComment] = useState("");
+  const [supplierOrderNote, setSupplierOrderNote] = useState("");
+  const [partsUsed, setPartsUsed] = useState("");
+  const [usedInventoryItemId, setUsedInventoryItemId] = useState("");
+  const [usedInventoryQuantity, setUsedInventoryQuantity] = useState("0");
   const [partsStatus, setPartsStatus] = useState<PartStatus>("NONE");
   const [partsDescription, setPartsDescription] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
@@ -138,18 +234,54 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  function syncRepair(payloadRepair: RepairDetail, payloadEvents?: RepairEvent[]) {
+  function syncRepair(
+    payloadRepair: RepairDetail,
+    payloadEvents?: RepairEvent[],
+    payloadInventoryItems?: InventoryItem[],
+    payloadCustomerHistory?: CustomerHistoryItem[],
+  ) {
     setRepair(payloadRepair);
     setStatus(payloadRepair.status);
     setInternalNotes(payloadRepair.internalNotes ?? "");
+    setUrgent(payloadRepair.urgent);
+    setExpressMode(payloadRepair.expressMode);
     setEstimatedPrice(centsToInput(payloadRepair.estimatedPriceCents));
     setPartsCost(centsToInput(payloadRepair.partsCostCents));
+    setPaidAmount(centsToInput(payloadRepair.paidAmountCents));
+    setDeposit(centsToInput(payloadRepair.depositCents));
+    setPaymentStatus(payloadRepair.paymentStatus);
+    setWarrantyUntil(dateToInput(payloadRepair.warrantyUntil));
+    setWarrantyReturn(payloadRepair.warrantyReturn);
+    setExpectedPickupAt(dateTimeToInput(payloadRepair.expectedPickupAt));
+    setTechnicianName(payloadRepair.technicianName ?? "");
+    setTimeSpentMinutes(String(payloadRepair.timeSpentMinutes ?? 0));
+    setChecklistDiagnostic(payloadRepair.checklistDiagnostic);
+    setChecklistBackup(payloadRepair.checklistBackup);
+    setChecklistFunctionalTest(payloadRepair.checklistFunctionalTest);
+    setChecklistCleaning(payloadRepair.checklistCleaning);
+    setCustomerType(payloadRepair.customerType);
+    setSatisfactionRating(
+      payloadRepair.satisfactionRating ? String(payloadRepair.satisfactionRating) : "",
+    );
+    setSatisfactionComment(payloadRepair.satisfactionComment ?? "");
+    setSupplierOrderNote(payloadRepair.supplierOrderNote ?? "");
+    setPartsUsed(payloadRepair.partsUsed ?? "");
+    setUsedInventoryItemId(payloadRepair.usedInventoryItemId ?? "");
+    setUsedInventoryQuantity(String(payloadRepair.usedInventoryQuantity ?? 0));
     setPartsStatus(payloadRepair.partsStatus);
     setPartsDescription(payloadRepair.partsDescription ?? "");
     setPhotos(payloadRepair.photos ?? []);
 
     if (payloadEvents) {
       setEvents(payloadEvents);
+    }
+
+    if (payloadInventoryItems) {
+      setInventoryItems(payloadInventoryItems);
+    }
+
+    if (payloadCustomerHistory) {
+      setCustomerHistory(payloadCustomerHistory);
     }
   }
 
@@ -172,7 +304,12 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         return;
       }
 
-      syncRepair(payload.repair, payload.events ?? []);
+      syncRepair(
+        payload.repair,
+        payload.events ?? [],
+        payload.inventoryItems ?? [],
+        payload.customerHistory ?? [],
+      );
     } catch {
       if (!signal?.aborted) {
         setError("Chargement impossible.");
@@ -221,7 +358,12 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         return null;
       }
 
-      syncRepair(payload.repair, payload.events ?? []);
+      syncRepair(
+        payload.repair,
+        payload.events ?? [],
+        payload.inventoryItems ?? [],
+        payload.customerHistory ?? [],
+      );
 
       if (payload.mail?.quoteAttempted) {
         setMessage("Devis enregistre et email tente.");
@@ -249,8 +391,29 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     await patchRepair({
       status,
       internalNotes,
+      urgent,
+      expressMode,
       estimatedPriceCents: inputToCents(estimatedPrice),
       partsCostCents: inputToCents(partsCost),
+      paidAmountCents: inputToCents(paidAmount) ?? 0,
+      depositCents: inputToCents(deposit) ?? 0,
+      paymentStatus,
+      warrantyUntil: warrantyUntil || null,
+      warrantyReturn,
+      expectedPickupAt: expectedPickupAt || null,
+      technicianName,
+      timeSpentMinutes: Number(timeSpentMinutes || 0),
+      checklistDiagnostic,
+      checklistBackup,
+      checklistFunctionalTest,
+      checklistCleaning,
+      customerType,
+      satisfactionRating: satisfactionRating ? Number(satisfactionRating) : 0,
+      satisfactionComment,
+      supplierOrderNote,
+      partsUsed,
+      usedInventoryItemId: usedInventoryItemId || "",
+      usedInventoryQuantity: Number(usedInventoryQuantity || 0),
       partsStatus,
       partsDescription,
     });
@@ -344,6 +507,18 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
 
   const estimatedProfitCents =
     (repair.estimatedPriceCents ?? 0) - (repair.partsCostCents ?? 0);
+  const remainingBalanceCents = Math.max(
+    (repair.estimatedPriceCents ?? 0) - (repair.paidAmountCents ?? 0),
+    0,
+  );
+  const trackingUrl =
+    typeof window === "undefined"
+      ? "/suivi"
+      : `${window.location.origin}/suivi`;
+  const signatureUrl =
+    typeof window === "undefined"
+      ? `/signature/${repair.ticketNumber ?? repair.id}`
+      : `${window.location.origin}/signature/${repair.ticketNumber ?? repair.id}`;
 
   return (
     <section className="grid gap-6">
@@ -360,6 +535,12 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
           >
             Recu
+          </Link>
+          <Link
+            href={`/admin/repairs/${repair.id}/invoice`}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+          >
+            Facture
           </Link>
           {!repair.archivedAt ? (
             <button
@@ -401,7 +582,10 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             <dl className="grid gap-4 sm:grid-cols-2">
               <DetailItem label="Ticket" value={repair.ticketNumber ?? repair.id} />
               <DetailItem label="Statut" value={repair.status} />
+              <DetailItem label="Priorite" value={repair.urgent ? "Urgent" : "Normal"} />
+              <DetailItem label="Mode express" value={repair.expressMode ? "Oui" : "Non"} />
               <DetailItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
+              <DetailItem label="Type client" value={repair.customerType} />
               <DetailItem label="Telephone" value={repair.phone} />
               <DetailItem label="Email" value={repair.email} />
               <DetailItem label="Type" value={repair.deviceType} />
@@ -409,8 +593,12 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               <DetailItem label="Modele" value={repair.model} />
               <DetailItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
               <DetailItem label="Cout pieces" value={formatPrice(repair.partsCostCents)} />
+              <DetailItem label="Acompte" value={formatPrice(repair.depositCents)} />
+              <DetailItem label="Paye" value={formatPrice(repair.paidAmountCents)} />
+              <DetailItem label="Reste a payer" value={formatPrice(remainingBalanceCents)} />
+              <DetailItem label="Statut paiement" value={repair.paymentStatus} />
               <DetailItem
-                label="Benefice estime"
+                label="Benefice reel estime"
                 value={
                   repair.estimatedPriceCents
                     ? formatPrice(Math.max(estimatedProfitCents, 0))
@@ -418,8 +606,22 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
                 }
               />
               <DetailItem label="Devis" value={repair.quoteStatus} />
+              <DetailItem label="Technicien" value={repair.technicianName || "-"} />
+              <DetailItem label="Temps passe" value={`${repair.timeSpentMinutes} min`} />
+              <DetailItem label="Recuperation prevue" value={formatDate(repair.expectedPickupAt)} />
+              <DetailItem label="Fin garantie" value={formatDate(repair.warrantyUntil)} />
+              <DetailItem label="Retour garantie" value={repair.warrantyReturn ? "Oui" : "Non"} />
+              <DetailItem label="Piece utilisee" value={repair.usedInventoryItemName || repair.partsUsed || "-"} />
+              <DetailItem
+                label="Quantite piece"
+                value={repair.usedInventoryQuantity ? String(repair.usedInventoryQuantity) : "-"}
+              />
               <DetailItem label="Email PRET envoye" value={repair.readyEmailSent ? "Oui" : "Non"} />
               <DetailItem label="Avis envoye" value={repair.reviewEmailSent ? "Oui" : "Non"} />
+              <DetailItem
+                label="Client satisfait"
+                value={repair.satisfactionRating ? `${repair.satisfactionRating}/5` : "-"}
+              />
               <DetailItem label="Piece" value={repair.partsStatus} />
               <DetailItem label="Archivee le" value={formatDate(repair.archivedAt)} />
               <DetailItem label="Creee le" value={formatDate(repair.createdAt)} />
@@ -438,7 +640,86 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
                 value={repair.partsDescription || "-"}
                 wide
               />
+              <DetailItem
+                label="Commande fournisseur"
+                value={repair.supplierOrderNote || "-"}
+                wide
+              />
+              <DetailItem
+                label="Avis client"
+                value={repair.satisfactionComment || "-"}
+                wide
+              />
             </dl>
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-950">
+              Documents client
+            </h2>
+            <div className="grid gap-2 text-sm text-slate-700">
+              <p>
+                Suivi client :{" "}
+                <span className="font-semibold text-slate-950">{trackingUrl}</span>
+              </p>
+              <p>
+                Signature recuperation :{" "}
+                <span className="break-all font-semibold text-slate-950">
+                  {signatureUrl}
+                </span>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`/admin/repairs/${repair.id}/receipt`}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              >
+                Recu depot
+              </Link>
+              <Link
+                href={`/admin/repairs/${repair.id}/invoice`}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              >
+                Facture
+              </Link>
+              <Link
+                href={`/documents/${repair.ticketNumber ?? repair.id}`}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+              >
+                Page documents client
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-950">
+              Historique client
+            </h2>
+            <div className="grid gap-2">
+              {customerHistory.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/admin/repairs/${item.id}`}
+                  className="flex flex-col gap-1 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm transition hover:bg-slate-100 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <span className="font-semibold text-slate-950">
+                    {item.ticketNumber ?? item.id.slice(0, 8)}
+                  </span>
+                  <span className="text-slate-700">
+                    {item.deviceType} {item.brand} {item.model}
+                  </span>
+                  <span className="text-slate-500">{item.status}</span>
+                  <span className="text-slate-500">
+                    {formatDate(item.createdAt)}
+                  </span>
+                </Link>
+              ))}
+              {customerHistory.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  Aucune autre reparation trouvee pour ce client.
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -519,6 +800,18 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           className="grid content-start gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
         >
           <h2 className="text-xl font-semibold text-slate-950">Gestion</h2>
+          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <CheckField
+              label="Priorite urgente"
+              checked={urgent}
+              onChange={setUrgent}
+            />
+            <CheckField
+              label="Mode reparation express"
+              checked={expressMode}
+              onChange={setExpressMode}
+            />
+          </div>
           <SelectField
             id="repair-status"
             label="Statut"
@@ -526,6 +819,29 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             options={REPAIR_STATUSES}
             onChange={(value) => setStatus(value as RepairStatus)}
           />
+          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-950">Agenda atelier</p>
+            <TextField
+              id="expected-pickup"
+              label="Date prevue de recuperation"
+              type="datetime-local"
+              value={expectedPickupAt}
+              onChange={setExpectedPickupAt}
+            />
+            <TextField
+              id="technician-name"
+              label="Technicien"
+              value={technicianName}
+              onChange={setTechnicianName}
+            />
+            <TextField
+              id="time-spent"
+              label="Temps passe minutes"
+              type="number"
+              value={timeSpentMinutes}
+              onChange={setTimeSpentMinutes}
+            />
+          </div>
           <TextField
             id="estimated-price"
             label="Prix estime EUR"
@@ -533,12 +849,26 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             value={estimatedPrice}
             onChange={setEstimatedPrice}
           />
+          <SelectField
+            id="payment-status"
+            label="Paiement"
+            value={paymentStatus}
+            options={REPAIR_PAYMENT_STATUSES}
+            onChange={(value) => setPaymentStatus(value as RepairPaymentStatus)}
+          />
           <TextField
-            id="parts-cost"
-            label="Cout des pieces EUR"
+            id="deposit"
+            label="Acompte EUR"
             type="number"
-            value={partsCost}
-            onChange={setPartsCost}
+            value={deposit}
+            onChange={setDeposit}
+          />
+          <TextField
+            id="paid-amount"
+            label="Montant paye EUR"
+            type="number"
+            value={paidAmount}
+            onChange={setPaidAmount}
           />
           <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
             Benefice estime :{" "}
@@ -560,12 +890,87 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           >
             Envoyer le devis
           </button>
+          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-950">Garantie client</p>
+            <TextField
+              id="warranty-until"
+              label="Fin de garantie"
+              type="date"
+              value={warrantyUntil}
+              onChange={setWarrantyUntil}
+            />
+            <CheckField
+              label="Retour sous garantie"
+              checked={warrantyReturn}
+              onChange={setWarrantyReturn}
+            />
+            <SelectField
+              id="customer-type"
+              label="Type client"
+              value={customerType}
+              options={CUSTOMER_TYPES}
+              onChange={(value) => setCustomerType(value as CustomerType)}
+            />
+          </div>
+          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-950">Checklist</p>
+            <CheckField
+              label="Diagnostic effectue"
+              checked={checklistDiagnostic}
+              onChange={setChecklistDiagnostic}
+            />
+            <CheckField
+              label="Sauvegarde / donnees verifiees"
+              checked={checklistBackup}
+              onChange={setChecklistBackup}
+            />
+            <CheckField
+              label="Tests fonctionnels effectues"
+              checked={checklistFunctionalTest}
+              onChange={setChecklistFunctionalTest}
+            />
+            <CheckField
+              label="Nettoyage final"
+              checked={checklistCleaning}
+              onChange={setChecklistCleaning}
+            />
+          </div>
           <SelectField
             id="parts-status"
             label="Piece"
             value={partsStatus}
             options={PART_STATUSES}
             onChange={(value) => setPartsStatus(value as PartStatus)}
+          />
+          <SelectField
+            id="used-inventory-item"
+            label="Piece sortie du stock"
+            value={usedInventoryItemId}
+            options={["", ...inventoryItems.map((item) => item.id)]}
+            optionLabels={{
+              "": "Aucune piece du stock",
+              ...Object.fromEntries(
+                inventoryItems.map((item) => [
+                  item.id,
+                  `${item.name} (${item.quantity} dispo - ${formatPrice(item.unitCostCents)})`,
+                ]),
+              ),
+            }}
+            onChange={setUsedInventoryItemId}
+          />
+          <TextField
+            id="used-inventory-quantity"
+            label="Quantite utilisee"
+            type="number"
+            value={usedInventoryQuantity}
+            onChange={setUsedInventoryQuantity}
+          />
+          <TextField
+            id="parts-cost"
+            label="Cout des pieces EUR"
+            type="number"
+            value={partsCost}
+            onChange={setPartsCost}
           />
           <TextAreaField
             id="parts-description"
@@ -574,6 +979,37 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             onChange={setPartsDescription}
             rows={4}
           />
+          <TextAreaField
+            id="parts-used"
+            label="Pieces utilisees"
+            value={partsUsed}
+            onChange={setPartsUsed}
+            rows={3}
+          />
+          <TextAreaField
+            id="supplier-order"
+            label="Commande fournisseur"
+            value={supplierOrderNote}
+            onChange={setSupplierOrderNote}
+            rows={3}
+          />
+          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-950">Satisfaction</p>
+            <TextField
+              id="satisfaction-rating"
+              label="Note client 1 a 5"
+              type="number"
+              value={satisfactionRating}
+              onChange={setSatisfactionRating}
+            />
+            <TextAreaField
+              id="satisfaction-comment"
+              label="Commentaire client"
+              value={satisfactionComment}
+              onChange={setSatisfactionComment}
+              rows={3}
+            />
+          </div>
           <TextAreaField
             id="repair-internal-notes"
             label="Notes internes"
@@ -676,12 +1112,14 @@ function SelectField({
   label,
   value,
   options,
+  optionLabels,
   onChange,
 }: {
   id: string;
   label: string;
   value: string;
   options: readonly string[];
+  optionLabels?: Record<string, string>;
   onChange: (value: string) => void;
 }) {
   return (
@@ -695,10 +1133,32 @@ function SelectField({
       >
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {optionLabels?.[option] ?? option}
           </option>
         ))}
       </select>
+    </label>
+  );
+}
+
+function CheckField({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-4 w-4 rounded border-slate-300"
+      />
+      {label}
     </label>
   );
 }
