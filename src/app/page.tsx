@@ -127,7 +127,7 @@ export default function HomePage() {
             <dl className="mt-6 grid max-w-xl grid-cols-3 gap-3 text-sm">
               <div className="border-l border-white/40 pl-3">
                 <dt className="text-2xl font-semibold">49 euros</dt>
-                <dd className="text-slate-200">compte pro</dd>
+                <dd className="text-slate-200">a payer une seule fois</dd>
               </div>
               <div className="border-l border-white/40 pl-3">
                 <dt className="text-2xl font-semibold">1 QR</dt>
@@ -138,6 +138,9 @@ export default function HomePage() {
                 <dd className="text-slate-200">a trier</dd>
               </div>
             </dl>
+            <p className="mt-4 inline-flex rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
+              Satisfait ou rembourse
+            </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/pro/inscription"
