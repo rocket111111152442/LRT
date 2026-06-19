@@ -330,9 +330,9 @@ export function EmailSettingsForm() {
             help={{
               title: "Lien Google optionnel",
               steps: [
-                "LRT envoie deja un lien d'avis interne au client quand une reparation passe a RECUPERE.",
+                "Qoravo envoie deja un lien d'avis interne au client quand une reparation passe a RECUPERE.",
                 "Ce champ reste optionnel pour conserver votre lien Google dans les reglages.",
-                "Si ce champ est vide, l'email d'avis utilise quand meme le lien LRT unique du client.",
+                "Si ce champ est vide, l'email d'avis utilise quand meme le lien Qoravo unique du client.",
               ],
             }}
           />

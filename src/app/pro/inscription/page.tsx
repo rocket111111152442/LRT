@@ -1,5 +1,5 @@
-﻿import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import Link from "next/link";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { ProSignupForm } from "./ProSignupForm";
 
 export default function ProSignupPage() {
@@ -13,7 +13,7 @@ export default function ProSignupPage() {
           >
             Retour
           </Link>
-          <LrtLogo />
+          <QoravoLogo />
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Compte pro
           </p>

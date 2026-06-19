@@ -12,7 +12,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
       <div className="mx-auto grid max-w-2xl gap-6">
         <header className="grid gap-2">
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Avis LRT
+            Avis Qoravo
           </p>
           <h1 className="text-3xl font-semibold text-slate-950">
             Donnez votre avis

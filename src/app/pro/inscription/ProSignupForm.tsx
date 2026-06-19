@@ -21,6 +21,16 @@ const initialValues: ProSignupInput = {
   firebaseApiKey: "",
   firebaseProjectId: "",
   firebaseAppId: "",
+  shopAddress: "",
+  shopPostalCode: "",
+  shopCity: "",
+  shopCountry: "",
+  shopPhone: "",
+  shopEmail: "",
+  shopOpeningHours: "",
+  shopLatitude: "",
+  shopLongitude: "",
+  shopCapacityPerDay: "8",
   promoCode: "",
   emailCode: "",
   emailVerificationId: "",
@@ -243,6 +253,96 @@ export function ProSignupForm() {
         </div>
       </fieldset>
 
+      <fieldset className="grid gap-4">
+        <legend className="mb-2 text-base font-semibold text-slate-950">
+          Informations du magasin
+        </legend>
+        <p className="text-sm leading-6 text-slate-600">
+          Ces informations serviront a afficher votre boutique aux clients qui
+          cherchent un reparateur proche d&apos;eux. Vous pourrez les modifier
+          plus tard dans les parametres admin.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            name="shopAddress"
+            label="Adresse"
+            value={values.shopAddress ?? ""}
+            error={errors.shopAddress}
+            onChange={updateField}
+          />
+          <TextField
+            name="shopPostalCode"
+            label="Code postal"
+            value={values.shopPostalCode ?? ""}
+            error={errors.shopPostalCode}
+            onChange={updateField}
+          />
+          <TextField
+            name="shopCity"
+            label="Ville"
+            value={values.shopCity ?? ""}
+            error={errors.shopCity}
+            onChange={updateField}
+          />
+          <TextField
+            name="shopCountry"
+            label="Pays"
+            value={values.shopCountry ?? ""}
+            error={errors.shopCountry}
+            onChange={updateField}
+            placeholder="France, Belgique, Suisse..."
+          />
+          <TextField
+            name="shopPhone"
+            label="Telephone du magasin"
+            type="tel"
+            value={values.shopPhone ?? ""}
+            error={errors.shopPhone}
+            onChange={updateField}
+          />
+          <TextField
+            name="shopEmail"
+            label="Email public du magasin"
+            type="email"
+            value={values.shopEmail ?? ""}
+            error={errors.shopEmail}
+            onChange={updateField}
+          />
+          <TextField
+            name="shopOpeningHours"
+            label="Horaires d'ouverture"
+            value={values.shopOpeningHours ?? ""}
+            error={errors.shopOpeningHours}
+            onChange={updateField}
+            placeholder="Lun-sam 9h-19h"
+          />
+          <TextField
+            name="shopCapacityPerDay"
+            label="Places de reparation par jour"
+            type="number"
+            value={values.shopCapacityPerDay ?? "8"}
+            error={errors.shopCapacityPerDay}
+            onChange={updateField}
+          />
+          <TextField
+            name="shopLatitude"
+            label="Latitude optionnelle"
+            value={values.shopLatitude ?? ""}
+            error={errors.shopLatitude}
+            onChange={updateField}
+            placeholder="48.8566"
+          />
+          <TextField
+            name="shopLongitude"
+            label="Longitude optionnelle"
+            value={values.shopLongitude ?? ""}
+            error={errors.shopLongitude}
+            onChange={updateField}
+            placeholder="2.3522"
+          />
+        </div>
+      </fieldset>
+
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {submitError}
@@ -264,7 +364,8 @@ export function ProSignupForm() {
 
       {usesDiscountCode ? (
         <p className="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-          Code de reduction reconnu : -10% sur le premium. L&apos;assistance
+          Code de reduction reconnu : -10% sur le premium pendant 1 an seulement.
+          L&apos;assistance
           annuelle reste au prix normal.
         </p>
       ) : null}

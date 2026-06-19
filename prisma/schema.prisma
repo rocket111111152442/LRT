@@ -148,6 +148,16 @@ model ProAccount {
   publicDescription         String?
   publicPhone               String?
   publicAddress             String?
+  shopAddress               String?
+  shopPostalCode            String?
+  shopCity                  String?
+  shopCountry               String?
+  shopPhone                 String?
+  shopEmail                 String?
+  shopOpeningHours          String?
+  shopLatitude              Float?
+  shopLongitude             Float?
+  shopCapacityPerDay        Int           @default(8)
   monthlyGoal               Int           @default(100)
   referralCode              String?
   supportIncluded           Boolean       @default(false)
@@ -204,6 +214,16 @@ model PendingProSignup {
   firebaseStorageBucket     String?
   firebaseMessagingSenderId String?
   firebaseAppId             String
+  shopAddress               String?
+  shopPostalCode            String?
+  shopCity                  String?
+  shopCountry               String?
+  shopPhone                 String?
+  shopEmail                 String?
+  shopOpeningHours          String?
+  shopLatitude              Float?
+  shopLongitude             Float?
+  shopCapacityPerDay        Int           @default(8)
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
 
@@ -259,4 +279,15 @@ model SetupAppointment {
   @@index([proAccountId])
   @@index([requestedAt])
   @@index([ownerEmail])
+}
+
+model PublicReview {
+  id        String   @id @default(cuid())
+  name      String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([rating])
 }

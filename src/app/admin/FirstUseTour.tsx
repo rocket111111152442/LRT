@@ -15,7 +15,7 @@ type TourStep = {
 const steps: TourStep[] = [
   {
     title: "Bienvenue dans votre espace admin",
-    text: "Ce tour montre quoi regler en premier pour que LRT soit pret pour votre atelier.",
+    text: "Ce tour montre quoi regler en premier pour que Qoravo soit pret pour votre atelier.",
     details: [
       "Vous allez voir les reparations, la creation manuelle, le QR code, les emails et les fiches client.",
       "A la fin, vous saurez quoi tester avant de donner le QR code aux clients.",
@@ -62,7 +62,7 @@ const steps: TourStep[] = [
     details: [
       "Renseignez l email du magasin et le mot de passe d application SMTP.",
       "Ajoutez le nom, l adresse, les horaires et le telephone du magasin.",
-      "Sans SMTP valide, LRT enregistre la reparation mais ne peut pas envoyer l email client.",
+      "Sans SMTP valide, Qoravo enregistre la reparation mais ne peut pas envoyer l email client.",
     ],
     path: "/admin/email",
     action: "Configurer les emails",
@@ -73,8 +73,8 @@ const steps: TourStep[] = [
     details: [
       "Changez le statut quand l appareil avance.",
       "Ajoutez des notes internes visibles seulement par l atelier.",
-      "Quand le statut change, LRT tente d envoyer un email au client.",
-      "Pour le statut PRET, LRT garde une protection anti double envoi.",
+      "Quand le statut change, Qoravo tente d envoyer un email au client.",
+      "Pour le statut PRET, Qoravo garde une protection anti double envoi.",
     ],
     path: "/admin",
     action: "Choisir une reparation",
@@ -93,15 +93,15 @@ const steps: TourStep[] = [
 ];
 
 function storageKey(email: string) {
-  return `lrt-admin-first-tour:${email}`;
+  return `Qoravo-admin-first-tour:${email}`;
 }
 
 function activeStepKey(email: string) {
-  return `lrt-admin-first-tour-step:${email}`;
+  return `Qoravo-admin-first-tour-step:${email}`;
 }
 
 function activeTourKey(email: string) {
-  return `lrt-admin-first-tour-active:${email}`;
+  return `Qoravo-admin-first-tour-active:${email}`;
 }
 
 function readStorage(key: string) {
@@ -149,7 +149,7 @@ export function FirstUseTour({ email }: { email: string }) {
       setIsOpen(true);
     };
 
-    window.addEventListener("lrt-admin-tour-open", openTour);
+    window.addEventListener("Qoravo-admin-tour-open", openTour);
 
     const savedStep = Number(readStorage(keys.step) ?? "0");
     const hasActiveTour = readStorage(keys.active) === "1";
@@ -175,7 +175,7 @@ export function FirstUseTour({ email }: { email: string }) {
 
     return () => {
       cancelled = true;
-      window.removeEventListener("lrt-admin-tour-open", openTour);
+      window.removeEventListener("Qoravo-admin-tour-open", openTour);
     };
   }, [keys]);
 

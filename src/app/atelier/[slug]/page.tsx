@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 
 type AtelierPageProps = {
@@ -34,7 +34,7 @@ export default async function AtelierPage({ params }: AtelierPageProps) {
     <main className="min-h-screen bg-white text-slate-950">
       <section className="border-b border-slate-200 bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-4xl gap-6">
-          <LrtLogo textClassName="text-white" />
+          <QoravoLogo textClassName="text-white" />
           <div className="grid gap-3">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-300">
               Atelier de reparation

@@ -129,7 +129,7 @@ export async function sendVerificationCodeEmail(input: {
   const isSignup = input.purpose === "SIGNUP";
   const isPasswordReset = input.purpose === "PASSWORD_RESET";
   const text = [
-    `Code LRT : ${input.code}`,
+    `Code Qoravo : ${input.code}`,
     "",
     isSignup
       ? "Entrez ce code pour valider votre email et continuer la creation du compte pro."
@@ -144,10 +144,10 @@ export async function sendVerificationCodeEmail(input: {
   return sendWithEnvSmtp({
     to: input.email,
     subject: isSignup
-      ? "Code de validation LRT"
+      ? "Code de validation Qoravo"
       : isPasswordReset
-        ? "Code de recuperation LRT"
-        : "Code de connexion LRT",
+        ? "Code de recuperation Qoravo"
+        : "Code de connexion Qoravo",
     text,
   });
 }
@@ -169,7 +169,7 @@ export async function sendSupportMessageEmail(input: {
   }
 
   const text = [
-    "Nouvelle demande service client LRT",
+    "Nouvelle demande service client Qoravo",
     "",
     `Nom : ${input.name}`,
     `Email : ${input.email}`,
@@ -181,7 +181,7 @@ export async function sendSupportMessageEmail(input: {
 
   return sendWithEnvSmtp({
     to: supportEmail,
-    subject: `Service client LRT - ${input.subject}`,
+    subject: `Service client Qoravo - ${input.subject}`,
     text,
   });
 }
@@ -204,7 +204,7 @@ export async function sendSetupAppointmentEmail(input: {
   }
 
   const text = [
-    "Nouveau rendez-vous aide installation LRT",
+    "Nouveau rendez-vous aide installation Qoravo",
     "",
     `Atelier : ${input.companyName}`,
     `Email admin : ${input.ownerEmail}`,
@@ -220,7 +220,7 @@ export async function sendSetupAppointmentEmail(input: {
 
   return sendWithEnvSmtp({
     to: supportEmail,
-    subject: `Assistance LRT - ${input.companyName}`,
+    subject: `Assistance Qoravo - ${input.companyName}`,
     text,
   });
 }
@@ -390,7 +390,7 @@ export async function sendQuoteEmail(
 
   return sendWithRepairSmtp({
     to: repair.email,
-    subject: `Votre devis LRT ${repair.ticketNumber ?? ""}`.trim(),
+    subject: `Votre devis Qoravo ${repair.ticketNumber ?? ""}`.trim(),
     text,
     html,
   });
@@ -440,7 +440,7 @@ export async function sendRepairCreatedEmail(
 
   return sendWithRepairSmtp({
     to: repair.email,
-    subject: `Votre ticket LRT ${ticket}`.trim(),
+    subject: `Votre ticket Qoravo ${ticket}`.trim(),
     text,
     html,
   });

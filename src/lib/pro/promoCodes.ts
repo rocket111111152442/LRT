@@ -1,5 +1,6 @@
 export const FREE_ACCESS_CODE = "REP2026";
-export const PREMIUM_DISCOUNT_CODE = "LRT10";
+export const PREMIUM_DISCOUNT_CODE = "QORAVO10";
+const PREMIUM_DISCOUNT_ALIASES = new Set(["QORAVO10", "QOR10", "LRT10"]);
 export const PREMIUM_DISCOUNT_PERCENT = 10;
 
 export function normalizePromoCode(value?: string | null) {
@@ -11,7 +12,7 @@ export function isFreeAccessCode(value?: string | null) {
 }
 
 export function isPremiumDiscountCode(value?: string | null) {
-  return normalizePromoCode(value) === PREMIUM_DISCOUNT_CODE;
+  return PREMIUM_DISCOUNT_ALIASES.has(normalizePromoCode(value));
 }
 
 export function applyPremiumDiscountCents(amountCents: number) {

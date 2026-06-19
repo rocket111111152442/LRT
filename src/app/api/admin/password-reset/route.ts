@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Recuperation impossible pour le moment. Verifiez la base LRT sur Vercel, puis reessayez.",
+          "Recuperation impossible pour le moment. Verifiez la base Qoravo sur Vercel, puis reessayez.",
       },
       { status: 500 },
     );

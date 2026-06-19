@@ -5,7 +5,7 @@ import { requireAdminPage } from "@/lib/auth";
 const setupSteps = [
   {
     title: "1. Faire le tour automatique",
-    text: "A la premiere connexion, LRT ouvre un tour guide. Il presente chaque page admin et l ordre conseille pour regler l espace atelier.",
+    text: "A la premiere connexion, Qoravo ouvre un tour guide. Il presente chaque page admin et l ordre conseille pour regler l espace atelier.",
     href: "/admin",
     action: "Retour au tableau",
   },
@@ -88,7 +88,7 @@ export default async function AdminGuidePage() {
               Guide de demarrage
             </h1>
             <p className="max-w-3xl text-sm leading-6 text-slate-600">
-              Suivez ces etapes une seule fois pour regler LRT pour votre
+              Suivez ces etapes une seule fois pour regler Qoravo pour votre
               atelier. Le bouton Tour dans le menu permet de revoir le parcours
               de premiere utilisation quand vous voulez.
             </p>

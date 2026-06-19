@@ -164,7 +164,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Base LRT indisponible. Verifiez les variables d environnement sur Vercel, puis reessayez.",
+          "Base Qoravo indisponible. Verifiez les variables d environnement sur Vercel, puis reessayez.",
       },
       { status: 500 },
     );

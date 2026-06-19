@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 
 type PremiumPageProps = {
@@ -18,7 +18,7 @@ export default async function PremiumPage({ searchParams }: PremiumPageProps) {
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-xl gap-5 rounded-lg border border-emerald-200 bg-white p-6 shadow-sm">
-        <LrtLogo />
+        <QoravoLogo />
         <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
           Acces premium active
         </p>
@@ -53,7 +53,7 @@ export default async function PremiumPage({ searchParams }: PremiumPageProps) {
             <p>
               Code parrainage :{" "}
               <strong className="text-slate-950">
-                {account.referralCode ?? `${account.slug.toUpperCase()}-LRT`}
+                {account.referralCode ?? `${account.slug.toUpperCase()}-Qoravo`}
               </strong>
             </p>
           </div>

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentAdmin } from "@/lib/auth";
 import { LoginForm } from "./LoginForm";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 
 export default async function AdminLoginPage() {
   const admin = await getCurrentAdmin();
@@ -14,7 +14,7 @@ export default async function AdminLoginPage() {
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-md gap-6">
         <header className="grid gap-2">
-          <LrtLogo />
+          <QoravoLogo />
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Administration
           </p>

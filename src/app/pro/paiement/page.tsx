@@ -1,5 +1,5 @@
-﻿import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import Link from "next/link";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 import { readSignupToken } from "@/lib/pro/signupToken";
 import { PaymentClient } from "./PaymentClient";
@@ -19,7 +19,7 @@ const reasons = [
   "QR code unique pour votre atelier",
   "Limitation des faux comptes et des abus",
   "Acces aux reparations, statuts, notes internes et emails client",
-  "Option assistance annuelle disponible pour le service client LRT",
+  "Option assistance annuelle disponible pour le service client Qoravo",
 ];
 
 type PendingSignupSummary = {
@@ -91,7 +91,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
         </Link>
         <section className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <header className="grid gap-2">
-            <LrtLogo />
+            <QoravoLogo />
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Activation premium
             </p>

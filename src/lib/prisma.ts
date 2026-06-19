@@ -343,6 +343,29 @@ function createFirestorePrisma() {
       async findUnique(args: { where: Dict; select?: Dict }) {
         return applySelect(await findProAccount(args.where), args.select);
       },
+      async findMany(args: { where?: Dict; select?: Dict; orderBy?: Dict }) {
+        const snapshot = await collection("proAccounts").get();
+        const where = args.where ?? {};
+        const accounts = snapshot.docs
+          .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+          .filter((account) => {
+            if (
+              typeof where.paymentStatus === "string" &&
+              account.paymentStatus !== where.paymentStatus
+            ) {
+              return false;
+            }
+
+            return true;
+          })
+          .sort((left, right) =>
+            String(left.companyName ?? "").localeCompare(
+              String(right.companyName ?? ""),
+            ),
+          );
+
+        return accounts.map((account) => applySelect(account, args.select));
+      },
       async create(args: { data: Dict }) {
         const id = randomUUID();
         const timestamp = now();
@@ -770,6 +793,33 @@ function createFirestorePrisma() {
           .doc(id)
           .set(firestoreData(appointment));
         return applySelect(appointment, args.select);
+      },
+    },
+
+    publicReview: {
+      async findMany(args: { where?: Dict; orderBy?: Dict; take?: number; select?: Dict }) {
+        const snapshot = await collection("publicReviews").get();
+        const reviews = snapshot.docs
+          .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+          .sort(
+            (left, right) =>
+              Number((right.createdAt as Date | undefined)?.getTime?.() ?? 0) -
+              Number((left.createdAt as Date | undefined)?.getTime?.() ?? 0),
+          )
+          .slice(0, args.take ?? 50);
+
+        return reviews.map((review) => applySelect(review, args.select));
+      },
+      async create(args: { data: Dict; select?: Dict }) {
+        const id = randomUUID();
+        const review = {
+          ...args.data,
+          id,
+          createdAt: now(),
+        };
+
+        await collection("publicReviews").doc(id).set(firestoreData(review));
+        return applySelect(review, args.select);
       },
     },
 

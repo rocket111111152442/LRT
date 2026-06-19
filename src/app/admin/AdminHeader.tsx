@@ -1,7 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import {
+  BookOpen,
+  CalendarDays,
+  LifeBuoy,
+  LogOut,
+  Mail,
+  MapPinned,
+  Package,
+  PlusCircle,
+  QrCode,
+  Route,
+  Settings,
+  Wrench,
+} from "lucide-react";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { FirstUseTour } from "./FirstUseTour";
 
@@ -10,9 +24,20 @@ type AdminHeaderProps = {
   supportIncluded?: boolean;
 };
 
+const navItems = [
+  { href: "/admin", label: "Reparations", icon: Wrench, tone: "text-sky-600" },
+  { href: "/admin/repairs/new", label: "Nouvelle", icon: PlusCircle, tone: "text-emerald-600" },
+  { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, tone: "text-amber-600" },
+  { href: "/admin/qr-code", label: "QR code", icon: QrCode, tone: "text-cyan-600" },
+  { href: "/admin/email", label: "Email", icon: Mail, tone: "text-blue-600" },
+  { href: "/admin/stock", label: "Stock", icon: Package, tone: "text-lime-600" },
+  { href: "/admin/parametres", label: "Parametres", icon: Settings, tone: "text-slate-700" },
+  { href: "/admin/guide", label: "Guide", icon: BookOpen, tone: "text-violet-600" },
+];
+
 export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps) {
   function openTour() {
-    window.dispatchEvent(new Event("lrt-admin-tour-open"));
+    window.dispatchEvent(new Event("Qoravo-admin-tour-open"));
   }
 
   async function handleLogout() {
@@ -23,80 +48,64 @@ export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps
   }
 
   return (
-    <header className="no-print border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+    <header className="no-print border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
-          <LrtLogo showText={false} markClassName="h-11 w-11" />
+          <QoravoLogo showText={false} markClassName="h-12 w-12" />
           <div className="grid gap-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Administration LRT
+            <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+              Administration Qoravo
             </p>
             <p className="text-sm text-slate-700">{email}</p>
           </div>
+          <span className="ml-auto hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
+            Tableau atelier
+          </span>
         </div>
         <nav className="flex flex-wrap items-center gap-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900"
+              >
+                <Icon aria-hidden="true" className={`h-4 w-4 ${item.tone}`} />
+                {item.label}
+              </Link>
+            );
+          })}
           <Link
-            href="/admin"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
+            href="/"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900"
           >
-            Reparations
-          </Link>
-          <Link
-            href="/admin/repairs/new"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            Nouvelle
-          </Link>
-          <Link
-            href="/admin/agenda"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            Agenda
-          </Link>
-          <Link
-            href="/admin/qr-code"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            QR code
-          </Link>
-          <Link
-            href="/admin/email"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            Email
-          </Link>
-          <Link
-            href="/admin/stock"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            Stock
-          </Link>
-          <Link
-            href="/admin/guide"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
-          >
-            Guide
+            <MapPinned aria-hidden="true" className="h-4 w-4 text-emerald-600" />
+            Site public
           </Link>
           {supportIncluded ? (
             <Link
               href="/service-client"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
             >
+              <LifeBuoy aria-hidden="true" className="h-4 w-4" />
               Support
             </Link>
           ) : null}
           <button
             type="button"
             onClick={openTour}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50"
           >
+            <Route aria-hidden="true" className="h-4 w-4 text-amber-600" />
             Tour
           </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
           >
+            <LogOut aria-hidden="true" className="h-4 w-4" />
             Deconnexion
           </button>
         </nav>

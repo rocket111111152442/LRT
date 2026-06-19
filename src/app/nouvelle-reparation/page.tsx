@@ -1,4 +1,4 @@
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 import { RepairForm } from "./RepairForm";
 
@@ -60,7 +60,7 @@ export default async function NewRepairPage({
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-3xl gap-6">
         <header className="grid gap-3">
-          <LrtLogo />
+          <QoravoLogo />
           <div className="grid gap-2">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Atelier

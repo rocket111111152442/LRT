@@ -86,7 +86,7 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
           <article className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
             <header className="grid gap-2 border-b border-slate-200 pb-4">
               <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Facture LRT
+                Facture Qoravo
               </p>
               <h1 className="text-3xl font-semibold text-slate-950">
                 {repair.ticketNumber ?? repair.id}

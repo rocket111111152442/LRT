@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
+import { restoreFullPremiumPriceForRenewals } from "@/lib/stripeDiscounts";
 
 export async function POST(request: Request) {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -33,7 +34,9 @@ export async function POST(request: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-    await activatePaidCheckoutSession(event.data.object);
+    const session = event.data.object;
+    await activatePaidCheckoutSession(session);
+    await restoreFullPremiumPriceForRenewals(stripe, session);
   }
 
   if (event.type === "checkout.session.expired") {

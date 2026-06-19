@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Stripe from "stripe";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
+import { restoreFullPremiumPriceForRenewals } from "@/lib/stripeDiscounts";
 import { SetupAppointmentClient } from "./SetupAppointmentClient";
 
 export const dynamic = "force-dynamic";
@@ -72,13 +73,14 @@ async function loadSetupHelp(sessionId?: string): Promise<PageState> {
     }
 
     const activation = await activatePaidCheckoutSession(session);
+    await restoreFullPremiumPriceForRenewals(stripe, session);
 
     if (!activation.ok) {
       return {
         ok: false,
         title: "Activation impossible",
         message:
-          "Le paiement est confirme, mais LRT n a pas pu activer le compte pour le moment.",
+          "Le paiement est confirme, mais Qoravo n a pas pu activer le compte pour le moment.",
       };
     }
 
@@ -97,7 +99,7 @@ async function loadSetupHelp(sessionId?: string): Promise<PageState> {
       ok: false,
       title: "Verification impossible",
       message:
-        "LRT n a pas pu verifier le paiement Stripe pour le moment.",
+        "Qoravo n a pas pu verifier le paiement Stripe pour le moment.",
     };
   }
 }
@@ -111,7 +113,7 @@ export default async function SetupHelpPage({
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-2xl gap-6">
-        <LrtLogo />
+        <QoravoLogo />
         {state.ok ? (
           <section className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <header className="grid gap-2">
@@ -137,7 +139,7 @@ export default async function SetupHelpPage({
         ) : (
           <section className="grid gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Assistance LRT
+              Assistance Qoravo
             </p>
             <h1 className="text-3xl font-semibold text-slate-950">
               {state.title}

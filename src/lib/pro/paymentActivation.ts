@@ -16,6 +16,16 @@ export type PaidProAccountData = {
   firebaseStorageBucket?: string | null;
   firebaseMessagingSenderId?: string | null;
   firebaseAppId: string;
+  shopAddress?: string | null;
+  shopPostalCode?: string | null;
+  shopCity?: string | null;
+  shopCountry?: string | null;
+  shopPhone?: string | null;
+  shopEmail?: string | null;
+  shopOpeningHours?: string | null;
+  shopLatitude?: number | null;
+  shopLongitude?: number | null;
+  shopCapacityPerDay?: number | null;
   premiumDiscountCode?: string | null;
   supportIncluded?: boolean;
   stripeSessionId?: string | null;
@@ -28,6 +38,24 @@ function getStringField(record: unknown, field: string) {
 
   const value = (record as Record<string, unknown>)[field];
   return typeof value === "string" ? value : null;
+}
+
+function getNumberField(record: unknown, field: string) {
+  if (typeof record !== "object" || record === null) {
+    return null;
+  }
+
+  const value = (record as Record<string, unknown>)[field];
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+
+  return null;
 }
 
 function readPaidProAccountData(
@@ -45,6 +73,16 @@ function readPaidProAccountData(
     firebaseStorageBucket: getStringField(record, "firebaseStorageBucket"),
     firebaseMessagingSenderId: getStringField(record, "firebaseMessagingSenderId"),
     firebaseAppId: getStringField(record, "firebaseAppId"),
+    shopAddress: getStringField(record, "shopAddress"),
+    shopPostalCode: getStringField(record, "shopPostalCode"),
+    shopCity: getStringField(record, "shopCity"),
+    shopCountry: getStringField(record, "shopCountry"),
+    shopPhone: getStringField(record, "shopPhone"),
+    shopEmail: getStringField(record, "shopEmail"),
+    shopOpeningHours: getStringField(record, "shopOpeningHours"),
+    shopLatitude: getNumberField(record, "shopLatitude"),
+    shopLongitude: getNumberField(record, "shopLongitude"),
+    shopCapacityPerDay: getNumberField(record, "shopCapacityPerDay") ?? 8,
     supportIncluded:
       getStringField(record, "supportIncluded") === "1" ||
       getStringField(record, "setupHelp") === "1",
@@ -79,8 +117,18 @@ export async function createPaidProAccount(data: PaidProAccountData) {
       firebaseStorageBucket: data.firebaseStorageBucket,
       firebaseMessagingSenderId: data.firebaseMessagingSenderId,
       firebaseAppId: data.firebaseAppId,
-      referralCode: `${data.slug.toUpperCase()}-LRT`,
+      referralCode: `${data.slug.toUpperCase()}-Qoravo`,
       supportIncluded: data.supportIncluded ?? false,
+      shopAddress: data.shopAddress,
+      shopPostalCode: data.shopPostalCode,
+      shopCity: data.shopCity,
+      shopCountry: data.shopCountry,
+      shopPhone: data.shopPhone,
+      shopEmail: data.shopEmail ?? data.ownerEmail,
+      shopOpeningHours: data.shopOpeningHours,
+      shopLatitude: data.shopLatitude,
+      shopLongitude: data.shopLongitude,
+      shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
       paymentStatus: "PAID",
       stripeSessionId: data.stripeSessionId,
       users: {

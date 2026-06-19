@@ -14,6 +14,10 @@ function normalizeTicket(value: string) {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
+  if (/^QOR\d{6}$/.test(normalized)) {
+    return `QOR-${normalized.slice(3)}`;
+  }
+
   if (/^LRT\d{6}$/.test(normalized)) {
     return `LRT-${normalized.slice(3)}`;
   }

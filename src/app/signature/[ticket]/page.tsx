@@ -1,4 +1,4 @@
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { SignatureClient } from "./SignatureClient";
 
 type SignaturePageProps = {
@@ -12,7 +12,7 @@ export default async function SignaturePage({ params }: SignaturePageProps) {
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-xl gap-6">
         <header className="grid gap-3">
-          <LrtLogo />
+          <QoravoLogo />
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Signature client
           </p>

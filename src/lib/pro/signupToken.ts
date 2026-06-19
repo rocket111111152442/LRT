@@ -40,6 +40,23 @@ function readOptionalString(
   return typeof value === "string" && value ? value : null;
 }
 
+function readOptionalNumber(
+  record: Record<string, unknown>,
+  key: keyof PaidProAccountData,
+) {
+  const value = record[key];
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+
+  return null;
+}
+
 function readAccountData(payload: unknown): PaidProAccountData | null {
   if (!isRecord(payload)) {
     return null;
@@ -65,6 +82,16 @@ function readAccountData(payload: unknown): PaidProAccountData | null {
       "firebaseMessagingSenderId",
     ),
     firebaseAppId: readString(payload, "firebaseAppId"),
+    shopAddress: readOptionalString(payload, "shopAddress"),
+    shopPostalCode: readOptionalString(payload, "shopPostalCode"),
+    shopCity: readOptionalString(payload, "shopCity"),
+    shopCountry: readOptionalString(payload, "shopCountry"),
+    shopPhone: readOptionalString(payload, "shopPhone"),
+    shopEmail: readOptionalString(payload, "shopEmail"),
+    shopOpeningHours: readOptionalString(payload, "shopOpeningHours"),
+    shopLatitude: readOptionalNumber(payload, "shopLatitude"),
+    shopLongitude: readOptionalNumber(payload, "shopLongitude"),
+    shopCapacityPerDay: readOptionalNumber(payload, "shopCapacityPerDay") ?? 8,
     premiumDiscountCode: readOptionalString(payload, "premiumDiscountCode"),
   };
 

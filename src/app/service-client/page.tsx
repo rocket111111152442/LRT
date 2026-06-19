@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { getCurrentAdmin } from "@/lib/auth";
 import { SupportForm } from "./SupportForm";
 
@@ -29,9 +29,9 @@ export default async function SupportPage() {
       <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-2xl gap-6">
           <header className="grid gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <LrtLogo />
+            <QoravoLogo />
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Service client LRT
+              Service client Qoravo
             </p>
             <h1 className="text-3xl font-semibold text-slate-950">
               Option assistance requise
@@ -66,7 +66,7 @@ export default async function SupportPage() {
       <div className="mx-auto grid max-w-6xl gap-8">
         <header className="flex flex-col gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex items-center justify-between gap-4">
-            <LrtLogo />
+            <QoravoLogo />
             <Link
               href="/"
               className="text-sm font-semibold text-slate-700 underline-offset-4 hover:underline"
@@ -76,7 +76,7 @@ export default async function SupportPage() {
           </div>
           <div className="grid max-w-3xl gap-3">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Service client LRT
+              Service client Qoravo
             </p>
             <h1 className="text-3xl font-semibold text-slate-950 sm:text-4xl">
               Support disponible 24h/24 pour envoyer une demande.

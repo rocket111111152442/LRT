@@ -112,7 +112,7 @@ export function ReceiptClient({ repairId }: { repairId: string }) {
       <article className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
         <header className="border-b border-slate-200 pb-4">
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Recu de depot LRT
+            Recu de depot Qoravo
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-950">
             {repair.ticketNumber ?? repair.id}

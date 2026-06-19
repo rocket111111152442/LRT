@@ -19,7 +19,7 @@ export default function TrackingPage() {
             Suivre une reparation
           </h1>
           <p className="text-sm leading-6 text-slate-600">
-            Entrez le ticket donne par l&apos;atelier, par exemple LRT-000123.
+            Entrez le ticket donne par l&apos;atelier, par exemple QOR-000123.
           </p>
         </header>
         <TrackingClient />

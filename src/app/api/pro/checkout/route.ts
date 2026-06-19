@@ -91,6 +91,15 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
   return null;
 }
 
+function readOptionalNumber(value?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+}
+
 export async function POST(request: Request) {
   let body: unknown;
 
@@ -148,6 +157,19 @@ export async function POST(request: Request) {
       firebaseProjectId: validation.data.firebaseProjectId,
       firebaseStorageBucket: `${validation.data.firebaseProjectId}.appspot.com`,
       firebaseAppId: validation.data.firebaseAppId,
+      shopAddress: validation.data.shopAddress ?? null,
+      shopPostalCode: validation.data.shopPostalCode ?? null,
+      shopCity: validation.data.shopCity ?? null,
+      shopCountry: validation.data.shopCountry ?? null,
+      shopPhone: validation.data.shopPhone ?? null,
+      shopEmail: validation.data.shopEmail ?? validation.data.ownerEmail,
+      shopOpeningHours: validation.data.shopOpeningHours ?? null,
+      shopLatitude: readOptionalNumber(validation.data.shopLatitude),
+      shopLongitude: readOptionalNumber(validation.data.shopLongitude),
+      shopCapacityPerDay:
+        Number(validation.data.shopCapacityPerDay ?? "8") > 0
+          ? Number(validation.data.shopCapacityPerDay ?? "8")
+          : 8,
       premiumDiscountCode: usesPremiumDiscountCode
         ? PREMIUM_DISCOUNT_CODE
         : null,
@@ -174,7 +196,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Inscription impossible pour le moment. Verifiez la configuration de la base LRT sur Vercel, puis reessayez.",
+          "Inscription impossible pour le moment. Verifiez la configuration de la base Qoravo sur Vercel, puis reessayez.",
       },
       { status: 500 },
     );

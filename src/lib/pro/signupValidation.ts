@@ -6,6 +6,16 @@ export type ProSignupInput = {
   firebaseApiKey: string;
   firebaseProjectId: string;
   firebaseAppId: string;
+  shopAddress?: string;
+  shopPostalCode?: string;
+  shopCity?: string;
+  shopCountry?: string;
+  shopPhone?: string;
+  shopEmail?: string;
+  shopOpeningHours?: string;
+  shopLatitude?: string;
+  shopLongitude?: string;
+  shopCapacityPerDay?: string;
   promoCode?: string;
   emailCode?: string;
   emailVerificationId?: string;
@@ -45,9 +55,19 @@ export function validateProSignupInput(input: unknown):
     slug: normalizeSlug(readText(input, "slug")),
     ownerEmail: readText(input, "ownerEmail").toLowerCase(),
     password: readText(input, "password"),
-    firebaseApiKey: readText(input, "firebaseApiKey") || "managed-by-lrt",
-    firebaseProjectId: readText(input, "firebaseProjectId") || "managed-by-lrt",
-    firebaseAppId: readText(input, "firebaseAppId") || "managed-by-lrt",
+    firebaseApiKey: readText(input, "firebaseApiKey") || "managed-by-Qoravo",
+    firebaseProjectId: readText(input, "firebaseProjectId") || "managed-by-Qoravo",
+    firebaseAppId: readText(input, "firebaseAppId") || "managed-by-Qoravo",
+    shopAddress: readText(input, "shopAddress") || undefined,
+    shopPostalCode: readText(input, "shopPostalCode") || undefined,
+    shopCity: readText(input, "shopCity") || undefined,
+    shopCountry: readText(input, "shopCountry") || undefined,
+    shopPhone: readText(input, "shopPhone") || undefined,
+    shopEmail: readText(input, "shopEmail") || undefined,
+    shopOpeningHours: readText(input, "shopOpeningHours") || undefined,
+    shopLatitude: readText(input, "shopLatitude") || undefined,
+    shopLongitude: readText(input, "shopLongitude") || undefined,
+    shopCapacityPerDay: readText(input, "shopCapacityPerDay") || undefined,
     promoCode: readText(input, "promoCode").toUpperCase() || undefined,
     emailCode: readText(input, "emailCode").replace(/\D/g, "").slice(0, 6),
     emailVerificationId: readText(input, "emailVerificationId") || undefined,
@@ -69,6 +89,18 @@ export function validateProSignupInput(input: unknown):
 
   if (data.password.length < 8) {
     errors.password = "Mot de passe requis, 8 caracteres minimum.";
+  }
+
+  const capacity = Number(data.shopCapacityPerDay ?? "8");
+
+  if (data.shopCapacityPerDay && (!Number.isInteger(capacity) || capacity < 1)) {
+    errors.shopCapacityPerDay = "Capacite invalide.";
+  }
+
+  for (const key of ["shopLatitude", "shopLongitude"] as const) {
+    if (data[key] && Number.isNaN(Number(data[key]))) {
+      errors[key] = "Coordonnee invalide.";
+    }
   }
 
   if (Object.keys(errors).length > 0) {

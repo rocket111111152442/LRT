@@ -227,7 +227,7 @@ export function LoginForm() {
             Mot de passe oublie
           </h2>
           <p className="text-sm leading-6 text-slate-600">
-            Entrez l email admin du compte. LRT envoie un code de recuperation
+            Entrez l email admin du compte. Qoravo envoie un code de recuperation
             pour choisir un nouveau mot de passe.
           </p>
         </div>

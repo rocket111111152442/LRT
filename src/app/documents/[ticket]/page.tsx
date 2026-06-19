@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { PrintButton } from "@/components/PrintButton";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "../../../../generated/prisma/client";
@@ -18,6 +18,10 @@ function normalizeTicket(value: string) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+
+  if (/^QOR\d{6}$/.test(normalized)) {
+    return `QOR-${normalized.slice(3)}`;
+  }
 
   if (/^LRT\d{6}$/.test(normalized)) {
     return `LRT-${normalized.slice(3)}`;
@@ -129,7 +133,7 @@ export default async function DocumentsPage({ params }: DocumentsPageProps) {
 
         <article className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
           <header className="grid gap-3 border-b border-slate-200 pb-4">
-            <LrtLogo />
+            <QoravoLogo />
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Documents client
             </p>

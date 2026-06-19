@@ -1,4 +1,4 @@
-# LRT
+# Qoravo
 
 Application Next.js TypeScript avec Tailwind CSS pour creer et gerer des reparations.
 Elle peut utiliser PostgreSQL avec Prisma ou Firebase Firestore.

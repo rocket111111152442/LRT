@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -121,7 +121,8 @@ export function PaymentClient({
         </div>
         {hasPremiumDiscount ? (
           <p className="text-sm text-emerald-700">
-            Code de reduction applique : -10% sur le premium. L&apos;assistance
+            Code de reduction applique : -10% sur le premium pendant 1 an seulement.
+            L&apos;assistance
             annuelle reste a 9,99 EUR/an.
           </p>
         ) : null}
@@ -139,7 +140,7 @@ export function PaymentClient({
             Ajouter l&apos;assistance +9,99 EUR/an
           </span>
           <span>
-            Ajoute le service client LRT, l&apos;appel telephonique et l&apos;aide
+            Ajoute le service client Qoravo, l&apos;appel telephonique et l&apos;aide
             au parametrage. Sans cette option, le service client n&apos;est pas inclus.
           </span>
         </span>

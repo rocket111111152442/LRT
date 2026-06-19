@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" role="img" aria-labelledby="title desc">
+  <title id="title">Qoravo</title>
+  <desc id="desc">Logo du logiciel Qoravo</desc>
   <defs>
     <linearGradient id="blue" x1="30" x2="56" y1="38" y2="56">
       <stop stop-color="#38BDF8"/>
@@ -15,4 +17,5 @@
   <path d="M35.5 38.5h10.2L56 52.8H44.6L35.5 42v-3.5Z" fill="url(#blue)"/>
   <path d="M9 8h18v5H9V8Z" fill="url(#green)"/>
   <path d="M40 8h15v5H40V8Z" fill="url(#blue)"/>
+  <text x="82" y="44" fill="#020617" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Qoravo</text>
 </svg>

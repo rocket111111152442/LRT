@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Stripe from "stripe";
-import { LrtLogo } from "@/components/LrtLogo";
+import { QoravoLogo } from "@/components/QoravoLogo";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
+import { restoreFullPremiumPriceForRenewals } from "@/lib/stripeDiscounts";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ async function confirmStripePayment(
     return {
       title: "Paiement recu",
       message:
-        "Stripe est revenu vers LRT, mais la cle secrete n est pas configuree cote serveur.",
+        "Stripe est revenu vers Qoravo, mais la cle secrete n est pas configuree cote serveur.",
       isActive: false,
     };
   }
@@ -41,6 +42,7 @@ async function confirmStripePayment(
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const activation = await activatePaidCheckoutSession(session);
+    await restoreFullPremiumPriceForRenewals(stripe, session);
 
     if (activation.ok) {
       return {
@@ -62,7 +64,7 @@ async function confirmStripePayment(
     return {
       title: "Verification impossible",
       message:
-        "LRT n a pas pu verifier le paiement Stripe pour le moment. Reessayez dans quelques instants.",
+        "Qoravo n a pas pu verifier le paiement Stripe pour le moment. Reessayez dans quelques instants.",
       isActive: false,
     };
   }
@@ -81,7 +83,7 @@ export default async function ProThanksPage({
           confirmation.isActive ? "border-emerald-200" : "border-slate-200"
         }`}
       >
-        <LrtLogo />
+        <QoravoLogo />
         <p
           className={`text-sm font-semibold uppercase tracking-wide ${
             confirmation.isActive ? "text-emerald-700" : "text-slate-500"

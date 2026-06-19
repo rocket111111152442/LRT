@@ -61,6 +61,10 @@ function normalizeTicket(value: string) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 
+  if (/^QOR\d{6}$/.test(normalized)) {
+    return `QOR-${normalized.slice(3)}`;
+  }
+
   if (/^LRT\d{6}$/.test(normalized)) {
     return `LRT-${normalized.slice(3)}`;
   }
@@ -114,7 +118,7 @@ export function TrackingClient() {
           type="text"
           value={ticket}
           onChange={(event) => setTicket(normalizeTicket(event.target.value))}
-          placeholder="LRT-000123"
+          placeholder="QOR-000123"
           className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
         />
         <button

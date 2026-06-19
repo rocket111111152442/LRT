@@ -1,5 +1,5 @@
 const CANONICAL_APP_URL = "https://lrt.life";
-const DEPRECATED_HOSTS = new Set(["lrt-mu.vercel.app"]);
+const DEPRECATED_HOSTS = new Set(["lrt-mu.vercel.app", "qoravo-mu.vercel.app"]);
 
 function normalizeUrl(value: string | undefined) {
   const trimmedValue = value?.trim();

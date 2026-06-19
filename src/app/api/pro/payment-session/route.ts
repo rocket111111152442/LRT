@@ -12,6 +12,9 @@ import { readSignupToken } from "@/lib/pro/signupToken";
 
 const PRO_PRICE_CENTS = 4999;
 const SETUP_HELP_PRICE_CENTS = 999;
+const PREMIUM_FULL_PRICE_CENTS = PRO_PRICE_CENTS;
+const PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS =
+  applyPremiumDiscountCents(PRO_PRICE_CENTS);
 
 function getAppUrl(request: Request) {
   const forwardedHost = request.headers.get("x-forwarded-host");
@@ -68,6 +71,28 @@ function buildSignupMetadata(data: PaidProAccountData) {
     metadata.firebaseMessagingSenderId = data.firebaseMessagingSenderId;
   }
 
+  for (const [key, value] of Object.entries({
+    shopAddress: data.shopAddress,
+    shopPostalCode: data.shopPostalCode,
+    shopCity: data.shopCity,
+    shopCountry: data.shopCountry,
+    shopPhone: data.shopPhone,
+    shopEmail: data.shopEmail,
+    shopOpeningHours: data.shopOpeningHours,
+    shopLatitude:
+      typeof data.shopLatitude === "number" ? String(data.shopLatitude) : null,
+    shopLongitude:
+      typeof data.shopLongitude === "number" ? String(data.shopLongitude) : null,
+    shopCapacityPerDay:
+      typeof data.shopCapacityPerDay === "number"
+        ? String(data.shopCapacityPerDay)
+        : null,
+  })) {
+    if (value) {
+      metadata[key] = value;
+    }
+  }
+
   return metadata;
 }
 
@@ -85,9 +110,9 @@ function buildLineItems(input: {
       price_data: {
         currency: "eur",
         product_data: {
-          name: "Compte pro LRT annuel",
+          name: "Compte pro Qoravo annuel",
           description: hasPremiumDiscount
-            ? `Abonnement annuel du compte ${input.companyName} avec reduction premium.`
+            ? `Abonnement annuel du compte ${input.companyName} avec reduction premium appliquee uniquement la premiere annee.`
             : `Abonnement annuel du compte ${input.companyName}.`,
         },
         recurring: {
@@ -104,9 +129,9 @@ function buildLineItems(input: {
       price_data: {
         currency: "eur",
         product_data: {
-          name: "Assistance LRT annuelle",
+          name: "Assistance Qoravo annuelle",
           description:
-            "Acces annuel au service client LRT et aide au parametrage.",
+            "Acces annuel au service client Qoravo et aide au parametrage.",
         },
         recurring: {
           interval: "year",
@@ -200,6 +225,11 @@ export async function POST(request: Request) {
           ...buildSignupMetadata(signup),
           setupHelp: setupHelp ? "1" : "0",
           premiumDiscountApplied: discountApplied ? "1" : "0",
+          premiumDiscountFirstYearOnly: discountApplied ? "1" : "0",
+          premiumFullPriceCents: String(PREMIUM_FULL_PRICE_CENTS),
+          premiumDiscountedPriceCents: discountApplied
+            ? String(PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS)
+            : "0",
           premiumDiscountPercent: discountApplied
             ? String(PREMIUM_DISCOUNT_PERCENT)
             : "0",
@@ -263,6 +293,13 @@ export async function POST(request: Request) {
           pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
           premiumDiscountApplied: isPremiumDiscountCode(promoCode) ? "1" : "0",
+          premiumDiscountFirstYearOnly: isPremiumDiscountCode(promoCode)
+            ? "1"
+            : "0",
+          premiumFullPriceCents: String(PREMIUM_FULL_PRICE_CENTS),
+          premiumDiscountedPriceCents: isPremiumDiscountCode(promoCode)
+            ? String(PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS)
+            : "0",
           premiumDiscountPercent: isPremiumDiscountCode(promoCode)
             ? String(PREMIUM_DISCOUNT_PERCENT)
             : "0",
@@ -330,6 +367,13 @@ export async function POST(request: Request) {
         proAccountId: proAccount.id,
         setupHelp: setupHelp ? "1" : "0",
         premiumDiscountApplied: isPremiumDiscountCode(promoCode) ? "1" : "0",
+        premiumDiscountFirstYearOnly: isPremiumDiscountCode(promoCode)
+          ? "1"
+          : "0",
+        premiumFullPriceCents: String(PREMIUM_FULL_PRICE_CENTS),
+        premiumDiscountedPriceCents: isPremiumDiscountCode(promoCode)
+          ? String(PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS)
+          : "0",
         premiumDiscountPercent: isPremiumDiscountCode(promoCode)
           ? String(PREMIUM_DISCOUNT_PERCENT)
           : "0",

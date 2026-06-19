@@ -2,6 +2,14 @@
 
 :root {
   color-scheme: light;
+  --qoravo-ink: #020617;
+  --qoravo-panel: #07111f;
+  --qoravo-blue: #0ea5e9;
+  --qoravo-blue-soft: #e0f2fe;
+  --qoravo-green: #22c55e;
+  --qoravo-green-soft: #dcfce7;
+  --qoravo-gold: #f59e0b;
+  --qoravo-border: #dbe6f3;
 }
 
 * {
@@ -10,8 +18,11 @@
 
 body {
   margin: 0;
-  background: #f6f7f9;
-  color: #172033;
+  background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.08), transparent 32rem),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.11), transparent 34rem),
+    #f6f9fc;
+  color: #0f172a;
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -19,6 +30,14 @@ button,
 input,
 textarea {
   font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(14, 165, 233, 0.25);
 }
 
 @media print {

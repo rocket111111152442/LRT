@@ -1,5 +1,7 @@
-﻿import Link from "next/link";
-import { LrtLogo } from "@/components/LrtLogo";
+import Link from "next/link";
+import { QoravoLogo } from "@/components/QoravoLogo";
+import { PublicReviews } from "./PublicReviews";
+import { ShopLocator } from "./ShopLocator";
 
 const features = [
   "Formulaire client public avec QR code unique",
@@ -10,7 +12,8 @@ const features = [
   "Recherche rapide par client, telephone, marque ou modele",
   "Statuts clairs pour garder l'atelier organise",
   "Validation par code email a l'inscription et a chaque connexion",
-  "Option assistance annuelle avec service client LRT",
+  "Option assistance annuelle avec service client Qoravo",
+  "Recherche publique du magasin le plus proche",
   "Devis avec acceptation ou refus par le client",
   "Stock simple avec alertes de pieces faibles",
   "Agenda jour/semaine pour les reparations",
@@ -124,7 +127,7 @@ const faqs = [
   },
   {
     question: "Est-ce que je dois configurer Firebase ?",
-    answer: "Non. Firebase est une configuration technique cote LRT. L atelier cree simplement son compte pro.",
+    answer: "Non. Firebase est une configuration technique cote Qoravo. L atelier cree simplement son compte pro.",
   },
   {
     question: "Le paiement est-il obligatoire ?",
@@ -134,23 +137,22 @@ const faqs = [
 
 export default function HomePage() {
   return (
-    <main className="bg-white text-slate-950">
+    <main className="bg-slate-50 text-slate-950">
       <section
-        className="relative min-h-[92vh] overflow-hidden bg-cover bg-center px-4 py-8 text-white sm:px-6 lg:px-8"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, rgba(7,12,24,0.88), rgba(7,12,24,0.58), rgba(7,12,24,0.22)), url('https://source.unsplash.com/1800x1200/?phone-repair,workshop')",
-        }}
+        className="relative min-h-[92vh] overflow-hidden bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8"
       >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(34,197,94,0.30),transparent_24rem),radial-gradient(circle_at_82%_18%,rgba(14,165,233,0.36),transparent_28rem),linear-gradient(135deg,#020617_0%,#07111f_52%,#0f172a_100%)]" />
+        <div className="absolute right-[-8rem] top-24 h-80 w-80 rounded-full border border-sky-400/20" />
+        <div className="absolute bottom-[-10rem] left-[-8rem] h-96 w-96 rounded-full border border-emerald-400/20" />
         <div className="mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-center gap-8">
-          <div className="max-w-2xl">
-            <LrtLogo
+          <div className="relative max-w-3xl">
+            <QoravoLogo
               className="mb-5"
               markClassName="ring-1 ring-white/20"
               textClassName="text-white"
             />
             <h1 className="text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-              LRT, le logiciel simple pour les reparateurs d&apos;appareils
+              Qoravo, le logiciel propre et complet pour les reparateurs
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-100 sm:text-lg">
               Donnez un QR code a vos clients, centralisez les demandes,
@@ -180,25 +182,25 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/pro/inscription"
-                className="rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                className="rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               >
                 Creer mon compte pro
               </Link>
               <Link
                 href="/admin/login"
-                className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Connexion admin
               </Link>
               <Link
                 href="/suivi"
-                className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Suivre une reparation
               </Link>
               <Link
                 href="/pro/inscription"
-                className="rounded-md border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Option assistance 9,99 EUR/an
               </Link>
@@ -219,6 +221,12 @@ export default function HomePage() {
       </section>
 
       <section className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <ShopLocator />
+        </div>
+      </section>
+
+      <section className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="grid content-start gap-4">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -228,7 +236,7 @@ export default function HomePage() {
               Moins d&apos;appels, moins d&apos;oublis, plus de reparations suivies.
             </h2>
             <p className="text-base leading-7 text-slate-600">
-              LRT remplace les notes papier et les messages eparpilles
+              Qoravo remplace les notes papier et les messages eparpilles
               par un parcours clair : le client remplit sa demande, l&apos;atelier
               suit l&apos;avancement, puis l&apos;email de recuperation part au bon moment.
             </p>
@@ -238,7 +246,7 @@ export default function HomePage() {
             {features.map((feature) => (
               <div
                 key={feature}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-800"
+                className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-800 shadow-sm"
               >
                 {feature}
               </div>
@@ -266,7 +274,7 @@ export default function HomePage() {
             {adminTools.map((tool) => (
               <li
                 key={tool}
-                className="rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm"
               >
                 {tool}
               </li>
@@ -331,10 +339,16 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <PublicReviews />
+        </div>
+      </section>
+
       <section className="border-y border-slate-200 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Compte pro LRT</h2>
+            <h2 className="text-2xl font-semibold">Compte pro Qoravo</h2>
             <p className="mt-2 text-sm text-slate-300">
               Paiement unique pour activer l&apos;espace admin et limiter les abus.
             </p>
