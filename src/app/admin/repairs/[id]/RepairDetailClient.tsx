@@ -61,6 +61,7 @@ type RepairDetail = {
   customerType: CustomerType;
   satisfactionRating: number | null;
   satisfactionComment: string | null;
+  reviewRespondedAt: string | null;
   supplierOrderNote: string | null;
   partsUsed: string | null;
   usedInventoryItemId: string | null;
@@ -220,8 +221,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [checklistFunctionalTest, setChecklistFunctionalTest] = useState(false);
   const [checklistCleaning, setChecklistCleaning] = useState(false);
   const [customerType, setCustomerType] = useState<CustomerType>("STANDARD");
-  const [satisfactionRating, setSatisfactionRating] = useState("");
-  const [satisfactionComment, setSatisfactionComment] = useState("");
   const [supplierOrderNote, setSupplierOrderNote] = useState("");
   const [partsUsed, setPartsUsed] = useState("");
   const [usedInventoryItemId, setUsedInventoryItemId] = useState("");
@@ -260,10 +259,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     setChecklistFunctionalTest(payloadRepair.checklistFunctionalTest);
     setChecklistCleaning(payloadRepair.checklistCleaning);
     setCustomerType(payloadRepair.customerType);
-    setSatisfactionRating(
-      payloadRepair.satisfactionRating ? String(payloadRepair.satisfactionRating) : "",
-    );
-    setSatisfactionComment(payloadRepair.satisfactionComment ?? "");
     setSupplierOrderNote(payloadRepair.supplierOrderNote ?? "");
     setPartsUsed(payloadRepair.partsUsed ?? "");
     setUsedInventoryItemId(payloadRepair.usedInventoryItemId ?? "");
@@ -365,7 +360,13 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         payload.customerHistory ?? [],
       );
 
-      if (payload.mail?.quoteAttempted) {
+      if (payload.mail?.reviewAttempted && payload.mail?.reviewSent) {
+        setMessage("Mise a jour enregistree. Email d'avis envoye au client.");
+      } else if (payload.mail?.reviewAttempted && !payload.mail?.reviewSent) {
+        setMessage(
+          "Mise a jour enregistree. L'email d'avis n'a pas ete envoye; verifiez la configuration SMTP.",
+        );
+      } else if (payload.mail?.quoteAttempted) {
         setMessage("Devis enregistre et email tente.");
       } else if (payload.mail?.attempted && payload.mail?.sent) {
         setMessage("Mise a jour enregistree. Email envoye au client.");
@@ -408,8 +409,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
       checklistFunctionalTest,
       checklistCleaning,
       customerType,
-      satisfactionRating: satisfactionRating ? Number(satisfactionRating) : 0,
-      satisfactionComment,
       supplierOrderNote,
       partsUsed,
       usedInventoryItemId: usedInventoryItemId || "",
@@ -618,6 +617,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               />
               <DetailItem label="Email PRET envoye" value={repair.readyEmailSent ? "Oui" : "Non"} />
               <DetailItem label="Avis envoye" value={repair.reviewEmailSent ? "Oui" : "Non"} />
+              <DetailItem label="Avis recu le" value={formatDate(repair.reviewRespondedAt)} />
               <DetailItem
                 label="Client satisfait"
                 value={repair.satisfactionRating ? `${repair.satisfactionRating}/5` : "-"}
@@ -993,22 +993,10 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             onChange={setSupplierOrderNote}
             rows={3}
           />
-          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
-            <p className="text-sm font-semibold text-slate-950">Satisfaction</p>
-            <TextField
-              id="satisfaction-rating"
-              label="Note client 1 a 5"
-              type="number"
-              value={satisfactionRating}
-              onChange={setSatisfactionRating}
-            />
-            <TextAreaField
-              id="satisfaction-comment"
-              label="Commentaire client"
-              value={satisfactionComment}
-              onChange={setSatisfactionComment}
-              rows={3}
-            />
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+            L&apos;avis client est en lecture seule dans l&apos;admin. Il est
+            enregistre uniquement depuis le lien envoye au client quand la
+            reparation passe a RECUPERE.
           </div>
           <TextAreaField
             id="repair-internal-notes"

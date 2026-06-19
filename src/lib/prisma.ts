@@ -515,6 +515,13 @@ function createFirestorePrisma() {
           );
         }
 
+        if (typeof args.where.reviewToken === "string") {
+          return applySelect(
+            await findByField("repairs", "reviewToken", args.where.reviewToken),
+            args.select,
+          );
+        }
+
         return null;
       },
       async create(args: { data: Dict; select?: Dict }) {
@@ -526,6 +533,8 @@ function createFirestorePrisma() {
           status: args.data.status ?? "PAS_ENCORE_EN_REPARATION",
           readyEmailSent: args.data.readyEmailSent ?? false,
           reviewEmailSent: args.data.reviewEmailSent ?? false,
+          reviewToken: args.data.reviewToken ?? null,
+          reviewRespondedAt: args.data.reviewRespondedAt ?? null,
           quoteStatus: args.data.quoteStatus ?? "NONE",
           photos: args.data.photos ?? [],
           partsStatus: args.data.partsStatus ?? "NONE",

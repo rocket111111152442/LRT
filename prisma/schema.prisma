@@ -72,6 +72,8 @@ model Repair {
   readyEmailSent   Boolean      @default(false)
   smsReadySent      Boolean      @default(false)
   reviewEmailSent   Boolean      @default(false)
+  reviewToken        String?      @unique
+  reviewRespondedAt  DateTime?
   readyReminderSentAt DateTime?
   urgent           Boolean      @default(false)
   expressMode      Boolean      @default(false)
@@ -119,6 +121,7 @@ model Repair {
   @@index([proAccountId])
   @@index([ticketNumber])
   @@index([quoteToken])
+  @@index([reviewToken])
 }
 
 model User {

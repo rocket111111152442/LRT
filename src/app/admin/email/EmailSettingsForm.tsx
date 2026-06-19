@@ -328,11 +328,11 @@ export function EmailSettingsForm() {
             value={values.googleReviewUrl}
             onChange={(value) => updateField("googleReviewUrl", value)}
             help={{
-              title: "Lien utilise apres recuperation",
+              title: "Lien Google optionnel",
               steps: [
-                "Copiez le lien de demande d'avis Google de votre fiche entreprise.",
-                "Quand une reparation passe a RECUPERE, LRT peut envoyer ce lien au client.",
-                "Si ce champ est vide, aucun email d'avis n'est envoye.",
+                "LRT envoie deja un lien d'avis interne au client quand une reparation passe a RECUPERE.",
+                "Ce champ reste optionnel pour conserver votre lien Google dans les reglages.",
+                "Si ce champ est vide, l'email d'avis utilise quand meme le lien LRT unique du client.",
               ],
             }}
           />

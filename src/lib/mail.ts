@@ -24,6 +24,11 @@ type QuoteEmailInput = ReadyRepairEmailInput & {
   quoteToken: string;
 };
 
+type ReviewEmailInput = ReadyRepairEmailInput & {
+  ticketNumber?: string | null;
+  reviewToken?: string | null;
+};
+
 type SendMailResult = {
   sent: boolean;
   skipped: boolean;
@@ -442,10 +447,12 @@ export async function sendRepairCreatedEmail(
 }
 
 export async function sendReviewRequestEmail(
-  repair: ReadyRepairEmailInput,
+  repair: ReviewEmailInput,
 ): Promise<SendMailResult> {
   const smtpConfig = await getSmtpConfig();
-  const reviewUrl = smtpConfig?.googleReviewUrl;
+  const reviewUrl = repair.reviewToken
+    ? `${getPublicAppUrl()}/avis/${repair.reviewToken}`
+    : smtpConfig?.googleReviewUrl;
 
   if (!smtpConfig || !reviewUrl) {
     return { sent: false, skipped: true };
@@ -455,25 +462,43 @@ export async function sendReviewRequestEmail(
     `Bonjour ${repair.firstName},`,
     "",
     `Merci pour votre confiance pour votre ${repair.deviceType} ${repair.brand} ${repair.model}.`,
-    "Vous pouvez laisser un avis ici :",
+    repair.ticketNumber ? `Ticket : ${repair.ticketNumber}` : "",
+    "Vous pouvez laisser votre avis ici :",
     reviewUrl,
     "",
     ...smtpConfig.shopLines,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
   const text = renderTemplate(
     smtpConfig.reviewEmailTemplate,
     {
       prenom: repair.firstName,
       appareil: `${repair.deviceType} ${repair.brand} ${repair.model}`,
+      ticket: repair.ticketNumber ?? "",
       lien_avis: reviewUrl,
     },
     defaultText,
   );
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
+      <p>Bonjour ${escapeHtml(repair.firstName)},</p>
+      <p>Merci pour votre confiance pour votre <strong>${escapeHtml(`${repair.deviceType} ${repair.brand} ${repair.model}`.trim())}</strong>.</p>
+      ${
+        repair.ticketNumber
+          ? `<p>Ticket : <strong>${escapeHtml(repair.ticketNumber)}</strong></p>`
+          : ""
+      }
+      <p style="margin:24px 0">
+        <a href="${reviewUrl}" style="display:inline-block;background:#020617;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:6px;font-weight:bold">Laisser mon avis</a>
+      </p>
+      <p style="font-size:13px;color:#475569">Si le bouton ne fonctionne pas, ouvrez ce lien : ${escapeHtml(reviewUrl)}</p>
+    </div>
+  `;
 
   return sendWithRepairSmtp({
     to: repair.email,
     subject: "Votre avis compte pour nous",
     text,
+    html,
   });
 }
 

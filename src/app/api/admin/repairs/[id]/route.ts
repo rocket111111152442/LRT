@@ -127,8 +127,12 @@ function readPhotos(value: unknown) {
   return photos;
 }
 
-function newQuoteToken() {
+function newPublicToken() {
   return randomBytes(24).toString("base64url");
+}
+
+function newQuoteToken() {
+  return newPublicToken();
 }
 
 function repairSelect() {
@@ -149,6 +153,8 @@ function repairSelect() {
     internalNotes: true,
     readyEmailSent: true,
     reviewEmailSent: true,
+    reviewToken: true,
+    reviewRespondedAt: true,
     readyReminderSentAt: true,
     urgent: true,
     expressMode: true,
@@ -331,6 +337,7 @@ function normalizeRepairForResponse(value: unknown) {
     internalNotes: readNullableString(repair.internalNotes),
     readyEmailSent: readBoolean(repair.readyEmailSent),
     reviewEmailSent: readBoolean(repair.reviewEmailSent),
+    reviewRespondedAt: readDateString(repair.reviewRespondedAt),
     readyReminderSentAt: readDateString(repair.readyReminderSentAt),
     urgent: readBoolean(repair.urgent),
     expressMode: readBoolean(repair.expressMode),
@@ -606,21 +613,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.customerType = body.customerType;
   }
 
-  if ("satisfactionRating" in body) {
-    const satisfactionRating = readOptionalInteger(body, "satisfactionRating");
-
-    if (
-      satisfactionRating === undefined ||
-      (satisfactionRating !== 0 && (satisfactionRating < 1 || satisfactionRating > 5))
-    ) {
-      return NextResponse.json({ error: "Note satisfaction invalide." }, { status: 400 });
-    }
-
-    data.satisfactionRating = satisfactionRating || null;
-  }
-
-  if ("satisfactionComment" in body) {
-    data.satisfactionComment = readOptionalText(body, "satisfactionComment") || null;
+  if ("satisfactionRating" in body || "satisfactionComment" in body) {
+    return NextResponse.json(
+      { error: "Seul le client peut enregistrer ou modifier son avis." },
+      { status: 403 },
+    );
   }
 
   if ("supplierOrderNote" in body) {
@@ -758,6 +755,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   const shouldSendReviewEmail =
     statusChanged && nextStatus === "RECUPERE" && !currentRepair.reviewEmailSent;
 
+  if (shouldSendReviewEmail && !currentRepair.reviewToken) {
+    data.reviewToken = newPublicToken();
+  }
+
   let repair = await prisma.repair.update({
     where: { id },
     data,
@@ -855,9 +856,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (
     "warrantyUntil" in data ||
     "warrantyReturn" in data ||
-    "customerType" in data ||
-    "satisfactionRating" in data ||
-    "satisfactionComment" in data
+    "customerType" in data
   ) {
     await addRepairEvent({
       repairId: repair.id,
