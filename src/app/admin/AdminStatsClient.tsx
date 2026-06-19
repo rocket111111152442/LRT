@@ -385,7 +385,7 @@ export function AdminStatsClient() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </p>
@@ -416,7 +416,11 @@ function GoalStatCard({
   onSave: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div
+      className={`min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm ${
+        isEditing ? "sm:col-span-2 lg:col-span-2" : ""
+      }`}
+    >
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Mois
@@ -453,7 +457,7 @@ function GoalStatCard({
             min="1"
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            className="min-h-10 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+            className="min-h-10 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
           />
           <div className="flex flex-wrap gap-2">
             <button

@@ -17,6 +17,12 @@ type CreatedRepair = {
   createdAt: string;
 };
 
+type RepairerRating = {
+  companyName: string;
+  average: number;
+  count: number;
+};
+
 type TextFieldName = Exclude<
   keyof RepairInput,
   "photos" | "customerDropOffSignature"
@@ -61,7 +67,13 @@ const issueTemplates = [
   "Probleme logiciel ou demarrage bloque",
 ];
 
-export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string }) {
+export function RepairForm({
+  proAccountSlug = "",
+  repairerRating,
+}: {
+  proAccountSlug?: string;
+  repairerRating?: RepairerRating | null;
+}) {
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
   const [errors, setErrors] = useState<RepairInputErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,6 +144,8 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
       className="grid gap-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
       noValidate
     >
+      {repairerRating ? <RepairerRatingCard rating={repairerRating} /> : null}
+
       <fieldset className="grid gap-4">
         <legend className="mb-3 text-base font-semibold text-slate-950">
           Client
@@ -220,6 +234,36 @@ export function RepairForm({ proAccountSlug = "" }: { proAccountSlug?: string })
         </button>
       </div>
     </form>
+  );
+}
+
+function RepairerRatingCard({ rating }: { rating: RepairerRating }) {
+  const averageLabel =
+    rating.count > 0 ? rating.average.toFixed(1).replace(".", ",") : "-";
+
+  return (
+    <section className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        Note du reparateur
+      </p>
+      <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-lg font-semibold text-slate-950">
+            {rating.companyName}
+          </p>
+          <p className="text-sm text-slate-600">
+            {rating.count > 0
+              ? `${averageLabel}/5 de moyenne sur ${rating.count} avis client(s)`
+              : "Ce reparateur n'a pas encore recu d'avis client."}
+          </p>
+        </div>
+        {rating.count > 0 ? (
+          <strong className="text-2xl font-semibold text-slate-950">
+            {averageLabel}/5
+          </strong>
+        ) : null}
+      </div>
+    </section>
   );
 }
 

@@ -111,6 +111,8 @@ const extraFeatures = [
   "Nouvelles fonctionnalites ajoutees tous les mois",
 ];
 
+const extraFeatureCount = extraFeatures.length;
+
 const faqs = [
   {
     question: "Est-ce que le client a besoin d'un compte ?",
@@ -126,7 +128,7 @@ const faqs = [
   },
   {
     question: "Le paiement est-il obligatoire ?",
-    answer: "Le paiement unique limite les abus. Un code promo peut activer un compte gratuitement.",
+    answer: "L'abonnement annuel limite les abus. Un code promo peut activer un compte gratuitement.",
   },
 ];
 
@@ -157,8 +159,8 @@ export default function HomePage() {
             </p>
             <dl className="mt-6 grid max-w-xl grid-cols-3 gap-3 text-sm">
               <div className="border-l border-white/40 pl-3">
-                <dt className="text-2xl font-semibold">49 euros</dt>
-                <dd className="text-slate-200">a payer une seule fois</dd>
+                <dt className="text-2xl font-semibold">49,99 EUR</dt>
+                <dd className="text-slate-200">par an</dd>
               </div>
               <div className="border-l border-white/40 pl-3">
                 <dt className="text-2xl font-semibold">1 QR</dt>
@@ -280,7 +282,7 @@ export default function HomePage() {
               Fonctionnalites
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              20 outils concrets pour gerer un atelier sans usine a gaz.
+              Plus de {extraFeatureCount} outils concrets pour gerer un atelier sans usine a gaz.
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
               Chaque element sert au travail quotidien : recevoir une demande,

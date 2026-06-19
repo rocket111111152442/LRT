@@ -10,7 +10,7 @@ import {
 } from "@/lib/pro/promoCodes";
 import { readSignupToken } from "@/lib/pro/signupToken";
 
-const PRO_PRICE_CENTS = 4900;
+const PRO_PRICE_CENTS = 4999;
 const SETUP_HELP_PRICE_CENTS = 1999;
 
 function getAppUrl(request: Request) {
@@ -85,10 +85,13 @@ function buildLineItems(input: {
       price_data: {
         currency: "eur",
         product_data: {
-          name: "Compte pro LRT",
+          name: "Compte pro LRT annuel",
           description: hasPremiumDiscount
-            ? `Activation du compte ${input.companyName} avec reduction premium.`
-            : `Activation du compte ${input.companyName}.`,
+            ? `Abonnement annuel du compte ${input.companyName} avec reduction premium.`
+            : `Abonnement annuel du compte ${input.companyName}.`,
+        },
+        recurring: {
+          interval: "year",
         },
         unit_amount: premiumPriceCents,
       },
@@ -181,7 +184,7 @@ export async function POST(request: Request) {
     try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const session = await stripe.checkout.sessions.create({
-        mode: "payment",
+        mode: "subscription",
         payment_method_types: ["card"],
         customer_email: signup.ownerEmail,
         client_reference_id: signup.slug,
@@ -244,7 +247,7 @@ export async function POST(request: Request) {
     try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const session = await stripe.checkout.sessions.create({
-        mode: "payment",
+        mode: "subscription",
         payment_method_types: ["card"],
         customer_email: pendingSignup.ownerEmail,
         client_reference_id: pendingSignup.id,
@@ -312,7 +315,7 @@ export async function POST(request: Request) {
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
       payment_method_types: ["card"],
       customer_email: proAccount.ownerEmail,
       line_items: buildLineItems({
