@@ -57,6 +57,8 @@ export async function GET(request: Request) {
       brand: true,
       model: true,
       status: true,
+      quoteStatus: true,
+      quoteRespondedAt: true,
       readyEmailSent: true,
       archivedAt: true,
       createdAt: true,

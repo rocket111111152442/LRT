@@ -16,6 +16,8 @@ type RepairListItem = {
   brand: string;
   model: string;
   status: RepairStatus;
+  quoteStatus: "NONE" | "SENT" | "ACCEPTED" | "REFUSED";
+  quoteRespondedAt: unknown;
   readyEmailSent: boolean;
   archivedAt: string | null;
   createdAt: unknown;
@@ -32,6 +34,12 @@ function readString(value: unknown, fallback = "") {
 
 function readBoolean(value: unknown) {
   return typeof value === "boolean" ? value : false;
+}
+
+function readQuoteStatus(value: unknown): RepairListItem["quoteStatus"] {
+  return value === "SENT" || value === "ACCEPTED" || value === "REFUSED"
+    ? value
+    : "NONE";
 }
 
 function readDate(value: unknown) {
@@ -82,6 +90,8 @@ function normalizeRepairs(value: unknown): RepairListItem[] {
     status: REPAIR_STATUSES.includes(repair.status as RepairStatus)
       ? (repair.status as RepairStatus)
       : "PAS_ENCORE_EN_REPARATION",
+    quoteStatus: readQuoteStatus(repair.quoteStatus),
+    quoteRespondedAt: repair.quoteRespondedAt,
     readyEmailSent: readBoolean(repair.readyEmailSent),
     archivedAt: readString(repair.archivedAt) || null,
     createdAt: repair.createdAt,
@@ -115,6 +125,23 @@ export function AdminRepairsClient() {
   const exportUrl = queryString
     ? `/api/admin/repairs/export?${queryString}`
     : "/api/admin/repairs/export";
+  const quoteNotifications = repairs
+    .filter(
+      (repair) =>
+        repair.quoteStatus === "ACCEPTED" || repair.quoteStatus === "REFUSED",
+    )
+    .sort(
+      (left, right) =>
+        Number(readDate(right.quoteRespondedAt)?.getTime() ?? 0) -
+        Number(readDate(left.quoteRespondedAt)?.getTime() ?? 0),
+    )
+    .slice(0, 5);
+  const acceptedQuotesCount = repairs.filter(
+    (repair) => repair.quoteStatus === "ACCEPTED",
+  ).length;
+  const refusedQuotesCount = repairs.filter(
+    (repair) => repair.quoteStatus === "REFUSED",
+  ).length;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -248,6 +275,52 @@ export function AdminRepairsClient() {
         </p>
       ) : null}
 
+      {quoteNotifications.length > 0 ? (
+        <div className="grid gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-emerald-950">
+                Reponses de devis client
+              </h2>
+              <p className="text-sm text-emerald-800">
+                {acceptedQuotesCount} devis accepte(s)
+                {refusedQuotesCount > 0
+                  ? `, ${refusedQuotesCount} devis refuse(s)`
+                  : ""}
+                .
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            {quoteNotifications.map((repair) => (
+              <div
+                key={`quote-${repair.id}`}
+                className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+              >
+                <span className="text-slate-800">
+                  <strong className="text-slate-950">
+                    {repair.ticketNumber ?? repair.id.slice(0, 8)}
+                  </strong>{" "}
+                  - {repair.firstName} {repair.lastName} a{" "}
+                  {repair.quoteStatus === "ACCEPTED" ? "accepte" : "refuse"} le
+                  devis
+                  {formatDate(repair.quoteRespondedAt) !== "-"
+                    ? ` le ${formatDate(repair.quoteRespondedAt)}`
+                    : ""}
+                  .
+                </span>
+                <Link
+                  href={`/admin/repairs/${repair.id}`}
+                  className="w-fit rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-800"
+                >
+                  Voir
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse text-left text-sm">
@@ -258,6 +331,7 @@ export function AdminRepairsClient() {
                 <th className="px-4 py-3 font-semibold">Contact</th>
                 <th className="px-4 py-3 font-semibold">Appareil</th>
                 <th className="px-4 py-3 font-semibold">Statut</th>
+                <th className="px-4 py-3 font-semibold">Devis</th>
                 <th className="px-4 py-3 font-semibold">Creee le</th>
                 <th className="px-4 py-3 font-semibold">Action</th>
               </tr>
@@ -292,6 +366,9 @@ export function AdminRepairsClient() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-700">{repair.status}</td>
+                  <td className="px-4 py-3">
+                    <QuoteBadge status={repair.quoteStatus} />
+                  </td>
                   <td className="px-4 py-3 text-slate-700">
                     {formatDate(repair.createdAt)}
                   </td>
@@ -311,14 +388,14 @@ export function AdminRepairsClient() {
               ))}
               {!isLoading && repairs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-600">
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-600">
                     Aucune reparation trouvee.
                   </td>
                 </tr>
               ) : null}
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-600">
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-600">
                     Chargement...
                   </td>
                 </tr>
@@ -329,4 +406,32 @@ export function AdminRepairsClient() {
       </div>
     </section>
   );
+}
+
+function QuoteBadge({ status }: { status: RepairListItem["quoteStatus"] }) {
+  if (status === "ACCEPTED") {
+    return (
+      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+        Devis accepte
+      </span>
+    );
+  }
+
+  if (status === "REFUSED") {
+    return (
+      <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-800">
+        Devis refuse
+      </span>
+    );
+  }
+
+  if (status === "SENT") {
+    return (
+      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+        Devis envoye
+      </span>
+    );
+  }
+
+  return <span className="text-xs text-slate-400">-</span>;
 }
