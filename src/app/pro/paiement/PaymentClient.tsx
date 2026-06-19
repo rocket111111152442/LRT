@@ -6,7 +6,6 @@ import {
   applyPremiumDiscountCents,
   isPremiumDiscountCode,
   normalizePromoCode,
-  PREMIUM_DISCOUNT_CODE,
 } from "@/lib/pro/promoCodes";
 
 const PRO_PRICE_CENTS = 4900;
@@ -33,10 +32,12 @@ export function PaymentClient({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [setupHelp, setSetupHelp] = useState(false);
-  const [promoCode, setPromoCode] = useState(initialPromoCode);
+  const [promoCode, setPromoCode] = useState("");
   const canPay = Boolean(pendingSignupId || signupToken || slug);
   const normalizedPromoCode = normalizePromoCode(promoCode);
-  const hasPremiumDiscount = isPremiumDiscountCode(normalizedPromoCode);
+  const hiddenPromoCode = normalizePromoCode(initialPromoCode);
+  const effectivePromoCode = normalizedPromoCode || hiddenPromoCode;
+  const hasPremiumDiscount = isPremiumDiscountCode(effectivePromoCode);
   const premiumPriceCents = hasPremiumDiscount
     ? applyPremiumDiscountCents(PRO_PRICE_CENTS)
     : PRO_PRICE_CENTS;
@@ -45,7 +46,7 @@ export function PaymentClient({
   async function handlePayment() {
     setError("");
 
-    if (normalizedPromoCode && !hasPremiumDiscount) {
+    if (normalizedPromoCode && !isPremiumDiscountCode(normalizedPromoCode)) {
       setError("Code de reduction invalide.");
       return;
     }
@@ -63,7 +64,7 @@ export function PaymentClient({
           signupToken,
           slug,
           setupHelp,
-          promoCode: hasPremiumDiscount ? PREMIUM_DISCOUNT_CODE : "",
+          promoCode: hasPremiumDiscount ? effectivePromoCode : "",
         }),
       });
       const payload = await response
@@ -108,7 +109,7 @@ export function PaymentClient({
               setPromoCode(event.target.value.toUpperCase());
               setError("");
             }}
-            placeholder="LRT10"
+            placeholder="Code promo"
             className="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm uppercase outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
           />
           <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
@@ -120,7 +121,7 @@ export function PaymentClient({
         </div>
         {hasPremiumDiscount ? (
           <p className="text-sm text-emerald-700">
-            Code {PREMIUM_DISCOUNT_CODE} applique : -10% sur le premium. L&apos;aide
+            Code de reduction applique : -10% sur le premium. L&apos;aide
             parametrage reste a 19,99 EUR.
           </p>
         ) : null}

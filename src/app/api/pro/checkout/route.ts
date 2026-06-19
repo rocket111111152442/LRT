@@ -148,6 +148,9 @@ export async function POST(request: Request) {
       firebaseProjectId: validation.data.firebaseProjectId,
       firebaseStorageBucket: `${validation.data.firebaseProjectId}.appspot.com`,
       firebaseAppId: validation.data.firebaseAppId,
+      premiumDiscountCode: usesPremiumDiscountCode
+        ? PREMIUM_DISCOUNT_CODE
+        : null,
     };
 
     if (usesFreeAccessCode) {
@@ -162,10 +165,6 @@ export async function POST(request: Request) {
     const paymentParams = new URLSearchParams({
       inscriptionToken: signupToken,
     });
-
-    if (usesPremiumDiscountCode) {
-      paymentParams.set("promoCode", PREMIUM_DISCOUNT_CODE);
-    }
 
     return NextResponse.json({
       redirectUrl: `/pro/paiement?${paymentParams.toString()}`,

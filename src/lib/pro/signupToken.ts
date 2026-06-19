@@ -65,6 +65,7 @@ function readAccountData(payload: unknown): PaidProAccountData | null {
       "firebaseMessagingSenderId",
     ),
     firebaseAppId: readString(payload, "firebaseAppId"),
+    premiumDiscountCode: readOptionalString(payload, "premiumDiscountCode"),
   };
 
   if (
@@ -119,4 +120,3 @@ export function readSignupToken(token: string) {
     return null;
   }
 }
-

@@ -6,7 +6,6 @@ import {
   applyPremiumDiscountCents,
   isPremiumDiscountCode,
   normalizePromoCode,
-  PREMIUM_DISCOUNT_CODE,
   PREMIUM_DISCOUNT_PERCENT,
 } from "@/lib/pro/promoCodes";
 import { readSignupToken } from "@/lib/pro/signupToken";
@@ -88,7 +87,7 @@ function buildLineItems(input: {
         product_data: {
           name: "Compte pro LRT",
           description: hasPremiumDiscount
-            ? `Activation du compte ${input.companyName} avec code ${PREMIUM_DISCOUNT_CODE}.`
+            ? `Activation du compte ${input.companyName} avec reduction premium.`
             : `Activation du compte ${input.companyName}.`,
         },
         unit_amount: premiumPriceCents,
@@ -174,6 +173,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const effectivePromoCode = isPremiumDiscountCode(promoCode)
+      ? promoCode
+      : normalizePromoCode(signup.premiumDiscountCode);
+    const discountApplied = isPremiumDiscountCode(effectivePromoCode);
+
     try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const session = await stripe.checkout.sessions.create({
@@ -184,20 +188,19 @@ export async function POST(request: Request) {
         line_items: buildLineItems({
           companyName: signup.companyName,
           setupHelp,
-          promoCode,
+          promoCode: effectivePromoCode,
         }),
         metadata: {
           ...buildSignupMetadata(signup),
           setupHelp: setupHelp ? "1" : "0",
-          promoCode,
-          premiumDiscountPercent: isPremiumDiscountCode(promoCode)
+          premiumDiscountApplied: discountApplied ? "1" : "0",
+          premiumDiscountPercent: discountApplied
             ? String(PREMIUM_DISCOUNT_PERCENT)
             : "0",
         },
         success_url: successUrl(request, setupHelp),
         cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
           inscriptionToken: signupToken,
-          ...(promoCode ? { promoCode } : {}),
         }).toString()}`,
       });
 
@@ -253,7 +256,7 @@ export async function POST(request: Request) {
         metadata: {
           pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
-          promoCode,
+          premiumDiscountApplied: isPremiumDiscountCode(promoCode) ? "1" : "0",
           premiumDiscountPercent: isPremiumDiscountCode(promoCode)
             ? String(PREMIUM_DISCOUNT_PERCENT)
             : "0",
@@ -261,7 +264,6 @@ export async function POST(request: Request) {
         success_url: successUrl(request, setupHelp),
         cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
           inscription: pendingSignup.id,
-          ...(promoCode ? { promoCode } : {}),
         }).toString()}`,
       });
 
@@ -321,7 +323,7 @@ export async function POST(request: Request) {
       metadata: {
         proAccountId: proAccount.id,
         setupHelp: setupHelp ? "1" : "0",
-        promoCode,
+        premiumDiscountApplied: isPremiumDiscountCode(promoCode) ? "1" : "0",
         premiumDiscountPercent: isPremiumDiscountCode(promoCode)
           ? String(PREMIUM_DISCOUNT_PERCENT)
           : "0",
@@ -329,7 +331,6 @@ export async function POST(request: Request) {
       success_url: successUrl(request, setupHelp),
       cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
         compte: proAccount.slug,
-        ...(promoCode ? { promoCode } : {}),
       }).toString()}`,
     });
 

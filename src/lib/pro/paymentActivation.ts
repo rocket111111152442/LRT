@@ -16,6 +16,7 @@ export type PaidProAccountData = {
   firebaseStorageBucket?: string | null;
   firebaseMessagingSenderId?: string | null;
   firebaseAppId: string;
+  premiumDiscountCode?: string | null;
   stripeSessionId?: string | null;
 };
 
