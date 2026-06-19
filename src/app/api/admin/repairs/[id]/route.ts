@@ -16,6 +16,7 @@ import {
 } from "@/lib/repairValidation";
 import type {
   CustomerType as PrismaCustomerType,
+  Prisma,
   PartStatus as PrismaPartStatus,
   RepairPaymentStatus as PrismaRepairPaymentStatus,
   RepairStatus as PrismaRepairStatus,
@@ -188,6 +189,10 @@ function repairSelect() {
   } as const;
 }
 
+type RepairRecord = Prisma.RepairGetPayload<{
+  select: ReturnType<typeof repairSelect>;
+}>;
+
 async function getEvents(repairId: string) {
   return prisma.repairEvent.findMany({
     where: { repairId },
@@ -269,6 +274,10 @@ function readDateString(value: unknown) {
   }
 
   return null;
+}
+
+function readDateStringWithFallback(value: unknown) {
+  return readDateString(value) ?? new Date().toISOString();
 }
 
 function readRepairStatus(value: unknown): PrismaRepairStatus {
@@ -380,10 +389,23 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const repair = await prisma.repair.findUnique({
-    where: { id },
-    select: repairSelect(),
-  });
+  let repair: RepairRecord | null;
+
+  try {
+    repair = await prisma.repair.findUnique({
+      where: { id },
+      select: repairSelect(),
+    });
+  } catch (error) {
+    console.error("Repair detail lookup failed", error);
+    return NextResponse.json(
+      {
+        error:
+          "Chargement impossible. Verifiez la configuration Firebase ou redeployez le site pour appliquer les mises a jour.",
+      },
+      { status: 500 },
+    );
+  }
 
   if (!repair || (admin.user.proAccountId && repair.proAccountId !== admin.user.proAccountId)) {
     return NextResponse.json({ error: "Reparation introuvable." }, { status: 404 });
@@ -394,13 +416,13 @@ export async function GET(_request: Request, context: RouteContext) {
     events: normalizeEventsForResponse(await getEvents(repair.id)),
     inventoryItems: await getInventoryItems(repair.proAccountId),
     customerHistory: (await getCustomerHistory(repair)).map((item) => ({
-      id: item.id,
-      ticketNumber: item.ticketNumber,
-      deviceType: item.deviceType,
-      brand: item.brand,
-      model: item.model,
-      status: item.status,
-      createdAt: item.createdAt.toISOString(),
+      id: readString(item.id),
+      ticketNumber: readNullableString(item.ticketNumber),
+      deviceType: readString(item.deviceType, "-"),
+      brand: readString(item.brand),
+      model: readString(item.model),
+      status: readString(item.status, "PAS_ENCORE_EN_REPARATION"),
+      createdAt: readDateStringWithFallback(item.createdAt),
     })),
   });
 }
@@ -425,10 +447,23 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const currentRepair = await prisma.repair.findUnique({
-    where: { id },
-    select: repairSelect(),
-  });
+  let currentRepair: RepairRecord | null;
+
+  try {
+    currentRepair = await prisma.repair.findUnique({
+      where: { id },
+      select: repairSelect(),
+    });
+  } catch (error) {
+    console.error("Repair update lookup failed", error);
+    return NextResponse.json(
+      {
+        error:
+          "Mise a jour impossible. Verifiez la configuration Firebase ou redeployez le site pour appliquer les mises a jour.",
+      },
+      { status: 500 },
+    );
+  }
 
   if (
     !currentRepair ||
@@ -948,13 +983,13 @@ export async function PATCH(request: Request, context: RouteContext) {
     events: normalizeEventsForResponse(await getEvents(repair.id)),
     inventoryItems: await getInventoryItems(repair.proAccountId),
     customerHistory: (await getCustomerHistory(repair)).map((item) => ({
-      id: item.id,
-      ticketNumber: item.ticketNumber,
-      deviceType: item.deviceType,
-      brand: item.brand,
-      model: item.model,
-      status: item.status,
-      createdAt: item.createdAt.toISOString(),
+      id: readString(item.id),
+      ticketNumber: readNullableString(item.ticketNumber),
+      deviceType: readString(item.deviceType, "-"),
+      brand: readString(item.brand),
+      model: readString(item.model),
+      status: readString(item.status, "PAS_ENCORE_EN_REPARATION"),
+      createdAt: readDateStringWithFallback(item.createdAt),
     })),
     mail: {
       attempted: shouldSendStatusEmail,

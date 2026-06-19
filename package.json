@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "node scripts/prisma-migrate-on-vercel.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint src prisma next.config.ts middleware.ts eslint.config.mjs",
     "prisma:generate": "prisma generate",

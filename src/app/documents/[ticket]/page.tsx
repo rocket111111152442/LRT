@@ -2,10 +2,14 @@ import Link from "next/link";
 import { LrtLogo } from "@/components/LrtLogo";
 import { PrintButton } from "@/components/PrintButton";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "../../../../generated/prisma/client";
 
 type DocumentsPageProps = {
   params: Promise<{ ticket: string }>;
 };
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 function normalizeTicket(value: string) {
   const normalized = value
@@ -29,39 +33,76 @@ function formatPrice(cents: number | null | undefined) {
   }).format((cents ?? 0) / 100);
 }
 
-function formatDate(value: Date | null) {
+function formatDate(value: Date | string | number | null | undefined) {
   if (!value) {
+    return "-";
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
     return "-";
   }
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "long",
-  }).format(value);
+  }).format(date);
 }
+
+function documentRepairSelect() {
+  return {
+    ticketNumber: true,
+    firstName: true,
+    lastName: true,
+    phone: true,
+    email: true,
+    deviceType: true,
+    brand: true,
+    model: true,
+    issueDescription: true,
+    status: true,
+    estimatedPriceCents: true,
+    paidAmountCents: true,
+    paymentStatus: true,
+    warrantyUntil: true,
+    createdAt: true,
+  } as const;
+}
+
+type DocumentRepair = Prisma.RepairGetPayload<{
+  select: ReturnType<typeof documentRepairSelect>;
+}>;
 
 export default async function DocumentsPage({ params }: DocumentsPageProps) {
   const { ticket } = await params;
   const ticketNumber = normalizeTicket(ticket);
-  const repair = await prisma.repair.findUnique({
-    where: { ticketNumber },
-    select: {
-      ticketNumber: true,
-      firstName: true,
-      lastName: true,
-      phone: true,
-      email: true,
-      deviceType: true,
-      brand: true,
-      model: true,
-      issueDescription: true,
-      status: true,
-      estimatedPriceCents: true,
-      paidAmountCents: true,
-      paymentStatus: true,
-      warrantyUntil: true,
-      createdAt: true,
-    },
-  });
+  let repair: DocumentRepair | null;
+
+  try {
+    repair = await prisma.repair.findUnique({
+      where: { ticketNumber },
+      select: documentRepairSelect(),
+    });
+  } catch (error) {
+    console.error("Documents lookup failed", error);
+    return (
+      <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-xl gap-4 rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+          <p className="font-semibold">Document impossible a charger.</p>
+          <p>
+            La base de donnees n&apos;a pas repondu correctement. Rechargez la page
+            dans quelques minutes.
+          </p>
+          <Link
+            href="/suivi"
+            className="font-semibold text-red-950 underline-offset-4 hover:underline"
+          >
+            Retour au suivi
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   if (!repair) {
     return (
