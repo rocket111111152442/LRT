@@ -139,6 +139,8 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
   const [appointmentTime, setAppointmentTime] = useState("10:00");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [lastScheduledRepair, setLastScheduledRepair] =
+    useState<AgendaRepair | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const days = useMemo(() => buildMonthDays(currentMonth), [currentMonth]);
@@ -165,9 +167,15 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
     event.preventDefault();
     setMessage("");
     setError("");
+    setLastScheduledRepair(null);
 
     if (!selectedRepairId) {
       setError("Choisissez une reparation a placer.");
+      return;
+    }
+
+    if (!selectedRepair) {
+      setError("Cette fiche n'est plus disponible dans la liste a placer.");
       return;
     }
 
@@ -197,19 +205,19 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
       const expectedPickupAt =
         updated.expectedPickupAt ??
         new Date(`${appointmentDate}T${appointmentTime}:00`).toISOString();
+      const scheduledRepair = {
+        ...selectedRepair,
+        ...updated,
+        expectedPickupAt,
+      };
       setItems((current) =>
         current.map((repair) =>
-          repair.id === selectedRepairId
-            ? {
-                ...repair,
-                ...updated,
-                expectedPickupAt,
-              }
-            : repair,
+          repair.id === selectedRepairId ? scheduledRepair : repair,
         ),
       );
       setCurrentMonth(monthStart(dateFromInput(appointmentDate)));
       setSelectedRepairId("");
+      setLastScheduledRepair(scheduledRepair);
       setMessage("Reparation placee dans l'agenda.");
     } catch {
       setError("Placement impossible.");
@@ -381,6 +389,21 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
               <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
                 {message}
               </p>
+            ) : null}
+            {lastScheduledRepair?.expectedPickupAt ? (
+              <Link
+                href={`/admin/repairs/${lastScheduledRepair.id}`}
+                className="grid gap-1 rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm text-cyan-950 transition hover:border-cyan-300 hover:bg-cyan-100"
+              >
+                <span className="font-semibold">Rendez-vous ajoute</span>
+                <span>
+                  {formatFullDate(lastScheduledRepair.expectedPickupAt)} -{" "}
+                  {formatRepairTitle(lastScheduledRepair)}
+                </span>
+                <span className="text-xs font-semibold text-cyan-800">
+                  Ouvrir la fiche
+                </span>
+              </Link>
             ) : null}
             <button
               type="submit"
