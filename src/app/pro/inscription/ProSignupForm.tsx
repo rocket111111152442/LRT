@@ -12,6 +12,12 @@ import {
   isFreeAccessCode,
   isPremiumDiscountCode,
 } from "@/lib/pro/promoCodes";
+import {
+  parseShopOpeningHours,
+  SHOP_DAYS,
+  ShopDayKey,
+  stringifyShopOpeningHours,
+} from "@/lib/shopHours";
 
 const initialValues: ProSignupInput = {
   companyName: "",
@@ -27,7 +33,7 @@ const initialValues: ProSignupInput = {
   shopCountry: "",
   shopPhone: "",
   shopEmail: "",
-  shopOpeningHours: "",
+  shopOpeningHours: stringifyShopOpeningHours(parseShopOpeningHours(null)),
   shopLatitude: "",
   shopLongitude: "",
   shopCapacityPerDay: "8",
@@ -47,6 +53,7 @@ export function ProSignupForm() {
   const [showQrHelp, setShowQrHelp] = useState(false);
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
+  const openingHours = parseShopOpeningHours(values.shopOpeningHours);
 
   function updateField(name: keyof ProSignupInput, value: string) {
     setValues((current) => ({
@@ -60,6 +67,27 @@ export function ProSignupForm() {
     if (name !== "emailCode" && name !== "promoCode") {
       setCodeSent(false);
     }
+  }
+
+  function updateOpeningHours(
+    day: ShopDayKey,
+    patch: Partial<{ open: boolean; opensAt: string; closesAt: string }>,
+  ) {
+    setValues((current) => {
+      const schedule = parseShopOpeningHours(current.shopOpeningHours);
+
+      return {
+        ...current,
+        shopOpeningHours: stringifyShopOpeningHours({
+          ...schedule,
+          [day]: { ...schedule[day], ...patch },
+        }),
+      };
+    });
+    setErrors((current) => ({ ...current, shopOpeningHours: undefined }));
+    setSubmitError("");
+    setMessage("");
+    setCodeSent(false);
   }
 
   async function sendSignupCode(data: ProSignupInput) {
@@ -308,38 +336,65 @@ export function ProSignupForm() {
             error={errors.shopEmail}
             onChange={updateField}
           />
-          <TextField
-            name="shopOpeningHours"
-            label="Horaires d'ouverture"
-            value={values.shopOpeningHours ?? ""}
-            error={errors.shopOpeningHours}
-            onChange={updateField}
-            placeholder="Lun-sam 9h-19h"
-          />
-          <TextField
-            name="shopCapacityPerDay"
-            label="Places de reparation par jour"
-            type="number"
-            value={values.shopCapacityPerDay ?? "8"}
-            error={errors.shopCapacityPerDay}
-            onChange={updateField}
-          />
-          <TextField
-            name="shopLatitude"
-            label="Latitude optionnelle"
-            value={values.shopLatitude ?? ""}
-            error={errors.shopLatitude}
-            onChange={updateField}
-            placeholder="48.8566"
-          />
-          <TextField
-            name="shopLongitude"
-            label="Longitude optionnelle"
-            value={values.shopLongitude ?? ""}
-            error={errors.shopLongitude}
-            onChange={updateField}
-            placeholder="2.3522"
-          />
+        </div>
+        <div className="grid gap-3 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
+          <div className="grid gap-1">
+            <h2 className="text-base font-semibold text-slate-950">
+              Horaires d&apos;ouverture
+            </h2>
+            <p className="text-sm leading-6 text-slate-600">
+              Ces horaires serviront a proposer votre magasin seulement quand
+              il est ouvert.
+            </p>
+          </div>
+          <div className="grid gap-3">
+            {SHOP_DAYS.map((day) => {
+              const dayHours = openingHours[day.key];
+
+              return (
+                <div
+                  key={day.key}
+                  className="grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-[150px_1fr_1fr] sm:items-center"
+                >
+                  <label className="inline-flex items-center gap-3 text-sm font-semibold text-slate-900">
+                    <input
+                      type="checkbox"
+                      checked={dayHours.open}
+                      onChange={(event) =>
+                        updateOpeningHours(day.key, { open: event.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-sky-600"
+                    />
+                    {day.label}
+                  </label>
+                  <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Ouverture
+                    <input
+                      type="time"
+                      value={dayHours.opensAt}
+                      disabled={!dayHours.open}
+                      onChange={(event) =>
+                        updateOpeningHours(day.key, { opensAt: event.target.value })
+                      }
+                      className="min-h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Fermeture
+                    <input
+                      type="time"
+                      value={dayHours.closesAt}
+                      disabled={!dayHours.open}
+                      onChange={(event) =>
+                        updateOpeningHours(day.key, { closesAt: event.target.value })
+                      }
+                      className="min-h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  </label>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </fieldset>
 

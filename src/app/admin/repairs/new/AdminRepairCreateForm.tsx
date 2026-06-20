@@ -186,13 +186,13 @@ export function AdminRepairCreateForm() {
         <legend className="mb-3 text-base font-semibold text-slate-950">
           Appareil
         </legend>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex max-w-3xl flex-wrap gap-2">
           {issueTemplates.map((template) => (
             <button
               key={template}
               type="button"
               onClick={() => updateField("issueDescription", template)}
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+              className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold leading-5 text-sky-900 transition hover:border-sky-300 hover:bg-sky-100"
             >
               {template}
             </button>

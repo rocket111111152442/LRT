@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { PublicReviews } from "./PublicReviews";
-import { ShopLocator } from "./ShopLocator";
 
 const features = [
   "Formulaire client public avec QR code unique",
@@ -126,8 +125,8 @@ const faqs = [
     answer: "Oui. Chaque compte pro obtient un lien unique avec son identifiant.",
   },
   {
-    question: "Est-ce que je dois configurer Firebase ?",
-    answer: "Non. Firebase est une configuration technique cote Qoravo. L atelier cree simplement son compte pro.",
+    question: "Est-ce que ma boutique peut etre visible aux clients ?",
+    answer: "Oui. Vous renseignez l'adresse, le telephone, l'email et les horaires dans les parametres de votre compte pro.",
   },
   {
     question: "Le paiement est-il obligatoire ?",
@@ -181,10 +180,16 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/pro/inscription"
+                href="/pro"
                 className="rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               >
-                Creer mon compte pro
+                Je suis reparateur
+              </Link>
+              <Link
+                href="/client"
+                className="rounded-lg bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+              >
+                Je cherche un reparateur
               </Link>
               <Link
                 href="/admin/login"
@@ -199,7 +204,7 @@ export default function HomePage() {
                 Suivre une reparation
               </Link>
               <Link
-                href="/pro/inscription"
+                href="/pro"
                 className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Option assistance 9,99 EUR/an
@@ -221,8 +226,60 @@ export default function HomePage() {
       </section>
 
       <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <ShopLocator />
+        <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-2">
+          <article className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
+              Espace pro
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Creez votre compte atelier et gerez vos reparations.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              QR code, fiches client, devis, stock, agenda, emails de statut et
+              documents : tout est range pour travailler vite au comptoir.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href="/pro"
+                className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+              >
+                Voir l&apos;offre pro
+              </Link>
+              <Link
+                href="/admin/login"
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+              >
+                Connexion admin
+              </Link>
+            </div>
+          </article>
+          <article className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+              Espace client
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Trouvez un magasin ouvert et suivez votre reparation.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Activez votre localisation sur la page client pour trouver un
+              atelier disponible, puis envoyez une demande avec les infos de
+              votre appareil.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href="/client/magasins"
+                className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+              >
+                Trouver un magasin
+              </Link>
+              <Link
+                href="/suivi"
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+              >
+                Suivre une reparation
+              </Link>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -350,7 +407,7 @@ export default function HomePage() {
           <div>
             <h2 className="text-2xl font-semibold">Compte pro Qoravo</h2>
             <p className="mt-2 text-sm text-slate-300">
-              Paiement unique pour activer l&apos;espace admin et limiter les abus.
+              Abonnement annuel pour activer l&apos;espace admin et limiter les abus.
             </p>
           </div>
           <Link

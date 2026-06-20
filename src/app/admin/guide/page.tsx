@@ -108,7 +108,7 @@ export default async function AdminGuidePage() {
                 </div>
                 <Link
                   href={step.href}
-                  className="w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="w-fit rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
                 >
                   {step.action}
                 </Link>

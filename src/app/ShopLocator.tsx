@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Navigation, Phone, Send } from "lucide-react";
+import { Clock, MapPin, Navigation, Phone, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import {
+  formatOpeningHours,
+  isShopOpenAt,
+  todayOpeningLabel,
+} from "@/lib/shopHours";
 
 type Shop = {
   companyName: string;
@@ -89,8 +94,13 @@ export function ShopLocator() {
       .map((shop) => ({
         shop,
         distance: position ? distanceKm(position, shop) : null,
+        isOpenNow: isShopOpenAt(shop.openingHours),
       }))
       .sort((left, right) => {
+        if (left.isOpenNow !== right.isOpenNow) {
+          return left.isOpenNow ? -1 : 1;
+        }
+
         if (left.shop.hasAvailability !== right.shop.hasAvailability) {
           return left.shop.hasAvailability ? -1 : 1;
         }
@@ -110,6 +120,10 @@ export function ShopLocator() {
         return left.distance - right.distance;
       });
   }, [position, shops]);
+
+  const availableShops = sortedShops.filter(
+    ({ shop, isOpenNow }) => isOpenNow && shop.hasAvailability,
+  );
 
   function locateUser() {
     setStatus("");
@@ -153,7 +167,7 @@ export function ShopLocator() {
           className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
           <Navigation aria-hidden="true" className="h-4 w-4" />
-          Magasin autour de moi
+          Utiliser ma position
         </button>
       </div>
 
@@ -164,7 +178,7 @@ export function ShopLocator() {
       ) : null}
 
       <div className="mt-5 grid gap-3">
-        {sortedShops.slice(0, 4).map(({ shop, distance }) => (
+        {availableShops.slice(0, 4).map(({ shop, distance, isOpenNow }) => (
           <article
             key={shop.slug}
             className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[1fr_auto]"
@@ -174,6 +188,15 @@ export function ShopLocator() {
                 <h3 className="text-lg font-semibold text-slate-950">
                   {shop.companyName}
                 </h3>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    isOpenNow
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {isOpenNow ? "Ouvert maintenant" : "Ferme"}
+                </span>
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                     shop.hasAvailability
@@ -200,7 +223,13 @@ export function ShopLocator() {
                     {addressLabel(shop)}
                   </span>
                 ) : null}
-                {shop.openingHours ? <span>Horaires : {shop.openingHours}</span> : null}
+                <span className="inline-flex items-center gap-2">
+                  <Clock aria-hidden="true" className="h-4 w-4 text-cyan-600" />
+                  {todayOpeningLabel(shop.openingHours)}
+                </span>
+                <span className="text-xs text-slate-500">
+                  Semaine : {formatOpeningHours(shop.openingHours)}
+                </span>
                 {shop.phone ? (
                   <a className="inline-flex items-center gap-2 font-semibold text-slate-950" href={`tel:${shop.phone}`}>
                     <Phone aria-hidden="true" className="h-4 w-4 text-emerald-600" />
@@ -222,9 +251,10 @@ export function ShopLocator() {
           </article>
         ))}
 
-        {sortedShops.length === 0 ? (
+        {availableShops.length === 0 ? (
           <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-            Aucun magasin actif n&apos;est encore disponible dans la recherche.
+            Aucun magasin ouvert et disponible n&apos;est propose pour le moment.
+            Essayez plus tard ou choisissez un autre horaire avec l&apos;atelier.
           </p>
         ) : null}
       </div>

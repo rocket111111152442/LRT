@@ -1,6 +1,12 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import {
+  parseShopOpeningHours,
+  SHOP_DAYS,
+  ShopDayKey,
+  stringifyShopOpeningHours,
+} from "@/lib/shopHours";
 
 type Profile = {
   companyName: string;
@@ -14,9 +20,6 @@ type Profile = {
   shopPhone: string | null;
   shopEmail: string | null;
   shopOpeningHours: string | null;
-  shopLatitude: number | null;
-  shopLongitude: number | null;
-  shopCapacityPerDay: number;
 };
 
 type FormValues = Record<keyof Omit<Profile, "slug" | "ownerEmail">, string>;
@@ -30,10 +33,7 @@ const emptyValues: FormValues = {
   shopCountry: "",
   shopPhone: "",
   shopEmail: "",
-  shopOpeningHours: "",
-  shopLatitude: "",
-  shopLongitude: "",
-  shopCapacityPerDay: "8",
+  shopOpeningHours: stringifyShopOpeningHours(parseShopOpeningHours(null)),
 };
 
 function valuesFromProfile(profile: Profile): FormValues {
@@ -46,11 +46,9 @@ function valuesFromProfile(profile: Profile): FormValues {
     shopCountry: profile.shopCountry ?? "",
     shopPhone: profile.shopPhone ?? "",
     shopEmail: profile.shopEmail ?? profile.ownerEmail ?? "",
-    shopOpeningHours: profile.shopOpeningHours ?? "",
-    shopLatitude: profile.shopLatitude === null ? "" : String(profile.shopLatitude),
-    shopLongitude:
-      profile.shopLongitude === null ? "" : String(profile.shopLongitude),
-    shopCapacityPerDay: String(profile.shopCapacityPerDay ?? 8),
+    shopOpeningHours: stringifyShopOpeningHours(
+      parseShopOpeningHours(profile.shopOpeningHours),
+    ),
   };
 }
 
@@ -103,6 +101,25 @@ export function ProfileSettingsForm() {
     setError("");
   }
 
+  function updateOpeningHours(
+    day: ShopDayKey,
+    patch: Partial<{ open: boolean; opensAt: string; closesAt: string }>,
+  ) {
+    setValues((current) => {
+      const schedule = parseShopOpeningHours(current.shopOpeningHours);
+
+      return {
+        ...current,
+        shopOpeningHours: stringifyShopOpeningHours({
+          ...schedule,
+          [day]: { ...schedule[day], ...patch },
+        }),
+      };
+    });
+    setMessage("");
+    setError("");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -139,6 +156,8 @@ export function ProfileSettingsForm() {
     );
   }
 
+  const openingHours = parseShopOpeningHours(values.shopOpeningHours);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -154,16 +173,72 @@ export function ProfileSettingsForm() {
         <Field name="companyName" label="Nom du magasin" value={values.companyName} onChange={updateField} />
         <Field name="shopPhone" label="Telephone public" value={values.shopPhone} onChange={updateField} />
         <Field name="shopEmail" label="Email public" value={values.shopEmail} onChange={updateField} />
-        <Field name="shopOpeningHours" label="Horaires d'ouverture" value={values.shopOpeningHours} onChange={updateField} />
         <Field name="shopAddress" label="Adresse" value={values.shopAddress} onChange={updateField} />
         <Field name="shopPostalCode" label="Code postal" value={values.shopPostalCode} onChange={updateField} />
         <Field name="shopCity" label="Ville" value={values.shopCity} onChange={updateField} />
         <Field name="shopCountry" label="Pays" value={values.shopCountry} onChange={updateField} />
-        <Field name="shopLatitude" label="Latitude optionnelle" value={values.shopLatitude} onChange={updateField} />
-        <Field name="shopLongitude" label="Longitude optionnelle" value={values.shopLongitude} onChange={updateField} />
-        <Field name="shopCapacityPerDay" label="Places de reparation par jour" type="number" value={values.shopCapacityPerDay} onChange={updateField} />
         <Field name="publicDescription" label="Description publique" value={values.publicDescription} onChange={updateField} multiline />
       </div>
+
+      <section className="grid gap-3 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
+        <div className="grid gap-1">
+          <h2 className="text-base font-semibold text-slate-950">
+            Horaires d&apos;ouverture
+          </h2>
+          <p className="text-sm leading-6 text-slate-600">
+            Cochez les jours ouverts. Ces horaires servent a proposer votre
+            magasin uniquement quand il est ouvert.
+          </p>
+        </div>
+        <div className="grid gap-3">
+          {SHOP_DAYS.map((day) => {
+            const dayHours = openingHours[day.key];
+
+            return (
+              <div
+                key={day.key}
+                className="grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-[160px_1fr_1fr] sm:items-center"
+              >
+                <label className="inline-flex items-center gap-3 text-sm font-semibold text-slate-900">
+                  <input
+                    type="checkbox"
+                    checked={dayHours.open}
+                    onChange={(event) =>
+                      updateOpeningHours(day.key, { open: event.target.checked })
+                    }
+                    className="h-4 w-4 rounded border-slate-300 text-sky-600"
+                  />
+                  {day.label}
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Ouverture
+                  <input
+                    type="time"
+                    value={dayHours.opensAt}
+                    disabled={!dayHours.open}
+                    onChange={(event) =>
+                      updateOpeningHours(day.key, { opensAt: event.target.value })
+                    }
+                    className="min-h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Fermeture
+                  <input
+                    type="time"
+                    value={dayHours.closesAt}
+                    disabled={!dayHours.open}
+                    onChange={(event) =>
+                      updateOpeningHours(day.key, { closesAt: event.target.value })
+                    }
+                    className="min-h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {message ? (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">

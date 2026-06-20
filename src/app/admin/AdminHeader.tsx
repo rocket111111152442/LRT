@@ -24,16 +24,35 @@ type AdminHeaderProps = {
   supportIncluded?: boolean;
 };
 
-const navItems = [
-  { href: "/admin", label: "Reparations", icon: Wrench, tone: "text-sky-600" },
-  { href: "/admin/repairs/new", label: "Nouvelle", icon: PlusCircle, tone: "text-emerald-600" },
-  { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, tone: "text-amber-600" },
-  { href: "/admin/qr-code", label: "QR code", icon: QrCode, tone: "text-cyan-600" },
-  { href: "/admin/email", label: "Email", icon: Mail, tone: "text-blue-600" },
-  { href: "/admin/stock", label: "Stock", icon: Package, tone: "text-lime-600" },
-  { href: "/admin/parametres", label: "Parametres", icon: Settings, tone: "text-slate-700" },
-  { href: "/admin/guide", label: "Guide", icon: BookOpen, tone: "text-violet-600" },
+const navGroups = [
+  {
+    label: "Travail",
+    items: [
+      { href: "/admin", label: "Reparations", icon: Wrench, tone: "text-sky-600" },
+      { href: "/admin/repairs/new", label: "Nouvelle", icon: PlusCircle, tone: "text-emerald-600" },
+      { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, tone: "text-amber-600" },
+      { href: "/admin/stock", label: "Stock", icon: Package, tone: "text-lime-600" },
+    ],
+  },
+  {
+    label: "Configuration",
+    items: [
+      { href: "/admin/qr-code", label: "QR code", icon: QrCode, tone: "text-cyan-600" },
+      { href: "/admin/email", label: "Email", icon: Mail, tone: "text-blue-600" },
+      { href: "/admin/parametres", label: "Parametres", icon: Settings, tone: "text-slate-700" },
+      { href: "/", label: "Site public", icon: MapPinned, tone: "text-emerald-600" },
+    ],
+  },
+  {
+    label: "Aide",
+    items: [
+      { href: "/admin/guide", label: "Guide", icon: BookOpen, tone: "text-violet-600" },
+    ],
+  },
 ];
+
+const navLinkClassName =
+  "inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900";
 
 export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps) {
   function openTour() {
@@ -62,31 +81,34 @@ export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps
             Tableau atelier
           </span>
         </div>
-        <nav className="flex flex-wrap items-center gap-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900"
+        <nav className="grid gap-3">
+          <div className="flex flex-wrap items-start gap-3">
+            {navGroups.map((group) => (
+              <div
+                key={group.label}
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2"
               >
-                <Icon aria-hidden="true" className={`h-4 w-4 ${item.tone}`} />
-                {item.label}
-              </Link>
-            );
-          })}
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900"
-          >
-            <MapPinned aria-hidden="true" className="h-4 w-4 text-emerald-600" />
-            Site public
-          </Link>
+                <span className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {group.label}
+                </span>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <Link key={item.href} href={item.href} className={navLinkClassName}>
+                      <Icon aria-hidden="true" className={`h-4 w-4 ${item.tone}`} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
           {supportIncluded ? (
             <Link
               href="/service-client"
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
             >
               <LifeBuoy aria-hidden="true" className="h-4 w-4" />
               Support
@@ -95,7 +117,7 @@ export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps
           <button
             type="button"
             onClick={openTour}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100"
           >
             <Route aria-hidden="true" className="h-4 w-4 text-amber-600" />
             Tour
@@ -103,11 +125,12 @@ export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
           >
             <LogOut aria-hidden="true" className="h-4 w-4" />
             Deconnexion
           </button>
+          </div>
         </nav>
       </div>
       <ClientErrorBoundary name="First use tour" fallback={null}>
