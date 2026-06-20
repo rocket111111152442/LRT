@@ -114,6 +114,25 @@ const extraFeatures = [
 
 const extraFeatureCount = extraFeatures.length;
 
+const featureGroups = [
+  {
+    title: "Accueil client",
+    items: extraFeatures.slice(0, 15),
+  },
+  {
+    title: "Suivi atelier",
+    items: extraFeatures.slice(15, 30),
+  },
+  {
+    title: "Gestion et chiffres",
+    items: extraFeatures.slice(30, 45),
+  },
+  {
+    title: "Organisation quotidienne",
+    items: extraFeatures.slice(45),
+  },
+];
+
 const faqs = [
   {
     question: "Est-ce que le client a besoin d'un compte ?",
@@ -341,7 +360,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
+      <section className="border-y border-slate-200 bg-white px-4 py-14 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -356,18 +375,32 @@ export default function HomePage() {
               bon moment.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {extraFeatures.map((feature, index) => (
+          <div className="grid gap-5 lg:grid-cols-2">
+            {featureGroups.map((group, groupIndex) => (
               <article
-                key={feature}
-                className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+                key={group.title}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
               >
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="text-sm font-semibold leading-5 text-slate-950">
-                  {feature}
+                <h3 className="text-lg font-semibold text-slate-950">
+                  {group.title}
                 </h3>
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {group.items.map((feature, itemIndex) => {
+                    const number = groupIndex * 15 + itemIndex + 1;
+
+                    return (
+                      <li
+                        key={feature}
+                        className="flex gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-slate-700"
+                      >
+                        <span className="font-semibold text-sky-700">
+                          {String(number).padStart(2, "0")}
+                        </span>
+                        <span>{feature}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </article>
             ))}
           </div>
@@ -440,6 +473,23 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <footer className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <QoravoLogo />
+          <div className="flex flex-wrap gap-3 text-sm font-semibold text-slate-600">
+            <Link href="/pro" className="hover:text-slate-950">
+              Professionnels
+            </Link>
+            <Link href="/client" className="hover:text-slate-950">
+              Clients
+            </Link>
+            <Link href="/conditions-utilisation" className="hover:text-slate-950">
+              Conditions
+            </Link>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

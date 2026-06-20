@@ -1,8 +1,11 @@
+import Link from "next/link";
+
 type QoravoLogoProps = {
   className?: string;
   markClassName?: string;
   textClassName?: string;
   showText?: boolean;
+  href?: string;
 };
 
 export function QoravoLogo({
@@ -10,9 +13,14 @@ export function QoravoLogo({
   markClassName = "",
   textClassName = "text-slate-950",
   showText = true,
+  href = "/",
 }: QoravoLogoProps) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <Link
+      href={href}
+      aria-label="Retour a l'accueil"
+      className={`flex w-fit items-center gap-3 ${className}`}
+    >
       <svg
         viewBox="0 0 64 64"
         aria-hidden="true"
@@ -46,6 +54,6 @@ export function QoravoLogo({
           Qoravo
         </span>
       ) : null}
-    </div>
+    </Link>
   );
 }
