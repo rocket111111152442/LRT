@@ -247,6 +247,184 @@ async function findSetupAppointment(where: Dict) {
   return null;
 }
 
+function compareDate(value: unknown, condition: Dict) {
+  const date = value instanceof Date ? value : new Date(String(value ?? ""));
+
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  if (condition.gte && date < new Date(String(condition.gte))) {
+    return false;
+  }
+
+  if (condition.gt && date <= new Date(String(condition.gt))) {
+    return false;
+  }
+
+  if (condition.lte && date > new Date(String(condition.lte))) {
+    return false;
+  }
+
+  if (condition.lt && date >= new Date(String(condition.lt))) {
+    return false;
+  }
+
+  return true;
+}
+
+function matchesWhereValue(recordValue: unknown, condition: unknown) {
+  if (typeof condition !== "object" || condition === null || Array.isArray(condition)) {
+    return recordValue === condition;
+  }
+
+  const conditionDict = condition as Dict;
+
+  if ("notIn" in conditionDict && Array.isArray(conditionDict.notIn)) {
+    return !conditionDict.notIn.includes(recordValue);
+  }
+
+  if ("in" in conditionDict && Array.isArray(conditionDict.in)) {
+    return conditionDict.in.includes(recordValue);
+  }
+
+  if (
+    "gte" in conditionDict ||
+    "gt" in conditionDict ||
+    "lte" in conditionDict ||
+    "lt" in conditionDict
+  ) {
+    return compareDate(recordValue, conditionDict);
+  }
+
+  return true;
+}
+
+function matchesWhereObject(record: Dict, where: Dict | undefined) {
+  if (!where) {
+    return true;
+  }
+
+  return Object.entries(where).every(([field, condition]) =>
+    matchesWhereValue(record[field], condition),
+  );
+}
+
+function compareRecordsByOrder(left: Dict, right: Dict, orderBy: Dict | Dict[] | undefined) {
+  const order = Array.isArray(orderBy) ? orderBy[0] : orderBy;
+
+  if (!order) {
+    return 0;
+  }
+
+  const [field, direction] = Object.entries(order)[0] ?? [];
+
+  if (!field) {
+    return 0;
+  }
+
+  const leftValue = left[field];
+  const rightValue = right[field];
+  const leftComparable = leftValue instanceof Date ? leftValue.getTime() : leftValue;
+  const rightComparable = rightValue instanceof Date ? rightValue.getTime() : rightValue;
+  const result = String(leftComparable ?? "").localeCompare(String(rightComparable ?? ""));
+
+  return direction === "desc" ? -result : result;
+}
+
+function createGenericFirestoreModel(
+  collectionName: string,
+  defaults: Dict = {},
+  findUniqueFields: string[] = ["id"],
+) {
+  const model = {
+    async findMany(args: { where?: Dict; orderBy?: Dict | Dict[]; take?: number; select?: Dict } = {}) {
+      const snapshot = await collection(collectionName).get();
+      const records = snapshot.docs
+        .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+        .filter((record) => matchesWhereObject(record, args.where))
+        .sort((left, right) => compareRecordsByOrder(left, right, args.orderBy));
+
+      return records
+        .slice(0, args.take ?? records.length)
+        .map((record) => applySelect(record, args.select));
+    },
+    async findFirst(args: { where?: Dict; orderBy?: Dict | Dict[]; select?: Dict } = {}) {
+      const records = await model.findMany({ ...args, take: 1 });
+      return records[0] ?? null;
+    },
+    async findUnique(args: { where: Dict; select?: Dict }) {
+      for (const field of findUniqueFields) {
+        if (typeof args.where[field] === "string") {
+          const record =
+            field === "id"
+              ? await findById(collectionName, String(args.where[field]))
+              : await findByField(collectionName, field, args.where[field]);
+
+          return applySelect(record, args.select);
+        }
+      }
+
+      return null;
+    },
+    async create(args: { data: Dict; select?: Dict }) {
+      const id = typeof args.data.id === "string" ? args.data.id : randomUUID();
+      const timestamp = now();
+      const record = {
+        ...defaults,
+        ...args.data,
+        id,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      await collection(collectionName).doc(id).set(firestoreData(record));
+      return applySelect(record, args.select);
+    },
+    async update(args: { where: Dict; data: Dict; select?: Dict }) {
+      const existing = await model.findUnique({ where: args.where });
+
+      if (!existing) {
+        throw new Error(`${collectionName} record not found.`);
+      }
+
+      await collection(collectionName).doc(String((existing as Dict).id)).set(
+        firestoreData({
+          ...args.data,
+          updatedAt: now(),
+        }),
+        { merge: true },
+      );
+
+      return applySelect(
+        await findById(collectionName, String((existing as Dict).id)),
+        args.select,
+      );
+    },
+    async upsert(args: { where: Dict; update: Dict; create: Dict; select?: Dict }) {
+      const existing = await model.findUnique({ where: args.where });
+
+      if (existing) {
+        return model.update({ where: { id: (existing as Dict).id }, data: args.update, select: args.select });
+      }
+
+      return model.create({ data: args.create, select: args.select });
+    },
+    async delete(args: { where: Dict }) {
+      const existing = await model.findUnique({ where: args.where });
+
+      if (!existing) {
+        throw new Error(`${collectionName} record not found.`);
+      }
+
+      await collection(collectionName).doc(String((existing as Dict).id)).delete();
+      return existing;
+    },
+  };
+
+  return model;
+}
+
 function now() {
   return new Date();
 }
@@ -822,6 +1000,42 @@ function createFirestorePrisma() {
         return applySelect(review, args.select);
       },
     },
+
+    accountingSettings: createGenericFirestoreModel(
+      "accountingSettings",
+      {
+        country: "FR",
+        currency: "EUR",
+        vatEnabled: true,
+        defaultVatRateBps: 2000,
+        incomeTaxRateBps: 1500,
+        socialContributionRateBps: 2200,
+        employerContributionRateBps: 4200,
+        fiscalYearStartMonth: 1,
+        notes: null,
+      },
+      ["id", "proAccountId"],
+    ),
+
+    accountingSale: createGenericFirestoreModel("accountingSales", {
+      category: "AUTRE",
+      quantity: 1,
+      unitCostCents: 0,
+      vatRateBps: 2000,
+    }),
+
+    accountingExpense: createGenericFirestoreModel("accountingExpenses", {
+      category: "AUTRE",
+      deductibleVatCents: 0,
+    }),
+
+    accountingEmployee: createGenericFirestoreModel("accountingEmployees", {
+      grossMonthlySalaryCents: 0,
+      employerContributionRateBps: null,
+      active: true,
+    }),
+
+    accountingPayrollEntry: createGenericFirestoreModel("accountingPayrollEntries"),
 
     async $disconnect() {
       return undefined;

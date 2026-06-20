@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   BookOpen,
   CalendarDays,
+  Calculator,
   LifeBuoy,
   LogOut,
   Mail,
@@ -31,6 +32,7 @@ const navGroups = [
       { href: "/admin", label: "Reparations", icon: Wrench, tone: "text-sky-600" },
       { href: "/admin/repairs/new", label: "Nouvelle", icon: PlusCircle, tone: "text-emerald-600" },
       { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, tone: "text-amber-600" },
+      { href: "/admin/compta", label: "Compta", icon: Calculator, tone: "text-violet-600" },
       { href: "/admin/stock", label: "Stock", icon: Package, tone: "text-lime-600" },
     ],
   },

@@ -167,6 +167,11 @@ model ProAccount {
   repairs                   Repair[]
   inventoryItems            InventoryItem[]
   setupAppointments         SetupAppointment[]
+  accountingSettings        AccountingSettings?
+  accountingSales           AccountingSale[]
+  accountingExpenses        AccountingExpense[]
+  accountingEmployees       AccountingEmployee[]
+  accountingPayrollEntries  AccountingPayrollEntry[]
   createdAt                 DateTime      @default(now())
   updatedAt                 DateTime      @updatedAt
 }
@@ -290,4 +295,104 @@ model PublicReview {
 
   @@index([createdAt])
   @@index([rating])
+}
+
+model AccountingSettings {
+  id                          String      @id @default(cuid())
+  proAccountId                String?     @unique
+  proAccount                  ProAccount? @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  country                     String      @default("FR")
+  currency                    String      @default("EUR")
+  vatEnabled                  Boolean     @default(true)
+  defaultVatRateBps           Int         @default(2000)
+  incomeTaxRateBps            Int         @default(1500)
+  socialContributionRateBps   Int         @default(2200)
+  employerContributionRateBps Int         @default(4200)
+  fiscalYearStartMonth        Int         @default(1)
+  notes                       String?
+  createdAt                   DateTime    @default(now())
+  updatedAt                   DateTime    @updatedAt
+
+  @@index([proAccountId])
+}
+
+model AccountingSale {
+  id             String      @id @default(cuid())
+  proAccountId   String?
+  proAccount     ProAccount? @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  soldAt         DateTime    @default(now())
+  customerName   String?
+  label          String
+  category       String      @default("AUTRE")
+  quantity       Int         @default(1)
+  unitPriceCents Int
+  unitCostCents  Int         @default(0)
+  vatRateBps     Int         @default(2000)
+  paymentMethod  String?
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([proAccountId])
+  @@index([soldAt])
+  @@index([category])
+}
+
+model AccountingExpense {
+  id                 String      @id @default(cuid())
+  proAccountId       String?
+  proAccount         ProAccount? @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  spentAt            DateTime    @default(now())
+  label              String
+  category           String      @default("AUTRE")
+  amountCents        Int
+  deductibleVatCents Int         @default(0)
+  supplier           String?
+  notes              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([proAccountId])
+  @@index([spentAt])
+  @@index([category])
+}
+
+model AccountingEmployee {
+  id                       String                   @id @default(cuid())
+  proAccountId             String?
+  proAccount               ProAccount?              @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  firstName                String
+  lastName                 String
+  role                     String?
+  contractType             String?
+  grossMonthlySalaryCents  Int                      @default(0)
+  employerContributionRateBps Int?
+  active                   Boolean                  @default(true)
+  payrollEntries           AccountingPayrollEntry[]
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+
+  @@index([proAccountId])
+  @@index([active])
+  @@index([lastName])
+}
+
+model AccountingPayrollEntry {
+  id                          String              @id @default(cuid())
+  proAccountId                String?
+  proAccount                  ProAccount?          @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  employeeId                  String
+  employee                    AccountingEmployee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  periodStart                 DateTime
+  periodEnd                   DateTime
+  grossSalaryCents            Int
+  employerContributionsCents  Int
+  netPaidCents                Int
+  notes                       String?
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+
+  @@index([proAccountId])
+  @@index([employeeId])
+  @@index([periodStart])
 }
