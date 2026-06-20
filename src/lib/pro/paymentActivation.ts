@@ -26,6 +26,8 @@ export type PaidProAccountData = {
   shopLatitude?: number | null;
   shopLongitude?: number | null;
   shopCapacityPerDay?: number | null;
+  shopSlotDurationMinutes?: number | null;
+  shopMaxAppointmentsPerSlot?: number | null;
   premiumDiscountCode?: string | null;
   supportIncluded?: boolean;
   stripeSessionId?: string | null;
@@ -83,6 +85,10 @@ function readPaidProAccountData(
     shopLatitude: getNumberField(record, "shopLatitude"),
     shopLongitude: getNumberField(record, "shopLongitude"),
     shopCapacityPerDay: getNumberField(record, "shopCapacityPerDay") ?? 8,
+    shopSlotDurationMinutes:
+      getNumberField(record, "shopSlotDurationMinutes") ?? 60,
+    shopMaxAppointmentsPerSlot:
+      getNumberField(record, "shopMaxAppointmentsPerSlot") ?? 1,
     supportIncluded:
       getStringField(record, "supportIncluded") === "1" ||
       getStringField(record, "setupHelp") === "1",
@@ -129,6 +135,8 @@ export async function createPaidProAccount(data: PaidProAccountData) {
       shopLatitude: data.shopLatitude,
       shopLongitude: data.shopLongitude,
       shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
+      shopSlotDurationMinutes: data.shopSlotDurationMinutes ?? 60,
+      shopMaxAppointmentsPerSlot: data.shopMaxAppointmentsPerSlot ?? 1,
       paymentStatus: "PAID",
       stripeSessionId: data.stripeSessionId,
       users: {

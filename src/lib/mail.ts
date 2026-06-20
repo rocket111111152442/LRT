@@ -18,6 +18,15 @@ type CreatedRepairEmailInput = ReadyRepairEmailInput & {
   ticketNumber: string | null;
 };
 
+type ShopRepairRequestEmailInput = CreatedRepairEmailInput & {
+  shopEmail: string;
+  shopName: string;
+  phone: string;
+  issueDescription: string;
+  requestedAppointmentAt?: Date | null;
+  wantsPriceBeforeDeposit?: boolean;
+};
+
 type QuoteEmailInput = ReadyRepairEmailInput & {
   ticketNumber: string | null;
   estimatedPriceCents: number;
@@ -446,6 +455,45 @@ export async function sendRepairCreatedEmail(
   });
 }
 
+export async function sendShopRepairRequestEmail(
+  input: ShopRepairRequestEmailInput,
+): Promise<SendMailResult> {
+  const ticket = input.ticketNumber ?? "non attribue";
+  const device = `${input.deviceType} ${input.brand} ${input.model}`.trim();
+  const adminUrl = `${getPublicAppUrl()}/admin`;
+  const appointmentLabel = input.requestedAppointmentAt
+    ? new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "full",
+        timeStyle: "short",
+      }).format(input.requestedAppointmentAt)
+    : "Aucun creneau precis";
+  const text = [
+    `Nouvelle demande client pour ${input.shopName}`,
+    "",
+    `Ticket : ${ticket}`,
+    `Client : ${input.firstName}`,
+    `Email : ${input.email}`,
+    `Telephone : ${input.phone}`,
+    `Appareil : ${device}`,
+    `Creneau demande : ${appointmentLabel}`,
+    input.wantsPriceBeforeDeposit
+      ? "Le client veut recevoir un prix avant de deposer l'appareil."
+      : "Le client envoie une demande directe.",
+    "",
+    "Probleme :",
+    input.issueDescription,
+    "",
+    "Ouvrir l'admin :",
+    adminUrl,
+  ].join("\n");
+
+  return sendWithRepairSmtp({
+    to: input.shopEmail,
+    subject: `Nouvelle demande Qoravo ${ticket}`.trim(),
+    text,
+  });
+}
+
 export async function sendReviewRequestEmail(
   repair: ReviewEmailInput,
 ): Promise<SendMailResult> {
@@ -573,6 +621,15 @@ function buildRepairStatusEmail(repair: RepairStatusEmailInput) {
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
 
   switch (repair.status) {
+    case "PAS_ENCORE_RECU_CLIENT":
+      return {
+        subject: "Votre demande est acceptee",
+        lines: [
+          `Votre demande pour ${device} est enregistree.`,
+          "L'appareil n'a pas encore ete recu par le magasin.",
+          "Vous pouvez le deposer au creneau convenu avec l'atelier.",
+        ],
+      };
     case "PAS_ENCORE_EN_REPARATION":
       return {
         subject: "Votre reparation est bien enregistree",

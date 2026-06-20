@@ -92,6 +92,10 @@ function readAccountData(payload: unknown): PaidProAccountData | null {
     shopLatitude: readOptionalNumber(payload, "shopLatitude"),
     shopLongitude: readOptionalNumber(payload, "shopLongitude"),
     shopCapacityPerDay: readOptionalNumber(payload, "shopCapacityPerDay") ?? 8,
+    shopSlotDurationMinutes:
+      readOptionalNumber(payload, "shopSlotDurationMinutes") ?? 60,
+    shopMaxAppointmentsPerSlot:
+      readOptionalNumber(payload, "shopMaxAppointmentsPerSlot") ?? 1,
     premiumDiscountCode: readOptionalString(payload, "premiumDiscountCode"),
   };
 

@@ -20,6 +20,7 @@ type TrackedRepair = {
 };
 
 const steps = [
+  { status: "PAS_ENCORE_RECU_CLIENT", label: "Demande acceptee" },
   { status: "PAS_ENCORE_EN_REPARATION", label: "Recu" },
   { status: "EN_REPARATION", label: "Diagnostic / reparation" },
   { status: "EN_ATTENTE_PIECE", label: "Piece" },

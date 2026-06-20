@@ -185,6 +185,45 @@ export function AdminRepairsClient() {
   const refusedQuotesCount = repairs.filter(
     (repair) => repair.quoteStatus === "REFUSED",
   ).length;
+  const newShopRequests = repairs.filter(
+    (repair) => repair.status === "PAS_ENCORE_RECU_CLIENT",
+  );
+
+  useEffect(() => {
+    if (newShopRequests.length === 0 || typeof window === "undefined") {
+      return;
+    }
+
+    const storageKey = "qoravo-notified-shop-requests";
+    const alreadyNotified = new Set(
+      (window.localStorage.getItem(storageKey) ?? "")
+        .split(",")
+        .filter(Boolean),
+    );
+    const newest = newShopRequests.find((repair) => !alreadyNotified.has(repair.id));
+
+    if (!newest) {
+      return;
+    }
+
+    alreadyNotified.add(newest.id);
+    window.localStorage.setItem(storageKey, Array.from(alreadyNotified).join(","));
+
+    if (!("Notification" in window)) {
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      new Notification("Nouvelle demande Qoravo", {
+        body: `${newest.firstName} ${newest.lastName} - ${newest.deviceType} ${newest.brand}`,
+      });
+      return;
+    }
+
+    if (Notification.permission === "default") {
+      void Notification.requestPermission();
+    }
+  }, [newShopRequests]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -371,6 +410,42 @@ export function AdminRepairsClient() {
                   className="w-fit rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-800"
                 >
                   Voir
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {newShopRequests.length > 0 ? (
+        <div className="grid gap-3 rounded-lg border border-sky-200 bg-sky-50 p-4 shadow-sm">
+          <div>
+            <h2 className="text-base font-semibold text-sky-950">
+              Nouvelles demandes a traiter
+            </h2>
+            <p className="text-sm text-sky-800">
+              {newShopRequests.length} client(s) attendent une validation, un
+              prix ou un depot en magasin.
+            </p>
+          </div>
+          <div className="grid gap-2">
+            {newShopRequests.slice(0, 5).map((repair) => (
+              <div
+                key={`shop-request-${repair.id}`}
+                className="flex flex-col gap-2 rounded-md border border-sky-200 bg-white px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+              >
+                <span className="text-slate-800">
+                  <strong className="text-slate-950">
+                    {repair.ticketNumber ?? repair.id.slice(0, 8)}
+                  </strong>{" "}
+                  - {repair.firstName} {repair.lastName}, {repair.deviceType}{" "}
+                  {repair.brand} {repair.model}
+                </span>
+                <Link
+                  href={`/admin/repairs/${repair.id}`}
+                  className="w-fit rounded-md bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-800"
+                >
+                  Traiter
                 </Link>
               </div>
             ))}

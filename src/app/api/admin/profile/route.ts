@@ -15,6 +15,8 @@ const editableFields = [
   "shopLatitude",
   "shopLongitude",
   "shopCapacityPerDay",
+  "shopSlotDurationMinutes",
+  "shopMaxAppointmentsPerSlot",
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -53,6 +55,8 @@ function profileSelect() {
     shopLatitude: true,
     shopLongitude: true,
     shopCapacityPerDay: true,
+    shopSlotDurationMinutes: true,
+    shopMaxAppointmentsPerSlot: true,
   };
 }
 
@@ -99,6 +103,14 @@ export async function PATCH(request: Request) {
   }
 
   const shopCapacityPerDay = readOptionalNumber(body, "shopCapacityPerDay");
+  const shopSlotDurationMinutes = readOptionalNumber(
+    body,
+    "shopSlotDurationMinutes",
+  );
+  const shopMaxAppointmentsPerSlot = readOptionalNumber(
+    body,
+    "shopMaxAppointmentsPerSlot",
+  );
 
   if (
     shopCapacityPerDay !== null &&
@@ -106,6 +118,30 @@ export async function PATCH(request: Request) {
   ) {
     return NextResponse.json(
       { error: "La capacite doit etre un nombre entier positif." },
+      { status: 400 },
+    );
+  }
+
+  if (
+    shopSlotDurationMinutes !== null &&
+    (!Number.isInteger(shopSlotDurationMinutes) ||
+      shopSlotDurationMinutes < 15 ||
+      shopSlotDurationMinutes > 240)
+  ) {
+    return NextResponse.json(
+      { error: "La duree d'un creneau doit etre entre 15 et 240 minutes." },
+      { status: 400 },
+    );
+  }
+
+  if (
+    shopMaxAppointmentsPerSlot !== null &&
+    (!Number.isInteger(shopMaxAppointmentsPerSlot) ||
+      shopMaxAppointmentsPerSlot < 1 ||
+      shopMaxAppointmentsPerSlot > 20)
+  ) {
+    return NextResponse.json(
+      { error: "Le nombre de rendez-vous par creneau doit etre entre 1 et 20." },
       { status: 400 },
     );
   }
@@ -123,6 +159,8 @@ export async function PATCH(request: Request) {
     shopLatitude: readOptionalNumber(body, "shopLatitude"),
     shopLongitude: readOptionalNumber(body, "shopLongitude"),
     shopCapacityPerDay: shopCapacityPerDay ?? 8,
+    shopSlotDurationMinutes: shopSlotDurationMinutes ?? 60,
+    shopMaxAppointmentsPerSlot: shopMaxAppointmentsPerSlot ?? 1,
   };
 
   if (!data.companyName) {

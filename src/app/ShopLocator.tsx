@@ -24,6 +24,9 @@ type Shop = {
   longitude: number | null;
   capacityPerDay: number;
   activeRepairs: number;
+  isOpenNow: boolean;
+  availableSlots: string[];
+  slotDurationMinutes: number;
   hasAvailability: boolean;
 };
 
@@ -59,6 +62,63 @@ function addressLabel(shop: Shop) {
     .join(", ");
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readString(value: unknown) {
+  return typeof value === "string" ? value : null;
+}
+
+function readNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizeShops(value: unknown): Shop[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(isRecord).map((shop) => ({
+    companyName: readString(shop.companyName) ?? "Atelier",
+    slug: readString(shop.slug) ?? "",
+    description: readString(shop.description),
+    address: readString(shop.address),
+    postalCode: readString(shop.postalCode),
+    city: readString(shop.city),
+    country: readString(shop.country),
+    phone: readString(shop.phone),
+    email: readString(shop.email),
+    openingHours: readString(shop.openingHours),
+    latitude: readNumber(shop.latitude),
+    longitude: readNumber(shop.longitude),
+    capacityPerDay: readNumber(shop.capacityPerDay) ?? 8,
+    activeRepairs: readNumber(shop.activeRepairs) ?? 0,
+    isOpenNow: shop.isOpenNow === true,
+    availableSlots: Array.isArray(shop.availableSlots)
+      ? shop.availableSlots.filter((slot): slot is string => typeof slot === "string")
+      : [],
+    slotDurationMinutes: readNumber(shop.slotDurationMinutes) ?? 60,
+    hasAvailability: shop.hasAvailability === true,
+  }));
+}
+
+function formatSlot(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function ShopLocator() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [position, setPosition] = useState<Position | null>(null);
@@ -73,7 +133,7 @@ export function ShopLocator() {
         const payload = await response.json();
 
         if (!ignore) {
-          setShops(Array.isArray(payload.shops) ? payload.shops : []);
+          setShops(normalizeShops(payload.shops));
         }
       } catch {
         if (!ignore) {
@@ -94,15 +154,15 @@ export function ShopLocator() {
       .map((shop) => ({
         shop,
         distance: position ? distanceKm(position, shop) : null,
-        isOpenNow: isShopOpenAt(shop.openingHours),
+        isOpenNow: shop.isOpenNow || isShopOpenAt(shop.openingHours),
       }))
       .sort((left, right) => {
-        if (left.isOpenNow !== right.isOpenNow) {
-          return left.isOpenNow ? -1 : 1;
-        }
-
         if (left.shop.hasAvailability !== right.shop.hasAvailability) {
           return left.shop.hasAvailability ? -1 : 1;
+        }
+
+        if (left.isOpenNow !== right.isOpenNow) {
+          return left.isOpenNow ? -1 : 1;
         }
 
         if (left.distance === null && right.distance === null) {
@@ -149,7 +209,7 @@ export function ShopLocator() {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="grid gap-2">
+              <div className="grid gap-2">
           <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
             Trouver un reparateur
           </p>
@@ -238,14 +298,30 @@ export function ShopLocator() {
                 ) : null}
                 {shop.email ? <span>Email : {shop.email}</span> : null}
               </div>
+              <div className="mt-2 grid gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Prochains creneaux
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {shop.availableSlots.slice(0, 4).map((slot) => (
+                    <Link
+                      key={slot}
+                      href={`/nouvelle-reparation?compte=${shop.slug}&creneau=${encodeURIComponent(slot)}`}
+                      className="rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-50"
+                    >
+                      {formatSlot(slot)}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="flex items-center">
               <Link
-                href={`/nouvelle-reparation?compte=${shop.slug}`}
+                href={`/client/magasins/${shop.slug}`}
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
               >
                 <Send aria-hidden="true" className="h-4 w-4" />
-                Envoyer ma demande
+                Voir et envoyer
               </Link>
             </div>
           </article>

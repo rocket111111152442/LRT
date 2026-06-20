@@ -426,6 +426,28 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     });
   }
 
+  async function handleAcceptClientRequest() {
+    await patchRepair({
+      status: "PAS_ENCORE_EN_REPARATION",
+      internalNotes: internalNotes || "Demande client acceptee par l'atelier.",
+    });
+  }
+
+  async function handleRefuseClientRequest() {
+    const confirmed = window.confirm(
+      "Refuser cette demande client et l'annuler ?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await patchRepair({
+      status: "ANNULE",
+      internalNotes: internalNotes || "Demande client refusee par l'atelier.",
+    });
+  }
+
   async function handleArchive() {
     const updatedRepair = await patchRepair({ archived: true });
 
@@ -800,6 +822,37 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           className="grid content-start gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
         >
           <h2 className="text-xl font-semibold text-slate-950">Gestion</h2>
+          {repair.status === "PAS_ENCORE_RECU_CLIENT" ? (
+            <div className="grid gap-3 rounded-md border border-sky-200 bg-sky-50 p-3">
+              <div>
+                <p className="text-sm font-semibold text-sky-950">
+                  Demande client avant depot
+                </p>
+                <p className="mt-1 text-xs leading-5 text-sky-800">
+                  Acceptez la demande pour attendre le depot en magasin, envoyez
+                  un devis si le prix doit etre valide, ou refusez la demande.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleAcceptClientRequest}
+                  disabled={isSaving}
+                  className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  Accepter la demande
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRefuseClientRequest}
+                  disabled={isSaving}
+                  className="rounded-md border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                >
+                  Refuser
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
             <CheckField
               label="Priorite urgente"

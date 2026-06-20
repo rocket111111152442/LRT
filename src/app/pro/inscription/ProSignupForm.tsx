@@ -37,6 +37,8 @@ const initialValues: ProSignupInput = {
   shopLatitude: "",
   shopLongitude: "",
   shopCapacityPerDay: "8",
+  shopSlotDurationMinutes: "60",
+  shopMaxAppointmentsPerSlot: "1",
   promoCode: "",
   emailCode: "",
   emailVerificationId: "",

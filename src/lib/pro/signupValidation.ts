@@ -16,6 +16,8 @@ export type ProSignupInput = {
   shopLatitude?: string;
   shopLongitude?: string;
   shopCapacityPerDay?: string;
+  shopSlotDurationMinutes?: string;
+  shopMaxAppointmentsPerSlot?: string;
   promoCode?: string;
   emailCode?: string;
   emailVerificationId?: string;
@@ -68,6 +70,10 @@ export function validateProSignupInput(input: unknown):
     shopLatitude: readText(input, "shopLatitude") || undefined,
     shopLongitude: readText(input, "shopLongitude") || undefined,
     shopCapacityPerDay: readText(input, "shopCapacityPerDay") || undefined,
+    shopSlotDurationMinutes:
+      readText(input, "shopSlotDurationMinutes") || undefined,
+    shopMaxAppointmentsPerSlot:
+      readText(input, "shopMaxAppointmentsPerSlot") || undefined,
     promoCode: readText(input, "promoCode").toUpperCase() || undefined,
     emailCode: readText(input, "emailCode").replace(/\D/g, "").slice(0, 6),
     emailVerificationId: readText(input, "emailVerificationId") || undefined,
@@ -95,6 +101,24 @@ export function validateProSignupInput(input: unknown):
 
   if (data.shopCapacityPerDay && (!Number.isInteger(capacity) || capacity < 1)) {
     errors.shopCapacityPerDay = "Capacite invalide.";
+  }
+
+  const slotDuration = Number(data.shopSlotDurationMinutes ?? "60");
+
+  if (
+    data.shopSlotDurationMinutes &&
+    (!Number.isInteger(slotDuration) || slotDuration < 15 || slotDuration > 240)
+  ) {
+    errors.shopSlotDurationMinutes = "Duree de creneau invalide.";
+  }
+
+  const maxAppointments = Number(data.shopMaxAppointmentsPerSlot ?? "1");
+
+  if (
+    data.shopMaxAppointmentsPerSlot &&
+    (!Number.isInteger(maxAppointments) || maxAppointments < 1 || maxAppointments > 20)
+  ) {
+    errors.shopMaxAppointmentsPerSlot = "Nombre de rendez-vous invalide.";
   }
 
   for (const key of ["shopLatitude", "shopLongitude"] as const) {

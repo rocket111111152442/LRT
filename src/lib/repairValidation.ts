@@ -1,4 +1,5 @@
 export const REPAIR_STATUSES = [
+  "PAS_ENCORE_RECU_CLIENT",
   "PAS_ENCORE_EN_REPARATION",
   "EN_REPARATION",
   "EN_ATTENTE_PIECE",
@@ -33,6 +34,8 @@ export type RepairInput = {
   unlockCodeOrNote?: string;
   photos?: string[];
   customerDropOffSignature?: string;
+  requestedAppointmentAt?: string;
+  wantsPriceBeforeDeposit?: boolean;
 };
 
 export type RepairInputErrors = Partial<Record<keyof RepairInput, string>>;
@@ -42,7 +45,14 @@ type ValidationResult =
   | { ok: false; errors: RepairInputErrors };
 
 const requiredFields: Array<
-  keyof Omit<RepairInput, "unlockCodeOrNote" | "photos" | "customerDropOffSignature">
+  keyof Omit<
+    RepairInput,
+    | "unlockCodeOrNote"
+    | "photos"
+    | "customerDropOffSignature"
+    | "requestedAppointmentAt"
+    | "wantsPriceBeforeDeposit"
+  >
 > = [
   "firstName",
   "lastName",
@@ -66,6 +76,8 @@ const fieldLabels: Record<keyof RepairInput, string> = {
   unlockCodeOrNote: "Le code ou la note de deverrouillage",
   photos: "Les photos",
   customerDropOffSignature: "La signature client",
+  requestedAppointmentAt: "Le creneau demande",
+  wantsPriceBeforeDeposit: "La demande de prix",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -91,6 +103,24 @@ function readDataUrls(source: Record<string, unknown>, key: keyof RepairInput) {
     .slice(0, 3);
 }
 
+function readBoolean(source: Record<string, unknown>, key: keyof RepairInput) {
+  return source[key] === true || source[key] === "true";
+}
+
+function readOptionalDateString(
+  source: Record<string, unknown>,
+  key: keyof RepairInput,
+) {
+  const value = readText(source, key);
+
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -112,6 +142,8 @@ export function emptyRepairInput(): RepairInput {
     unlockCodeOrNote: "",
     photos: [],
     customerDropOffSignature: "",
+    requestedAppointmentAt: "",
+    wantsPriceBeforeDeposit: true,
   };
 }
 
@@ -138,6 +170,8 @@ export function validateRepairInput(input: unknown): ValidationResult {
     photos: readDataUrls(input, "photos"),
     customerDropOffSignature:
       readText(input, "customerDropOffSignature") || undefined,
+    requestedAppointmentAt: readOptionalDateString(input, "requestedAppointmentAt"),
+    wantsPriceBeforeDeposit: readBoolean(input, "wantsPriceBeforeDeposit"),
   };
 
   const errors: RepairInputErrors = {};
@@ -171,6 +205,14 @@ export function validateRepairInput(input: unknown): ValidationResult {
       data.customerDropOffSignature.length > 300000)
   ) {
     errors.customerDropOffSignature = "Signature invalide.";
+  }
+
+  if (data.requestedAppointmentAt) {
+    const requestedAt = new Date(data.requestedAppointmentAt);
+
+    if (Number.isNaN(requestedAt.getTime()) || requestedAt <= new Date()) {
+      errors.requestedAppointmentAt = "Choisissez un creneau futur.";
+    }
   }
 
   if (Object.keys(errors).length > 0) {

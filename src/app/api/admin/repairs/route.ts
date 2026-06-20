@@ -103,6 +103,8 @@ export async function POST(request: Request) {
   try {
     const repairData = { ...validation.data };
     delete repairData.customerDropOffSignature;
+    delete repairData.requestedAppointmentAt;
+    delete repairData.wantsPriceBeforeDeposit;
     const expressMode = body && typeof body === "object" && "expressMode" in body
       ? (body as Record<string, unknown>).expressMode === true
       : false;

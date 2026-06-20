@@ -170,6 +170,14 @@ export async function POST(request: Request) {
         Number(validation.data.shopCapacityPerDay ?? "8") > 0
           ? Number(validation.data.shopCapacityPerDay ?? "8")
           : 8,
+      shopSlotDurationMinutes:
+        Number(validation.data.shopSlotDurationMinutes ?? "60") >= 15
+          ? Number(validation.data.shopSlotDurationMinutes ?? "60")
+          : 60,
+      shopMaxAppointmentsPerSlot:
+        Number(validation.data.shopMaxAppointmentsPerSlot ?? "1") > 0
+          ? Number(validation.data.shopMaxAppointmentsPerSlot ?? "1")
+          : 1,
       premiumDiscountCode: usesPremiumDiscountCode
         ? PREMIUM_DISCOUNT_CODE
         : null,

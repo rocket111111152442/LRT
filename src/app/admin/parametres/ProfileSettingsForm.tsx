@@ -20,6 +20,10 @@ type Profile = {
   shopPhone: string | null;
   shopEmail: string | null;
   shopOpeningHours: string | null;
+  shopLatitude: number | null;
+  shopLongitude: number | null;
+  shopSlotDurationMinutes: number;
+  shopMaxAppointmentsPerSlot: number;
 };
 
 type FormValues = Record<keyof Omit<Profile, "slug" | "ownerEmail">, string>;
@@ -34,6 +38,10 @@ const emptyValues: FormValues = {
   shopPhone: "",
   shopEmail: "",
   shopOpeningHours: stringifyShopOpeningHours(parseShopOpeningHours(null)),
+  shopLatitude: "",
+  shopLongitude: "",
+  shopSlotDurationMinutes: "60",
+  shopMaxAppointmentsPerSlot: "1",
 };
 
 function valuesFromProfile(profile: Profile): FormValues {
@@ -49,6 +57,12 @@ function valuesFromProfile(profile: Profile): FormValues {
     shopOpeningHours: stringifyShopOpeningHours(
       parseShopOpeningHours(profile.shopOpeningHours),
     ),
+    shopLatitude:
+      typeof profile.shopLatitude === "number" ? String(profile.shopLatitude) : "",
+    shopLongitude:
+      typeof profile.shopLongitude === "number" ? String(profile.shopLongitude) : "",
+    shopSlotDurationMinutes: String(profile.shopSlotDurationMinutes ?? 60),
+    shopMaxAppointmentsPerSlot: String(profile.shopMaxAppointmentsPerSlot ?? 1),
   };
 }
 
@@ -120,6 +134,31 @@ export function ProfileSettingsForm() {
     setError("");
   }
 
+  function useCurrentPositionForShop() {
+    setMessage("");
+    setError("");
+
+    if (!navigator.geolocation) {
+      setError("Votre navigateur ne permet pas d'enregistrer la position GPS.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (result) => {
+        setValues((current) => ({
+          ...current,
+          shopLatitude: String(result.coords.latitude),
+          shopLongitude: String(result.coords.longitude),
+        }));
+        setMessage(
+          "Position GPS ajoutee. Cliquez sur Enregistrer pour la publier.",
+        );
+      },
+      () => setError("Position GPS refusee ou indisponible."),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -179,6 +218,59 @@ export function ProfileSettingsForm() {
         <Field name="shopCountry" label="Pays" value={values.shopCountry} onChange={updateField} />
         <Field name="publicDescription" label="Description publique" value={values.publicDescription} onChange={updateField} multiline />
       </div>
+
+      <section className="grid gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+        <div className="grid gap-1">
+          <h2 className="text-base font-semibold text-slate-950">
+            Disponibilites et rendez-vous
+          </h2>
+          <p className="text-sm leading-6 text-slate-600">
+            Ces reglages servent a dire si le magasin a encore de la place.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            name="shopSlotDurationMinutes"
+            label="Duree d'un creneau en minutes"
+            type="number"
+            value={values.shopSlotDurationMinutes}
+            onChange={updateField}
+          />
+          <Field
+            name="shopMaxAppointmentsPerSlot"
+            label="Rendez-vous maximum par creneau"
+            type="number"
+            value={values.shopMaxAppointmentsPerSlot}
+            onChange={updateField}
+          />
+        </div>
+      </section>
+
+      <section className="grid gap-3 rounded-xl border border-cyan-100 bg-cyan-50/60 p-4">
+        <div className="grid gap-1">
+          <h2 className="text-base font-semibold text-slate-950">
+            Position du magasin
+          </h2>
+          <p className="text-sm leading-6 text-slate-600">
+            Elle sert uniquement a classer votre boutique par distance quand un
+            client cherche un reparateur proche de lui.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={useCurrentPositionForShop}
+            className="min-h-10 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700"
+          >
+            Enregistrer ma position actuelle
+          </button>
+          <span className="text-sm text-slate-600">
+            {values.shopLatitude && values.shopLongitude
+              ? "Position GPS prete a etre enregistree."
+              : "Aucune position GPS enregistree."}
+          </span>
+        </div>
+      </section>
 
       <section className="grid gap-3 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
         <div className="grid gap-1">

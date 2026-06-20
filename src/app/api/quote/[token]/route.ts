@@ -75,6 +75,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     data: {
       quoteStatus: action,
       quoteRespondedAt: new Date(),
+      ...(action === "ACCEPTED" ? { status: "PAS_ENCORE_RECU_CLIENT" } : {}),
     },
     select: quoteSelect(),
   });

@@ -556,6 +556,9 @@ function createFirestorePrisma() {
           id,
           supportIncluded: data.supportIncluded ?? false,
           paymentStatus: data.paymentStatus ?? "PENDING",
+          shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
+          shopSlotDurationMinutes: data.shopSlotDurationMinutes ?? 60,
+          shopMaxAppointmentsPerSlot: data.shopMaxAppointmentsPerSlot ?? 1,
           createdAt: timestamp,
           updatedAt: timestamp,
         };
@@ -629,6 +632,9 @@ function createFirestorePrisma() {
         const pendingSignup = {
           ...args.data,
           id,
+          shopCapacityPerDay: args.data.shopCapacityPerDay ?? 8,
+          shopSlotDurationMinutes: args.data.shopSlotDurationMinutes ?? 60,
+          shopMaxAppointmentsPerSlot: args.data.shopMaxAppointmentsPerSlot ?? 1,
           createdAt: timestamp,
           updatedAt: timestamp,
         };

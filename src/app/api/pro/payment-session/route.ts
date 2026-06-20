@@ -87,6 +87,14 @@ function buildSignupMetadata(data: PaidProAccountData) {
       typeof data.shopCapacityPerDay === "number"
         ? String(data.shopCapacityPerDay)
         : null,
+    shopSlotDurationMinutes:
+      typeof data.shopSlotDurationMinutes === "number"
+        ? String(data.shopSlotDurationMinutes)
+        : null,
+    shopMaxAppointmentsPerSlot:
+      typeof data.shopMaxAppointmentsPerSlot === "number"
+        ? String(data.shopMaxAppointmentsPerSlot)
+        : null,
   })) {
     if (value) {
       metadata[key] = value;
