@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-const PREMIUM_FULL_PRICE_CENTS = 4999;
+const PREMIUM_FULL_PRICE_CENTS = 8999;
 
 export async function restoreFullPremiumPriceForRenewals(
   stripe: Stripe,

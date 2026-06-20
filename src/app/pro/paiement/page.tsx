@@ -99,7 +99,7 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
               Votre compte est pret, il reste l activation.
             </h1>
             <p className="text-sm leading-6 text-slate-700">
-              L&apos;abonnement annuel de 49,99 EUR sert a activer le compte pro et
+              L&apos;abonnement annuel de 89,99 EUR sert a activer le compte pro et
               a eviter la creation massive de comptes inutiles. A ce stade,
               aucun compte admin n est encore cree. Il sera cree automatiquement
               apres le paiement reussi.

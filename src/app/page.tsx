@@ -20,7 +20,6 @@ const features = [
   "Facture et recu imprimables en PDF navigateur",
   "Garantie et retours sous garantie",
   "Page vitrine publique par atelier",
-  "Grosses mises a jour tous les mois avec de nouvelles fonctionnalites",
 ];
 
 const workflow = [
@@ -160,7 +159,7 @@ export default function HomePage() {
             </p>
             <dl className="mt-6 grid max-w-xl grid-cols-3 gap-3 text-sm">
               <div className="border-l border-white/40 pl-3">
-                <dt className="text-2xl font-semibold">49,99 EUR</dt>
+                <dt className="text-2xl font-semibold">89,99 EUR</dt>
                 <dd className="text-slate-200">par an</dd>
               </div>
               <div className="border-l border-white/40 pl-3">
@@ -172,12 +171,6 @@ export default function HomePage() {
                 <dd className="text-slate-200">a trier</dd>
               </div>
             </dl>
-            <p className="mt-4 inline-flex rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
-              Satisfait ou rembourse
-            </p>
-            <p className="mt-3 inline-flex rounded-full border border-cyan-300/50 bg-cyan-300/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
-              Grosses mises a jour tous les mois pour ajouter de nouvelles fonctionnalites
-            </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="#espaces"

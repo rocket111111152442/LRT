@@ -8,7 +8,7 @@ import {
   normalizePromoCode,
 } from "@/lib/pro/promoCodes";
 
-const PRO_PRICE_CENTS = 4999;
+const PRO_PRICE_CENTS = 8999;
 const SETUP_HELP_PRICE_CENTS = 999;
 
 function formatPrice(cents: number) {
