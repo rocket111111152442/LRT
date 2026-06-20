@@ -88,10 +88,6 @@ export default function ProLandingPage() {
               Inclus
             </p>
             <p className="mt-3 text-3xl font-semibold">Satisfait ou rembourse</p>
-            <p className="mt-3 text-sm leading-6 text-slate-200">
-              Le code promo QORAVO10 applique -10% sur la premiere annee du
-              premium seulement. L&apos;option assistance reste au prix normal.
-            </p>
           </aside>
         </div>
       </section>
