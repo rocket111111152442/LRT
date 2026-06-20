@@ -394,7 +394,7 @@ export function AccountingClient() {
   const summary = payload?.summary ?? {};
 
   return (
-    <section className="grid gap-6">
+    <section className="grid min-w-0 gap-6 overflow-x-hidden">
       <div className="grid gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
         <div className="flex items-start gap-3">
           <AlertTriangle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
@@ -453,7 +453,7 @@ export function AccountingClient() {
         </p>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           icon={Banknote}
           label="CA encaisse"
@@ -507,15 +507,15 @@ export function AccountingClient() {
             </div>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+          <section className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
             <form
               onSubmit={saveSettings}
-              className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="grid min-w-0 gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <h2 className="text-xl font-semibold text-slate-950">
                 Reglages fiscaux
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                 <TextInput label="Pays" value={settingsForm.country} onChange={(value) => setSettingsForm({ ...settingsForm, country: value })} />
                 <TextInput label="Devise" value={settingsForm.currency} onChange={(value) => setSettingsForm({ ...settingsForm, currency: value.toUpperCase().slice(0, 3) })} />
                 <NumberInput label="TVA reparations %" value={settingsForm.defaultVatRatePercent} onChange={(value) => setSettingsForm({ ...settingsForm, defaultVatRatePercent: value })} />
@@ -535,7 +535,7 @@ export function AccountingClient() {
                   TVA activee
                 </label>
               </div>
-              <label className="grid gap-2 text-sm font-semibold text-slate-800">
+              <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
                 Notes comptables
                 <textarea
                   value={settingsForm.notes}
@@ -543,7 +543,7 @@ export function AccountingClient() {
                     setSettingsForm({ ...settingsForm, notes: event.target.value })
                   }
                   rows={3}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full min-w-0 max-w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 />
               </label>
               <button
@@ -556,8 +556,8 @@ export function AccountingClient() {
             </form>
 
             <Panel title="Ventes hors reparation" subtitle="Accessoires, telephones, ordinateurs, consoles ou services vendus en boutique.">
-              <form onSubmit={createSale} className="grid gap-3">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <form onSubmit={createSale} className="grid min-w-0 gap-3">
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <TextInput label="Produit vendu" value={saleForm.label} onChange={(value) => setSaleForm({ ...saleForm, label: value })} />
                   <SelectInput label="Categorie" value={saleForm.category} options={saleCategories} onChange={(value) => setSaleForm({ ...saleForm, category: value })} />
                   <NumberInput label="Quantite" value={saleForm.quantity} onChange={(value) => setSaleForm({ ...saleForm, quantity: value })} />
@@ -586,10 +586,10 @@ export function AccountingClient() {
             </Panel>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-2">
+          <section className="grid min-w-0 gap-4 lg:grid-cols-2">
             <Panel title="Depenses et achats" subtitle="Loyer, fournisseur, outils, logiciels, assurances, marketing, taxes et autres frais.">
-              <form onSubmit={createExpense} className="grid gap-3">
-                <div className="grid gap-3 sm:grid-cols-2">
+              <form onSubmit={createExpense} className="grid min-w-0 gap-3">
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                   <TextInput label="Libelle" value={expenseForm.label} onChange={(value) => setExpenseForm({ ...expenseForm, label: value })} />
                   <SelectInput label="Categorie" value={expenseForm.category} options={expenseCategories} onChange={(value) => setExpenseForm({ ...expenseForm, category: value })} />
                   <NumberInput label="Montant TTC" value={expenseForm.amount} onChange={(value) => setExpenseForm({ ...expenseForm, amount: value })} />
@@ -616,8 +616,8 @@ export function AccountingClient() {
             </Panel>
 
             <Panel title="Employes et salaires" subtitle="Ajoutez les employes, puis enregistrez chaque paie mensuelle avec charges employeur.">
-              <form onSubmit={createEmployee} className="grid gap-3">
-                <div className="grid gap-3 sm:grid-cols-2">
+              <form onSubmit={createEmployee} className="grid min-w-0 gap-3">
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                   <TextInput label="Prenom" value={employeeForm.firstName} onChange={(value) => setEmployeeForm({ ...employeeForm, firstName: value })} />
                   <TextInput label="Nom" value={employeeForm.lastName} onChange={(value) => setEmployeeForm({ ...employeeForm, lastName: value })} />
                   <TextInput label="Poste" value={employeeForm.role} onChange={(value) => setEmployeeForm({ ...employeeForm, role: value })} />
@@ -631,17 +631,17 @@ export function AccountingClient() {
                 </button>
               </form>
 
-              <form onSubmit={createPayroll} className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <form onSubmit={createPayroll} className="grid min-w-0 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <h3 className="font-semibold text-slate-950">Paie du mois</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm font-semibold text-slate-800">
+                <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                  <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
                     Employe
                     <select
                       value={payrollForm.employeeId}
                       onChange={(event) =>
                         setPayrollForm({ ...payrollForm, employeeId: event.target.value })
                       }
-                      className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                      className="min-h-11 w-full min-w-0 max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
                     >
                       <option value="">Choisir...</option>
                       {payload.employees
@@ -724,7 +724,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="grid min-w-0 gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div>
         <h2 className="text-xl font-semibold text-slate-950">{title}</h2>
         <p className="mt-1 text-sm leading-6 text-slate-600">{subtitle}</p>
@@ -746,13 +746,13 @@ function TextInput({
   type?: string;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-slate-800">
+    <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
       {label}
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+        className="min-h-11 w-full min-w-0 max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
       />
     </label>
   );
@@ -784,12 +784,12 @@ function SelectInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-slate-800">
+    <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
       {label}
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+        className="min-h-11 w-full min-w-0 max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
       >
         {options.map((option) => (
           <option key={option} value={option}>
