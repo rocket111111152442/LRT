@@ -199,6 +199,74 @@ export function ProSignupForm() {
     }
   }
 
+  async function handleTrialStart() {
+    setSubmitError("");
+    setMessage("");
+
+    const validation = validateProSignupInput(values);
+
+    if (!validation.ok) {
+      setErrors(validation.errors);
+      return;
+    }
+
+    if (!usesFreeAccessCode && !codeSent) {
+      const sent = await sendSignupCode(validation.data);
+
+      if (sent) {
+        setMessage(
+          "Code envoye. Entrez le code recu par email puis recliquez sur Essai gratuit 72h.",
+        );
+      }
+
+      return;
+    }
+
+    if (
+      !usesFreeAccessCode &&
+      (!validation.data.emailCode || validation.data.emailCode.length < 6)
+    ) {
+      setErrors((current) => ({
+        ...current,
+        emailCode: "Code email requis.",
+      }));
+      setSubmitError("Entrez le code recu par email.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/pro/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...validation.data, startTrial: true }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        const apiErrors = payload.errors ?? {};
+
+        setErrors(apiErrors);
+        setSubmitError(
+          payload.error ??
+            (Object.keys(apiErrors).length > 0
+              ? "Corrigez les champs indiques en rouge."
+              : "Essai gratuit impossible."),
+        );
+        return;
+      }
+
+      window.location.href = payload.redirectUrl;
+    } catch {
+      setSubmitError("Essai gratuit impossible.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -507,6 +575,16 @@ export function ProSignupForm() {
                   ? "Valider le code"
                   : "Envoyer le code"}
         </button>
+        {!usesFreeAccessCode ? (
+          <button
+            type="button"
+            onClick={handleTrialStart}
+            disabled={isSubmitting || isSendingCode}
+            className="min-h-11 rounded-md border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+          >
+            Essai gratuit 72h
+          </button>
+        ) : null}
       </div>
     </form>
   );

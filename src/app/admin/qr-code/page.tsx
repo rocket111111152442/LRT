@@ -24,6 +24,8 @@ async function getNewRepairUrl(slug?: string | null) {
     url.searchParams.set("compte", slug);
   }
 
+  url.searchParams.set("mode", "qr-comptoir");
+
   return url.toString();
 }
 

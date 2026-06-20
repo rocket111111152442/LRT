@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { PublicReviews } from "./PublicReviews";
+import { TrialCountdown } from "./TrialCountdown";
 
 const features = [
   "Formulaire client public avec QR code unique",
@@ -44,6 +45,16 @@ const adminTools = [
   "Configuration email directement dans l'admin",
   "QR code imprimable pour le comptoir",
   "Donnees separees par compte pro",
+];
+
+const priceDetails = [
+  "89,99 EUR/an pour l'espace admin Qoravo de l'atelier",
+  "Un QR code comptoir imprimable pour recevoir les demandes directement en magasin",
+  "Votre magasin est reference sur Qoravo pour attirer de nouveaux clients autour de vous",
+  "Recherche publique par disponibilite, horaires et proximite du magasin",
+  "Emails automatiques de statut, tickets de suivi, devis et avis client",
+  "Essai gratuit de 72h avant de vous engager",
+  "Option service client disponible a tout moment si vous voulez l'aide Qoravo",
 ];
 
 const extraFeatures = [
@@ -155,6 +166,7 @@ const faqs = [
 export default function HomePage() {
   return (
     <main className="bg-slate-50 text-slate-950">
+      <TrialCountdown />
       <section
         className="relative min-h-[92vh] overflow-hidden bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8"
       >
@@ -199,6 +211,33 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-slate-200 bg-white px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
+              Prix clair
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
+              Ce que l&apos;abonnement apporte a votre magasin.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              L&apos;objectif est simple : moins de papier, plus de suivi, et une
+              presence visible sur Qoravo pour recevoir de nouvelles demandes.
+            </p>
+          </div>
+          <ul className="grid gap-3">
+            {priceDetails.map((detail) => (
+              <li
+                key={detail}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800"
+              >
+                {detail}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

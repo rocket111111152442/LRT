@@ -23,6 +23,7 @@ enum UserRole {
 
 enum PaymentStatus {
   PENDING
+  TRIAL
   PAID
   CANCELED
 }
@@ -165,6 +166,7 @@ model ProAccount {
   referralCode              String?
   supportIncluded           Boolean       @default(false)
   paymentStatus             PaymentStatus @default(PENDING)
+  trialEndsAt               DateTime?
   stripeSessionId           String?
   users                     User[]
   repairs                   Repair[]

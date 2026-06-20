@@ -26,8 +26,8 @@ export function QrCodeClient({ newRepairUrl, depositUrl }: QrCodeClientProps) {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <QrCard
-          title="Nouvelle demande"
-          description="Le client remplit le formulaire, ajoute ses informations, photos et signature."
+          title="Formulaire comptoir"
+          description="Le client scanne ce QR dans le magasin et remplit seulement ses informations, l'appareil et sa signature."
           url={newRepairUrl}
         />
         <QrCard

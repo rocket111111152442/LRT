@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyEmailCode } from "@/lib/emailVerification";
 import {
   createPaidProAccount,
+  createTrialProAccount,
   PaidProAccountData,
 } from "@/lib/pro/paymentActivation";
 import {
@@ -13,6 +14,8 @@ import {
 } from "@/lib/pro/promoCodes";
 import { createSignupToken } from "@/lib/pro/signupToken";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
+
+const TRIAL_DURATION_MS = 72 * 60 * 60 * 1000;
 
 async function deleteUnpaidProAccount(id: string | null | undefined) {
   if (!id) {
@@ -26,6 +29,15 @@ async function deleteUnpaidProAccount(id: string | null | undefined) {
   }
 }
 
+function isActiveTrial(account?: { paymentStatus?: string | null; trialEndsAt?: Date | string | null } | null) {
+  if (account?.paymentStatus !== "TRIAL" || !account.trialEndsAt) {
+    return false;
+  }
+
+  const trialEndsAt = new Date(account.trialEndsAt);
+  return !Number.isNaN(trialEndsAt.getTime()) && trialEndsAt > new Date();
+}
+
 async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
   const existingUser = await prisma.user.findUnique({
     where: { email: ownerEmail },
@@ -35,15 +47,19 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
         select: {
           id: true,
           paymentStatus: true,
+          trialEndsAt: true,
         },
       },
     },
   });
 
-  if (existingUser?.proAccount?.paymentStatus === "PAID") {
+  if (
+    existingUser?.proAccount?.paymentStatus === "PAID" ||
+    isActiveTrial(existingUser?.proAccount)
+  ) {
     return {
       error:
-        "Cet email a deja un compte pro. Connectez-vous avec ce compte ou utilisez un autre email.",
+        "Cet email a deja un compte pro actif. Connectez-vous avec ce compte ou utilisez un autre email.",
       errors: { ownerEmail: "Un compte existe deja avec cet email." },
     };
   }
@@ -60,13 +76,16 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
 
   const existingOwnerAccount = await prisma.proAccount.findUnique({
     where: { ownerEmail },
-    select: { id: true, paymentStatus: true },
+    select: { id: true, paymentStatus: true, trialEndsAt: true },
   });
 
-  if (existingOwnerAccount?.paymentStatus === "PAID") {
+  if (
+    existingOwnerAccount?.paymentStatus === "PAID" ||
+    isActiveTrial(existingOwnerAccount)
+  ) {
     return {
       error:
-        "Cet email a deja un compte pro. Connectez-vous avec ce compte ou utilisez un autre email.",
+        "Cet email a deja un compte pro actif. Connectez-vous avec ce compte ou utilisez un autre email.",
       errors: { ownerEmail: "Un compte existe deja avec cet email." },
     };
   }
@@ -75,10 +94,13 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
 
   const existingSlugAccount = await prisma.proAccount.findUnique({
     where: { slug },
-    select: { id: true, paymentStatus: true },
+    select: { id: true, paymentStatus: true, trialEndsAt: true },
   });
 
-  if (existingSlugAccount?.paymentStatus === "PAID") {
+  if (
+    existingSlugAccount?.paymentStatus === "PAID" ||
+    isActiveTrial(existingSlugAccount)
+  ) {
     return {
       error:
         "Cet identifiant QR est deja utilise. Choisissez un autre identifiant.",
@@ -110,6 +132,11 @@ export async function POST(request: Request) {
   }
 
   const validation = validateProSignupInput(body);
+  const startTrial =
+    typeof body === "object" &&
+    body !== null &&
+    !Array.isArray(body) &&
+    (body as Record<string, unknown>).startTrial === true;
 
   if (!validation.ok) {
     return NextResponse.json({ errors: validation.errors }, { status: 400 });
@@ -188,6 +215,15 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         redirectUrl: `/pro/premium?compte=${proAccount.slug}`,
+      });
+    }
+
+    if (startTrial) {
+      const trialEndsAt = new Date(Date.now() + TRIAL_DURATION_MS);
+      const proAccount = await createTrialProAccount(accountData, trialEndsAt);
+
+      return NextResponse.json({
+        redirectUrl: `/admin/login?trial=1&compte=${proAccount.slug}`,
       });
     }
 

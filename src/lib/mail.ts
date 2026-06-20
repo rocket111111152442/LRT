@@ -407,11 +407,15 @@ export async function sendQuoteEmail(
 
 export async function sendRepairCreatedEmail(
   repair: CreatedRepairEmailInput,
+  options: { alreadyDeposited?: boolean } = {},
 ): Promise<SendMailResult> {
   const smtpConfig = await getSmtpConfig();
   const ticket = repair.ticketNumber ?? "non attribue";
   const trackingUrl = `${getPublicAppUrl()}/suivi`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
+  const depositInstruction = options.alreadyDeposited
+    ? "Votre appareil a ete enregistre comme depose au magasin."
+    : "Quand vous deposez l'appareil au magasin, scannez le QR code de depot affiche au comptoir et entrez ce ticket.";
   const defaultText = [
     `Bonjour ${repair.firstName},`,
     "",
@@ -423,7 +427,7 @@ export async function sendRepairCreatedEmail(
     trackingUrl,
     "",
     "Entrez votre numero de ticket sur la page de suivi.",
-    "Quand vous deposez l'appareil au magasin, scannez le QR code de depot affiche au comptoir et entrez ce ticket.",
+    depositInstruction,
   ].filter(Boolean).join("\n");
   const text = renderTemplate(
     smtpConfig?.createdEmailTemplate,
@@ -444,7 +448,7 @@ export async function sendRepairCreatedEmail(
       <p style="margin:24px 0">
         <a href="${trackingUrl}" style="display:inline-block;background:#020617;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:6px;font-weight:bold">Suivre ma reparation</a>
       </p>
-      <p>Au magasin, scannez le QR code de depot affiche au comptoir et entrez ce ticket pour confirmer le depot de l'appareil.</p>
+      <p>${escapeHtml(depositInstruction)}</p>
       <p style="font-size:13px;color:#475569">Si le bouton ne fonctionne pas, ouvrez ce lien : ${escapeHtml(trackingUrl)}</p>
     </div>
   `;

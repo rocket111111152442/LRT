@@ -19,6 +19,7 @@ import {
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { FirstUseTour } from "./FirstUseTour";
+import { SupportSubscribeButton } from "./SupportSubscribeButton";
 
 type AdminHeaderProps = {
   email: string;
@@ -115,7 +116,9 @@ export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps
               <LifeBuoy aria-hidden="true" className="h-4 w-4" />
               Support
             </Link>
-          ) : null}
+          ) : (
+            <SupportSubscribeButton />
+          )}
           <button
             type="button"
             onClick={openTour}

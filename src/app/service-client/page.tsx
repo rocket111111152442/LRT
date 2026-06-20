@@ -1,6 +1,9 @@
 import Link from "next/link";
+import Stripe from "stripe";
+import { SupportSubscribeButton } from "@/app/admin/SupportSubscribeButton";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { getCurrentAdmin } from "@/lib/auth";
+import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
 import { SupportForm } from "./SupportForm";
 
 const supportPhoneDisplay = "07 53 30 54 52";
@@ -21,7 +24,29 @@ const commonRequests = [
 
 export const dynamic = "force-dynamic";
 
-export default async function SupportPage() {
+type SupportPageProps = {
+  searchParams: Promise<{ session_id?: string }>;
+};
+
+async function confirmSupportPayment(sessionId?: string) {
+  if (!sessionId || !process.env.STRIPE_SECRET_KEY) {
+    return;
+  }
+
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    await activatePaidCheckoutSession(session);
+  } catch {
+    // Le webhook Stripe peut encore activer l'option si le retour navigateur echoue.
+  }
+}
+
+export default async function SupportPage({ searchParams }: SupportPageProps) {
+  const { session_id: sessionId } = await searchParams;
+
+  await confirmSupportPayment(sessionId);
+
   const admin = await getCurrentAdmin();
 
   if (!admin?.supportIncluded) {
@@ -48,12 +73,16 @@ export default async function SupportPage() {
               >
                 Connexion admin
               </Link>
-              <Link
-                href="/pro/inscription"
-                className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
-              >
-                Creer un compte avec assistance
-              </Link>
+              {admin ? (
+                <SupportSubscribeButton className="inline-flex min-h-11 items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-900 transition hover:bg-sky-100" />
+              ) : (
+                <Link
+                  href="/pro/inscription"
+                  className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+                >
+                  Creer un compte avec assistance
+                </Link>
+              )}
             </div>
           </header>
         </div>

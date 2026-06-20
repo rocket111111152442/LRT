@@ -13,7 +13,36 @@ function cents(value: number) {
 }
 
 function dateOnly(value: Date | string) {
-  return new Date(value).toISOString().slice(0, 10);
+  const date = toDateValue(value);
+  return date ? date.toISOString().slice(0, 10) : "";
+}
+
+function toDateValue(value: unknown) {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    const date = (value as { toDate: () => Date }).toDate();
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  return null;
+}
+
+function isInPeriod(value: unknown, period: { start: Date; end: Date }) {
+  const date = toDateValue(value);
+  return date ? date >= period.start && date < period.end : false;
 }
 
 export async function GET(request: Request) {
@@ -30,9 +59,9 @@ export async function GET(request: Request) {
   const period = periodRange(year, month);
   const where = { proAccountId: admin.user.proAccountId };
 
-  const [repairs, sales, expenses, payrollEntries] = await Promise.all([
+  const [allRepairs, allSales, allExpenses, allPayrollEntries] = await Promise.all([
     prisma.repair.findMany({
-      where: { ...where, createdAt: { gte: period.start, lt: period.end } },
+      where,
       orderBy: { createdAt: "asc" },
       select: {
         ticketNumber: true,
@@ -46,18 +75,24 @@ export async function GET(request: Request) {
       },
     }),
     prisma.accountingSale.findMany({
-      where: { ...where, soldAt: { gte: period.start, lt: period.end } },
+      where,
       orderBy: { soldAt: "asc" },
     }),
     prisma.accountingExpense.findMany({
-      where: { ...where, spentAt: { gte: period.start, lt: period.end } },
+      where,
       orderBy: { spentAt: "asc" },
     }),
     prisma.accountingPayrollEntry.findMany({
-      where: { ...where, periodStart: { gte: period.start, lt: period.end } },
+      where,
       orderBy: { periodStart: "asc" },
     }),
   ]);
+  const repairs = allRepairs.filter((repair) => isInPeriod(repair.createdAt, period));
+  const sales = allSales.filter((sale) => isInPeriod(sale.soldAt, period));
+  const expenses = allExpenses.filter((expense) => isInPeriod(expense.spentAt, period));
+  const payrollEntries = allPayrollEntries.filter((entry) =>
+    isInPeriod(entry.periodStart, period),
+  );
 
   const rows = [
     ["Type", "Date", "Libelle", "Categorie", "Montant EUR", "Cout EUR", "TVA deductible EUR", "Notes"],

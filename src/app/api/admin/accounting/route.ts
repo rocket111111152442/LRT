@@ -43,6 +43,63 @@ function proAccountWhere(proAccountId: string | null) {
   return { proAccountId };
 }
 
+function toDateValue(value: unknown) {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    const date = (value as { toDate: () => Date }).toDate();
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  return null;
+}
+
+function isInPeriod(value: unknown, period: { start: Date; end: Date }) {
+  const date = toDateValue(value);
+  return date ? date >= period.start && date < period.end : false;
+}
+
+function sortByDate<T extends Record<string, unknown>>(
+  records: T[],
+  field: keyof T,
+  direction: "asc" | "desc",
+) {
+  return [...records].sort((left, right) => {
+    const leftTime = toDateValue(left[field])?.getTime() ?? 0;
+    const rightTime = toDateValue(right[field])?.getTime() ?? 0;
+    return direction === "desc" ? rightTime - leftTime : leftTime - rightTime;
+  });
+}
+
+function serializeDates<T extends Record<string, unknown>>(
+  record: T,
+  fields: Array<keyof T>,
+) {
+  const output = { ...record };
+
+  for (const field of fields) {
+    const date = toDateValue(output[field]);
+
+    if (date) {
+      output[field] = date.toISOString() as T[keyof T];
+    }
+  }
+
+  return output;
+}
+
 async function getSettings(proAccountId: string | null) {
   const existing = await prisma.accountingSettings.findFirst({
     where: proAccountWhere(proAccountId),
@@ -68,14 +125,11 @@ async function buildPayload(proAccountId: string | null, request: Request) {
   const period = periodRange(selectedYear, selectedMonth);
   const where = proAccountWhere(proAccountId);
 
-  const [settings, repairs, sales, expenses, employees, payrollEntries] =
+  const [settings, allRepairs, allSales, allExpenses, employees, allPayrollEntries] =
     await Promise.all([
       getSettings(proAccountId),
       prisma.repair.findMany({
-        where: {
-          ...where,
-          createdAt: { gte: period.start, lt: period.end },
-        },
+        where,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -92,17 +146,11 @@ async function buildPayload(proAccountId: string | null, request: Request) {
         },
       }),
       prisma.accountingSale.findMany({
-        where: {
-          ...where,
-          soldAt: { gte: period.start, lt: period.end },
-        },
+        where,
         orderBy: { soldAt: "desc" },
       }),
       prisma.accountingExpense.findMany({
-        where: {
-          ...where,
-          spentAt: { gte: period.start, lt: period.end },
-        },
+        where,
         orderBy: { spentAt: "desc" },
       }),
       prisma.accountingEmployee.findMany({
@@ -110,13 +158,30 @@ async function buildPayload(proAccountId: string | null, request: Request) {
         orderBy: { lastName: "asc" },
       }),
       prisma.accountingPayrollEntry.findMany({
-        where: {
-          ...where,
-          periodStart: { gte: period.start, lt: period.end },
-        },
+        where,
         orderBy: { periodStart: "desc" },
       }),
     ]);
+  const repairs = sortByDate(
+    allRepairs.filter((repair) => isInPeriod(repair.createdAt, period)),
+    "createdAt",
+    "desc",
+  );
+  const sales = sortByDate(
+    allSales.filter((sale) => isInPeriod(sale.soldAt, period)),
+    "soldAt",
+    "desc",
+  );
+  const expenses = sortByDate(
+    allExpenses.filter((expense) => isInPeriod(expense.spentAt, period)),
+    "spentAt",
+    "desc",
+  );
+  const payrollEntries = sortByDate(
+    allPayrollEntries.filter((entry) => isInPeriod(entry.periodStart, period)),
+    "periodStart",
+    "desc",
+  );
 
   const summary = buildAccountingSummary({
     settings,
@@ -130,15 +195,23 @@ async function buildPayload(proAccountId: string | null, request: Request) {
     period: {
       year: period.year,
       month: period.month,
-      start: period.start,
-      end: period.end,
+      start: period.start.toISOString(),
+      end: period.end.toISOString(),
     },
-    settings,
-    repairs,
-    sales,
-    expenses,
+    settings: serializeDates(settings, ["createdAt", "updatedAt"]),
+    repairs: repairs.map((repair) =>
+      serializeDates(repair, ["createdAt"]),
+    ),
+    sales: sales.map((sale) =>
+      serializeDates(sale, ["soldAt", "createdAt", "updatedAt"]),
+    ),
+    expenses: expenses.map((expense) =>
+      serializeDates(expense, ["spentAt", "createdAt", "updatedAt"]),
+    ),
     employees,
-    payrollEntries,
+    payrollEntries: payrollEntries.map((entry) =>
+      serializeDates(entry, ["periodStart", "periodEnd", "createdAt", "updatedAt"]),
+    ),
     summary,
   };
 }

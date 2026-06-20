@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RepairForm } from "./RepairForm";
 
 type NewRepairPageProps = {
-  searchParams: Promise<{ compte?: string; creneau?: string }>;
+  searchParams: Promise<{ compte?: string; creneau?: string; mode?: string }>;
 };
 
 type RepairerRating = {
@@ -53,7 +53,8 @@ async function getRepairerRating(slug?: string): Promise<RepairerRating | null> 
 export default async function NewRepairPage({
   searchParams,
 }: NewRepairPageProps) {
-  const { compte, creneau } = await searchParams;
+  const { compte, creneau, mode } = await searchParams;
+  const isStoreQrMode = mode === "qr-comptoir";
   const repairerRating = await getRepairerRating(compte);
 
   return (
@@ -72,8 +73,9 @@ export default async function NewRepairPage({
         </header>
         <RepairForm
           proAccountSlug={compte ?? ""}
-          repairerRating={repairerRating}
+          repairerRating={isStoreQrMode ? null : repairerRating}
           requestedAppointmentAt={creneau ?? ""}
+          storeQrMode={isStoreQrMode}
         />
       </div>
     </main>

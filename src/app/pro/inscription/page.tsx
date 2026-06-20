@@ -21,9 +21,10 @@ export default function ProSignupPage() {
             Creer votre espace admin
           </h1>
           <p className="text-sm leading-6 text-slate-600">
-            Le compte est active apres l&apos;abonnement annuel de 89,99 EUR. Chaque
-            compte obtient son QR code public avec son identifiant. Un code est
-            envoye par email pour valider l adresse avant le paiement.
+            Vous pouvez demarrer avec un essai gratuit de 72h ou activer
+            directement l&apos;abonnement annuel de 89,99 EUR. Chaque compte obtient
+            son QR code public avec son identifiant. Un code est envoye par
+            email pour valider l adresse.
           </p>
         </header>
         <ProSignupForm />

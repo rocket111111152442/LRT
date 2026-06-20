@@ -7,6 +7,7 @@ type RepairIntakeExtrasProps = {
   signature: string;
   photoError?: string;
   signatureError?: string;
+  showPhotos?: boolean;
   onPhotosChange: (photos: string[]) => void;
   onSignatureChange: (signature: string) => void;
 };
@@ -36,6 +37,7 @@ export function RepairIntakeExtras({
   signature,
   photoError,
   signatureError,
+  showPhotos = true,
   onPhotosChange,
   onSignatureChange,
 }: RepairIntakeExtrasProps) {
@@ -49,29 +51,31 @@ export function RepairIntakeExtras({
         Etat au depot
       </legend>
 
-      <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
-        <label className="grid gap-2 text-sm font-medium text-slate-800">
-          Photos de l&apos;appareil
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(event) => void handlePhotoChange(event.target.files)}
-            className="text-sm font-normal"
-          />
-        </label>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {photos.map((photo, index) => (
-            <img
-              key={`${photo.slice(0, 24)}-${index}`}
-              src={photo}
-              alt={`Photo depot ${index + 1}`}
-              className="aspect-[4/3] w-full rounded-md border border-slate-200 bg-white object-cover"
+      {showPhotos ? (
+        <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
+          <label className="grid gap-2 text-sm font-medium text-slate-800">
+            Photos de l&apos;appareil
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(event) => void handlePhotoChange(event.target.files)}
+              className="text-sm font-normal"
             />
-          ))}
+          </label>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {photos.map((photo, index) => (
+              <img
+                key={`${photo.slice(0, 24)}-${index}`}
+                src={photo}
+                alt={`Photo depot ${index + 1}`}
+                className="aspect-[4/3] w-full rounded-md border border-slate-200 bg-white object-cover"
+              />
+            ))}
+          </div>
+          {photoError ? <p className="text-sm text-red-700">{photoError}</p> : null}
         </div>
-        {photoError ? <p className="text-sm text-red-700">{photoError}</p> : null}
-      </div>
+      ) : null}
 
       <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
         <SignaturePad

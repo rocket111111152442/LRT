@@ -75,14 +75,17 @@ export function RepairForm({
   proAccountSlug = "",
   repairerRating,
   requestedAppointmentAt = "",
+  storeQrMode = false,
 }: {
   proAccountSlug?: string;
   repairerRating?: RepairerRating | null;
   requestedAppointmentAt?: string;
+  storeQrMode?: boolean;
 }) {
   const [values, setValues] = useState<RepairInput>(() => ({
     ...emptyRepairInput(),
     requestedAppointmentAt,
+    wantsPriceBeforeDeposit: storeQrMode ? false : true,
   }));
   const [errors, setErrors] = useState<RepairInputErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,6 +118,11 @@ export function RepairForm({
       return;
     }
 
+    if (storeQrMode && !validation.data.customerDropOffSignature) {
+      setErrors({ customerDropOffSignature: "La signature client est requise." });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -126,6 +134,7 @@ export function RepairForm({
         body: JSON.stringify({
           ...validation.data,
           proAccountSlug,
+          storeQrIntake: storeQrMode,
         }),
       });
 
@@ -144,7 +153,10 @@ export function RepairForm({
         return;
       }
 
-      setValues(emptyRepairInput());
+      setValues({
+        ...emptyRepairInput(),
+        wantsPriceBeforeDeposit: storeQrMode ? false : true,
+      });
       setErrors({});
       setCreatedRepair({
         ...payload.repair,
@@ -164,6 +176,14 @@ export function RepairForm({
       noValidate
     >
       {repairerRating ? <RepairerRatingCard rating={repairerRating} /> : null}
+
+      {storeQrMode ? (
+        <section className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
+          Formulaire comptoir : renseignez seulement le client, l&apos;appareil
+          et la signature. La fiche sera creee directement dans l&apos;admin de
+          l&apos;atelier.
+        </section>
+      ) : null}
 
       <fieldset className="grid gap-4">
         <legend className="mb-3 text-base font-semibold text-slate-950">
@@ -216,46 +236,49 @@ export function RepairForm({
         signature={values.customerDropOffSignature ?? ""}
         photoError={errors.photos}
         signatureError={errors.customerDropOffSignature}
+        showPhotos={!storeQrMode}
         onPhotosChange={(photos) => updateField("photos", photos)}
         onSignatureChange={(signature) =>
           updateField("customerDropOffSignature", signature)
         }
       />
 
-      <section className="grid gap-4 rounded-lg border border-sky-100 bg-sky-50/70 p-4">
-        <div className="grid gap-1">
-          <h2 className="text-base font-semibold text-slate-950">
-            Devis et disponibilite
-          </h2>
-          {values.requestedAppointmentAt ? (
-            <p className="text-sm text-slate-700">
-              Creneau demande :{" "}
-              <strong>{formatAppointment(values.requestedAppointmentAt)}</strong>
-            </p>
-          ) : (
-            <p className="text-sm text-slate-700">
-              Aucun creneau precis choisi. Le magasin vous proposera une date.
-            </p>
-          )}
-        </div>
-        <label className="flex items-start gap-3 rounded-md border border-white bg-white p-3 text-sm text-slate-800">
-          <input
-            type="checkbox"
-            checked={Boolean(values.wantsPriceBeforeDeposit)}
-            onChange={(event) =>
-              updateBooleanField("wantsPriceBeforeDeposit", event.target.checked)
-            }
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600"
-          />
-          <span>
-            Je veux recevoir un prix avant de deposer mon appareil. Le reparateur
-            pourra accepter la demande ou m&apos;envoyer un devis par email.
-          </span>
-        </label>
-        {errors.requestedAppointmentAt ? (
-          <p className="text-sm text-red-700">{errors.requestedAppointmentAt}</p>
-        ) : null}
-      </section>
+      {!storeQrMode ? (
+        <section className="grid gap-4 rounded-lg border border-sky-100 bg-sky-50/70 p-4">
+          <div className="grid gap-1">
+            <h2 className="text-base font-semibold text-slate-950">
+              Devis et disponibilite
+            </h2>
+            {values.requestedAppointmentAt ? (
+              <p className="text-sm text-slate-700">
+                Creneau demande :{" "}
+                <strong>{formatAppointment(values.requestedAppointmentAt)}</strong>
+              </p>
+            ) : (
+              <p className="text-sm text-slate-700">
+                Aucun creneau precis choisi. Le magasin vous proposera une date.
+              </p>
+            )}
+          </div>
+          <label className="flex items-start gap-3 rounded-md border border-white bg-white p-3 text-sm text-slate-800">
+            <input
+              type="checkbox"
+              checked={Boolean(values.wantsPriceBeforeDeposit)}
+              onChange={(event) =>
+                updateBooleanField("wantsPriceBeforeDeposit", event.target.checked)
+              }
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600"
+            />
+            <span>
+              Je veux recevoir un prix avant de deposer mon appareil. Le reparateur
+              pourra accepter la demande ou m&apos;envoyer un devis par email.
+            </span>
+          </label>
+          {errors.requestedAppointmentAt ? (
+            <p className="text-sm text-red-700">{errors.requestedAppointmentAt}</p>
+          ) : null}
+        </section>
+      ) : null}
 
       {submitError ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">

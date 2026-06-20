@@ -26,6 +26,7 @@ export type AdminUser = {
 type ProAccountSummary = {
   slug: string;
   paymentStatus: string;
+  trialEndsAt?: Date | string | null;
   supportIncluded?: boolean | null;
 } | null;
 
@@ -158,12 +159,26 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
         select: {
           slug: true,
           paymentStatus: true,
+          trialEndsAt: true,
           supportIncluded: true,
         },
       });
     }
 
-    if (proAccount && proAccount.paymentStatus !== "PAID") {
+    const trialEndsAt = proAccount?.trialEndsAt
+      ? new Date(proAccount.trialEndsAt)
+      : null;
+    const isActiveTrial =
+      proAccount?.paymentStatus === "TRIAL" &&
+      trialEndsAt !== null &&
+      !Number.isNaN(trialEndsAt.getTime()) &&
+      trialEndsAt > new Date();
+
+    if (
+      proAccount &&
+      proAccount.paymentStatus !== "PAID" &&
+      !isActiveTrial
+    ) {
       return null;
     }
 

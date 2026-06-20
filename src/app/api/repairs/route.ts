@@ -29,6 +29,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    const storeQrIntake = isRecord(body) && body.storeQrIntake === true;
     let proAccount:
       | {
           id: string;
@@ -66,6 +67,24 @@ export async function POST(request: Request) {
       }
 
       proAccountId = proAccount.id;
+    }
+
+    if (storeQrIntake && !proAccountId) {
+      return NextResponse.json(
+        { error: "Le QR comptoir doit etre lie a un atelier actif." },
+        { status: 400 },
+      );
+    }
+
+    if (storeQrIntake && !validation.data.customerDropOffSignature) {
+      return NextResponse.json(
+        {
+          errors: {
+            customerDropOffSignature: "La signature client est requise.",
+          },
+        },
+        { status: 400 },
+      );
     }
 
     const requestedAppointmentAt = validation.data.requestedAppointmentAt
@@ -111,7 +130,10 @@ export async function POST(request: Request) {
         ...repairData,
         proAccountId,
         ticketNumber: await generateTicketNumber(),
-        status: proAccountId ? "PAS_ENCORE_RECU_CLIENT" : "PAS_ENCORE_EN_REPARATION",
+        status:
+          proAccountId && !storeQrIntake
+            ? "PAS_ENCORE_RECU_CLIENT"
+            : "PAS_ENCORE_EN_REPARATION",
         expectedPickupAt: requestedAppointmentAt,
       },
       select: {
@@ -134,9 +156,11 @@ export async function POST(request: Request) {
       repairId: repair.id,
       proAccountId,
       type: "CREATED",
-      message: proAccountId
-        ? "Demande client creee depuis la recherche magasin."
-        : "Reparation creee depuis le formulaire client.",
+      message: storeQrIntake
+        ? "Reparation creee depuis le QR comptoir de l'atelier."
+        : proAccountId
+          ? "Demande client creee depuis la recherche magasin."
+          : "Reparation creee depuis le formulaire client.",
     });
 
     if (validation.data.wantsPriceBeforeDeposit) {
@@ -175,8 +199,10 @@ export async function POST(request: Request) {
       });
     }
 
-    if (!proAccount) {
-      const mailResult = await sendRepairCreatedEmail(repair);
+    if (!proAccount || storeQrIntake) {
+      const mailResult = await sendRepairCreatedEmail(repair, {
+        alreadyDeposited: storeQrIntake,
+      });
 
       await addRepairEvent({
         repairId: repair.id,
@@ -196,7 +222,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (proAccount) {
+    if (proAccount && !storeQrIntake) {
       const shopMail = await sendShopRepairRequestEmail({
         ...repair,
         shopEmail: proAccount.shopEmail ?? proAccount.ownerEmail,
@@ -218,7 +244,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         repair,
-        shopApprovalRequired: Boolean(proAccount),
+        shopApprovalRequired: Boolean(proAccount) && !storeQrIntake,
       },
       { status: 201 },
     );

@@ -150,6 +150,48 @@ export async function createPaidProAccount(data: PaidProAccountData) {
   });
 }
 
+export async function createTrialProAccount(
+  data: PaidProAccountData,
+  trialEndsAt: Date,
+) {
+  return prisma.proAccount.create({
+    data: {
+      companyName: data.companyName,
+      slug: data.slug,
+      ownerEmail: data.ownerEmail,
+      firebaseApiKey: data.firebaseApiKey,
+      firebaseAuthDomain: data.firebaseAuthDomain,
+      firebaseProjectId: data.firebaseProjectId,
+      firebaseStorageBucket: data.firebaseStorageBucket,
+      firebaseMessagingSenderId: data.firebaseMessagingSenderId,
+      firebaseAppId: data.firebaseAppId,
+      referralCode: `${data.slug.toUpperCase()}-Qoravo`,
+      supportIncluded: false,
+      shopAddress: data.shopAddress,
+      shopPostalCode: data.shopPostalCode,
+      shopCity: data.shopCity,
+      shopCountry: data.shopCountry,
+      shopPhone: data.shopPhone,
+      shopEmail: data.shopEmail ?? data.ownerEmail,
+      shopOpeningHours: data.shopOpeningHours,
+      shopLatitude: data.shopLatitude,
+      shopLongitude: data.shopLongitude,
+      shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
+      shopSlotDurationMinutes: data.shopSlotDurationMinutes ?? 60,
+      shopMaxAppointmentsPerSlot: data.shopMaxAppointmentsPerSlot ?? 1,
+      paymentStatus: "TRIAL",
+      trialEndsAt,
+      users: {
+        create: {
+          email: data.ownerEmail,
+          passwordHash: data.passwordHash,
+          role: "ADMIN",
+        },
+      },
+    },
+  });
+}
+
 async function deletePendingSignup(id: string) {
   try {
     await prisma.pendingProSignup.delete({ where: { id } });
@@ -226,6 +268,18 @@ export async function activatePaidCheckoutSession(
 
   const proAccountId = session.metadata?.proAccountId;
   const supportIncluded = session.metadata?.setupHelp === "1";
+
+  if (session.metadata?.supportOnly === "1" && proAccountId) {
+    const proAccount = await prisma.proAccount.update({
+      where: { id: proAccountId },
+      data: {
+        supportIncluded: true,
+        stripeSessionId: session.id,
+      },
+    });
+
+    return { ok: true, slug: getStringField(proAccount, "slug") };
+  }
 
   if (proAccountId) {
     const proAccount = await prisma.proAccount.update({
