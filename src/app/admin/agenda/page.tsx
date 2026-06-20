@@ -5,15 +5,48 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+function readDate(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  return null;
+}
+
+function readDateString(value: unknown) {
+  return readDate(value)?.toISOString() ?? null;
+}
+
+function compareNullableDates(left: unknown, right: unknown) {
+  const leftDate = readDate(left);
+  const rightDate = readDate(right);
+
+  if (!leftDate && !rightDate) {
+    return 0;
+  }
+
+  if (!leftDate) {
+    return 1;
+  }
+
+  if (!rightDate) {
+    return -1;
+  }
+
+  return leftDate.getTime() - rightDate.getTime();
+}
+
 export default async function AdminAgendaPage() {
   const admin = await requireAdminPage();
   const repairs = await prisma.repair.findMany({
     where: {
       ...(admin.proAccountId ? { proAccountId: admin.proAccountId } : {}),
-      archivedAt: null,
-      status: { notIn: ["RECUPERE", "ANNULE"] },
     },
-    orderBy: [{ expectedPickupAt: "asc" }, { urgent: "desc" }, { createdAt: "asc" }],
     select: {
       id: true,
       ticketNumber: true,
@@ -27,8 +60,32 @@ export default async function AdminAgendaPage() {
       urgent: true,
       expectedPickupAt: true,
       technicianName: true,
+      archivedAt: true,
+      createdAt: true,
     },
   });
+  const activeRepairs = repairs
+    .filter(
+      (repair) =>
+        !readDate(repair.archivedAt) &&
+        !["RECUPERE", "ANNULE"].includes(String(repair.status)),
+    )
+    .sort((left, right) => {
+      const scheduledOrder = compareNullableDates(
+        left.expectedPickupAt,
+        right.expectedPickupAt,
+      );
+
+      if (scheduledOrder !== 0) {
+        return scheduledOrder;
+      }
+
+      if (left.urgent !== right.urgent) {
+        return left.urgent ? -1 : 1;
+      }
+
+      return compareNullableDates(left.createdAt, right.createdAt);
+    });
 
   return (
     <>
@@ -49,11 +106,19 @@ export default async function AdminAgendaPage() {
           </header>
 
           <AdminAgendaCalendar
-            repairs={repairs.map((repair) => ({
-              ...repair,
+            repairs={activeRepairs.map((repair) => ({
+              id: repair.id,
+              ticketNumber: repair.ticketNumber,
+              firstName: repair.firstName,
+              lastName: repair.lastName,
+              deviceType: repair.deviceType,
+              brand: repair.brand,
+              model: repair.model,
               status: String(repair.status),
               quoteStatus: String(repair.quoteStatus),
-              expectedPickupAt: repair.expectedPickupAt?.toISOString() ?? null,
+              urgent: repair.urgent,
+              expectedPickupAt: readDateString(repair.expectedPickupAt),
+              technicianName: repair.technicianName,
             }))}
           />
         </div>
