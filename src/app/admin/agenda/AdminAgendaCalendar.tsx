@@ -65,6 +65,11 @@ function dateTimeToInput(value: Date) {
   };
 }
 
+function dateFromInput(value: string) {
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
 function buildMonthDays(month: Date) {
   const first = monthStart(month);
   const firstDay = first.getDay() === 0 ? 7 : first.getDay();
@@ -99,6 +104,32 @@ function sortByDate(left: AgendaRepair, right: AgendaRepair) {
   return leftTime - rightTime;
 }
 
+function isSameMonth(value: string, month: Date) {
+  const date = new Date(value);
+
+  return (
+    !Number.isNaN(date.getTime()) &&
+    date.getFullYear() === month.getFullYear() &&
+    date.getMonth() === month.getMonth()
+  );
+}
+
+function formatFullDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
   const [items, setItems] = useState(repairs);
   const [currentMonth, setCurrentMonth] = useState(() => monthStart(new Date()));
@@ -115,6 +146,9 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
     .filter((repair) => repair.expectedPickupAt)
     .sort(sortByDate);
   const unscheduledRepairs = items.filter((repair) => !repair.expectedPickupAt);
+  const visibleMonthRepairs = scheduledRepairs
+    .filter((repair) => isSameMonth(repair.expectedPickupAt!, currentMonth))
+    .slice(0, 8);
   const selectedRepair = unscheduledRepairs.find(
     (repair) => repair.id === selectedRepairId,
   );
@@ -160,16 +194,21 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
       }
 
       const updated = payload.repair as AgendaRepair;
+      const expectedPickupAt =
+        updated.expectedPickupAt ??
+        new Date(`${appointmentDate}T${appointmentTime}:00`).toISOString();
       setItems((current) =>
         current.map((repair) =>
           repair.id === selectedRepairId
             ? {
                 ...repair,
-                expectedPickupAt: updated.expectedPickupAt,
+                ...updated,
+                expectedPickupAt,
               }
             : repair,
         ),
       );
+      setCurrentMonth(monthStart(dateFromInput(appointmentDate)));
       setSelectedRepairId("");
       setMessage("Reparation placee dans l'agenda.");
     } catch {
@@ -351,6 +390,42 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
               {isSaving ? "Placement..." : "Placer dans l'agenda"}
             </button>
           </form>
+
+          <div className="grid gap-3 border-t border-slate-200 pt-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
+                Rendez-vous enregistres
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Les fiches placees apparaissent ici pour le mois selectionne.
+              </p>
+            </div>
+            {visibleMonthRepairs.length > 0 ? (
+              <div className="grid gap-2">
+                {visibleMonthRepairs.map((repair) => (
+                  <Link
+                    key={`upcoming-${repair.id}`}
+                    href={`/admin/repairs/${repair.id}`}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-cyan-200 hover:bg-cyan-50"
+                  >
+                    <span className="block text-xs font-semibold uppercase tracking-wide text-cyan-700">
+                      {formatFullDate(repair.expectedPickupAt!)}
+                    </span>
+                    <span className="mt-1 block text-sm font-semibold text-slate-950">
+                      {formatRepairTitle(repair)}
+                    </span>
+                    <span className="mt-1 block text-xs text-slate-600">
+                      {formatRepairDevice(repair)} - {repair.status}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
+                Aucun rendez-vous place pour le moment.
+              </p>
+            )}
+          </div>
         </aside>
       </div>
 

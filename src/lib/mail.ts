@@ -423,6 +423,7 @@ export async function sendRepairCreatedEmail(
     trackingUrl,
     "",
     "Entrez votre numero de ticket sur la page de suivi.",
+    "Quand vous deposez l'appareil au magasin, scannez le QR code de depot affiche au comptoir et entrez ce ticket.",
   ].filter(Boolean).join("\n");
   const text = renderTemplate(
     smtpConfig?.createdEmailTemplate,
@@ -443,6 +444,7 @@ export async function sendRepairCreatedEmail(
       <p style="margin:24px 0">
         <a href="${trackingUrl}" style="display:inline-block;background:#020617;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:6px;font-weight:bold">Suivre ma reparation</a>
       </p>
+      <p>Au magasin, scannez le QR code de depot affiche au comptoir et entrez ce ticket pour confirmer le depot de l'appareil.</p>
       <p style="font-size:13px;color:#475569">Si le bouton ne fonctionne pas, ouvrez ce lien : ${escapeHtml(trackingUrl)}</p>
     </div>
   `;
