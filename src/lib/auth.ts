@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 const COOKIE_NAME = "repair_admin_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
+const REMEMBER_ME_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 
 type SessionPayload = {
   userId: string;
@@ -36,11 +37,14 @@ function sign(value: string) {
   return createHmac("sha256", getAuthSecret()).update(value).digest("base64url");
 }
 
-function createSessionValue(user: AdminUser) {
+function createSessionValue(
+  user: AdminUser,
+  maxAgeSeconds = SESSION_MAX_AGE_SECONDS,
+) {
   const payload: SessionPayload = {
     userId: user.id,
     role: user.role,
-    expiresAt: Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
+    expiresAt: Date.now() + maxAgeSeconds * 1000,
   };
   const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
     "base64url",
@@ -95,12 +99,20 @@ function verifySessionValue(value?: string): SessionPayload | null {
   }
 }
 
-export function setAdminSessionCookie(response: NextResponse, user: AdminUser) {
-  response.cookies.set(COOKIE_NAME, createSessionValue(user), {
+export function setAdminSessionCookie(
+  response: NextResponse,
+  user: AdminUser,
+  options: { rememberMe?: boolean } = {},
+) {
+  const maxAge = options.rememberMe
+    ? REMEMBER_ME_MAX_AGE_SECONDS
+    : SESSION_MAX_AGE_SECONDS;
+
+  response.cookies.set(COOKIE_NAME, createSessionValue(user, maxAge), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    maxAge,
     path: "/",
   });
 }

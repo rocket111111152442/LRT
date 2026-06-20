@@ -12,6 +12,7 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requiresCode, setRequiresCode] = useState(false);
   const [loginVerificationId, setLoginVerificationId] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
@@ -34,6 +35,7 @@ export function LoginForm() {
         password,
         code: nextCode || undefined,
         verificationId: nextCode ? loginVerificationId : undefined,
+        rememberMe,
       }),
     });
     const payload = await response.json();
@@ -391,6 +393,22 @@ export function LoginForm() {
           Mot de passe oublie ?
         </button>
       </div>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={rememberMe}
+          onChange={(event) => setRememberMe(event.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-950"
+        />
+        <span className="grid gap-1">
+          <span className="font-semibold text-slate-950">Se souvenir de moi</span>
+          <span>
+            Garder la connexion ouverte sur cet appareil pour eviter de rentrer
+            les identifiants a chaque visite.
+          </span>
+        </span>
+      </label>
 
       {requiresCode ? (
         <div className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-4">

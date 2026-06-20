@@ -52,6 +52,7 @@ export async function POST(request: Request) {
   const code = typeof body.code === "string" ? body.code.trim() : "";
   const verificationId =
     typeof body.verificationId === "string" ? body.verificationId.trim() : "";
+  const rememberMe = body.rememberMe === true;
 
   if (!email || !password) {
     return NextResponse.json(
@@ -149,14 +150,18 @@ export async function POST(request: Request) {
       },
     });
 
-    setAdminSessionCookie(response, {
-      id: user.id,
-      email: user.email,
-      role: "ADMIN",
-      proAccountId: user.proAccountId,
-      proAccountSlug: proAccount?.slug ?? null,
-      supportIncluded: proAccount?.supportIncluded === true,
-    });
+    setAdminSessionCookie(
+      response,
+      {
+        id: user.id,
+        email: user.email,
+        role: "ADMIN",
+        proAccountId: user.proAccountId,
+        proAccountSlug: proAccount?.slug ?? null,
+        supportIncluded: proAccount?.supportIncluded === true,
+      },
+      { rememberMe },
+    );
 
     return response;
   } catch (error) {
