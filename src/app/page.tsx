@@ -180,34 +180,10 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/pro"
+                href="#espaces"
                 className="rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               >
-                Je suis reparateur
-              </Link>
-              <Link
-                href="/client"
-                className="rounded-lg bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
-              >
-                Je cherche un reparateur
-              </Link>
-              <Link
-                href="/admin/login"
-                className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Connexion admin
-              </Link>
-              <Link
-                href="/suivi"
-                className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Suivre une reparation
-              </Link>
-              <Link
-                href="/pro"
-                className="rounded-lg border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Option assistance 9,99 EUR/an
+                Choisir mon espace
               </Link>
             </div>
           </div>
@@ -225,61 +201,93 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-2">
-          <article className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
-              Espace pro
+      <section id="espaces" className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-8">
+          <header className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Deux espaces separes
             </p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-              Creez votre compte atelier et gerez vos reparations.
+            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
+              Un parcours pour les reparateurs, un parcours pour les clients.
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              QR code, fiches client, devis, stock, agenda, emails de statut et
-              documents : tout est range pour travailler vite au comptoir.
+              L&apos;accueil ne liste pas les magasins et ne melange pas la
+              creation d&apos;un compte pro avec la recherche client. Chaque
+              personne choisit son espace puis continue sur une page dediee.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href="/pro"
-                className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
-              >
-                Voir l&apos;offre pro
-              </Link>
-              <Link
-                href="/admin/login"
-                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-              >
-                Connexion admin
-              </Link>
-            </div>
-          </article>
-          <article className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-              Espace client
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-              Trouvez un magasin ouvert et suivez votre reparation.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              Activez votre localisation sur la page client pour trouver un
-              atelier disponible, puis envoyez une demande avec les infos de
-              votre appareil.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href="/client/magasins"
-                className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
-              >
-                Trouver un magasin
-              </Link>
-              <Link
-                href="/suivi"
-                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-              >
-                Suivre une reparation
-              </Link>
-            </div>
-          </article>
+          </header>
+
+          <div className="grid gap-5">
+            <article className="grid gap-5 rounded-2xl border border-sky-100 bg-white p-6 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
+                  Pour les reparateurs
+                </p>
+                <h3 className="mt-3 text-2xl font-semibold text-slate-950">
+                  Creez votre compte atelier et gerez vos reparations.
+                </h3>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                  QR code, fiches client, devis, stock, agenda, emails de statut
+                  et documents : tout est range pour travailler vite au comptoir.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 lg:justify-end">
+                <Link
+                  href="/pro"
+                  className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+                >
+                  Voir l&apos;espace pro
+                </Link>
+                <Link
+                  href="/pro/inscription"
+                  className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-900 transition hover:bg-sky-100"
+                >
+                  Creer un compte pro
+                </Link>
+                <Link
+                  href="/admin/login"
+                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                >
+                  Connexion admin
+                </Link>
+              </div>
+            </article>
+
+            <article className="grid gap-5 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+                  Pour les clients
+                </p>
+                <h3 className="mt-3 text-2xl font-semibold text-slate-950">
+                  Trouvez un magasin ouvert et suivez votre reparation.
+                </h3>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                  La recherche magasin est sur une page dediee. Elle affiche les
+                  ateliers ouverts et disponibles au moment de la recherche.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 lg:justify-end">
+                <Link
+                  href="/client"
+                  className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+                >
+                  Voir l&apos;espace client
+                </Link>
+                <Link
+                  href="/client/magasins"
+                  className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100"
+                >
+                  Trouver un magasin
+                </Link>
+                <Link
+                  href="/suivi"
+                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                >
+                  Suivre une reparation
+                </Link>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
