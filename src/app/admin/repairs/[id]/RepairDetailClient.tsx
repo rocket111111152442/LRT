@@ -366,6 +366,18 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         setMessage(
           "Mise a jour enregistree. L'email d'avis n'a pas ete envoye; verifiez la configuration SMTP.",
         );
+      } else if (
+        payload.mail?.acceptedTicketAttempted &&
+        payload.mail?.acceptedTicketSent
+      ) {
+        setMessage("Demande acceptee. Le ticket a ete envoye au client.");
+      } else if (
+        payload.mail?.acceptedTicketAttempted &&
+        !payload.mail?.acceptedTicketSent
+      ) {
+        setMessage(
+          "Demande acceptee. L'email de ticket n'a pas ete envoye; verifiez la configuration SMTP.",
+        );
       } else if (payload.mail?.quoteAttempted) {
         setMessage("Devis enregistre et email tente.");
       } else if (payload.mail?.attempted && payload.mail?.sent) {
@@ -428,7 +440,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
 
   async function handleAcceptClientRequest() {
     await patchRepair({
-      status: "PAS_ENCORE_EN_REPARATION",
+      acceptClientRequest: true,
       internalNotes: internalNotes || "Demande client acceptee par l'atelier.",
     });
   }
@@ -443,7 +455,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     }
 
     await patchRepair({
-      status: "ANNULE",
+      refuseClientRequest: true,
       internalNotes: internalNotes || "Demande client refusee par l'atelier.",
     });
   }
@@ -822,15 +834,18 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           className="grid content-start gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
         >
           <h2 className="text-xl font-semibold text-slate-950">Gestion</h2>
-          {repair.status === "PAS_ENCORE_RECU_CLIENT" ? (
+          {repair.status === "PAS_ENCORE_RECU_CLIENT" &&
+          repair.quoteStatus !== "ACCEPTED" ? (
             <div className="grid gap-3 rounded-md border border-sky-200 bg-sky-50 p-3">
               <div>
                 <p className="text-sm font-semibold text-sky-950">
                   Demande client avant depot
                 </p>
                 <p className="mt-1 text-xs leading-5 text-sky-800">
-                  Acceptez la demande pour attendre le depot en magasin, envoyez
-                  un devis si le prix doit etre valide, ou refusez la demande.
+                  Si aucun prix n&apos;est necessaire, acceptez la demande : le
+                  client recevra son ticket et pourra deposer l&apos;appareil.
+                  Si un prix doit etre valide, renseignez le prix puis envoyez
+                  le devis par email.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -840,7 +855,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
                   disabled={isSaving}
                   className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
-                  Accepter la demande
+                  Accepter sans prix
                 </button>
                 <button
                   type="button"

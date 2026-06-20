@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import {
   sendQuoteEmail,
+  sendRepairCreatedEmail,
   sendRepairStatusEmail,
   sendReviewRequestEmail,
 } from "@/lib/mail";
@@ -714,6 +715,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const sendQuote = body.sendQuote === true;
+  const acceptClientRequest = body.acceptClientRequest === true;
+  const refuseClientRequest = body.refuseClientRequest === true;
 
   if (sendQuote) {
     const quotePrice =
@@ -731,6 +734,18 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.quoteToken = currentRepair.quoteToken ?? newQuoteToken();
     data.quoteStatus = "SENT";
     data.quoteSentAt = new Date();
+  }
+
+  if (acceptClientRequest) {
+    data.status = "PAS_ENCORE_RECU_CLIENT";
+    data.quoteStatus = "ACCEPTED";
+    data.quoteRespondedAt = new Date();
+  }
+
+  if (refuseClientRequest) {
+    data.status = "ANNULE";
+    data.quoteStatus = "REFUSED";
+    data.quoteRespondedAt = new Date();
   }
 
   const nextStatus = (data.status as PrismaRepairStatus | undefined) ?? currentRepair.status;
@@ -931,8 +946,23 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
   }
 
+  let acceptedTicketEmailSentNow = false;
   let statusEmailSentNow = false;
   let reviewEmailSentNow = false;
+
+  if (acceptClientRequest && currentRepair.quoteStatus !== "ACCEPTED") {
+    const acceptedTicketMail = await sendRepairCreatedEmail(repair);
+    acceptedTicketEmailSentNow = acceptedTicketMail.sent;
+
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: acceptedTicketMail.sent ? "CLIENT_REQUEST_ACCEPTED" : "CLIENT_TICKET_EMAIL_FAILED",
+      message: acceptedTicketMail.sent
+        ? "Demande acceptee par le magasin et ticket envoye au client."
+        : "Demande acceptee par le magasin mais l'email de ticket n'est pas parti.",
+    });
+  }
 
   if (shouldSendStatusEmail) {
     const mailResult = await sendRepairStatusEmail(repair);
@@ -994,6 +1024,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       attempted: shouldSendStatusEmail,
       sent: statusEmailSentNow,
       quoteAttempted: sendQuote,
+      acceptedTicketAttempted: acceptClientRequest,
+      acceptedTicketSent: acceptedTicketEmailSentNow,
       reviewAttempted: shouldSendReviewEmail,
       reviewSent: reviewEmailSentNow,
     },

@@ -15,6 +15,7 @@ type CreatedRepair = {
   ticketNumber?: string | null;
   status: string;
   createdAt: string;
+  shopApprovalRequired?: boolean;
 };
 
 type RepairerRating = {
@@ -145,7 +146,10 @@ export function RepairForm({
 
       setValues(emptyRepairInput());
       setErrors({});
-      setCreatedRepair(payload.repair);
+      setCreatedRepair({
+        ...payload.repair,
+        shopApprovalRequired: payload.shopApprovalRequired === true,
+      });
     } catch {
       setSubmitError("La demande n'a pas pu etre envoyee.");
     } finally {
@@ -261,16 +265,26 @@ export function RepairForm({
 
       {createdRepair ? (
         <div className="grid gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          <p>
-            Reparation creee. Ticket :{" "}
-            <strong>{createdRepair.ticketNumber ?? createdRepair.id}</strong>.
-          </p>
-          <Link
-            href="/suivi"
-            className="w-fit font-semibold text-emerald-950 underline-offset-4 hover:underline"
-          >
-            Suivre une reparation
-          </Link>
+          {createdRepair.shopApprovalRequired ? (
+            <p>
+              Demande envoyee au magasin. Vous recevrez un email avec votre
+              ticket si le magasin accepte directement la demande ou si vous
+              acceptez le devis propose.
+            </p>
+          ) : (
+            <>
+              <p>
+                Reparation creee. Ticket :{" "}
+                <strong>{createdRepair.ticketNumber ?? createdRepair.id}</strong>.
+              </p>
+              <Link
+                href="/suivi"
+                className="w-fit font-semibold text-emerald-950 underline-offset-4 hover:underline"
+              >
+                Suivre une reparation
+              </Link>
+            </>
+          )}
         </div>
       ) : null}
 

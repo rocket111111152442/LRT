@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendRepairCreatedEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
 
@@ -75,7 +76,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     data: {
       quoteStatus: action,
       quoteRespondedAt: new Date(),
-      ...(action === "ACCEPTED" ? { status: "PAS_ENCORE_RECU_CLIENT" } : {}),
+      status: action === "ACCEPTED" ? "PAS_ENCORE_RECU_CLIENT" : "ANNULE",
     },
     select: quoteSelect(),
   });
@@ -86,6 +87,19 @@ export async function PATCH(request: Request, context: RouteContext) {
     type: action === "ACCEPTED" ? "QUOTE_ACCEPTED" : "QUOTE_REFUSED",
     message: action === "ACCEPTED" ? "Devis accepte par le client." : "Devis refuse par le client.",
   });
+
+  if (action === "ACCEPTED") {
+    const ticketMail = await sendRepairCreatedEmail(updatedRepair);
+
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: ticketMail.sent ? "CLIENT_TICKET_SENT" : "CLIENT_TICKET_EMAIL_FAILED",
+      message: ticketMail.sent
+        ? "Ticket envoye au client apres acceptation du devis."
+        : "Le client a accepte le devis mais l'email de ticket n'est pas parti.",
+    });
+  }
 
   return NextResponse.json({ repair: updatedRepair });
 }

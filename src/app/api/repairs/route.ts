@@ -175,16 +175,26 @@ export async function POST(request: Request) {
       });
     }
 
-    const mailResult = await sendRepairCreatedEmail(repair);
+    if (!proAccount) {
+      const mailResult = await sendRepairCreatedEmail(repair);
 
-    await addRepairEvent({
-      repairId: repair.id,
-      proAccountId,
-      type: mailResult.sent ? "EMAIL_SENT" : "EMAIL_SKIPPED",
-      message: mailResult.sent
-        ? "Email de ticket envoye au client."
-        : "Email de ticket non envoye. Verifiez la configuration SMTP si besoin.",
-    });
+      await addRepairEvent({
+        repairId: repair.id,
+        proAccountId,
+        type: mailResult.sent ? "EMAIL_SENT" : "EMAIL_SKIPPED",
+        message: mailResult.sent
+          ? "Email de ticket envoye au client."
+          : "Email de ticket non envoye. Verifiez la configuration SMTP si besoin.",
+      });
+    } else {
+      await addRepairEvent({
+        repairId: repair.id,
+        proAccountId,
+        type: "CLIENT_TICKET_PENDING",
+        message:
+          "Ticket client en attente : il sera envoye apres acceptation du magasin ou acceptation du devis.",
+      });
+    }
 
     if (proAccount) {
       const shopMail = await sendShopRepairRequestEmail({
@@ -205,7 +215,13 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ repair }, { status: 201 });
+    return NextResponse.json(
+      {
+        repair,
+        shopApprovalRequired: Boolean(proAccount),
+      },
+      { status: 201 },
+    );
   } catch {
     return NextResponse.json(
       { error: "La réparation n'a pas pu être créée." },
