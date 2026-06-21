@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const SUPPORT_PRICE_CENTS = 999;
+const SUPPORT_PRICE_CENTS = 2999;
 
 function getAppUrl(request: Request) {
   const forwardedHost = request.headers.get("x-forwarded-host");

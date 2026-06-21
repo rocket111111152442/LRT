@@ -8,21 +8,33 @@ type InvoicePageProps = {
   params: Promise<{ id: string }>;
 };
 
-function formatDate(value: Date | null) {
+export const dynamic = "force-dynamic";
+
+function formatDate(value: unknown) {
   if (!value) {
+    return "-";
+  }
+
+  const date = value instanceof Date ? value : new Date(String(value));
+
+  if (Number.isNaN(date.getTime())) {
     return "-";
   }
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "long",
-  }).format(value);
+  }).format(date);
 }
 
-function formatPrice(cents: number | null | undefined) {
+function toCents(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function formatPrice(cents: unknown) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
-  }).format((cents ?? 0) / 100);
+  }).format(toCents(cents) / 100);
 }
 
 export default async function RepairInvoicePage({ params }: InvoicePageProps) {
@@ -55,7 +67,13 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
   if (!repair || (admin.proAccountId && repair.proAccountId !== admin.proAccountId)) {
     return (
       <>
-        <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
+        <AdminHeader
+          email={admin.email}
+          supportIncluded={admin.supportIncluded}
+          paymentStatus={admin.paymentStatus}
+          trialEndsAt={admin.trialEndsAt}
+          proAccountSlug={admin.proAccountSlug}
+        />
         <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">
             Facture introuvable.
@@ -65,12 +83,20 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
     );
   }
 
-  const totalCents = repair.estimatedPriceCents ?? 0;
-  const remainingCents = Math.max(totalCents - repair.paidAmountCents, 0);
+  const totalCents = toCents(repair.estimatedPriceCents);
+  const paidAmountCents = toCents(repair.paidAmountCents);
+  const depositCents = toCents(repair.depositCents);
+  const remainingCents = Math.max(totalCents - paidAmountCents, 0);
 
   return (
     <>
-      <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
+      <AdminHeader
+        email={admin.email}
+        supportIncluded={admin.supportIncluded}
+        paymentStatus={admin.paymentStatus}
+        trialEndsAt={admin.trialEndsAt}
+        proAccountSlug={admin.proAccountSlug}
+      />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-3xl gap-5">
           <div className="no-print flex flex-wrap items-center justify-between gap-3">
@@ -97,14 +123,26 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
             </header>
 
             <section className="grid gap-4 sm:grid-cols-2">
-              <InvoiceItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
-              <InvoiceItem label="Contact" value={`${repair.phone} - ${repair.email}`} />
+              <InvoiceItem
+                label="Client"
+                value={`${repair.firstName ?? ""} ${repair.lastName ?? ""}`.trim() || "-"}
+              />
+              <InvoiceItem
+                label="Contact"
+                value={`${repair.phone ?? "-"} - ${repair.email ?? "-"}`}
+              />
               <InvoiceItem
                 label="Appareil"
-                value={`${repair.deviceType} ${repair.brand} ${repair.model}`}
+                value={`${repair.deviceType ?? ""} ${repair.brand ?? ""} ${
+                  repair.model ?? ""
+                }`.trim() || "-"}
                 wide
               />
-              <InvoiceItem label="Intervention" value={repair.issueDescription} wide />
+              <InvoiceItem
+                label="Intervention"
+                value={repair.issueDescription ?? "-"}
+                wide
+              />
             </section>
 
             <section className="overflow-hidden rounded-md border border-slate-200">
@@ -126,11 +164,11 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
                   </tr>
                   <tr className="border-t border-slate-200">
                     <td className="px-4 py-3">Acompte</td>
-                    <td className="px-4 py-3 text-right">{formatPrice(repair.depositCents)}</td>
+                    <td className="px-4 py-3 text-right">{formatPrice(depositCents)}</td>
                   </tr>
                   <tr className="border-t border-slate-200">
                     <td className="px-4 py-3">Deja paye</td>
-                    <td className="px-4 py-3 text-right">{formatPrice(repair.paidAmountCents)}</td>
+                    <td className="px-4 py-3 text-right">{formatPrice(paidAmountCents)}</td>
                   </tr>
                   <tr className="border-t border-slate-200 bg-slate-50 font-semibold">
                     <td className="px-4 py-3">Reste a payer</td>

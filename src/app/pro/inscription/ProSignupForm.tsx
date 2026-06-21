@@ -215,7 +215,7 @@ export function ProSignupForm() {
 
       if (sent) {
         setMessage(
-          "Code envoye. Entrez le code recu par email puis recliquez sur Essai gratuit 72h.",
+          "Code envoye. Entrez le code recu par email puis cliquez sur Continuer avec l'essai gratuit 72h.",
         );
       }
 
@@ -582,7 +582,7 @@ export function ProSignupForm() {
             disabled={isSubmitting || isSendingCode}
             className="min-h-11 rounded-md border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
           >
-            Essai gratuit 72h
+            Continuer avec l&apos;essai gratuit 72h
           </button>
         ) : null}
       </div>

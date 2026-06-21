@@ -19,11 +19,15 @@ import {
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { FirstUseTour } from "./FirstUseTour";
+import { AdminTrialBanner } from "./AdminTrialBanner";
 import { SupportSubscribeButton } from "./SupportSubscribeButton";
 
 type AdminHeaderProps = {
   email: string;
   supportIncluded?: boolean;
+  paymentStatus?: string | null;
+  trialEndsAt?: string | null;
+  proAccountSlug?: string | null;
 };
 
 const navGroups = [
@@ -57,7 +61,13 @@ const navGroups = [
 const navLinkClassName =
   "inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900";
 
-export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps) {
+export function AdminHeader({
+  email,
+  supportIncluded = false,
+  paymentStatus,
+  trialEndsAt,
+  proAccountSlug,
+}: AdminHeaderProps) {
   function openTour() {
     window.dispatchEvent(new Event("Qoravo-admin-tour-open"));
   }
@@ -108,35 +118,40 @@ export function AdminHeader({ email, supportIncluded = false }: AdminHeaderProps
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-          {supportIncluded ? (
-            <Link
-              href="/service-client"
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+            {supportIncluded ? (
+              <Link
+                href="/service-client"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+              >
+                <LifeBuoy aria-hidden="true" className="h-4 w-4" />
+                Support
+              </Link>
+            ) : (
+              <SupportSubscribeButton />
+            )}
+            <button
+              type="button"
+              onClick={openTour}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100"
             >
-              <LifeBuoy aria-hidden="true" className="h-4 w-4" />
-              Support
-            </Link>
-          ) : (
-            <SupportSubscribeButton />
-          )}
-          <button
-            type="button"
-            onClick={openTour}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100"
-          >
-            <Route aria-hidden="true" className="h-4 w-4 text-amber-600" />
-            Tour
-          </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
-          >
-            <LogOut aria-hidden="true" className="h-4 w-4" />
-            Deconnexion
-          </button>
+              <Route aria-hidden="true" className="h-4 w-4 text-amber-600" />
+              Tour
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+            >
+              <LogOut aria-hidden="true" className="h-4 w-4" />
+              Deconnexion
+            </button>
           </div>
         </nav>
+        <AdminTrialBanner
+          paymentStatus={paymentStatus}
+          trialEndsAt={trialEndsAt}
+          proAccountSlug={proAccountSlug}
+        />
       </div>
       <ClientErrorBoundary name="First use tour" fallback={null}>
         <FirstUseTour email={email} />

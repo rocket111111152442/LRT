@@ -63,7 +63,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
             </h1>
             <p className="text-sm leading-6 text-slate-600">
               Le service client est reserve aux comptes qui ajoutent l&apos;option
-              assistance annuelle a 9,99 EUR/an. Connectez-vous avec un compte
+              assistance annuelle a 29,99 EUR/an. Connectez-vous avec un compte
               qui possede cette option pour envoyer une demande.
             </p>
             <div className="flex flex-wrap gap-3">

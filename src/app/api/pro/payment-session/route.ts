@@ -11,7 +11,7 @@ import {
 import { readSignupToken } from "@/lib/pro/signupToken";
 
 const PRO_PRICE_CENTS = 8999;
-const SETUP_HELP_PRICE_CENTS = 999;
+const SETUP_HELP_PRICE_CENTS = 2999;
 const PREMIUM_FULL_PRICE_CENTS = PRO_PRICE_CENTS;
 const PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS =
   applyPremiumDiscountCents(PRO_PRICE_CENTS);

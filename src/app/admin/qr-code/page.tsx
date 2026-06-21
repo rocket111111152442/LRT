@@ -47,7 +47,13 @@ export default async function AdminQrCodePage() {
 
   return (
     <>
-      <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
+      <AdminHeader
+        email={admin.email}
+        supportIncluded={admin.supportIncluded}
+        paymentStatus={admin.paymentStatus}
+        trialEndsAt={admin.trialEndsAt}
+        proAccountSlug={admin.proAccountSlug}
+      />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-6">
           <QrCodeClient newRepairUrl={newRepairUrl} depositUrl={depositUrl} />

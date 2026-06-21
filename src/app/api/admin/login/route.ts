@@ -10,8 +10,18 @@ import { prisma } from "@/lib/prisma";
 type ProAccountSummary = {
   slug: string;
   paymentStatus: string;
+  trialEndsAt?: Date | string | null;
   supportIncluded?: boolean | null;
 } | null;
+
+function isActiveTrial(account: ProAccountSummary) {
+  if (account?.paymentStatus !== "TRIAL" || !account.trialEndsAt) {
+    return false;
+  }
+
+  const trialEndsAt = new Date(account.trialEndsAt);
+  return !Number.isNaN(trialEndsAt.getTime()) && trialEndsAt > new Date();
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -29,6 +39,7 @@ async function getProAccountSummary(
     select: {
       slug: true,
       paymentStatus: true,
+      trialEndsAt: true,
       supportIncluded: true,
     },
   });
@@ -82,9 +93,18 @@ export async function POST(request: Request) {
 
     const proAccount = await getProAccountSummary(user.proAccountId);
 
-    if (proAccount && proAccount.paymentStatus !== "PAID") {
+    if (
+      proAccount &&
+      proAccount.paymentStatus !== "PAID" &&
+      !isActiveTrial(proAccount)
+    ) {
       return NextResponse.json(
-        { error: "Paiement en attente pour ce compte pro." },
+        {
+          error:
+            proAccount.paymentStatus === "TRIAL"
+              ? "Votre essai gratuit de 72h est termine. Souscrivez a l abonnement pour retrouver votre espace admin et continuer votre travail."
+              : "Paiement en attente pour ce compte pro.",
+        },
         { status: 403 },
       );
     }
@@ -146,6 +166,10 @@ export async function POST(request: Request) {
         role: "ADMIN",
         proAccountId: user.proAccountId,
         proAccountSlug: proAccount?.slug ?? null,
+        paymentStatus: proAccount?.paymentStatus ?? null,
+        trialEndsAt: proAccount?.trialEndsAt
+          ? new Date(proAccount.trialEndsAt).toISOString()
+          : null,
         supportIncluded: proAccount?.supportIncluded === true,
       },
     });
@@ -158,6 +182,10 @@ export async function POST(request: Request) {
         role: "ADMIN",
         proAccountId: user.proAccountId,
         proAccountSlug: proAccount?.slug ?? null,
+        paymentStatus: proAccount?.paymentStatus ?? null,
+        trialEndsAt: proAccount?.trialEndsAt
+          ? new Date(proAccount.trialEndsAt).toISOString()
+          : null,
         supportIncluded: proAccount?.supportIncluded === true,
       },
       { rememberMe },

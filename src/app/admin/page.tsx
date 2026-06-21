@@ -12,7 +12,13 @@ export default async function AdminPage() {
 
   return (
     <>
-      <AdminHeader email={admin.email} supportIncluded={admin.supportIncluded} />
+      <AdminHeader
+        email={admin.email}
+        supportIncluded={admin.supportIncluded}
+        paymentStatus={admin.paymentStatus}
+        trialEndsAt={admin.trialEndsAt}
+        proAccountSlug={admin.proAccountSlug}
+      />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-6">
           <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

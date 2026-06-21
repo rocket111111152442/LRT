@@ -54,7 +54,7 @@ const priceDetails = [
   "Recherche publique par disponibilite, horaires et proximite du magasin",
   "Emails automatiques de statut, tickets de suivi, devis et avis client",
   "Essai gratuit de 72h avant de vous engager",
-  "Option service client disponible a tout moment si vous voulez l'aide Qoravo",
+  "Option service client a 29,99 EUR/an disponible a tout moment si vous voulez l'aide Qoravo",
 ];
 
 const extraFeatures = [

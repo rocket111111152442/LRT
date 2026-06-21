@@ -9,7 +9,7 @@ import {
 } from "@/lib/pro/promoCodes";
 
 const PRO_PRICE_CENTS = 8999;
-const SETUP_HELP_PRICE_CENTS = 999;
+const SETUP_HELP_PRICE_CENTS = 2999;
 
 function formatPrice(cents: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -123,7 +123,7 @@ export function PaymentClient({
           <p className="text-sm text-emerald-700">
             Code de reduction applique : -10% sur le premium pendant 1 an seulement.
             L&apos;assistance
-            annuelle reste a 9,99 EUR/an.
+            annuelle reste a 29,99 EUR/an.
           </p>
         ) : null}
       </div>
@@ -137,7 +137,7 @@ export function PaymentClient({
         />
         <span className="grid gap-1 text-sm text-slate-700">
           <span className="font-semibold text-slate-950">
-            Ajouter l&apos;assistance +9,99 EUR/an
+            Ajouter l&apos;assistance +29,99 EUR/an
           </span>
           <span>
             Ajoute le service client Qoravo, l&apos;appel telephonique et l&apos;aide

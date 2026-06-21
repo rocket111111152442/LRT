@@ -20,6 +20,8 @@ export type AdminUser = {
   role: "ADMIN";
   proAccountId: string | null;
   proAccountSlug: string | null;
+  paymentStatus: string | null;
+  trialEndsAt: string | null;
   supportIncluded: boolean;
 };
 
@@ -188,6 +190,8 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
       role: "ADMIN",
       proAccountId: user.proAccountId,
       proAccountSlug: proAccount?.slug ?? null,
+      paymentStatus: proAccount?.paymentStatus ?? null,
+      trialEndsAt: trialEndsAt ? trialEndsAt.toISOString() : null,
       supportIncluded: proAccount?.supportIncluded === true,
     };
   } catch (error) {
