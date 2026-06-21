@@ -80,8 +80,14 @@ export function AdminHeader({
   }
 
   return (
-    <header className="no-print border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
+    <>
+      <AdminTrialBanner
+        paymentStatus={paymentStatus}
+        trialEndsAt={trialEndsAt}
+        proAccountSlug={proAccountSlug}
+      />
+      <header className="no-print border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <QoravoLogo showText={false} markClassName="h-12 w-12" />
           <div className="grid gap-1">
@@ -147,15 +153,11 @@ export function AdminHeader({
             </button>
           </div>
         </nav>
-        <AdminTrialBanner
-          paymentStatus={paymentStatus}
-          trialEndsAt={trialEndsAt}
-          proAccountSlug={proAccountSlug}
-        />
-      </div>
-      <ClientErrorBoundary name="First use tour" fallback={null}>
-        <FirstUseTour email={email} />
-      </ClientErrorBoundary>
-    </header>
+        </div>
+        <ClientErrorBoundary name="First use tour" fallback={null}>
+          <FirstUseTour email={email} />
+        </ClientErrorBoundary>
+      </header>
+    </>
   );
 }

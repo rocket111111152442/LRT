@@ -37,10 +37,8 @@ function formatPrice(cents: unknown) {
   }).format(toCents(cents) / 100);
 }
 
-export default async function RepairInvoicePage({ params }: InvoicePageProps) {
-  const admin = await requireAdminPage();
-  const { id } = await params;
-  const repair = await prisma.repair.findUnique({
+async function loadRepair(id: string) {
+  return prisma.repair.findUnique({
     where: { id },
     select: {
       id: true,
@@ -63,8 +61,39 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
       createdAt: true,
     },
   });
+}
 
-  if (!repair || (admin.proAccountId && repair.proAccountId !== admin.proAccountId)) {
+export default async function RepairInvoicePage({ params }: InvoicePageProps) {
+  const admin = await requireAdminPage();
+  const { id } = await params;
+
+  let repair: Awaited<ReturnType<typeof loadRepair>> = null;
+
+  try {
+    repair = await loadRepair(id);
+  } catch (error) {
+    console.error("Invoice load failed", error);
+
+    return (
+      <>
+        <AdminHeader
+          email={admin.email}
+          supportIncluded={admin.supportIncluded}
+          paymentStatus={admin.paymentStatus}
+          trialEndsAt={admin.trialEndsAt}
+          proAccountSlug={admin.proAccountSlug}
+        />
+        <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+            La facture n&apos;a pas pu être chargée pour le moment. Revenez à la
+            fiche de réparation puis réessayez.
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  if (!repair || (admin.proAccountId && repair.proAccountId && repair.proAccountId !== admin.proAccountId)) {
     return (
       <>
         <AdminHeader

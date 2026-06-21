@@ -541,10 +541,10 @@ export function ProSignupForm() {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid max-w-[180px] gap-1">
+      <div className="grid gap-4 border-t border-slate-200 pt-5">
+        <div className="grid max-w-[200px] gap-1">
           <label htmlFor="pro-promoCode" className="text-xs font-medium text-slate-600">
-            Code promo
+            Code promo (optionnel)
           </label>
           <input
             id="pro-promoCode"
@@ -558,33 +558,50 @@ export function ProSignupForm() {
             <p className="text-xs text-red-700">{errors.promoCode}</p>
           ) : null}
         </div>
-        <button
-          type="submit"
-          disabled={isSubmitting || isSendingCode}
-          className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-        >
-          {isSendingCode
-            ? "Envoi du code..."
-            : isSubmitting
-              ? usesFreeAccessCode
-                ? "Activation..."
-                : "Validation..."
-              : usesFreeAccessCode
-                ? "Activer gratuitement"
-                : codeSent
-                  ? "Valider le code"
-                  : "Envoyer le code"}
-        </button>
+
         {!usesFreeAccessCode ? (
+          <div className="grid gap-3">
+            <button
+              type="button"
+              onClick={handleTrialStart}
+              disabled={isSubmitting || isSendingCode}
+              className="q-btn q-btn-primary w-full text-base disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSendingCode
+                ? "Envoi du code..."
+                : isSubmitting
+                  ? "Démarrage de l'essai..."
+                  : codeSent
+                    ? "Valider le code et démarrer l'essai gratuit 72h"
+                    : "Continuer avec l'essai gratuit 72h"}
+            </button>
+            <p className="text-center text-xs text-slate-500">
+              72h gratuites · vous pourrez vous abonner à tout moment et reprendre
+              où vous en étiez.
+            </p>
+            <button
+              type="submit"
+              disabled={isSubmitting || isSendingCode}
+              className="min-h-11 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              {isSendingCode
+                ? "Envoi du code..."
+                : isSubmitting
+                  ? "Validation..."
+                  : codeSent
+                    ? "Valider le code et m'abonner (89,99 €/an)"
+                    : "M'abonner directement (89,99 €/an)"}
+            </button>
+          </div>
+        ) : (
           <button
-            type="button"
-            onClick={handleTrialStart}
+            type="submit"
             disabled={isSubmitting || isSendingCode}
-            className="min-h-11 rounded-md border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+            className="q-btn q-btn-primary w-full text-base disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Continuer avec l&apos;essai gratuit 72h
+            {isSubmitting ? "Activation..." : "Activer gratuitement"}
           </button>
-        ) : null}
+        )}
       </div>
     </form>
   );

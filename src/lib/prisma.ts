@@ -126,6 +126,13 @@ function normalizeDoc(id: string, data: Dict | undefined) {
 }
 
 function removeUndefinedValues(value: unknown): unknown {
+  // Les dates (et timestamps Firestore) doivent rester intactes : sans ce
+  // garde-fou, elles seraient parcourues comme des objets et transformees en
+  // objet vide {}, ce qui corrompt soldAt, spentAt, createdAt, etc.
+  if (value instanceof Date || value instanceof Timestamp) {
+    return value;
+  }
+
   if (Array.isArray(value)) {
     return value.map(removeUndefinedValues);
   }

@@ -1,165 +1,128 @@
 import Link from "next/link";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Calculator,
+  Clock,
+  FileText,
+  Mail,
+  MapPinned,
+  Package,
+  QrCode,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Star,
+  Wrench,
+} from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { PublicReviews } from "./PublicReviews";
 import { TrialCountdown } from "./TrialCountdown";
 
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1581993192008-63e896f4f744?auto=format&fit=crop&w=1200&q=80";
+const WORKSHOP_IMAGE =
+  "https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=1100&q=80";
+const COUNTER_IMAGE =
+  "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1100&q=80";
+
+const stats = [
+  { value: "72h", label: "d'essai gratuit" },
+  { value: "89,99 €", label: "par an, tout compris" },
+  { value: "+60", label: "outils pour l'atelier" },
+  { value: "0", label: "papier à trier" },
+];
+
 const features = [
-  "Formulaire client public avec QR code unique",
-  "Suivi client avec ticket court",
-  "Tableau admin pour suivre toutes les reparations",
-  "Email automatique a chaque changement de statut",
-  "Configuration email par compte pro",
-  "Recherche rapide par client, telephone, marque ou modele",
-  "Statuts clairs pour garder l'atelier organise",
-  "Validation par code email a l'inscription et a chaque connexion",
-  "Option assistance annuelle avec service client Qoravo",
-  "Recherche publique du magasin le plus proche",
-  "Devis avec acceptation ou refus par le client",
-  "Stock simple avec alertes de pieces faibles",
-  "Agenda jour/semaine pour les reparations",
-  "Paiement, acompte et reste a payer",
-  "Facture et recu imprimables en PDF navigateur",
-  "Garantie et retours sous garantie",
-  "Page vitrine publique par atelier",
+  {
+    icon: QrCode,
+    title: "QR code unique",
+    text: "Chaque atelier reçoit son QR code à poser au comptoir. Le client scanne et remplit sa demande en 30 secondes.",
+  },
+  {
+    icon: Wrench,
+    title: "Suivi de réparation",
+    text: "Statuts clairs, fiche détaillée, notes internes, photos et historique : tout l'atelier est rangé au même endroit.",
+  },
+  {
+    icon: Mail,
+    title: "Emails automatiques",
+    text: "Le client est prévenu automatiquement quand son appareil est prêt, avec rappels et demande d'avis Google.",
+  },
+  {
+    icon: FileText,
+    title: "Devis, factures & reçus",
+    text: "Envoyez un devis accepté en un clic, imprimez factures et reçus, gérez acompte et reste à payer.",
+  },
+  {
+    icon: Calculator,
+    title: "Compta intégrée",
+    text: "Ventes, dépenses, TVA, salaires et estimations d'impôts. Un export CSV prêt pour votre comptable.",
+  },
+  {
+    icon: Package,
+    title: "Stock & agenda",
+    text: "Gérez vos pièces avec alertes de stock bas et organisez vos réparations dans un agenda jour/semaine.",
+  },
+  {
+    icon: MapPinned,
+    title: "Vitrine publique",
+    text: "Votre magasin est référencé sur Qoravo : les clients proches vous trouvent par horaires et disponibilité.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Sécurité & garantie",
+    text: "Validation par code email, signatures client au dépôt et à la récupération, suivi des garanties et retours.",
+  },
 ];
 
 const workflow = [
   {
-    title: "1. Le client scanne",
-    text: "Il ouvre le formulaire depuis le QR code de votre atelier et decrit son appareil.",
+    step: "01",
+    title: "Le client scanne",
+    text: "Il ouvre le formulaire depuis votre QR code et décrit son appareil. Aucun compte requis.",
   },
   {
-    title: "2. Vous suivez",
-    text: "Toutes les demandes arrivent dans l'admin avec recherche, filtres et fiche detaillee.",
+    step: "02",
+    title: "Vous gérez",
+    text: "La demande arrive dans votre admin : recherche, filtres, devis, statut, photos et notes.",
   },
   {
-    title: "3. Le client est prevenu",
-    text: "Quand le statut change, le client peut recevoir un email automatique.",
+    step: "03",
+    title: "Le client est prévenu",
+    text: "Dès que l'appareil est prêt, l'email part tout seul. Vous gagnez du temps et des avis 5 étoiles.",
   },
 ];
 
-const adminTools = [
-  "Statuts PAS ENCORE, EN REPARATION, EN ATTENTE PIECE, PRET, RECUPERE, ANNULE",
-  "Notes internes visibles seulement par l'atelier",
-  "Archivage et suppression avec confirmation",
-  "Configuration email directement dans l'admin",
-  "QR code imprimable pour le comptoir",
-  "Donnees separees par compte pro",
-];
-
-const priceDetails = [
-  "89,99 EUR/an pour l'espace admin Qoravo de l'atelier",
-  "Un QR code comptoir imprimable pour recevoir les demandes directement en magasin",
-  "Votre magasin est reference sur Qoravo pour attirer de nouveaux clients autour de vous",
-  "Recherche publique par disponibilite, horaires et proximite du magasin",
-  "Emails automatiques de statut, tickets de suivi, devis et avis client",
-  "Essai gratuit de 72h avant de vous engager",
-  "Option service client a 29,99 EUR/an disponible a tout moment si vous voulez l'aide Qoravo",
-];
-
-const extraFeatures = [
-  "Formulaire public pour les clients",
-  "Creation manuelle depuis l'admin",
-  "QR code unique par compte pro",
-  "QR code pret a imprimer",
-  "Numero de ticket court",
-  "Page de suivi client",
-  "Liste complete des reparations",
-  "Recherche par nom de client",
-  "Recherche par telephone",
-  "Recherche par email",
-  "Recherche par marque ou modele",
-  "Filtre par statut",
-  "Fiche detaillee par reparation",
-  "Modification rapide du statut",
-  "Devis avant reparation",
-  "Validation du devis par bouton client",
-  "Notes internes pour l'atelier",
-  "Photos de l'appareil",
-  "Signature client au depot",
-  "Signature client a la recuperation",
-  "Recu imprimable",
-  "Historique complet des actions",
-  "Archivage des dossiers termines",
-  "Suppression definitive avec confirmation",
-  "Email automatique quand le statut change",
-  "Notifications gratuites par email",
-  "Relance automatique apres 7 jours pret",
-  "Demande d'avis Google apres recuperation",
-  "Export CSV",
-  "Tableau de bord avec chiffres",
-  "Statistiques par marque",
-  "Gestion des pieces",
-  "Stock simple de pieces",
-  "Alertes stock bas",
-  "Agenda des reparations",
-  "Priorite urgente",
-  "Paiement client enregistre",
-  "Acompte et reste a payer",
-  "Facture imprimable",
-  "Garantie automatique",
-  "Retours sous garantie",
-  "Mode reparation express",
-  "Modeles de pannes",
-  "Modeles de messages email",
-  "Page vitrine atelier",
-  "Badge client VIP ou PRO",
-  "Objectif mensuel",
-  "Top pannes frequentes",
-  "Historique client",
-  "Gestion des techniciens",
-  "Checklist atelier",
-  "Pieces sorties du stock",
-  "Commandes fournisseurs",
-  "Temps passe par reparation",
-  "Archivage intelligent",
-  "Documents client imprimables",
-  "QR code sur recu",
-  "Signature client publique",
-  "Protection anti double envoi d'email",
-  "Configuration SMTP depuis l'admin",
-  "Informations du magasin dans les emails",
-  "Guide de premiere connexion",
-  "Nouvelles fonctionnalites ajoutees tous les mois",
-];
-
-const extraFeatureCount = extraFeatures.length;
-
-const featureGroups = [
-  {
-    title: "Accueil client",
-    items: extraFeatures.slice(0, 15),
-  },
-  {
-    title: "Suivi atelier",
-    items: extraFeatures.slice(15, 30),
-  },
-  {
-    title: "Gestion et chiffres",
-    items: extraFeatures.slice(30, 45),
-  },
-  {
-    title: "Organisation quotidienne",
-    items: extraFeatures.slice(45),
-  },
+const includedInPlan = [
+  "Espace admin complet pour gérer l'atelier",
+  "QR code comptoir imprimable",
+  "Référencement de votre magasin sur Qoravo",
+  "Emails automatiques, tickets de suivi, devis et avis",
+  "Compta, stock, agenda et statistiques",
+  "Mises à jour et nouvelles fonctionnalités chaque mois",
 ];
 
 const faqs = [
   {
-    question: "Est-ce que le client a besoin d'un compte ?",
-    answer: "Non. Le client remplit simplement le formulaire public depuis le QR code.",
+    question: "Comment fonctionne l'essai gratuit ?",
+    answer:
+      "Vous créez votre compte et profitez de 72h gratuites avec toutes les fonctionnalités. À la fin, vous vous abonnez quand vous voulez et vous reprenez exactement là où vous vous étiez arrêté.",
   },
   {
-    question: "Est-ce que chaque atelier a son QR code ?",
-    answer: "Oui. Chaque compte pro obtient un lien unique avec son identifiant.",
+    question: "Le client a-t-il besoin d'un compte ?",
+    answer:
+      "Non. Le client remplit simplement le formulaire public depuis votre QR code, puis suit sa réparation avec un numéro de ticket.",
   },
   {
-    question: "Est-ce que ma boutique peut etre visible aux clients ?",
-    answer: "Oui. Vous renseignez l'adresse, le telephone, l'email et les horaires dans les parametres de votre compte pro.",
+    question: "Que comprend l'abonnement ?",
+    answer:
+      "89,99 €/an pour l'espace admin complet de votre atelier. L'assistance prioritaire Qoravo est disponible en option à 29,99 €/an, à activer quand vous le souhaitez.",
   },
   {
-    question: "Le paiement est-il obligatoire ?",
-    answer: "L'abonnement annuel limite les abus. Un code promo peut activer un compte gratuitement.",
+    question: "Mon magasin sera-t-il visible par les clients ?",
+    answer:
+      "Oui. Vous renseignez adresse, téléphone, email et horaires, et votre boutique apparaît dans la recherche des clients proches de vous.",
   },
 ];
 
@@ -167,367 +130,413 @@ export default function HomePage() {
   return (
     <main className="bg-slate-50 text-slate-950">
       <TrialCountdown />
-      <section
-        className="relative min-h-[92vh] overflow-hidden bg-slate-950 px-4 py-8 text-white sm:px-6 lg:px-8"
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(34,197,94,0.30),transparent_24rem),radial-gradient(circle_at_82%_18%,rgba(14,165,233,0.36),transparent_28rem),linear-gradient(135deg,#020617_0%,#07111f_52%,#0f172a_100%)]" />
-        <div className="absolute right-[-8rem] top-24 h-80 w-80 rounded-full border border-sky-400/20" />
-        <div className="absolute bottom-[-10rem] left-[-8rem] h-96 w-96 rounded-full border border-emerald-400/20" />
-        <div className="mx-auto flex min-h-[78vh] max-w-6xl flex-col justify-center gap-8">
-          <div className="relative max-w-3xl">
-            <QoravoLogo
-              className="mb-5"
-              markClassName="ring-1 ring-white/20"
-              textClassName="text-white"
-            />
-            <h1 className="text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-              Qoravo, le logiciel propre et complet pour les reparateurs
+
+      {/* Barre de navigation */}
+      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <QoravoLogo />
+          <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
+            <a href="#fonctionnalites" className="transition hover:text-slate-950">
+              Fonctionnalités
+            </a>
+            <a href="#etapes" className="transition hover:text-slate-950">
+              Comment ça marche
+            </a>
+            <a href="#tarif" className="transition hover:text-slate-950">
+              Tarif
+            </a>
+            <a href="#faq" className="transition hover:text-slate-950">
+              FAQ
+            </a>
+          </nav>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/login"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:text-slate-950 sm:inline-flex"
+            >
+              Connexion
+            </Link>
+            <Link href="/pro/inscription" className="q-btn q-btn-primary text-sm">
+              Essai gratuit
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-brand-ink px-4 py-16 text-white sm:px-6 lg:px-8 lg:py-24">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_18%,rgba(34,197,94,0.30),transparent_26rem),radial-gradient(circle_at_85%_12%,rgba(14,165,233,0.40),transparent_30rem),linear-gradient(135deg,#020617_0%,#07111f_55%,#0f172a_100%)]" />
+        <div className="absolute right-[-9rem] top-20 h-80 w-80 rounded-full border border-sky-400/15" />
+        <div className="absolute bottom-[-11rem] left-[-9rem] h-96 w-96 rounded-full border border-emerald-400/15" />
+
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="q-animate-up max-w-xl">
+            <span className="q-chip border border-white/15 bg-white/10 text-sky-200">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              Nouveau · Essai gratuit 72h
+            </span>
+            <h1 className="mt-5 text-4xl font-extrabold leading-[1.07] tracking-tight sm:text-5xl lg:text-6xl">
+              Le logiciel tout-en-un des{" "}
+              <span className="q-gradient-text">réparateurs</span>.
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-100 sm:text-lg">
-              Donnez un QR code a vos clients, centralisez les demandes,
-              suivez les statuts et prevenez automatiquement le client quand
-              son appareil est pret.
+            <p className="mt-5 max-w-lg text-base leading-7 text-slate-200 sm:text-lg">
+              QR code client, suivi des réparations, devis, stock, agenda, compta
+              et emails automatiques. Centralisez tout votre atelier et offrez une
+              expérience client impeccable.
             </p>
-            <dl className="mt-6 grid max-w-xl grid-cols-3 gap-3 text-sm">
-              <div className="border-l border-white/40 pl-3">
-                <dt className="text-2xl font-semibold">89,99 EUR</dt>
-                <dd className="text-slate-200">par an</dd>
-              </div>
-              <div className="border-l border-white/40 pl-3">
-                <dt className="text-2xl font-semibold">1 QR</dt>
-                <dd className="text-slate-200">par atelier</dd>
-              </div>
-              <div className="border-l border-white/40 pl-3">
-                <dt className="text-2xl font-semibold">0 papier</dt>
-                <dd className="text-slate-200">a trier</dd>
-              </div>
-            </dl>
             <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/pro/inscription" className="q-btn q-btn-primary">
+                Démarrer l&apos;essai gratuit
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link href="#etapes" className="q-btn q-btn-ghost">
+                Voir comment ça marche
+              </Link>
+            </div>
+            <p className="mt-4 flex items-center gap-2 text-sm text-slate-300">
+              <BadgeCheck className="h-4 w-4 text-emerald-300" aria-hidden="true" />
+              Sans engagement · Reprenez où vous vous étiez arrêté après l&apos;essai
+            </p>
+
+            <dl className="mt-10 grid max-w-lg grid-cols-2 gap-5 sm:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat.label} className="border-l border-white/20 pl-3">
+                  <dt className="text-2xl font-extrabold">{stat.value}</dt>
+                  <dd className="text-xs leading-4 text-slate-300">{stat.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="q-animate-up relative">
+            <div className="q-animate-float overflow-hidden rounded-[1.6rem] border border-white/10 shadow-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={HERO_IMAGE}
+                alt="Technicien réparant un smartphone dans son atelier"
+                className="h-[26rem] w-full object-cover"
+              />
+            </div>
+            <div className="absolute -left-4 bottom-8 hidden rounded-2xl border border-white/15 bg-white/95 p-4 text-slate-900 shadow-xl sm:block">
+              <div className="flex items-center gap-1 text-amber-500">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star key={index} className="h-4 w-4 fill-amber-500" aria-hidden="true" />
+                ))}
+              </div>
+              <p className="mt-1 text-sm font-bold">« Mes clients adorent le suivi »</p>
+              <p className="text-xs text-slate-500">Un atelier qui utilise Qoravo</p>
+            </div>
+            <div className="absolute -right-3 top-6 hidden rounded-2xl border border-white/15 bg-brand-ink/90 p-4 text-white shadow-xl sm:block">
+              <Smartphone className="h-5 w-5 text-sky-300" aria-hidden="true" />
+              <p className="mt-2 text-sm font-bold">Appareil prêt</p>
+              <p className="text-xs text-slate-300">Email envoyé automatiquement</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bandeau confiance */}
+      <section className="border-b border-slate-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm font-semibold text-slate-500">
+          <span className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4 text-brand-blue" aria-hidden="true" /> Réparateurs mobiles
+          </span>
+          <span className="flex items-center gap-2">
+            <Package className="h-4 w-4 text-brand-green" aria-hidden="true" /> Consoles & ordinateurs
+          </span>
+          <span className="flex items-center gap-2">
+            <Wrench className="h-4 w-4 text-amber-500" aria-hidden="true" /> Petits ateliers
+          </span>
+          <span className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-brand-blue" aria-hidden="true" /> Données séparées par compte
+          </span>
+        </div>
+      </section>
+
+      {/* FONCTIONNALITÉS */}
+      <section id="fonctionnalites" className="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
+              Tout votre atelier, un seul outil
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Moins d&apos;appels, moins d&apos;oublis, plus de réparations suivies.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              Qoravo remplace les notes papier et les messages éparpillés par un
+              parcours clair, du comptoir jusqu&apos;à la récupération de l&apos;appareil.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+
+              return (
+                <article key={feature.title} className="q-card p-6 transition hover:-translate-y-1">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-emerald-100 text-brand-ink">
+                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-4 text-lg font-bold text-slate-950">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {feature.text}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ÉTAPES */}
+      <section id="etapes" className="bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
+          <div className="overflow-hidden rounded-[1.6rem] border border-slate-200 shadow-lg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={WORKSHOP_IMAGE}
+              alt="Atelier de réparation organisé"
+              className="h-[28rem] w-full object-cover"
+            />
+          </div>
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-brand-green">
+              Comment ça marche
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Lancé en 3 étapes, dès aujourd&apos;hui.
+            </h2>
+            <div className="mt-8 grid gap-5">
+              {workflow.map((item) => (
+                <div key={item.step} className="flex gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-ink text-sm font-extrabold text-white">
+                    {item.step}
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-950">{item.title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link href="/pro/inscription" className="q-btn q-btn-primary mt-8">
+              Créer mon atelier
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* TARIF + ESSAI */}
+      <section id="tarif" className="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_1fr]">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
+              Un tarif simple et clair
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Tout l&apos;atelier pour 89,99 €/an.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              Un seul abonnement, aucune fonctionnalité bloquée. Commencez par
+              72h d&apos;essai gratuit, puis abonnez-vous quand vous êtes prêt.
+            </p>
+            <ul className="mt-8 grid gap-3">
+              {includedInPlan.map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                  <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-green" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="q-card overflow-hidden">
+            <div className="bg-brand-ink p-7 text-white">
+              <span className="q-chip border border-white/15 bg-white/10 text-emerald-200">
+                <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                Essai gratuit 72h
+              </span>
+              <div className="mt-5 flex items-end gap-2">
+                <span className="text-5xl font-extrabold">89,99 €</span>
+                <span className="pb-1 text-sm text-slate-300">/ an</span>
+              </div>
+              <p className="mt-2 text-sm text-slate-300">
+                Espace admin complet · QR code · vitrine publique
+              </p>
+              <Link href="/pro/inscription" className="q-btn q-btn-light mt-6 w-full">
+                Démarrer gratuitement
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <p className="mt-3 text-center text-xs text-slate-400">
+                Sans carte requise pour démarrer l&apos;essai
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-3 p-5">
+              <div>
+                <p className="text-sm font-bold text-slate-950">Assistance prioritaire</p>
+                <p className="text-xs text-slate-500">Aide au paramétrage & service client</p>
+              </div>
+              <span className="text-lg font-extrabold text-brand-blue">+29,99 €/an</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* DEUX ESPACES */}
+      <section className="bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
+          <article className="relative overflow-hidden rounded-[1.5rem] border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-7 shadow-sm">
+            <p className="q-chip bg-brand-blue-soft text-brand-blue">Pour les réparateurs</p>
+            <h3 className="mt-4 text-2xl font-extrabold text-slate-950">
+              Gérez votre atelier de A à Z.
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              QR code, fiches client, devis, stock, agenda, compta et documents :
+              tout est rangé pour travailler vite au comptoir.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/pro/inscription" className="q-btn q-btn-primary text-sm">
+                Créer un compte pro
+              </Link>
               <Link
-                href="#espaces"
-                className="rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                href="/admin/login"
+                className="q-btn text-sm text-slate-900 ring-1 ring-slate-300 hover:bg-slate-50"
               >
-                Choisir mon espace
+                Connexion admin
+              </Link>
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-7 shadow-sm">
+            <p className="q-chip bg-brand-green-soft text-brand-green">Pour les clients</p>
+            <h3 className="mt-4 text-2xl font-extrabold text-slate-950">
+              Trouvez un magasin et suivez votre réparation.
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              La recherche affiche les ateliers ouverts et disponibles près de
+              chez vous, et vous suivez l&apos;avancement avec un numéro de ticket.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/client/magasins"
+                className="q-btn text-sm text-white"
+                style={{ backgroundColor: "#22c55e" }}
+              >
+                Trouver un magasin
+              </Link>
+              <Link
+                href="/suivi"
+                className="q-btn text-sm text-slate-900 ring-1 ring-slate-300 hover:bg-slate-50"
+              >
+                Suivre une réparation
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* AVIS */}
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <PublicReviews />
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
+              Questions fréquentes
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Les points importants avant de commencer.
+            </h2>
+            <div className="mt-6 overflow-hidden rounded-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={COUNTER_IMAGE}
+                alt="Commerçant satisfait dans sa boutique"
+                className="h-56 w-full rounded-2xl object-cover"
+              />
+            </div>
+          </div>
+          <div className="grid gap-3">
+            {faqs.map((faq) => (
+              <details
+                key={faq.question}
+                className="group rounded-xl border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300"
+              >
+                <summary className="cursor-pointer list-none text-base font-bold text-slate-950 marker:hidden">
+                  {faq.question}
+                </summary>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] bg-brand-ink px-6 py-14 text-center text-white sm:px-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,197,94,0.28),transparent_22rem),radial-gradient(circle_at_80%_30%,rgba(14,165,233,0.34),transparent_24rem)]" />
+          <div className="relative mx-auto max-w-2xl">
+            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Prêt à professionnaliser votre atelier ?
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-200">
+              Lancez votre essai gratuit de 72h. Configuration en quelques minutes,
+              aucun engagement.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link href="/pro/inscription" className="q-btn q-btn-primary">
+                Démarrer l&apos;essai gratuit
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link href="/pro" className="q-btn q-btn-ghost">
+                Découvrir l&apos;espace pro
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-slate-200 bg-white px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
-              Prix clair
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Ce que l&apos;abonnement apporte a votre magasin.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              L&apos;objectif est simple : moins de papier, plus de suivi, et une
-              presence visible sur Qoravo pour recevoir de nouvelles demandes.
+      {/* FOOTER */}
+      <footer className="border-t border-slate-200 bg-white px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-sm">
+            <QoravoLogo />
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              Le logiciel propre et complet pour gérer un atelier de réparation
+              sans usine à gaz.
             </p>
           </div>
-          <ul className="grid gap-3">
-            {priceDetails.map((detail) => (
-              <li
-                key={detail}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800"
-              >
-                {detail}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="border-b border-slate-200 bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-3">
-          {workflow.map((item) => (
-            <article key={item.title} className="grid gap-2">
-              <h2 className="text-lg font-semibold text-slate-950">{item.title}</h2>
-              <p className="text-sm leading-6 text-slate-600">{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="espaces" className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8">
-          <header className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Deux espaces separes
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Un parcours pour les reparateurs, un parcours pour les clients.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              L&apos;accueil ne liste pas les magasins et ne melange pas la
-              creation d&apos;un compte pro avec la recherche client. Chaque
-              personne choisit son espace puis continue sur une page dediee.
-            </p>
-          </header>
-
-          <div className="grid gap-5">
-            <article className="grid gap-5 rounded-2xl border border-sky-100 bg-white p-6 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
-                  Pour les reparateurs
-                </p>
-                <h3 className="mt-3 text-2xl font-semibold text-slate-950">
-                  Creez votre compte atelier et gerez vos reparations.
-                </h3>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-                  QR code, fiches client, devis, stock, agenda, emails de statut
-                  et documents : tout est range pour travailler vite au comptoir.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 lg:justify-end">
-                <Link
-                  href="/pro"
-                  className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
-                >
-                  Voir l&apos;espace pro
-                </Link>
-                <Link
-                  href="/pro/inscription"
-                  className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-900 transition hover:bg-sky-100"
-                >
-                  Creer un compte pro
-                </Link>
-                <Link
-                  href="/admin/login"
-                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                >
-                  Connexion admin
-                </Link>
-              </div>
-            </article>
-
-            <article className="grid gap-5 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-                  Pour les clients
-                </p>
-                <h3 className="mt-3 text-2xl font-semibold text-slate-950">
-                  Trouvez un magasin ouvert et suivez votre reparation.
-                </h3>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-                  La recherche magasin est sur une page dediee. Elle affiche les
-                  ateliers ouverts et disponibles au moment de la recherche.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 lg:justify-end">
-                <Link
-                  href="/client"
-                  className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
-                >
-                  Voir l&apos;espace client
-                </Link>
-                <Link
-                  href="/client/magasins"
-                  className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100"
-                >
-                  Trouver un magasin
-                </Link>
-                <Link
-                  href="/suivi"
-                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                >
-                  Suivre une reparation
-                </Link>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="grid content-start gap-4">
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Pourquoi l&apos;utiliser
-            </p>
-            <h2 className="text-3xl font-semibold text-slate-950">
-              Moins d&apos;appels, moins d&apos;oublis, plus de reparations suivies.
-            </h2>
-            <p className="text-base leading-7 text-slate-600">
-              Qoravo remplace les notes papier et les messages eparpilles
-              par un parcours clair : le client remplit sa demande, l&apos;atelier
-              suit l&apos;avancement, puis l&apos;email de recuperation part au bon moment.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            {features.map((feature) => (
-              <div
-                key={feature}
-                className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-800 shadow-sm"
-              >
-                {feature}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_1fr]">
-          <div className="grid content-start gap-4">
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Dans l&apos;admin
-            </p>
-            <h2 className="text-3xl font-semibold text-slate-950">
-              Tout ce qu&apos;un atelier attend au quotidien.
-            </h2>
-            <p className="text-base leading-7 text-slate-600">
-              L&apos;interface est pensee pour aller vite au comptoir : retrouver
-              une reparation, changer un statut, ajouter une note, puis prevenir
-              le client quand l&apos;appareil est pret.
-            </p>
-          </div>
-          <ul className="grid gap-3">
-            {adminTools.map((tool) => (
-              <li
-                key={tool}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm"
-              >
-                {tool}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="border-y border-slate-200 bg-white px-4 py-14 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Fonctionnalites
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Plus de {extraFeatureCount} outils concrets pour gerer un atelier sans usine a gaz.
-            </h2>
-            <p className="mt-4 text-base leading-7 text-slate-600">
-              Chaque element sert au travail quotidien : recevoir une demande,
-              retrouver une fiche, suivre l&apos;avancement et prevenir le client au
-              bon moment.
-            </p>
-          </div>
-          <div className="grid gap-5 lg:grid-cols-2">
-            {featureGroups.map((group, groupIndex) => (
-              <article
-                key={group.title}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
-              >
-                <h3 className="text-lg font-semibold text-slate-950">
-                  {group.title}
-                </h3>
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {group.items.map((feature, itemIndex) => {
-                    const number = groupIndex * 15 + itemIndex + 1;
-
-                    return (
-                      <li
-                        key={feature}
-                        className="flex gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-slate-700"
-                      >
-                        <span className="font-semibold text-sky-700">
-                          {String(number).padStart(2, "0")}
-                        </span>
-                        <span>{feature}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Pour qui
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Reparateurs mobiles, consoles, ordinateurs et petits ateliers.
-            </h2>
-          </div>
-          <div className="grid gap-4 text-sm leading-6 text-slate-700 sm:grid-cols-2">
-            <p>
-              Utile si vous recevez des appareils au comptoir et que vous voulez
-              eviter les informations perdues entre carnet, SMS et appels.
-            </p>
-            <p>
-              Utile aussi si vous voulez professionnaliser la reception client :
-              un lien clair, un QR imprimable et un suivi simple par statut.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">
-          <PublicReviews />
-        </div>
-      </section>
-
-      <section className="border-y border-slate-200 bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Compte pro Qoravo</h2>
-            <p className="mt-2 text-sm text-slate-300">
-              Abonnement annuel pour activer l&apos;espace admin et limiter les abus.
-            </p>
-          </div>
-          <Link
-            href="/pro/inscription"
-            className="rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
-          >
-            Commencer
-          </Link>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Questions
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Les points importants avant de commencer.
-            </h2>
-          </div>
-          <div className="grid gap-4">
-            {faqs.map((faq) => (
-              <article key={faq.question} className="border-b border-slate-200 pb-4">
-                <h3 className="font-semibold text-slate-950">{faq.question}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{faq.answer}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <QoravoLogo />
-          <div className="flex flex-wrap gap-3 text-sm font-semibold text-slate-600">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-slate-600">
             <Link href="/pro" className="hover:text-slate-950">
               Professionnels
             </Link>
             <Link href="/client" className="hover:text-slate-950">
               Clients
             </Link>
+            <Link href="/client/magasins" className="hover:text-slate-950">
+              Trouver un magasin
+            </Link>
+            <Link href="/suivi" className="hover:text-slate-950">
+              Suivre une réparation
+            </Link>
             <Link href="/conditions-utilisation" className="hover:text-slate-950">
               Conditions
             </Link>
           </div>
         </div>
+        <p className="mx-auto mt-8 max-w-6xl text-xs text-slate-400">
+          © {new Date().getFullYear()} Qoravo. Tous droits réservés.
+        </p>
       </footer>
     </main>
   );
