@@ -121,19 +121,27 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Service client Qoravo
             </p>
-            <h1 className="text-3xl font-semibold text-slate-950 sm:text-4xl">
-              Support disponible 24h/24 pour envoyer une demande.
-            </h1>
-            <p className="text-sm leading-6 text-slate-600">
-              Vous pouvez contacter le service client a tout moment par
-              telephone ou envoyer une demande ecrite avec vos informations.
-            </p>
-            <a
-              href={supportPhoneHref}
-              className="w-fit rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              Appeler le {supportPhoneDisplay}
-            </a>
+            {isOffreRequest ? (
+              <h1 className="text-3xl font-semibold text-slate-950 sm:text-4xl">
+                Demande d&apos;extension de volume
+              </h1>
+            ) : (
+              <>
+                <h1 className="text-3xl font-semibold text-slate-950 sm:text-4xl">
+                  Support disponible 24h/24 pour envoyer une demande.
+                </h1>
+                <p className="text-sm leading-6 text-slate-600">
+                  Vous pouvez contacter le service client a tout moment par
+                  telephone ou envoyer une demande ecrite avec vos informations.
+                </p>
+                <a
+                  href={supportPhoneHref}
+                  className="w-fit rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  Appeler le {supportPhoneDisplay}
+                </a>
+              </>
+            )}
           </div>
         </header>
 

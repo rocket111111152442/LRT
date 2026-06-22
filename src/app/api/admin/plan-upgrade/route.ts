@@ -78,15 +78,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
   }
 
-  // On facture le prix annuel (mode payment one-time) pour rester simple.
-  // Une évolution future pourrait passer en mode subscription.
   const priceCents = Math.round(option.priceYearly * 100);
   const appUrl = getAppUrl(request);
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
       payment_method_types: ["card"],
       customer_email: proAccount.ownerEmail,
       line_items: [
@@ -98,6 +96,7 @@ export async function POST(request: Request) {
               description: option.tagline,
             },
             unit_amount: priceCents,
+            recurring: { interval: "year" },
           },
           quantity: 1,
         },

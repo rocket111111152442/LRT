@@ -141,7 +141,7 @@ export function OffresClient() {
     <section className="grid gap-6">
       {upgradeSuccess ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-          ✓ Paiement reçu — votre offre sera activée sous 24h. Vous recevrez une confirmation par email.
+          ✓ Abonnement activé — votre nouvelle offre est en place. Rechargez la page pour voir vos nouvelles limites.
         </div>
       ) : null}
       {upgradeCancel ? (

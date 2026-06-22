@@ -35,8 +35,19 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    await activatePaidCheckoutSession(session);
-    await restoreFullPremiumPriceForRenewals(stripe, session);
+
+    if (session.metadata?.planUpgrade === "1") {
+      const { optionId, proAccountId } = session.metadata;
+      if (proAccountId && optionId) {
+        await prisma.proAccount.update({
+          where: { id: proAccountId },
+          data: { plan: optionId },
+        });
+      }
+    } else {
+      await activatePaidCheckoutSession(session);
+      await restoreFullPremiumPriceForRenewals(stripe, session);
+    }
   }
 
   if (event.type === "checkout.session.expired") {
