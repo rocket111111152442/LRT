@@ -10,9 +10,16 @@ const TOKEN_VERSION = "v1";
 const TOKEN_TTL_MS = 60 * 60 * 1000;
 
 function getKey() {
-  return createHash("sha256")
-    .update(process.env.AUTH_SECRET || "dev-secret-change-me")
-    .digest();
+  const secret = process.env.AUTH_SECRET;
+
+  if (!secret || secret.length < 16) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET manquant en production.");
+    }
+    return createHash("sha256").update("dev-secret-change-me-please").digest();
+  }
+
+  return createHash("sha256").update(secret).digest();
 }
 
 function encode(value: Buffer) {

@@ -33,7 +33,22 @@ type ProAccountSummary = {
 } | null;
 
 function getAuthSecret() {
-  return process.env.AUTH_SECRET || "dev-secret-change-me";
+  const secret = process.env.AUTH_SECRET;
+
+  if (secret && secret.length >= 16) {
+    return secret;
+  }
+
+  // En production, on refuse de signer avec un secret par défaut : sans cela,
+  // n'importe qui connaissant la valeur codée en dur pourrait forger une
+  // session admin valide.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET manquant ou trop court (>= 16 caractères requis) en production.",
+    );
+  }
+
+  return "dev-secret-change-me-please-set-auth-secret";
 }
 
 function sign(value: string) {

@@ -7,7 +7,28 @@ const COOKIE  = "qoravo_mod_session";
 const MAX_AGE = 60 * 60 * 8; // 8 h
 
 function secret() {
-  return process.env.MODERATOR_SECRET ?? process.env.AUTH_SECRET ?? "dev-mod-secret";
+  const value = process.env.MODERATOR_SECRET ?? process.env.AUTH_SECRET;
+
+  if (value && value.length >= 16) {
+    return value;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("MODERATOR_SECRET / AUTH_SECRET manquant en production.");
+  }
+
+  return "dev-mod-secret-change-me-please";
+}
+
+/** Comparaison à temps constant pour éviter les attaques temporelles. */
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  // Longueurs différentes : timingSafeEqual lèverait, on compare des hash de
+  // même taille pour ne pas révéler la longueur attendue.
+  const hashA = createHmac("sha256", "cmp").update(bufA).digest();
+  const hashB = createHmac("sha256", "cmp").update(bufB).digest();
+  return timingSafeEqual(hashA, hashB);
 }
 
 function sign(value: string) {
@@ -38,8 +59,8 @@ function verify(token?: string): boolean {
 
 export function checkModPassword(password: string): boolean {
   const expected = process.env.MODERATOR_PASSWORD;
-  if (!expected) return false;
-  return password === expected;
+  if (!expected || expected.length < 8) return false;
+  return safeEqual(password, expected);
 }
 
 export async function setModSession() {

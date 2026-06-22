@@ -6,6 +6,7 @@ import {
   verifyEmailCode,
 } from "@/lib/emailVerification";
 import { prisma } from "@/lib/prisma";
+import { clientIp, rateLimit, resetRateLimit } from "@/lib/rateLimit";
 
 type ProAccountSummary = {
   slug: string;
@@ -46,6 +47,17 @@ async function getProAccountSummary(
 }
 
 export async function POST(request: Request) {
+  // Anti brute-force : 10 tentatives / 10 min par IP.
+  const ip = clientIp(request);
+  const limit = rateLimit(`admin-login:${ip}`, 10, 10 * 60 * 1000);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez dans quelques minutes." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -158,6 +170,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    resetRateLimit(`admin-login:${ip}`);
 
     const response = NextResponse.json({
       user: {
