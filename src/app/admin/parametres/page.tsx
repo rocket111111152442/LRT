@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "Parametres — Qoravo Admin" };
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { ProfileSettingsForm } from "./ProfileSettingsForm";

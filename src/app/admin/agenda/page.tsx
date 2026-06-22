@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "Agenda — Qoravo Admin" };
 import { AdminHeader } from "../AdminHeader";
 import { AdminAgendaCalendar } from "./AdminAgendaCalendar";
 import { requireAdminPage } from "@/lib/auth";

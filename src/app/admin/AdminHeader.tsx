@@ -109,6 +109,15 @@ export function AdminHeader({
     paymentStatus === "TRIAL" ? trialEndsAt : null,
   );
 
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (!supportIncluded) return;
+    fetch("/api/admin/unread-messages")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d?.count === "number") setUnreadCount(d.count); })
+      .catch(() => {});
+  }, [supportIncluded]);
+
   const paymentHref = proAccountSlug
     ? `/pro/paiement?compte=${encodeURIComponent(proAccountSlug)}`
     : "/pro/paiement";
@@ -201,10 +210,15 @@ export function AdminHeader({
             {supportIncluded ? (
               <Link
                 href="/service-client"
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                className="relative inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
               >
                 <LifeBuoy aria-hidden="true" className="h-4 w-4" />
                 Support
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white ring-2 ring-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : null}
               </Link>
             ) : (
               <SupportSubscribeButton />

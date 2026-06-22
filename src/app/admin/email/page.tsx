@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "Email — Qoravo Admin" };
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { EmailSettingsForm } from "./EmailSettingsForm";

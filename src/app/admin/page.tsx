@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { AdminHeader } from "./AdminHeader";
+
+export const metadata: Metadata = { title: "Réparations — Qoravo Admin" };
 import { AdminRepairsClient } from "./AdminRepairsClient";
 import { AdminStatsClient } from "./AdminStatsClient";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";

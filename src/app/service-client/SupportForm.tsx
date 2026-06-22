@@ -21,10 +21,15 @@ const initialValues: SupportValues = {
 export function SupportForm({
   prefillSubject = "",
   prefillMessage = "",
+  offreId = "",
 }: {
   prefillSubject?: string;
   prefillMessage?: string;
+  offreId?: string;
 } = {}) {
+  // Les demandes d'extension (offreId présent) passent par /api/contact-offre
+  // (endpoint public, pas d'auth requise) au lieu de /api/support.
+  const endpoint = offreId ? "/api/contact-offre" : "/api/support";
   const [values, setValues] = useState<SupportValues>({
     ...initialValues,
     subject: prefillSubject,
@@ -49,12 +54,10 @@ export function SupportForm({
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/support", {
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, offre: offreId || undefined }),
       });
       const payload = await response.json().catch(() => ({}));
 

@@ -161,6 +161,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               </p>
             </div>
             <SupportForm
+              offreId={offre!}
               prefillSubject={`Demande d'activation : ${offreLabels[offre!]}`}
               prefillMessage={`Bonjour,\n\nJe souhaite activer l'offre "${offreLabels[offre!]}" pour mon compte Qoravo.\n\nMon email admin : ${admin?.email ?? ""}\n\nMerci.`}
             />

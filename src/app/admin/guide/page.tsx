@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "Guide — Qoravo Admin" };
 import Link from "next/link";
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";

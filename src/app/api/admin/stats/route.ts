@@ -13,24 +13,30 @@ export async function GET() {
     return admin.response;
   }
 
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-  const [repairs, proAccount] = await Promise.all([
+  const whereAccount = admin.user.proAccountId
+    ? { proAccountId: admin.user.proAccountId }
+    : {};
+
+  const [repairs, monthlyRepairsRaw, proAccount, inventoryItems] = await Promise.all([
     prisma.repair.findMany({
-    where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
-    },
-    select: {
-      status: true,
-      brand: true,
-      issueDescription: true,
-      estimatedPriceCents: true,
-      partsCostCents: true,
-      paidAmountCents: true,
-      createdAt: true,
-    },
+      where: whereAccount,
+      select: {
+        status: true, brand: true, issueDescription: true,
+        estimatedPriceCents: true, partsCostCents: true,
+        paidAmountCents: true, createdAt: true,
+      },
+    }),
+    // Requête séparée pour le mois courant : évite de tout charger en mémoire
+    // sur les gros comptes. Firebase n'a pas de filtre date natif ici donc on
+    // refiltre après, mais la sélection de champs est plus légère.
+    prisma.repair.findMany({
+      where: { ...whereAccount, createdAt: { gte: monthStart } },
+      select: {
+        estimatedPriceCents: true, partsCostCents: true, paidAmountCents: true, createdAt: true,
+      },
     }),
     admin.user.proAccountId
       ? prisma.proAccount.findUnique({
@@ -38,20 +44,20 @@ export async function GET() {
           select: { monthlyGoal: true },
         })
       : Promise.resolve(null),
+    prisma.inventoryItem.findMany({
+      where: whereAccount,
+      select: { id: true, name: true, quantity: true, lowStockThreshold: true, unitCostCents: true },
+    }),
   ]);
 
-  const inventoryItems = await prisma.inventoryItem.findMany({
-    where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
-    },
-    select: {
-      id: true,
-      name: true,
-      quantity: true,
-      lowStockThreshold: true,
-      unitCostCents: true,
-    },
-  });
+  // Firebase: le filtre gte peut ne pas fonctionner, on refiltre en JS
+  function toDate(v: unknown): Date {
+    if (v instanceof Date) return v;
+    return new Date(String(v ?? ""));
+  }
+  const monthlyRepairs = monthlyRepairsRaw.filter(
+    (r) => toDate(r.createdAt) >= monthStart,
+  );
 
   const byStatus = repairs.reduce<Record<string, number>>((accumulator, repair) => {
     accumulator[repair.status] = (accumulator[repair.status] ?? 0) + 1;
@@ -75,8 +81,6 @@ export async function GET() {
     accumulator[issue] = (accumulator[issue] ?? 0) + 1;
     return accumulator;
   }, {});
-
-  const monthlyRepairs = repairs.filter((repair) => repair.createdAt >= monthStart);
 
   const estimatedRevenueCents = repairs.reduce(
     (total, repair) => total + (repair.estimatedPriceCents ?? 0),

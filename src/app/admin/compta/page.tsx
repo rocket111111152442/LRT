@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "Comptabilite — Qoravo Admin" };
 import { AdminHeader } from "../AdminHeader";
 import { AccountingClient } from "./AccountingClient";
 import { requireAdminPage } from "@/lib/auth";

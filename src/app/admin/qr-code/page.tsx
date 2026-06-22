@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "QR Code — Qoravo Admin" };
 import { headers } from "next/headers";
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
