@@ -65,6 +65,39 @@ const navGroups = [
 const navLinkClassName =
   "inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900";
 
+function useTrialCountdown(trialEndsAt?: string | null) {
+  const [remainingMs, setRemainingMs] = useState<number>(() => {
+    if (!trialEndsAt) return 0;
+    return Math.max(0, new Date(trialEndsAt).getTime() - Date.now());
+  });
+
+  useEffect(() => {
+    if (!trialEndsAt) return;
+    const endTime = new Date(trialEndsAt).getTime();
+
+    function tick() {
+      const ms = Math.max(0, endTime - Date.now());
+      setRemainingMs(ms);
+    }
+
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [trialEndsAt]);
+
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const hours   = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return {
+    display: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
+    expired: remainingMs === 0,
+    urgent: remainingMs < 6 * 60 * 60 * 1000,
+    active: remainingMs > 0,
+  };
+}
+
 export function AdminHeader({
   email,
   supportIncluded = false,
@@ -72,14 +105,20 @@ export function AdminHeader({
   trialEndsAt,
   proAccountSlug,
 }: AdminHeaderProps) {
+  const trial = useTrialCountdown(
+    paymentStatus === "TRIAL" ? trialEndsAt : null,
+  );
+
+  const paymentHref = proAccountSlug
+    ? `/pro/paiement?compte=${encodeURIComponent(proAccountSlug)}`
+    : "/pro/paiement";
+
   function openTour() {
     window.dispatchEvent(new Event("Qoravo-admin-tour-open"));
   }
 
   async function handleLogout() {
-    await fetch("/api/admin/logout", {
-      method: "POST",
-    });
+    await fetch("/api/admin/logout", { method: "POST" });
     window.location.href = "/admin/login";
   }
 
@@ -100,9 +139,40 @@ export function AdminHeader({
             </p>
             <p className="text-sm text-slate-700">{email}</p>
           </div>
-          <span className="ml-auto hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
-            Tableau atelier
-          </span>
+
+          <div className="ml-auto flex items-center gap-2">
+            {/* Timer essai gratuit — visible uniquement pour les comptes TRIAL */}
+            {paymentStatus === "TRIAL" && trial.active ? (
+              <Link
+                href={paymentHref}
+                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-sm transition hover:-translate-y-0.5 ${
+                  trial.urgent
+                    ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                    : "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                }`}
+                title="Temps restant sur votre essai gratuit — cliquez pour vous abonner"
+              >
+                <Clock
+                  className={`h-3.5 w-3.5 ${trial.urgent ? "text-red-500" : "text-amber-500"}`}
+                  aria-hidden="true"
+                />
+                <span className="font-mono tracking-wider">{trial.display}</span>
+                <span className="hidden sm:inline">restant</span>
+              </Link>
+            ) : paymentStatus === "TRIAL" && !trial.active ? (
+              <Link
+                href={`/admin/essai-termine${proAccountSlug ? `?compte=${encodeURIComponent(proAccountSlug)}` : ""}`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-red-300 bg-red-100 px-3 py-1.5 text-xs font-bold text-red-800"
+              >
+                <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                Essai terminé
+              </Link>
+            ) : (
+              <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
+                Tableau atelier
+              </span>
+            )}
+          </div>
         </div>
         <nav className="grid gap-3">
           <div className="flex flex-wrap items-start gap-3">
