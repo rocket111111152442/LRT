@@ -22,10 +22,11 @@ export async function GET(_req: Request, ctx: Context) {
     prisma.repair.findMany({
       where: { proAccountId: id },
       orderBy: { createdAt: "desc" },
-      take: 50,
       select: {
         id: true, ticketNumber: true, firstName: true, lastName: true,
-        status: true, paymentStatus: true, createdAt: true,
+        status: true, paymentStatus: true, estimatedPriceCents: true,
+        paidAmountCents: true, createdAt: true, brand: true, model: true,
+        deviceType: true, phone: true, email: true,
       },
     }),
     prisma.supportMessage.findMany({
@@ -102,6 +103,13 @@ export async function POST(request: Request, ctx: Context) {
   if (action === "cancel_account") {
     await prisma.proAccount.update({ where: { id }, data: { paymentStatus: "CANCELED" } });
     return NextResponse.json({ ok: true, message: "Compte annulé." });
+  }
+
+  if (action === "delete_account") {
+    // Suppression en cascade : réparations, utilisateurs, stock, messages, etc.
+    // La relation ProAccount -> * est définie avec onDelete: Cascade dans le schéma.
+    await prisma.proAccount.delete({ where: { id } });
+    return NextResponse.json({ ok: true, message: "Compte et toutes ses données supprimés définitivement.", deleted: true });
   }
 
   if (action === "message_note") {

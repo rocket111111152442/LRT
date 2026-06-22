@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import {
   BadgeCheck, Clock, KeyRound, MessageSquare,
-  RefreshCw, ShieldOff, Sparkles, Wrench, XCircle,
+  RefreshCw, ShieldOff, Sparkles, Trash2, Wrench, XCircle,
 } from "lucide-react";
 
-type Repair  = { id: string; ticketNumber: string | null; firstName: string; lastName: string; status: string; paymentStatus: string; createdAt: string };
+type Repair  = { id: string; ticketNumber: string | null; firstName: string; lastName: string; status: string; paymentStatus: string; estimatedPriceCents: number | null; paidAmountCents: number | null; brand: string; model: string; deviceType: string; phone: string; email: string; createdAt: string };
 type Message = { id: string; name: string; email: string; subject: string; message: string; status: string; createdAt: string };
 type Account = {
   id: string; companyName: string; slug: string; ownerEmail: string;
@@ -29,6 +29,8 @@ export function AccountDetail({ accountId }: { accountId: string }) {
   const [newPwd, setNewPwd]     = useState("");
   const [newPlan, setNewPlan]   = useState("basic");
   const [extendH, setExtendH]   = useState("72");
+  const [repairPage, setRepairPage] = useState(0);
+  const PAGE_SIZE = 50;
 
   async function load() {
     setLoading(true); setError("");
@@ -54,8 +56,11 @@ export function AccountDetail({ accountId }: { accountId: string }) {
         body: JSON.stringify(body),
       });
       const payload = await res.json().catch(() => ({}));
-      if (res.ok) { setActionMsg(payload.message ?? "Action effectuée."); await load(); }
-      else { setActionErr(payload.error ?? "Erreur."); }
+      if (res.ok) {
+        setActionMsg(payload.message ?? "Action effectuée.");
+        if (payload.deleted) { window.location.href = "/moderateur"; return; }
+        await load();
+      } else { setActionErr(payload.error ?? "Erreur."); }
     } catch { setActionErr("Erreur réseau."); }
     finally { setWorking(false); }
   }
@@ -181,6 +186,30 @@ export function AccountDetail({ accountId }: { accountId: string }) {
               Annuler compte
             </button>
           </div>
+
+          {/* Suppression définitive */}
+          <div className="grid gap-2 rounded-xl border border-red-500/40 bg-red-950/40 p-4 sm:col-span-2 xl:col-span-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-red-400">
+              <Trash2 className="h-4 w-4" />
+              Supprimer définitivement le compte
+            </p>
+            <p className="text-xs text-red-400/70">
+              Supprime le compte pro, tous ses utilisateurs, toutes ses réparations,
+              son stock, sa compta et ses messages. <strong className="text-red-300">Action irréversible.</strong>
+            </p>
+            <button
+              onClick={() => {
+                if (window.confirm(`⚠️ SUPPRESSION DÉFINITIVE\n\nToutes les données de "${account.companyName}" seront supprimées.\n\nEcrivez "SUPPRIMER" pour confirmer.`) &&
+                    window.prompt(`Tapez SUPPRIMER pour confirmer la suppression de "${account.companyName}" :`) === "SUPPRIMER") {
+                  void action({ action: "delete_account" });
+                }
+              }}
+              disabled={working}
+              className="w-fit rounded-lg border border-red-500/50 bg-red-900/50 px-4 py-2 text-xs font-bold text-red-300 transition hover:bg-red-800 disabled:opacity-50"
+            >
+              Supprimer définitivement
+            </button>
+          </div>
         </div>
       </section>
 
@@ -206,27 +235,45 @@ export function AccountDetail({ accountId }: { accountId: string }) {
         </section>
       )}
 
-      {/* 50 dernières réparations */}
+      {/* Toutes les réparations avec pagination */}
       <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="mb-3 text-base font-bold text-white">Réparations ({repairs.length})</h2>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-base font-bold text-white">
+            Réparations ({repairs.length} au total)
+          </h2>
+          <span className="text-xs text-slate-500">
+            Page {repairPage + 1} / {Math.max(1, Math.ceil(repairs.length / PAGE_SIZE))}
+          </span>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-3 py-2 text-left">Ticket</th>
                 <th className="px-3 py-2 text-left">Client</th>
+                <th className="px-3 py-2 text-left">Tél / Email</th>
+                <th className="px-3 py-2 text-left">Appareil</th>
                 <th className="px-3 py-2 text-left">Statut</th>
                 <th className="px-3 py-2 text-left">Paiement</th>
+                <th className="px-3 py-2 text-right">Montant</th>
                 <th className="px-3 py-2 text-left">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {repairs.map(r => (
+              {repairs.slice(repairPage * PAGE_SIZE, (repairPage + 1) * PAGE_SIZE).map(r => (
                 <tr key={r.id} className="hover:bg-white/5">
                   <td className="px-3 py-2 font-mono text-xs text-slate-400">{r.ticketNumber ?? r.id.slice(0,8)}</td>
                   <td className="px-3 py-2 text-slate-200">{r.firstName} {r.lastName}</td>
+                  <td className="px-3 py-2 text-xs text-slate-400">
+                    <div>{r.phone}</div>
+                    <div className="text-slate-500">{r.email}</div>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-slate-400">{r.deviceType} {r.brand} {r.model}</td>
                   <td className="px-3 py-2 text-xs text-slate-400">{r.status}</td>
                   <td className="px-3 py-2 text-xs text-slate-400">{r.paymentStatus}</td>
+                  <td className="px-3 py-2 text-right text-xs text-slate-300">
+                    {r.estimatedPriceCents ? `${(r.estimatedPriceCents / 100).toFixed(2)} €` : "—"}
+                  </td>
                   <td className="px-3 py-2 text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</td>
                 </tr>
               ))}
@@ -234,6 +281,27 @@ export function AccountDetail({ accountId }: { accountId: string }) {
           </table>
           {repairs.length === 0 && <p className="py-6 text-center text-sm text-slate-500">Aucune réparation.</p>}
         </div>
+        {repairs.length > PAGE_SIZE && (
+          <div className="mt-4 flex justify-center gap-2">
+            <button
+              onClick={() => setRepairPage(p => Math.max(0, p - 1))}
+              disabled={repairPage === 0}
+              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-400 transition hover:text-white disabled:opacity-30"
+            >
+              ← Précédente
+            </button>
+            <span className="px-3 py-1.5 text-xs text-slate-500">
+              {repairPage * PAGE_SIZE + 1}–{Math.min((repairPage + 1) * PAGE_SIZE, repairs.length)} / {repairs.length}
+            </span>
+            <button
+              onClick={() => setRepairPage(p => Math.min(Math.ceil(repairs.length / PAGE_SIZE) - 1, p + 1))}
+              disabled={(repairPage + 1) * PAGE_SIZE >= repairs.length}
+              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-400 transition hover:text-white disabled:opacity-30"
+            >
+              Suivante →
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );

@@ -7,7 +7,7 @@ export async function GET() {
   if (!auth.ok) return auth.response as unknown as ReturnType<typeof NextResponse.json>;
 
   const [messages, accounts, repairs] = await Promise.all([
-    prisma.supportMessage.findMany({ orderBy: { createdAt: "desc" }, take: 200 }),
+    prisma.supportMessage.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.proAccount.findMany({
       orderBy: { createdAt: "desc" },
       select: {
