@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  AlertTriangle,
   BadgeCheck,
   Building2,
   Clock,
@@ -11,7 +10,6 @@ import {
   MessageSquare,
   RefreshCw,
   Trash2,
-  Wrench,
 } from "lucide-react";
 
 type Message = {
@@ -36,12 +34,6 @@ const statusBadge: Record<string, string> = {
   CANCELED: "bg-red-50 text-red-700 ring-red-200",
 };
 
-const msgStatusBadge: Record<string, string> = {
-  OPEN:    "bg-sky-50 text-sky-700",
-  CLOSED:  "bg-slate-100 text-slate-500",
-  PENDING: "bg-amber-50 text-amber-700",
-};
-
 export function ModDashboard() {
   const [data, setData]       = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +54,10 @@ export function ModDashboard() {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, []);
 
   async function logout() {
     await fetch("/api/moderateur/logout", { method: "POST" });

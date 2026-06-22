@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   BadgeCheck, Clock, KeyRound, MessageSquare,
-  RefreshCw, ShieldOff, Sparkles, Trash2, Wrench, XCircle,
+  ShieldOff, Sparkles, Trash2, Wrench, XCircle,
 } from "lucide-react";
 
 type Repair  = { id: string; ticketNumber: string | null; firstName: string; lastName: string; status: string; paymentStatus: string; estimatedPriceCents: number | null; paidAmountCents: number | null; brand: string; model: string; deviceType: string; phone: string; email: string; createdAt: string };
@@ -45,7 +45,11 @@ export function AccountDetail({ accountId }: { accountId: string }) {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { void load(); }, [accountId]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId]);
 
   async function action(body: Record<string, unknown>) {
     setWorking(true); setActionMsg(""); setActionErr("");
@@ -98,9 +102,9 @@ export function AccountDetail({ accountId }: { accountId: string }) {
         </div>
         <div className="mt-4 grid gap-1 text-sm text-slate-400">
           {account.trialEndsAt && (
-            <p><Clock className="mr-1 inline h-3.5 w-3.5" />Essai jusqu'au {new Date(account.trialEndsAt).toLocaleString("fr-FR")}</p>
+            <p><Clock className="mr-1 inline h-3.5 w-3.5" />Essai jusqu&apos;au {new Date(account.trialEndsAt).toLocaleString("fr-FR")}</p>
           )}
-          <p><Wrench className="mr-1 inline h-3.5 w-3.5" />{repairs.length} réparations (50 dernières)</p>
+          <p><Wrench className="mr-1 inline h-3.5 w-3.5" />{repairs.length} réparations</p>
           <p><MessageSquare className="mr-1 inline h-3.5 w-3.5" />{messages.length} message(s) support</p>
         </div>
       </section>

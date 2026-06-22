@@ -89,7 +89,7 @@ export function OffresClient() {
       }
 
       if (payload.checkoutUrl) {
-        window.location.href = payload.checkoutUrl;
+        window.location.assign(payload.checkoutUrl);
       }
     } catch {
       setPayError("Paiement impossible pour le moment.");

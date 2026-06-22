@@ -227,6 +227,7 @@ export function AdminRepairCreateForm() {
         ) : null}
         <div className="grid gap-3 sm:grid-cols-3">
           {(values.photos ?? []).map((photo, index) => (
+            // eslint-disable-next-line @next/next/no-img-element -- data URL base64, non optimisable par next/image
             <img
               key={`${photo.slice(0, 24)}-${index}`}
               src={photo}

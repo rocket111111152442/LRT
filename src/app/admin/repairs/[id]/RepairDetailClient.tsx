@@ -767,6 +767,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             />
             <div className="grid gap-3 sm:grid-cols-3">
               {photos.map((photo, index) => (
+                // eslint-disable-next-line @next/next/no-img-element -- data URL base64, non optimisable par next/image
                 <img
                   key={`${photo.slice(0, 24)}-${index}`}
                   src={photo}
@@ -1230,6 +1231,7 @@ function SignaturePreview({
     <div className="grid gap-2">
       <p className="text-sm font-medium text-slate-800">{title}</p>
       {value ? (
+        // eslint-disable-next-line @next/next/no-img-element -- data URL (signature), non optimisable par next/image
         <img
           src={value}
           alt={title}

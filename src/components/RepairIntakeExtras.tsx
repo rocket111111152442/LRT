@@ -65,6 +65,7 @@ export function RepairIntakeExtras({
           </label>
           <div className="grid gap-3 sm:grid-cols-3">
             {photos.map((photo, index) => (
+              // eslint-disable-next-line @next/next/no-img-element -- data URL base64, non optimisable par next/image
               <img
                 key={`${photo.slice(0, 24)}-${index}`}
                 src={photo}
