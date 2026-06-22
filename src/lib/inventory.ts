@@ -14,7 +14,9 @@ export const INVENTORY_CATEGORIES = [
 
 export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number]["value"];
 
-const CATEGORY_VALUES = new Set(INVENTORY_CATEGORIES.map((category) => category.value));
+const CATEGORY_VALUES = new Set<string>(
+  INVENTORY_CATEGORIES.map((category) => category.value),
+);
 
 export function normalizeInventoryCategory(value: unknown): InventoryCategory {
   return typeof value === "string" && CATEGORY_VALUES.has(value)
