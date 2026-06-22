@@ -14,32 +14,36 @@ export async function GET(_req: Request, ctx: Context) {
   if (!auth.ok) return auth.response as unknown as ReturnType<typeof NextResponse.json>;
 
   const { id } = await ctx.params;
-  const account = await prisma.proAccount.findUnique({
-    where: { id },
-    include: {
-      users: { select: { id: true, email: true, role: true, createdAt: true } },
-      _count: { select: { repairs: true, inventoryItems: true } },
-    },
-  });
+  const [account, users, repairs, messages] = await Promise.all([
+    prisma.proAccount.findUnique({ where: { id } }),
+    prisma.user.findMany
+      ? prisma.user.findMany({ where: { proAccountId: id } } as Parameters<typeof prisma.user.findMany>[0]).catch(() => [])
+      : Promise.resolve([]),
+    prisma.repair.findMany({
+      where: { proAccountId: id },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      select: {
+        id: true, ticketNumber: true, firstName: true, lastName: true,
+        status: true, paymentStatus: true, createdAt: true,
+      },
+    }),
+    prisma.supportMessage.findMany({
+      where: { proAccountId: id },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   if (!account) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
 
-  const repairs = await prisma.repair.findMany({
-    where: { proAccountId: id },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    select: {
-      id: true, ticketNumber: true, firstName: true, lastName: true,
-      status: true, paymentStatus: true, createdAt: true,
-    },
-  });
+  const accountWithUsers = {
+    ...account,
+    users: (users as Array<{ id: string; email: string; role: string; createdAt: unknown }>).map((u) => ({
+      id: u.id, email: u.email, role: u.role,
+    })),
+  };
 
-  const messages = await prisma.supportMessage.findMany({
-    where: { proAccountId: id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json({ account, repairs, messages });
+  return NextResponse.json({ account: accountWithUsers, repairs, messages });
 }
 
 export async function POST(request: Request, ctx: Context) {
