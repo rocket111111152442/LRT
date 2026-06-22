@@ -18,8 +18,18 @@ const initialValues: SupportValues = {
   message: "",
 };
 
-export function SupportForm() {
-  const [values, setValues] = useState<SupportValues>(initialValues);
+export function SupportForm({
+  prefillSubject = "",
+  prefillMessage = "",
+}: {
+  prefillSubject?: string;
+  prefillMessage?: string;
+} = {}) {
+  const [values, setValues] = useState<SupportValues>({
+    ...initialValues,
+    subject: prefillSubject,
+    message: prefillMessage,
+  });
   const [errors, setErrors] = useState<SupportErrors>({});
   const [statusMessage, setStatusMessage] = useState("");
   const [submitError, setSubmitError] = useState("");

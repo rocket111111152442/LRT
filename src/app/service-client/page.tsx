@@ -25,7 +25,7 @@ const commonRequests = [
 export const dynamic = "force-dynamic";
 
 type SupportPageProps = {
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ session_id?: string; offre?: string }>;
 };
 
 async function confirmSupportPayment(sessionId?: string) {
@@ -42,14 +42,28 @@ async function confirmSupportPayment(sessionId?: string) {
   }
 }
 
+const offreLabels: Record<string, string> = {
+  extra_storage_10gb: "Option Stockage Plus (+10 Go)",
+  extra_storage_25gb: "Option Stockage Pro (+25 Go)",
+  active_shop_pack: "Pack Boutique Active",
+  big_workshop_pack: "Pack Gros Atelier",
+  multi_shop_pack: "Pack Multi-Boutiques",
+  enterprise: "Offre Entreprise / Sur mesure",
+};
+
 export default async function SupportPage({ searchParams }: SupportPageProps) {
-  const { session_id: sessionId } = await searchParams;
+  const { session_id: sessionId, offre } = await searchParams;
 
   await confirmSupportPayment(sessionId);
 
   const admin = await getCurrentAdmin();
 
-  if (!admin?.supportIncluded) {
+  // Si la demande concerne une extension de volume/stockage (param ?offre=),
+  // on laisse passer sans exiger l'option assistance : ce n'est pas du support
+  // technique, c'est une demande commerciale ouverte à tous.
+  const isOffreRequest = Boolean(offre && offreLabels[offre]);
+
+  if (!admin?.supportIncluded && !isOffreRequest) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-2xl gap-6">
@@ -123,50 +137,72 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <aside className="grid content-start gap-4">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-950">
-                Ce que le support peut traiter
-              </h2>
-              <ul className="mt-4 grid gap-3">
-                {supportPoints.map((point) => (
-                  <li
-                    key={point}
-                    className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
-                  >
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-950">
-                Exemples de demandes
-              </h2>
-              <ul className="mt-4 grid gap-2 text-sm leading-6 text-slate-700">
-                {commonRequests.map((request) => (
-                  <li key={request}>{request}</li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-
+        {isOffreRequest ? (
+          /* Parcours demande d'extension — pas besoin d'assistance */
           <section className="grid gap-4">
-            <div className="grid gap-2">
-              <h2 className="text-2xl font-semibold text-slate-950">
-                Envoyer un message
+            <div className="grid gap-3 rounded-xl border border-sky-100 bg-sky-50/60 p-5">
+              <p className="text-xs font-bold uppercase tracking-wide text-brand-blue">
+                Demande d&apos;extension
+              </p>
+              <h2 className="text-2xl font-bold text-slate-950">
+                {offreLabels[offre!]}
               </h2>
               <p className="text-sm leading-6 text-slate-600">
-                Decrivez le probleme avec le plus de details possible : email du
-                compte, page concernee, message d erreur, et ce que vous etiez
-                en train de faire.
+                Envoyez-nous votre demande ci-dessous. Nous activons votre
+                extension sous 24h et vous envoyons la confirmation par email.
               </p>
             </div>
-            <SupportForm />
+            <SupportForm
+              prefillSubject={`Demande d'activation : ${offreLabels[offre!]}`}
+              prefillMessage={`Bonjour,\n\nJe souhaite activer l'offre "${offreLabels[offre!]}" pour mon compte Qoravo.\n\nMon email admin : ${admin?.email ?? ""}\n\nMerci.`}
+            />
           </section>
-        </section>
+        ) : (
+          <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <aside className="grid content-start gap-4">
+              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 className="text-lg font-semibold text-slate-950">
+                  Ce que le support peut traiter
+                </h2>
+                <ul className="mt-4 grid gap-3">
+                  {supportPoints.map((point) => (
+                    <li
+                      key={point}
+                      className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+                    >
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 className="text-lg font-semibold text-slate-950">
+                  Exemples de demandes
+                </h2>
+                <ul className="mt-4 grid gap-2 text-sm leading-6 text-slate-700">
+                  {commonRequests.map((request) => (
+                    <li key={request}>{request}</li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+
+            <section className="grid gap-4">
+              <div className="grid gap-2">
+                <h2 className="text-2xl font-semibold text-slate-950">
+                  Envoyer un message
+                </h2>
+                <p className="text-sm leading-6 text-slate-600">
+                  Decrivez le probleme avec le plus de details possible : email du
+                  compte, page concernee, message d erreur, et ce que vous etiez
+                  en train de faire.
+                </p>
+              </div>
+              <SupportForm />
+            </section>
+          </section>
+        )}
       </div>
     </main>
   );
