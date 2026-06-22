@@ -852,9 +852,15 @@ function createFirestorePrisma() {
         const item = {
           ...args.data,
           id,
+          category: args.data.category ?? "PIECE",
+          reference: args.data.reference ?? null,
           quantity: args.data.quantity ?? 0,
           lowStockThreshold: args.data.lowStockThreshold ?? 1,
           unitCostCents: args.data.unitCostCents ?? 0,
+          unitPriceCents: args.data.unitPriceCents ?? 0,
+          supplier: args.data.supplier ?? null,
+          location: args.data.location ?? null,
+          notes: args.data.notes ?? null,
           createdAt: timestamp,
           updatedAt: timestamp,
         };

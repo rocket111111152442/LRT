@@ -45,6 +45,23 @@ export function AdminTrialBanner({
     return () => window.clearInterval(interval);
   }, [paymentStatus, trialEndsAt]);
 
+  // Quand l'essai expire (au chargement ou en direct pendant l'utilisation),
+  // on envoie le vendeur sur la page de blocage qui propose de s'abonner ou de
+  // supprimer le compte.
+  useEffect(() => {
+    if (paymentStatus !== "TRIAL" || !trialEndsAt) {
+      return;
+    }
+
+    const endTime = new Date(trialEndsAt).getTime();
+
+    if (!Number.isNaN(endTime) && Date.now() >= endTime) {
+      window.location.href = proAccountSlug
+        ? `/admin/essai-termine?compte=${encodeURIComponent(proAccountSlug)}`
+        : "/admin/essai-termine";
+    }
+  }, [paymentStatus, trialEndsAt, proAccountSlug, remainingMs]);
+
   const remaining = useMemo(() => formatRemaining(remainingMs), [remainingMs]);
 
   if (paymentStatus !== "TRIAL" || !trialEndsAt || remainingMs <= 0) {

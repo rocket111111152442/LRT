@@ -130,13 +130,18 @@ export function clearAdminSessionCookie(response: NextResponse) {
   });
 }
 
-export async function getCurrentAdmin(): Promise<AdminUser | null> {
+export type AdminSessionState =
+  | { status: "active"; admin: AdminUser }
+  | { status: "trial-expired"; userId: string; proAccountSlug: string | null }
+  | { status: "none" };
+
+export async function getAdminSessionState(): Promise<AdminSessionState> {
   try {
     const cookieStore = await cookies();
     const payload = verifySessionValue(cookieStore.get(COOKIE_NAME)?.value);
 
     if (!payload) {
-      return null;
+      return { status: "none" };
     }
 
     const user = await prisma.user.findUnique({
@@ -150,7 +155,7 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     });
 
     if (!user || user.role !== "ADMIN") {
-      return null;
+      return { status: "none" };
     }
 
     let proAccount: ProAccountSummary = null;
@@ -170,29 +175,41 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     const trialEndsAt = proAccount?.trialEndsAt
       ? new Date(proAccount.trialEndsAt)
       : null;
+    const trialEndsValid =
+      trialEndsAt !== null && !Number.isNaN(trialEndsAt.getTime());
     const isActiveTrial =
       proAccount?.paymentStatus === "TRIAL" &&
-      trialEndsAt !== null &&
-      !Number.isNaN(trialEndsAt.getTime()) &&
-      trialEndsAt > new Date();
+      trialEndsValid &&
+      (trialEndsAt as Date) > new Date();
+    const isExpiredTrial =
+      proAccount?.paymentStatus === "TRIAL" &&
+      trialEndsValid &&
+      (trialEndsAt as Date) <= new Date();
 
-    if (
-      proAccount &&
-      proAccount.paymentStatus !== "PAID" &&
-      !isActiveTrial
-    ) {
-      return null;
+    if (proAccount && proAccount.paymentStatus !== "PAID" && !isActiveTrial) {
+      if (isExpiredTrial) {
+        return {
+          status: "trial-expired",
+          userId: user.id,
+          proAccountSlug: proAccount.slug ?? null,
+        };
+      }
+
+      return { status: "none" };
     }
 
     return {
-      id: user.id,
-      email: user.email,
-      role: "ADMIN",
-      proAccountId: user.proAccountId,
-      proAccountSlug: proAccount?.slug ?? null,
-      paymentStatus: proAccount?.paymentStatus ?? null,
-      trialEndsAt: trialEndsAt ? trialEndsAt.toISOString() : null,
-      supportIncluded: proAccount?.supportIncluded === true,
+      status: "active",
+      admin: {
+        id: user.id,
+        email: user.email,
+        role: "ADMIN",
+        proAccountId: user.proAccountId,
+        proAccountSlug: proAccount?.slug ?? null,
+        paymentStatus: proAccount?.paymentStatus ?? null,
+        trialEndsAt: trialEndsAt ? trialEndsAt.toISOString() : null,
+        supportIncluded: proAccount?.supportIncluded === true,
+      },
     };
   } catch (error) {
     if (isDynamicServerUsageError(error)) {
@@ -200,18 +217,50 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     }
 
     console.error("Admin session lookup failed", error);
+    return { status: "none" };
+  }
+}
+
+export async function getCurrentAdmin(): Promise<AdminUser | null> {
+  const state = await getAdminSessionState();
+  return state.status === "active" ? state.admin : null;
+}
+
+/**
+ * Identifiant de l'utilisateur derrière le cookie de session, quel que soit le
+ * statut de paiement. Utile pour les actions autorisées même quand l'essai est
+ * expiré (ex. suppression du compte par son propriétaire).
+ */
+export async function getSessionUserId(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const payload = verifySessionValue(cookieStore.get(COOKIE_NAME)?.value);
+    return payload?.userId ?? null;
+  } catch (error) {
+    if (isDynamicServerUsageError(error)) {
+      throw error;
+    }
+
     return null;
   }
 }
 
 export async function requireAdminPage() {
-  const admin = await getCurrentAdmin();
+  const state = await getAdminSessionState();
 
-  if (!admin) {
-    redirect("/admin/login");
+  if (state.status === "active") {
+    return state.admin;
   }
 
-  return admin;
+  if (state.status === "trial-expired") {
+    redirect(
+      state.proAccountSlug
+        ? `/admin/essai-termine?compte=${encodeURIComponent(state.proAccountSlug)}`
+        : "/admin/essai-termine",
+    );
+  }
+
+  redirect("/admin/login");
 }
 
 export async function requireAdminApi(): Promise<

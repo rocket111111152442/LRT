@@ -201,14 +201,21 @@ model InventoryItem {
   proAccountId      String?
   proAccount        ProAccount? @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
   name              String
+  category          String      @default("PIECE")
+  reference         String?
   quantity          Int         @default(0)
   lowStockThreshold Int         @default(1)
   unitCostCents     Int         @default(0)
+  unitPriceCents    Int         @default(0)
+  supplier          String?
+  location          String?
+  notes             String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
   @@index([proAccountId])
   @@index([name])
+  @@index([category])
 }
 
 model PendingProSignup {

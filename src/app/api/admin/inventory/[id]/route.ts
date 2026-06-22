@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
+import { normalizeInventoryCategory } from "@/lib/inventory";
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -13,6 +14,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function readText(body: Record<string, unknown>, key: string) {
   const value = body[key];
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readOptionalText(body: Record<string, unknown>, key: string) {
+  return readText(body, key) || null;
 }
 
 function readInt(body: Record<string, unknown>, key: string, fallback: number) {
@@ -62,15 +67,22 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const name = readText(body, "name");
+  const category = normalizeInventoryCategory(body.category);
+  const reference = readOptionalText(body, "reference");
   const quantity = readInt(body, "quantity", 0);
   const lowStockThreshold = readInt(body, "lowStockThreshold", 1);
   const unitCostCents = readCents(body, "unitCostCents");
+  const unitPriceCents = readCents(body, "unitPriceCents");
+  const supplier = readOptionalText(body, "supplier");
+  const location = readOptionalText(body, "location");
+  const notes = readOptionalText(body, "notes");
 
   if (
     !name ||
     quantity === null ||
     lowStockThreshold === null ||
-    unitCostCents === null
+    unitCostCents === null ||
+    unitPriceCents === null
   ) {
     return NextResponse.json({ error: "Donnees invalides." }, { status: 400 });
   }
@@ -79,9 +91,15 @@ export async function PATCH(request: Request, context: RouteContext) {
     where: { id },
     data: {
       name,
+      category,
+      reference,
       quantity,
       lowStockThreshold,
       unitCostCents,
+      unitPriceCents,
+      supplier,
+      location,
+      notes,
     },
   });
 
