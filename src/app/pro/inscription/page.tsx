@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ProSignupForm } from "./ProSignupForm";
+import { PlanPickerBanner } from "./PlanPickerBanner";
 
 export default function ProSignupPage() {
   return (
@@ -35,6 +36,9 @@ export default function ProSignupPage() {
             <p className="font-semibold">✓ Vous reprenez où vous en étiez</p>
           </div>
         </header>
+
+        <PlanPickerBanner />
+
         <ProSignupForm />
       </div>
     </main>

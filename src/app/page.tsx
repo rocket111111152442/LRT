@@ -2,9 +2,11 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
+  Building2,
   Calculator,
   Clock,
   FileText,
+  HardDrive,
   Mail,
   MapPinned,
   Package,
@@ -13,6 +15,7 @@ import {
   Smartphone,
   Sparkles,
   Star,
+  TrendingUp,
   Wrench,
 } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
@@ -103,6 +106,61 @@ const includedInPlan = [
   "Mises à jour et nouvelles fonctionnalités chaque mois",
 ];
 
+const volumePlans = [
+  {
+    name: "Essentiel",
+    price: "89,99 €/an",
+    highlight: false,
+    storage: "5 Go",
+    repairs: "300 réparations/mois",
+    photos: "~3 photos/réparation",
+    technicians: "1 technicien",
+    clients: "~3 600 fiches clients/an",
+    example: "Idéal pour démarrer : un technicien solo, 10 réparations/jour, tout l'historique conservé.",
+    tone: "border-slate-200 bg-white",
+    badge: null,
+  },
+  {
+    name: "Boutique Active",
+    price: "+49,99 €/an",
+    highlight: false,
+    storage: "50 Go",
+    repairs: "1 000 réparations/mois",
+    photos: "~8 photos/réparation",
+    technicians: "2–3 techniciens",
+    clients: "~12 000 fiches clients/an",
+    example: "Pour une boutique qui tourne à plein régime : 30–40 réparations/jour avec beaucoup de photos.",
+    tone: "border-sky-200 bg-sky-50/40",
+    badge: null,
+  },
+  {
+    name: "Gros Atelier",
+    price: "+149,99 €/an",
+    highlight: true,
+    storage: "100 Go",
+    repairs: "3 000 réparations/mois",
+    photos: "~15 photos/réparation",
+    technicians: "4–6 techniciens",
+    clients: "~36 000 fiches clients/an",
+    example: "Pour les ateliers multi-techniciens avec des appareils complexes et des photos haute résolution.",
+    tone: "border-brand-blue bg-brand-blue-soft/30",
+    badge: "Le plus populaire",
+  },
+  {
+    name: "Multi-Boutiques",
+    price: "+299,99 €/an",
+    highlight: false,
+    storage: "250 Go",
+    repairs: "10 000 réparations/mois",
+    photos: "Illimitées en pratique",
+    technicians: "Plusieurs points de vente",
+    clients: "~120 000 fiches clients/an",
+    example: "Pour les enseignes avec plusieurs magasins : tableau de bord centralisé, statistiques par boutique.",
+    tone: "border-fuchsia-200 bg-fuchsia-50/40",
+    badge: null,
+  },
+];
+
 const faqs = [
   {
     question: "Comment fonctionne l'essai gratuit ?",
@@ -144,6 +202,9 @@ export default function HomePage() {
             </a>
             <a href="#tarif" className="transition hover:text-slate-950">
               Tarif
+            </a>
+            <a href="#volume" className="transition hover:text-slate-950">
+              Offres volume
             </a>
             <a href="#faq" className="transition hover:text-slate-950">
               FAQ
@@ -383,6 +444,91 @@ export default function HomePage() {
               <span className="text-lg font-extrabold text-brand-blue">+29,99 €/an</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* OFFRES VOLUME */}
+      <section id="volume" className="bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
+              Votre boutique grandit ?
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Augmentez vos limites quand vous en avez besoin.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              L&apos;abonnement de base couvre largement un atelier solo. Quand votre
+              volume augmente, vous ajoutez simplement l&apos;option adaptée — sans
+              perdre une seule donnée, sans recommencer.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {volumePlans.map((plan) => (
+              <article
+                key={plan.name}
+                className={`relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${plan.tone}`}
+              >
+                {plan.badge ? (
+                  <span className="q-chip absolute right-4 top-4 bg-brand-blue text-white">
+                    {plan.badge}
+                  </span>
+                ) : null}
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {plan.name}
+                  </p>
+                  <p className={`mt-1 text-2xl font-extrabold ${plan.highlight ? "text-brand-blue" : "text-slate-950"}`}>
+                    {plan.price}
+                  </p>
+                </div>
+                <ul className="grid gap-2">
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <HardDrive className="h-4 w-4 shrink-0 text-brand-blue" aria-hidden="true" />
+                    <strong>{plan.storage}</strong> de stockage
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Wrench className="h-4 w-4 shrink-0 text-brand-green" aria-hidden="true" />
+                    {plan.repairs}
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Smartphone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    {plan.photos}
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <TrendingUp className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    {plan.clients}
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Building2 className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    {plan.technicians}
+                  </li>
+                </ul>
+                <p className="mt-auto text-xs leading-5 text-slate-500 italic">
+                  {plan.example}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-fuchsia-100 bg-gradient-to-r from-fuchsia-50 to-sky-50 p-7 sm:flex-row sm:justify-between">
+            <div>
+              <p className="font-extrabold text-slate-950">Offre Entreprise / Sur mesure</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Volume illimité, stockage personnalisé, accompagnement prioritaire et configuration spéciale.
+              </p>
+            </div>
+            <Link href="/service-client?offre=enterprise" className="q-btn q-btn-dark shrink-0">
+              Demander un devis
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-slate-400">
+            Toutes les options s&apos;ajoutent à l&apos;abonnement annuel de base (89,99 €/an).
+            Les limites s&apos;appliquent par compte pro. Vos données restent intactes lors d&apos;un changement d&apos;offre.
+          </p>
         </div>
       </section>
 
