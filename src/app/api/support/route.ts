@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { sendSupportMessageEmail } from "@/lib/mail";
+import { prisma } from "@/lib/prisma";
 
 type SupportErrors = Partial<
   Record<"name" | "email" | "subject" | "message", string>
@@ -71,6 +72,17 @@ export async function POST(request: Request) {
   if (Object.keys(errors).length > 0) {
     return NextResponse.json({ errors }, { status: 400 });
   }
+
+  // Sauvegarde en base pour le panel modérateur.
+  await prisma.supportMessage.create({
+    data: {
+      proAccountId: admin.user.proAccountId ?? undefined,
+      name: data.name,
+      email: data.email,
+      subject: data.subject,
+      message: data.message,
+    },
+  }).catch(() => { /* non bloquant */ });
 
   const result = await sendSupportMessageEmail(data);
 

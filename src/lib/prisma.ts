@@ -1022,6 +1022,13 @@ function createFirestorePrisma() {
       },
     },
 
+    supportMessage: createGenericFirestoreModel("supportMessages", {
+      status: "OPEN",
+      moderatorNote: null,
+      offre: null,
+      proAccountId: null,
+    }),
+
     accountingSettings: createGenericFirestoreModel(
       "accountingSettings",
       {

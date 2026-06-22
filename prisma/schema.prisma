@@ -198,6 +198,23 @@ model RepairEvent {
   @@index([createdAt])
 }
 
+model SupportMessage {
+  id           String   @id @default(cuid())
+  proAccountId String?
+  name         String
+  email        String
+  subject      String
+  message      String
+  offre        String?
+  status       String   @default("OPEN")
+  moderatorNote String?
+  createdAt    DateTime @default(now())
+
+  @@index([proAccountId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 model InventoryItem {
   id                String      @id @default(cuid())
   proAccountId      String?

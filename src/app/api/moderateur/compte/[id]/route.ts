@@ -1,0 +1,115 @@
+import { NextResponse } from "next/server";
+import bcrypt from "bcrypt";
+import { requireModApi } from "@/lib/modAuth";
+import { prisma } from "@/lib/prisma";
+
+type Context = { params: Promise<{ id: string }> };
+
+function readText(body: Record<string, unknown>, key: string) {
+  return typeof body[key] === "string" ? String(body[key]).trim() : "";
+}
+
+export async function GET(_req: Request, ctx: Context) {
+  const auth = await requireModApi();
+  if (!auth.ok) return auth.response as unknown as ReturnType<typeof NextResponse.json>;
+
+  const { id } = await ctx.params;
+  const account = await prisma.proAccount.findUnique({
+    where: { id },
+    include: {
+      users: { select: { id: true, email: true, role: true, createdAt: true } },
+      _count: { select: { repairs: true, inventoryItems: true } },
+    },
+  });
+
+  if (!account) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+
+  const repairs = await prisma.repair.findMany({
+    where: { proAccountId: id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: {
+      id: true, ticketNumber: true, firstName: true, lastName: true,
+      status: true, paymentStatus: true, createdAt: true,
+    },
+  });
+
+  const messages = await prisma.supportMessage.findMany({
+    where: { proAccountId: id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json({ account, repairs, messages });
+}
+
+export async function POST(request: Request, ctx: Context) {
+  const auth = await requireModApi();
+  if (!auth.ok) return auth.response as unknown as ReturnType<typeof NextResponse.json>;
+
+  const { id } = await ctx.params;
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+
+  const action = readText(body as Record<string, unknown>, "action");
+
+  // ---- Actions disponibles ----
+
+  if (action === "extend_trial") {
+    const hours = Number((body as Record<string, unknown>).hours ?? 72);
+    await prisma.proAccount.update({
+      where: { id },
+      data: {
+        paymentStatus: "TRIAL",
+        trialEndsAt: new Date(Date.now() + hours * 60 * 60 * 1000),
+      },
+    });
+    return NextResponse.json({ ok: true, message: `Essai prolongé de ${hours}h.` });
+  }
+
+  if (action === "set_paid") {
+    await prisma.proAccount.update({
+      where: { id },
+      data: { paymentStatus: "PAID", trialEndsAt: null },
+    });
+    return NextResponse.json({ ok: true, message: "Compte marqué PAYÉ." });
+  }
+
+  if (action === "set_plan") {
+    const plan = readText(body as Record<string, unknown>, "plan") || "basic";
+    await prisma.proAccount.update({ where: { id }, data: { plan } });
+    return NextResponse.json({ ok: true, message: `Plan mis à jour : ${plan}.` });
+  }
+
+  if (action === "toggle_support") {
+    const account = await prisma.proAccount.findUnique({ where: { id }, select: { supportIncluded: true } });
+    const next = !account?.supportIncluded;
+    await prisma.proAccount.update({ where: { id }, data: { supportIncluded: next } });
+    return NextResponse.json({ ok: true, message: next ? "Support activé." : "Support désactivé." });
+  }
+
+  if (action === "reset_password") {
+    const newPassword = readText(body as Record<string, unknown>, "newPassword");
+    if (newPassword.length < 6) return NextResponse.json({ error: "Mot de passe trop court (6 min)." }, { status: 400 });
+    const hash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.updateMany({ where: { proAccountId: id }, data: { passwordHash: hash } });
+    return NextResponse.json({ ok: true, message: "Mot de passe réinitialisé." });
+  }
+
+  if (action === "cancel_account") {
+    await prisma.proAccount.update({ where: { id }, data: { paymentStatus: "CANCELED" } });
+    return NextResponse.json({ ok: true, message: "Compte annulé." });
+  }
+
+  if (action === "message_note") {
+    const msgId = readText(body as Record<string, unknown>, "messageId");
+    const note  = readText(body as Record<string, unknown>, "note");
+    const status = readText(body as Record<string, unknown>, "status") || "OPEN";
+    await prisma.supportMessage.update({
+      where: { id: msgId },
+      data: { moderatorNote: note, status },
+    });
+    return NextResponse.json({ ok: true, message: "Note enregistrée." });
+  }
+
+  return NextResponse.json({ error: "Action inconnue." }, { status: 400 });
+}

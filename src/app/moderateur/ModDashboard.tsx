@@ -1,0 +1,311 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  BadgeCheck,
+  Building2,
+  Clock,
+  LogOut,
+  Mail,
+  MessageSquare,
+  RefreshCw,
+  Wrench,
+} from "lucide-react";
+
+type Message = {
+  id: string; proAccountId: string | null; name: string; email: string;
+  subject: string; message: string; offre: string | null;
+  status: string; moderatorNote: string | null; createdAt: string;
+};
+
+type Account = {
+  id: string; companyName: string; slug: string; ownerEmail: string;
+  paymentStatus: string; trialEndsAt: string | null; supportIncluded: boolean;
+  plan: string; storageAddonGb: number; createdAt: string;
+  _count: { repairs: number };
+};
+
+type DashData = { messages: Message[]; accounts: Account[]; totalRepairs: number };
+
+const statusBadge: Record<string, string> = {
+  PAID:     "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  TRIAL:    "bg-amber-50 text-amber-700 ring-amber-200",
+  PENDING:  "bg-slate-100 text-slate-600 ring-slate-200",
+  CANCELED: "bg-red-50 text-red-700 ring-red-200",
+};
+
+const msgStatusBadge: Record<string, string> = {
+  OPEN:    "bg-sky-50 text-sky-700",
+  CLOSED:  "bg-slate-100 text-slate-500",
+  PENDING: "bg-amber-50 text-amber-700",
+};
+
+export function ModDashboard() {
+  const [data, setData]     = useState<DashData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]   = useState("");
+  const [tab, setTab]       = useState<"messages" | "comptes">("messages");
+
+  async function load() {
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/moderateur/dashboard");
+      if (res.status === 401) { window.location.href = "/moderateur/login"; return; }
+      const payload = await res.json();
+      if (!res.ok) { setError(payload.error ?? "Chargement impossible."); return; }
+      setData(payload);
+    } catch { setError("Chargement impossible."); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { void load(); }, []);
+
+  async function logout() {
+    await fetch("/api/moderateur/logout", { method: "POST" });
+    window.location.href = "/moderateur/login";
+  }
+
+  const openMessages = data?.messages.filter(m => m.status !== "CLOSED") ?? [];
+  const accounts     = data?.accounts ?? [];
+  const paid  = accounts.filter(a => a.paymentStatus === "PAID").length;
+  const trial = accounts.filter(a => a.paymentStatus === "TRIAL").length;
+
+  return (
+    <main className="min-h-screen bg-brand-ink text-slate-100">
+      {/* Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between gap-4 border-b border-white/10 bg-brand-ink/95 px-6 py-3 backdrop-blur">
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-blue/20 text-brand-blue">
+            <BadgeCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-brand-blue">Qoravo</p>
+            <p className="text-sm font-semibold text-white">Panel Modérateur</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={load} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 transition hover:bg-white/10">
+            <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? "animate-spin" : ""}`} />
+          </button>
+          <button onClick={logout} className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10">
+            <LogOut className="h-3.5 w-3.5" />
+            Déconnexion
+          </button>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {error ? (
+          <div className="rounded-xl border border-red-400/30 bg-red-900/20 px-4 py-3 text-sm text-red-300">{error}</div>
+        ) : null}
+
+        {/* Stats */}
+        <div className="mb-6 grid gap-3 sm:grid-cols-4">
+          {[
+            { label: "Messages ouverts", value: openMessages.length, icon: MessageSquare, tone: "text-sky-400" },
+            { label: "Comptes total",    value: accounts.length,     icon: Building2,     tone: "text-slate-400" },
+            { label: "Comptes payants",  value: paid,                icon: BadgeCheck,    tone: "text-emerald-400" },
+            { label: "En essai",         value: trial,               icon: Clock,         tone: "text-amber-400" },
+          ].map(s => (
+            <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <s.icon className={`h-5 w-5 ${s.tone}`} aria-hidden="true" />
+              <p className="mt-3 text-2xl font-extrabold text-white">{s.value}</p>
+              <p className="text-xs font-semibold text-slate-400">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-4 flex gap-2">
+          {(["messages", "comptes"] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                tab === t
+                  ? "bg-brand-blue text-white"
+                  : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {t === "messages" ? `Messages (${openMessages.length})` : `Comptes (${accounts.length})`}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-sm text-slate-400">Chargement...</div>
+        ) : tab === "messages" ? (
+          <MessagesTab messages={data?.messages ?? []} onRefresh={load} />
+        ) : (
+          <ComptesTab accounts={data?.accounts ?? []} statusBadge={statusBadge} />
+        )}
+      </div>
+    </main>
+  );
+}
+
+function MessagesTab({ messages, onRefresh }: { messages: Message[]; onRefresh: () => void }) {
+  const [selected, setSelected] = useState<Message | null>(null);
+  const [note, setNote]         = useState("");
+  const [status, setStatus]     = useState("OPEN");
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState("");
+
+  function open(m: Message) { setSelected(m); setNote(m.moderatorNote ?? ""); setStatus(m.status); setMsg(""); }
+
+  async function saveNote() {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/moderateur/compte/${selected.proAccountId ?? "none"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "message_note", messageId: selected.id, note, status }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      setMsg(payload.message ?? (res.ok ? "Enregistré." : payload.error ?? "Erreur."));
+      if (res.ok) { onRefresh(); }
+    } finally { setSaving(false); }
+  }
+
+  if (messages.length === 0) return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-sm text-slate-400">
+      Aucun message reçu.
+    </div>
+  );
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
+      <div className="grid content-start gap-2 overflow-y-auto" style={{ maxHeight: "75vh" }}>
+        {messages.map(m => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => open(m)}
+            className={`rounded-xl border p-4 text-left transition hover:border-brand-blue/50 ${
+              selected?.id === m.id
+                ? "border-brand-blue bg-brand-blue/10"
+                : "border-white/10 bg-white/5 hover:bg-white/8"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold text-white">{m.name}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                m.status === "CLOSED" ? "bg-slate-700 text-slate-400" :
+                m.status === "PENDING" ? "bg-amber-900/50 text-amber-300" :
+                "bg-sky-900/50 text-sky-300"}`}>
+                {m.status}
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-slate-400">{m.email} · {new Date(m.createdAt).toLocaleDateString("fr-FR")}</p>
+            <p className="mt-1 truncate text-sm text-slate-300">{m.subject}</p>
+            {m.offre ? <p className="mt-1 text-xs text-brand-blue">Offre : {m.offre}</p> : null}
+          </button>
+        ))}
+      </div>
+
+      {selected ? (
+        <aside className="grid content-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-blue">Message</p>
+            <h3 className="mt-1 text-lg font-bold text-white">{selected.subject}</h3>
+            <p className="text-xs text-slate-400">{selected.name} &lt;{selected.email}&gt;</p>
+          </div>
+          <p className="whitespace-pre-wrap rounded-lg bg-white/5 p-3 text-sm leading-6 text-slate-200">
+            {selected.message}
+          </p>
+          {selected.proAccountId ? (
+            <Link
+              href={`/moderateur/compte/${selected.proAccountId}`}
+              className="q-btn q-btn-primary text-sm"
+            >
+              <Building2 className="h-4 w-4" /> Voir le compte associé
+            </Link>
+          ) : null}
+          <div className="grid gap-2">
+            <label className="text-xs font-semibold text-slate-400">Statut</label>
+            <select value={status} onChange={e => setStatus(e.target.value)}
+              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white">
+              <option value="OPEN">OPEN</option>
+              <option value="PENDING">PENDING</option>
+              <option value="CLOSED">CLOSED</option>
+            </select>
+          </div>
+          <div className="grid gap-2">
+            <label className="text-xs font-semibold text-slate-400">Note interne</label>
+            <textarea value={note} onChange={e => setNote(e.target.value)} rows={3}
+              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white" />
+          </div>
+          {msg ? <p className="text-xs text-emerald-400">{msg}</p> : null}
+          <button onClick={saveNote} disabled={saving}
+            className="q-btn q-btn-primary text-sm disabled:opacity-60">
+            {saving ? "Enregistrement..." : "Sauvegarder"}
+          </button>
+        </aside>
+      ) : (
+        <aside className="hidden rounded-2xl border border-white/10 bg-white/5 p-5 text-center text-sm text-slate-500 lg:grid lg:place-items-center">
+          Sélectionnez un message
+        </aside>
+      )}
+    </div>
+  );
+}
+
+function ComptesTab({ accounts, statusBadge }: { accounts: Account[]; statusBadge: Record<string, string> }) {
+  const [search, setSearch] = useState("");
+  const filtered = accounts.filter(a =>
+    !search || [a.companyName, a.ownerEmail, a.slug].some(f => f.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <div className="grid gap-4">
+      <input
+        type="search" value={search} onChange={e => setSearch(e.target.value)}
+        placeholder="Rechercher (nom, email, slug)..."
+        className="min-h-11 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 outline-none focus:border-brand-blue"
+      />
+      <div className="overflow-hidden rounded-2xl border border-white/10">
+        <table className="min-w-full text-left text-sm">
+          <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wide text-slate-400">
+            <tr>
+              <th className="px-4 py-3">Boutique</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Statut</th>
+              <th className="px-4 py-3">Plan</th>
+              <th className="px-4 py-3">Réparations</th>
+              <th className="px-4 py-3">Créé</th>
+              <th className="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {filtered.map(a => (
+              <tr key={a.id} className="hover:bg-white/5">
+                <td className="px-4 py-3 font-semibold text-white">{a.companyName}</td>
+                <td className="px-4 py-3 text-slate-400">{a.ownerEmail}</td>
+                <td className="px-4 py-3">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold ring-1 ${statusBadge[a.paymentStatus] ?? "bg-slate-700 text-slate-400"}`}>
+                    {a.paymentStatus}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-slate-400 text-xs">{a.plan}</td>
+                <td className="px-4 py-3 text-slate-400">{a._count.repairs}</td>
+                <td className="px-4 py-3 text-slate-500 text-xs">{new Date(a.createdAt).toLocaleDateString("fr-FR")}</td>
+                <td className="px-4 py-3">
+                  <Link href={`/moderateur/compte/${a.id}`}
+                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-brand-blue hover:text-brand-blue">
+                    Gérer →
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-slate-500">Aucun compte trouvé.</p>
+        )}
+      </div>
+    </div>
+  );
+}
