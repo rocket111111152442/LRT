@@ -1,10 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Domaine canonique : qoravo.fr (apex). On redirige les anciens domaines et le
-// sous-domaine www vers le domaine canonique en 308.
+// Domaine canonique : qoravo.fr.
+//
+// IMPORTANT : on ne redirige PAS www.qoravo.fr <-> qoravo.fr ici. La
+// canonicalisation www/apex est gérée par Vercel au niveau du projet (Settings
+// > Domains). Le faire aussi dans le middleware crée une boucle infinie
+// (ERR_TOO_MANY_REDIRECTS). Le middleware ne s'occupe que des ANCIENS domaines.
 const CANONICAL_HOST = "qoravo.fr";
 const REDIRECTED_HOSTS = new Set([
-  "www.qoravo.fr",
   "lrt.life",
   "www.lrt.life",
 ]);
