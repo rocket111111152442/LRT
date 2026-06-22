@@ -562,6 +562,8 @@ function createFirestorePrisma() {
           ...data,
           id,
           supportIncluded: data.supportIncluded ?? false,
+          plan: data.plan ?? "basic",
+          storageAddonGb: data.storageAddonGb ?? 0,
           paymentStatus: data.paymentStatus ?? "PENDING",
           shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
           shopSlotDurationMinutes: data.shopSlotDurationMinutes ?? 60,
