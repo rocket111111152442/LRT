@@ -8,9 +8,9 @@ import {
   Building2,
   Clock,
   LogOut,
-  Mail,
   MessageSquare,
   RefreshCw,
+  Trash2,
   Wrench,
 } from "lucide-react";
 
@@ -43,10 +43,12 @@ const msgStatusBadge: Record<string, string> = {
 };
 
 export function ModDashboard() {
-  const [data, setData]     = useState<DashData | null>(null);
+  const [data, setData]       = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState("");
-  const [tab, setTab]       = useState<"messages" | "comptes">("messages");
+  const [error, setError]     = useState("");
+  const [tab, setTab]         = useState<"messages" | "comptes">("messages");
+  const [resetting, setResetting] = useState(false);
+  const [resetMsg, setResetMsg]   = useState("");
 
   async function load() {
     setLoading(true); setError("");
@@ -65,6 +67,25 @@ export function ModDashboard() {
   async function logout() {
     await fetch("/api/moderateur/logout", { method: "POST" });
     window.location.href = "/moderateur/login";
+  }
+
+  async function resetDb() {
+    const code = window.prompt(
+      "⚠️ RESET BASE DE DONNÉES\n\nTous les comptes sauf lullinismael0@gmail.com seront supprimés définitivement.\n\nTapez RESET_CONFIRMED pour continuer :"
+    );
+    if (code !== "RESET_CONFIRMED") return;
+    setResetting(true); setResetMsg("");
+    try {
+      const res = await fetch("/api/moderateur/reset-db", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "RESET_CONFIRMED" }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      setResetMsg(payload.message ?? (res.ok ? "Reset effectué." : payload.error ?? "Erreur."));
+      if (res.ok) await load();
+    } catch { setResetMsg("Erreur réseau."); }
+    finally { setResetting(false); }
   }
 
   const openMessages = data?.messages.filter(m => m.status !== "CLOSED") ?? [];
@@ -115,6 +136,23 @@ export function ModDashboard() {
               <p className="text-xs font-semibold text-slate-400">{s.label}</p>
             </div>
           ))}
+        </div>
+
+        {/* Zone reset */}
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-500/20 bg-red-950/20 px-4 py-3">
+          <Trash2 className="h-4 w-4 shrink-0 text-red-400" aria-hidden="true" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-red-300">Zone dangereuse — Reset base de données</p>
+            <p className="text-xs text-red-400/70">Supprime tous les comptes sauf <span className="text-red-300 font-mono">lullinismael0@gmail.com</span></p>
+          </div>
+          {resetMsg ? <p className="text-xs font-semibold text-emerald-400">{resetMsg}</p> : null}
+          <button
+            onClick={resetDb}
+            disabled={resetting}
+            className="rounded-lg border border-red-500/40 bg-red-900/40 px-3 py-1.5 text-xs font-bold text-red-300 transition hover:bg-red-800/60 disabled:opacity-50"
+          >
+            {resetting ? "Suppression en cours..." : "Tout supprimer (sauf compte protégé)"}
+          </button>
         </div>
 
         {/* Tabs */}
