@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
+import { OnlineNow } from "@/components/OnlineNow";
 
 type Message = {
   id: string; proAccountId: string | null; name: string; email: string;
@@ -102,6 +103,7 @@ export function ModDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <OnlineNow className="mr-1 hidden rounded-lg bg-white/5 px-3 py-1.5 text-xs font-semibold text-emerald-300 sm:inline-flex" />
           <button onClick={load} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 transition hover:bg-white/10">
             <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? "animate-spin" : ""}`} />
           </button>
