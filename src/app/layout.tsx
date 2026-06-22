@@ -11,7 +11,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://qoravo.fr"),
+  metadataBase: new URL("https://www.qoravo.fr"),
   title: "Qoravo — Le logiciel tout-en-un des réparateurs",
   description:
     "Qoravo centralise vos réparations : QR code client, suivi, devis, stock, agenda, compta et emails automatiques. Essai gratuit 72h.",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   alternates: {
-    canonical: "https://qoravo.fr",
+    canonical: "https://www.qoravo.fr",
   },
 };
 

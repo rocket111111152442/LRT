@@ -1,10 +1,13 @@
-const CANONICAL_APP_URL = "https://qoravo.fr";
+// Domaine de production sur Vercel = www.qoravo.fr (l'apex qoravo.fr fait un
+// 308 vers www). On utilise donc www comme URL canonique pour les liens emails,
+// QR codes et retours Stripe (évite un saut de redirection supplémentaire).
+const CANONICAL_APP_URL = "https://www.qoravo.fr";
 const DEPRECATED_HOSTS = new Set([
   "lrt-mu.vercel.app",
   "qoravo-mu.vercel.app",
   "lrt.life",
   "www.lrt.life",
-  "www.qoravo.fr",
+  "qoravo.fr",
 ]);
 
 function normalizeUrl(value: string | undefined) {

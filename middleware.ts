@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // canonicalisation www/apex est gérée par Vercel au niveau du projet (Settings
 // > Domains). Le faire aussi dans le middleware crée une boucle infinie
 // (ERR_TOO_MANY_REDIRECTS). Le middleware ne s'occupe que des ANCIENS domaines.
-const CANONICAL_HOST = "qoravo.fr";
+const CANONICAL_HOST = "www.qoravo.fr";
 const REDIRECTED_HOSTS = new Set([
   "lrt.life",
   "www.lrt.life",
