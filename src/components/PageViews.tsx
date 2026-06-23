@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
  */
 export function PageViews({
   className = "",
-  label = "personnes en direct",
+  label = "clients cherchant un réparateur",
 }: {
   className?: string;
   label?: string;
