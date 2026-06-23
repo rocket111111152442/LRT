@@ -19,7 +19,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
-import { OnlineNow } from "@/components/OnlineNow";
+import { PageViews } from "@/components/PageViews";
 import { PublicReviews } from "./PublicReviews";
 import { TrialCountdown } from "./TrialCountdown";
 
@@ -259,7 +259,7 @@ export default function HomePage() {
               <BadgeCheck className="h-4 w-4 text-emerald-300" aria-hidden="true" />
               Sans engagement · Reprenez où vous vous étiez arrêté après l&apos;essai
             </p>
-            <OnlineNow className="mt-4 w-fit rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm font-semibold text-emerald-200" />
+            <PageViews className="mt-4 w-fit rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm font-semibold text-emerald-200" />
 
             <dl className="mt-10 grid max-w-lg grid-cols-2 gap-5 sm:grid-cols-4">
               {stats.map((stat) => (

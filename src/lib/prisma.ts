@@ -17,7 +17,7 @@ const globalForPrisma = globalThis as unknown as {
   firestore?: Firestore;
 };
 
-function shouldUseFirebase() {
+export function shouldUseFirebase() {
   return (
     process.env.DATABASE_PROVIDER === "firebase" ||
     Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON) ||
@@ -65,7 +65,7 @@ function getFirebaseCredential() {
   };
 }
 
-function getFirebaseDb() {
+export function getFirebaseDb() {
   if (globalForPrisma.firestore) {
     return globalForPrisma.firestore;
   }
