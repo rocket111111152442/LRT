@@ -1022,17 +1022,6 @@ function createFirestorePrisma() {
       },
     },
 
-    emailContact: createGenericFirestoreModel(
-      "emailContacts",
-      {
-        status: "SUBSCRIBED",
-        name: null,
-        company: null,
-        proAccountId: null,
-      },
-      ["id", "email"],
-    ),
-
     supportMessage: createGenericFirestoreModel("supportMessages", {
       status: "OPEN",
       moderatorNote: null,
