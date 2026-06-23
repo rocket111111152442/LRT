@@ -111,7 +111,26 @@ export async function GET() {
     0,
   );
 
+  // Serie des 6 derniers mois (CA encaisse + nombre de reparations).
+  const monthLabels = ["Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"];
+  const monthlySeries = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getUTCFullYear(), now.getUTCMonth() - (5 - index), 1);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const inMonth = repairs.filter((repair) => {
+      const created = toDate(repair.createdAt);
+      return created.getFullYear() === year && created.getMonth() === month;
+    });
+    return {
+      label: monthLabels[month],
+      year,
+      count: inMonth.length,
+      revenueCents: inMonth.reduce((sum, r) => sum + (r.paidAmountCents ?? 0), 0),
+    };
+  });
+
   return NextResponse.json({
+    monthlySeries,
     totalRepairs: repairs.length,
     byStatus,
     byBrand,

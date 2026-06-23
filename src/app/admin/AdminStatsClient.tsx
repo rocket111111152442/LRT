@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+type MonthlyPoint = {
+  label: string;
+  year: number;
+  count: number;
+  revenueCents: number;
+};
+
 type StatsPayload = {
+  monthlySeries?: MonthlyPoint[];
   totalRepairs: number;
   byStatus: Record<string, number>;
   byBrand: Record<string, number>;
@@ -278,17 +286,22 @@ export function AdminStatsClient() {
         </div>
       </div>
 
+      <RevenueChart series={stats.monthlySeries ?? []} />
+
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Marques
           </h2>
-          <div className="mt-3 grid gap-2">
+          <div className="mt-3 grid gap-2.5">
             {brandEntries.map(([brand, count]) => (
-              <div key={brand} className="flex justify-between text-sm">
-                <span className="text-slate-700">{brand}</span>
-                <strong className="text-slate-950">{count}</strong>
-              </div>
+              <BarRow
+                key={brand}
+                label={brand}
+                value={count}
+                max={brandEntries[0]?.[1] ?? 1}
+                tone="bg-brand-blue"
+              />
             ))}
             {brandEntries.length === 0 ? (
               <p className="text-sm text-slate-500">Aucune donnee.</p>
@@ -300,12 +313,15 @@ export function AdminStatsClient() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Top pannes
           </h2>
-          <div className="mt-3 grid gap-2">
+          <div className="mt-3 grid gap-2.5">
             {issueEntries.map(([issue, count]) => (
-              <div key={issue} className="flex justify-between gap-3 text-sm">
-                <span className="truncate text-slate-700">{issue}</span>
-                <strong className="text-slate-950">{count}</strong>
-              </div>
+              <BarRow
+                key={issue}
+                label={issue}
+                value={count}
+                max={issueEntries[0]?.[1] ?? 1}
+                tone="bg-brand-green"
+              />
             ))}
             {issueEntries.length === 0 ? (
               <p className="text-sm text-slate-500">Aucune donnee.</p>
@@ -380,6 +396,65 @@ export function AdminStatsClient() {
         ) : null}
       </div>
     </section>
+  );
+}
+
+function BarRow({
+  label,
+  value,
+  max,
+  tone,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  tone: string;
+}) {
+  const percent = Math.max(4, Math.round((value / Math.max(max, 1)) * 100));
+  return (
+    <div className="grid gap-1">
+      <div className="flex justify-between gap-3 text-sm">
+        <span className="truncate text-slate-700">{label}</span>
+        <strong className="text-slate-950">{value}</strong>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function RevenueChart({ series }: { series: MonthlyPoint[] }) {
+  if (series.length === 0) {
+    return null;
+  }
+
+  const maxRevenue = Math.max(...series.map((point) => point.revenueCents), 1);
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        Chiffre d&apos;affaires encaissé — 6 derniers mois
+      </h2>
+      <div className="mt-4 flex items-end justify-between gap-2" style={{ height: "180px" }}>
+        {series.map((point) => {
+          const heightPercent = Math.round((point.revenueCents / maxRevenue) * 100);
+          return (
+            <div key={`${point.label}-${point.year}`} className="flex flex-1 flex-col items-center justify-end gap-2">
+              <span className="text-xs font-semibold text-slate-700">
+                {formatPrice(point.revenueCents)}
+              </span>
+              <div
+                className="w-full max-w-[48px] rounded-t-lg bg-gradient-to-t from-brand-blue to-brand-green transition-all"
+                style={{ height: `${Math.max(2, heightPercent)}%` }}
+                title={`${point.count} réparation(s)`}
+              />
+              <span className="text-xs text-slate-500">{point.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
