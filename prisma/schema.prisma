@@ -215,6 +215,21 @@ model SupportMessage {
   @@index([createdAt])
 }
 
+model EmailContact {
+  id           String   @id @default(cuid())
+  proAccountId String?
+  email        String
+  name         String?
+  company      String?
+  status       String   @default("SUBSCRIBED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([proAccountId])
+  @@index([email])
+  @@index([status])
+}
+
 model InventoryItem {
   id                String      @id @default(cuid())
   proAccountId      String?

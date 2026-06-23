@@ -346,6 +346,15 @@ async function sendWithRepairSmtp(input: {
   }
 }
 
+export async function sendCampaignEmail(input: {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+}): Promise<SendMailResult> {
+  return sendWithRepairSmtp(input);
+}
+
 export async function sendQuoteEmail(
   repair: QuoteEmailInput,
 ): Promise<SendMailResult> {
