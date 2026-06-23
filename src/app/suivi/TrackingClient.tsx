@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
 type TrackedRepair = {
   ticketNumber: string;
@@ -79,12 +79,11 @@ export function TrackingClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const runSearch = useCallback(async (rawTicket: string) => {
     setIsLoading(true);
     setError("");
     setRepair(null);
-    const normalizedTicket = normalizeTicket(ticket).trim().replace(/^-|-$/g, "");
+    const normalizedTicket = normalizeTicket(rawTicket).trim().replace(/^-|-$/g, "");
     setTicket(normalizedTicket);
 
     if (!normalizedTicket) {
@@ -110,6 +109,22 @@ export function TrackingClient() {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  // Pré-remplissage + recherche auto depuis ?ticket= (QR collé sur l'appareil).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("ticket");
+    if (fromUrl) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTicket(fromUrl);
+      void runSearch(fromUrl);
+    }
+  }, [runSearch]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await runSearch(ticket);
   }
 
   return (
