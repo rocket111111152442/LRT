@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
+import { isProAccountActive } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
 
 type AtelierPageProps = {
@@ -17,10 +18,11 @@ export default async function AtelierPage({ params }: AtelierPageProps) {
       publicPhone: true,
       publicAddress: true,
       paymentStatus: true,
+      trialEndsAt: true,
     },
   });
 
-  if (!account || account.paymentStatus !== "PAID") {
+  if (!account || !isProAccountActive(account)) {
     return (
       <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-xl rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">

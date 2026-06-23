@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isProAccountActive } from "@/lib/accountStatus";
 import { getAvailableSlots } from "@/lib/shopAvailability";
 import { isShopOpenAt } from "@/lib/shopHours";
 
@@ -8,8 +9,9 @@ function readNumber(value: unknown, fallback = 0) {
 }
 
 export async function GET() {
-  const accounts = await prisma.proAccount.findMany({
-    where: { paymentStatus: "PAID" },
+  // On récupère tous les comptes puis on filtre en JS (PAYÉS + essais actifs).
+  // Le filtrage en JS reste compatible avec la couche Firebase (pas de OR natif).
+  const allAccounts = await prisma.proAccount.findMany({
     orderBy: { companyName: "asc" },
     select: {
       id: true,
@@ -29,8 +31,11 @@ export async function GET() {
       shopCapacityPerDay: true,
       shopSlotDurationMinutes: true,
       shopMaxAppointmentsPerSlot: true,
+      paymentStatus: true,
+      trialEndsAt: true,
     },
   });
+  const accounts = allAccounts.filter((account) => isProAccountActive(account));
 
   const shops = await Promise.all(
     accounts.map(async (account) => {

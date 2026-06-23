@@ -4,6 +4,7 @@ import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { getAvailableSlots } from "@/lib/shopAvailability";
 import { formatOpeningHours, isShopOpenAt, todayOpeningLabel } from "@/lib/shopHours";
+import { isProAccountActive } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
 
 type ShopPageProps = {
@@ -56,10 +57,11 @@ export default async function ClientShopDetailPage({ params }: ShopPageProps) {
       shopSlotDurationMinutes: true,
       shopMaxAppointmentsPerSlot: true,
       paymentStatus: true,
+      trialEndsAt: true,
     },
   });
 
-  if (!shop || shop.paymentStatus !== "PAID") {
+  if (!shop || !isProAccountActive(shop)) {
     notFound();
   }
 

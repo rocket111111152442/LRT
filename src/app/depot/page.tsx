@@ -1,4 +1,5 @@
 import { QoravoLogo } from "@/components/QoravoLogo";
+import { isProAccountActive } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
 import { DepositClient } from "./DepositClient";
 
@@ -17,10 +18,11 @@ export default async function DepositPage({ searchParams }: DepositPageProps) {
         select: {
           companyName: true,
           paymentStatus: true,
+          trialEndsAt: true,
         },
       })
     : null;
-  const isAvailable = Boolean(account && account.paymentStatus === "PAID");
+  const isAvailable = isProAccountActive(account);
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">

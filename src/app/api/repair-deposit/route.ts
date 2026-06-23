@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { addRepairEvent } from "@/lib/repairEvents";
+import { isProAccountActive } from "@/lib/accountStatus";
 import { sendRepairStatusEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { normalizeTicketNumber } from "@/lib/ticketFormat";
@@ -42,10 +43,11 @@ export async function POST(request: Request) {
       id: true,
       companyName: true,
       paymentStatus: true,
+      trialEndsAt: true,
     },
   });
 
-  if (!account || account.paymentStatus !== "PAID") {
+  if (!account || !isProAccountActive(account)) {
     return NextResponse.json({ error: "Magasin introuvable ou inactif." }, { status: 404 });
   }
 

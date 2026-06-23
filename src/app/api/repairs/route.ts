@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isProAccountActive } from "@/lib/accountStatus";
 import { sendRepairCreatedEmail, sendShopRepairRequestEmail } from "@/lib/mail";
 import { hasSlotAt } from "@/lib/shopAvailability";
 import { addRepairEvent } from "@/lib/repairEvents";
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
           shopSlotDurationMinutes: number;
           shopMaxAppointmentsPerSlot: number;
           paymentStatus: string;
+          trialEndsAt: Date | string | null;
         }
       | null = null;
     let proAccountId: string | undefined;
@@ -56,10 +58,11 @@ export async function POST(request: Request) {
           shopSlotDurationMinutes: true,
           shopMaxAppointmentsPerSlot: true,
           paymentStatus: true,
+          trialEndsAt: true,
         },
       });
 
-      if (!proAccount || proAccount.paymentStatus !== "PAID") {
+      if (!proAccount || !isProAccountActive(proAccount)) {
         return NextResponse.json(
           { error: "Ce compte pro n'est pas actif." },
           { status: 400 },
