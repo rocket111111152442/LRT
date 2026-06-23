@@ -1,6 +1,7 @@
 "use client";
 
 import { SignaturePad } from "@/components/SignaturePad";
+import { compressImages } from "@/lib/imageCompress";
 
 type RepairIntakeExtrasProps = {
   photos: string[];
@@ -12,26 +13,6 @@ type RepairIntakeExtrasProps = {
   onSignatureChange: (signature: string) => void;
 };
 
-async function readFiles(files: FileList | null) {
-  if (!files) {
-    return [];
-  }
-
-  const selectedFiles = Array.from(files).slice(0, 3);
-
-  return Promise.all(
-    selectedFiles.map(
-      (file) =>
-        new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        }),
-    ),
-  );
-}
-
 export function RepairIntakeExtras({
   photos,
   signature,
@@ -42,7 +23,7 @@ export function RepairIntakeExtras({
   onSignatureChange,
 }: RepairIntakeExtrasProps) {
   async function handlePhotoChange(files: FileList | null) {
-    onPhotosChange(await readFiles(files));
+    onPhotosChange(await compressImages(files));
   }
 
   return (

@@ -8,6 +8,7 @@ import {
   RepairInputErrors,
   validateRepairInput,
 } from "@/lib/repairValidation";
+import { compressImages } from "@/lib/imageCompress";
 
 type TextFieldName = Exclude<
   keyof RepairInput,
@@ -53,26 +54,6 @@ const issueTemplates = [
   "Probleme logiciel ou demarrage bloque",
 ];
 
-async function readFiles(files: FileList | null) {
-  if (!files) {
-    return [];
-  }
-
-  const selectedFiles = Array.from(files).slice(0, 3);
-
-  return Promise.all(
-    selectedFiles.map(
-      (file) =>
-        new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        }),
-    ),
-  );
-}
-
 export function AdminRepairCreateForm() {
   const router = useRouter();
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
@@ -89,7 +70,7 @@ export function AdminRepairCreateForm() {
   }
 
   async function updatePhotos(files: FileList | null) {
-    const photos = await readFiles(files);
+    const photos = await compressImages(files);
     updateField("photos", photos);
   }
 

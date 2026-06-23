@@ -17,6 +17,7 @@ import {
   type RepairPaymentStatus,
   type RepairStatus,
 } from "@/lib/repairValidation";
+import { compressImages as readFiles } from "@/lib/imageCompress";
 
 type RepairEvent = {
   id: string;
@@ -174,26 +175,6 @@ function inputToCents(value: string) {
   }
 
   return Math.round(numberValue * 100);
-}
-
-async function readFiles(files: FileList | null) {
-  if (!files) {
-    return [];
-  }
-
-  const selectedFiles = Array.from(files).slice(0, 3);
-
-  return Promise.all(
-    selectedFiles.map(
-      (file) =>
-        new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        }),
-    ),
-  );
 }
 
 export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
