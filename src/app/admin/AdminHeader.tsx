@@ -17,6 +17,7 @@ import {
   Rocket,
   Route,
   Settings,
+  UsersRound,
   Wrench,
 } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
@@ -42,6 +43,7 @@ const navGroups = [
       { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, tone: "text-amber-600" },
       { href: "/admin/compta", label: "Compta", icon: Calculator, tone: "text-violet-600" },
       { href: "/admin/stock", label: "Stock", icon: Package, tone: "text-lime-600" },
+      { href: "/admin/clients", label: "Clients", icon: UsersRound, tone: "text-rose-600" },
     ],
   },
   {
