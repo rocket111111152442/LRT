@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
  */
 export function PageViews({
   className = "",
-  label = "vues de la page",
+  label = "personnes en direct",
 }: {
   className?: string;
   label?: string;
