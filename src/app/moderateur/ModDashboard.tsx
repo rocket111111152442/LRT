@@ -88,6 +88,12 @@ export function ModDashboard() {
   const accounts     = data?.accounts ?? [];
   const paid  = accounts.filter(a => a.paymentStatus === "PAID").length;
   const trial = accounts.filter(a => a.paymentStatus === "TRIAL").length;
+  // Comptes inactifs à relancer : ni payants, ni en essai actif.
+  const isActiveTrial = (a: Account) =>
+    a.paymentStatus === "TRIAL" && a.trialEndsAt != null && new Date(a.trialEndsAt) > new Date();
+  const inactive = accounts.filter(
+    (a) => a.paymentStatus !== "PAID" && !isActiveTrial(a),
+  ).length;
 
   return (
     <main className="min-h-screen bg-brand-ink text-slate-100">
@@ -120,12 +126,13 @@ export function ModDashboard() {
         ) : null}
 
         {/* Stats */}
-        <div className="mb-6 grid gap-3 sm:grid-cols-4">
+        <div className="mb-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[
             { label: "Messages ouverts", value: openMessages.length, icon: MessageSquare, tone: "text-sky-400" },
             { label: "Comptes total",    value: accounts.length,     icon: Building2,     tone: "text-slate-400" },
             { label: "Comptes payants",  value: paid,                icon: BadgeCheck,    tone: "text-emerald-400" },
             { label: "En essai",         value: trial,               icon: Clock,         tone: "text-amber-400" },
+            { label: "Inactifs à relancer", value: inactive,         icon: Trash2,        tone: "text-red-400" },
           ].map(s => (
             <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
               <s.icon className={`h-5 w-5 ${s.tone}`} aria-hidden="true" />
