@@ -54,6 +54,37 @@ const issueTemplates = [
   "Probleme logiciel ou demarrage bloque",
 ];
 
+// Modèles rapides : remplissent appareil + marque + panne en un clic.
+const quickTemplates: {
+  label: string;
+  patch: Partial<RepairInput>;
+}[] = [
+  {
+    label: "Écran iPhone",
+    patch: { deviceType: "Smartphone", brand: "Apple", issueDescription: "Remplacement écran iPhone" },
+  },
+  {
+    label: "Écran Samsung",
+    patch: { deviceType: "Smartphone", brand: "Samsung", issueDescription: "Remplacement écran Samsung" },
+  },
+  {
+    label: "Batterie iPhone",
+    patch: { deviceType: "Smartphone", brand: "Apple", issueDescription: "Remplacement batterie iPhone" },
+  },
+  {
+    label: "Batterie Android",
+    patch: { deviceType: "Smartphone", brand: "", issueDescription: "Remplacement batterie" },
+  },
+  {
+    label: "Connecteur de charge",
+    patch: { deviceType: "Smartphone", brand: "", issueDescription: "Remplacement connecteur de charge" },
+  },
+  {
+    label: "Désoxydation",
+    patch: { deviceType: "Smartphone", brand: "", issueDescription: "Désoxydation suite à dégât des eaux" },
+  },
+];
+
 export function AdminRepairCreateForm() {
   const router = useRouter();
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
@@ -66,6 +97,12 @@ export function AdminRepairCreateForm() {
   function updateField(name: keyof RepairInput, value: string | string[]) {
     setValues((current) => ({ ...current, [name]: value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
+    setSubmitError("");
+  }
+
+  function applyTemplate(patch: Partial<RepairInput>) {
+    setValues((current) => ({ ...current, ...patch }));
+    setErrors({});
     setSubmitError("");
   }
 
@@ -167,6 +204,23 @@ export function AdminRepairCreateForm() {
         <legend className="mb-3 text-base font-semibold text-slate-950">
           Appareil
         </legend>
+        <div className="grid gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Modèles rapides
+          </p>
+          <div className="flex max-w-3xl flex-wrap gap-2">
+            {quickTemplates.map((template) => (
+              <button
+                key={template.label}
+                type="button"
+                onClick={() => applyTemplate(template.patch)}
+                className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold leading-5 text-emerald-900 transition hover:border-emerald-300 hover:bg-emerald-100"
+              >
+                {template.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex max-w-3xl flex-wrap gap-2">
           {issueTemplates.map((template) => (
             <button

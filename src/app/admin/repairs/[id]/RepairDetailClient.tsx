@@ -562,6 +562,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           >
             Étiquette QR
           </Link>
+          <CopyTrackingLinkButton ticket={repair.ticketNumber ?? repair.id} />
           {!repair.archivedAt ? (
             <button
               type="button"
@@ -1230,5 +1231,30 @@ function SignaturePreview({
         </div>
       )}
     </div>
+  );
+}
+
+function CopyTrackingLinkButton({ ticket }: { ticket: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    const url = `${window.location.origin}/suivi?ticket=${encodeURIComponent(ticket)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copiez le lien de suivi :", url);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
+    >
+      {copied ? "Lien copié ✓" : "Copier le lien de suivi"}
+    </button>
   );
 }
