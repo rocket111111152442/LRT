@@ -630,7 +630,14 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               <DetailItem label="Technicien" value={repair.technicianName || "-"} />
               <DetailItem label="Temps passe" value={`${repair.timeSpentMinutes} min`} />
               <DetailItem label="Recuperation prevue" value={formatDate(repair.expectedPickupAt)} />
-              <DetailItem label="Fin garantie" value={formatDate(repair.warrantyUntil)} />
+              <div className="grid gap-1">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Fin garantie
+                </dt>
+                <dd className="text-sm font-semibold text-slate-950">
+                  {formatDate(repair.warrantyUntil)} <WarrantyBadge until={repair.warrantyUntil} />
+                </dd>
+              </div>
               <DetailItem label="Retour garantie" value={repair.warrantyReturn ? "Oui" : "Non"} />
               <DetailItem label="Piece utilisee" value={repair.usedInventoryItemName || repair.partsUsed || "-"} />
               <DetailItem
@@ -897,6 +904,13 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               type="number"
               value={timeSpentMinutes}
               onChange={setTimeSpentMinutes}
+            />
+            <RepairTimer
+              onAddMinutes={(min) =>
+                setTimeSpentMinutes((current) =>
+                  String((Number(current) || 0) + min),
+                )
+              }
             />
           </div>
           <TextField
@@ -1230,6 +1244,84 @@ function SignaturePreview({
           Aucune signature.
         </div>
       )}
+    </div>
+  );
+}
+
+function WarrantyBadge({ until }: { until: string | null }) {
+  if (!until) return null;
+  const end = new Date(until);
+  if (Number.isNaN(end.getTime())) return null;
+
+  const now = new Date();
+  const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (days < 0) {
+    return (
+      <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-500">
+        Garantie expirée
+      </span>
+    );
+  }
+  if (days <= 15) {
+    return (
+      <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+        Expire dans {days} j
+      </span>
+    );
+  }
+  return (
+    <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+      Sous garantie
+    </span>
+  );
+}
+
+function RepairTimer({ onAddMinutes }: { onAddMinutes: (minutes: number) => void }) {
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (startedAt === null) return;
+    const id = window.setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [startedAt]);
+
+  function toggle() {
+    if (startedAt === null) {
+      setStartedAt(Date.now());
+      setElapsed(0);
+    } else {
+      const minutes = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
+      onAddMinutes(minutes);
+      setStartedAt(null);
+      setElapsed(0);
+    }
+  }
+
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
+  const ss = String(elapsed % 60).padStart(2, "0");
+  const running = startedAt !== null;
+
+  return (
+    <div className="grid gap-1">
+      <span className="text-sm font-medium text-slate-800">Minuteur</span>
+      <div className="flex items-center gap-2">
+        <span className="min-w-[4.5rem] rounded-md border border-slate-300 bg-white px-3 py-2 text-center font-mono text-sm font-semibold text-slate-950">
+          {mm}:{ss}
+        </span>
+        <button
+          type="button"
+          onClick={toggle}
+          className={`min-h-10 rounded-md px-3 py-2 text-sm font-semibold text-white transition ${
+            running ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"
+          }`}
+        >
+          {running ? "Arrêter + ajouter" : "Démarrer"}
+        </button>
+      </div>
     </div>
   );
 }

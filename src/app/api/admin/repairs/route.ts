@@ -58,6 +58,7 @@ export async function GET(request: Request) {
       model: true,
       status: true,
       urgent: true,
+      technicianName: true,
       expectedPickupAt: true,
       estimatedPriceCents: true,
       partsCostCents: true,

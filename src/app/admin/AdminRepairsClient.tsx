@@ -17,6 +17,7 @@ type RepairListItem = {
   model: string;
   status: RepairStatus;
   urgent: boolean;
+  technicianName: string | null;
   expectedPickupAt: unknown;
   estimatedPriceCents: number | null;
   partsCostCents: number | null;
@@ -113,6 +114,7 @@ function normalizeRepairs(value: unknown): RepairListItem[] {
       ? (repair.status as RepairStatus)
       : "PAS_ENCORE_EN_REPARATION",
     urgent: readBoolean(repair.urgent),
+    technicianName: readString(repair.technicianName) || null,
     expectedPickupAt: repair.expectedPickupAt,
     estimatedPriceCents:
       typeof repair.estimatedPriceCents === "number"
@@ -136,6 +138,7 @@ export function AdminRepairsClient() {
   const [repairs, setRepairs] = useState<RepairListItem[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [technician, setTechnician] = useState("");
   const [exportMonth, setExportMonth] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -188,6 +191,16 @@ export function AdminRepairsClient() {
   const newShopRequests = repairs.filter(
     (repair) => repair.status === "PAS_ENCORE_RECU_CLIENT",
   );
+  const technicians = Array.from(
+    new Set(
+      repairs
+        .map((repair) => repair.technicianName?.trim())
+        .filter((name): name is string => Boolean(name)),
+    ),
+  ).sort((left, right) => left.localeCompare(right));
+  const visibleRepairs = technician
+    ? repairs.filter((repair) => repair.technicianName === technician)
+    : repairs;
 
   useEffect(() => {
     if (newShopRequests.length === 0 || typeof window === "undefined") {
@@ -339,6 +352,26 @@ export function AdminRepairsClient() {
             ))}
           </select>
         </div>
+        {technicians.length > 0 ? (
+          <div className="grid min-w-0 gap-2">
+            <label htmlFor="repair-technician" className="text-sm font-medium text-slate-800">
+              Technicien
+            </label>
+            <select
+              id="repair-technician"
+              value={technician}
+              onChange={(event) => setTechnician(event.target.value)}
+              className="min-h-11 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+            >
+              <option value="">Tous les techniciens</option>
+              {technicians.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
         <div className="flex items-end">
           <div className="grid min-w-0 gap-2">
             <label htmlFor="export-month" className="text-sm font-medium text-slate-800">
@@ -471,7 +504,7 @@ export function AdminRepairsClient() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {repairs.map((repair, index) => (
+              {visibleRepairs.map((repair, index) => (
                 <tr
                   key={repair.id || repair.ticketNumber || `repair-${index}`}
                   className="align-top"
@@ -542,7 +575,7 @@ export function AdminRepairsClient() {
                   </td>
                 </tr>
               ))}
-              {!isLoading && repairs.length === 0 ? (
+              {!isLoading && visibleRepairs.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-8 text-center text-slate-600">
                     Aucune reparation trouvee.
