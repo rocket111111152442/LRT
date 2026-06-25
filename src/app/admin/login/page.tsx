@@ -45,7 +45,20 @@ export default async function AdminLoginPage({
     trialEndsAt > new Date();
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
+    <main className="relative min-h-screen overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
+      {/* Fond dégradé animé coloré (bleu → vert, couleurs du logo) */}
+      <div
+        aria-hidden="true"
+        className="q-animate-gradient absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            "linear-gradient(120deg, #e0f2fe 0%, #dcfce7 35%, #bae6fd 70%, #d1fae5 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(34,197,94,0.18),transparent_28rem),radial-gradient(circle_at_80%_15%,rgba(14,165,233,0.22),transparent_30rem)]"
+      />
       <div className="mx-auto grid max-w-2xl gap-6">
         {showTrialNotice ? (
           <TrialStartedNotice

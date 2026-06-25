@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { LoginMascot } from "./LoginMascot";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,8 @@ export function LoginForm() {
   const [requiresCode, setRequiresCode] = useState(false);
   const [loginVerificationId, setLoginVerificationId] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [pwdFocused, setPwdFocused] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
@@ -348,6 +351,14 @@ export function LoginForm() {
       onSubmit={handleSubmit}
       className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
     >
+      <div className="flex justify-center">
+        <LoginMascot
+          lookProgress={Math.min(email.length / 18, 1)}
+          hideEyes={pwdFocused}
+          active={emailFocused || pwdFocused}
+        />
+      </div>
+
       <div className="grid gap-2">
         <label htmlFor="admin-email" className="text-sm font-medium text-slate-800">
           Email
@@ -357,6 +368,8 @@ export function LoginForm() {
           type="email"
           autoComplete="email"
           value={email}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
           onChange={(event) => {
             setEmail(event.target.value);
             setRequiresCode(false);
@@ -379,6 +392,8 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           value={password}
+          onFocus={() => setPwdFocused(true)}
+          onBlur={() => setPwdFocused(false)}
           onChange={(event) => {
             setPassword(event.target.value);
             setRequiresCode(false);

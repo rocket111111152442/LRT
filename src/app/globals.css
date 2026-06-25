@@ -177,6 +177,40 @@ select {
   }
 }
 
+@keyframes q-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes qm-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+
+.qm-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: qm-blink 4.5s ease-in-out infinite;
+}
+
+.q-animate-gradient {
+  background-size: 200% 200%;
+  animation: q-gradient-shift 12s ease infinite;
+}
+
 .q-animate-up {
   animation: q-fade-up 0.7s ease both;
 }
