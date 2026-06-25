@@ -3,14 +3,14 @@ import { getFirebaseDb, shouldUseFirebase } from "@/lib/prisma";
 
 // Compteur de vues de page persistant.
 //
-// BASE = nombre de vues déjà accumulées avant la mise en place du compteur
-// (relevé sur Vercel Analytics au moment du lancement). Notre compteur compte
-// les vues À PARTIR de maintenant et on l'ajoute à cette base pour rester
-// cohérent avec l'historique affiché.
-const BASE = 616;
+// BASE = nombre de visiteurs déjà relevé sur Vercel Analytics au moment de la
+// mise en place du compteur. On compte les nouveaux visiteurs À PARTIR de
+// maintenant (un par session) et on les ajoute à cette base.
+const BASE = 121;
 
 const COLLECTION = "counters";
-const DOC = "pageViews";
+// Nouveau document : repart de zéro (l'ancien "pageViews" comptait les vues).
+const DOC = "visitors";
 
 // Fallback hors Firebase (dev local) : compteur en mémoire.
 let memoryCount = 0;

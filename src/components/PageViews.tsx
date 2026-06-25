@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Affiche le nombre total de vues de la page.
- * Incrémente le compteur une fois par chargement, puis affiche le total.
+ * Affiche le nombre de visiteurs. On ne compte chaque visiteur qu'une seule
+ * fois par session (sessionStorage) : un nouveau visiteur incrémente (POST),
+ * les visiteurs déjà comptés ne font que lire le total (GET).
  */
 export function PageViews({
   className = "",
@@ -22,11 +23,17 @@ export function PageViews({
     counted.current = true;
 
     let active = true;
+    const alreadyCounted = sessionStorage.getItem("qoravo-visitor-counted") === "1";
 
     (async () => {
       try {
-        const res = await fetch("/api/pageviews", { method: "POST" });
+        const res = await fetch("/api/pageviews", {
+          method: alreadyCounted ? "GET" : "POST",
+        });
         const data = await res.json();
+        if (!alreadyCounted) {
+          sessionStorage.setItem("qoravo-visitor-counted", "1");
+        }
         if (active && typeof data.views === "number") {
           setViews(data.views);
         }
