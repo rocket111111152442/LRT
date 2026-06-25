@@ -117,6 +117,11 @@ export function TrialEndedClient({ slug }: { slug: string | null }) {
               </button>
             )}
 
+            <p className="rounded-lg bg-amber-50 px-4 py-3 text-center text-xs font-semibold leading-5 text-amber-800">
+              ⚠️ Sans abonnement, toutes vos données (réparations, clients,
+              compta, stock) seront supprimées automatiquement dans 48h.
+            </p>
+
             {error ? (
               <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 {error}

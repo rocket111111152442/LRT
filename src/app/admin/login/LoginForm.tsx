@@ -55,7 +55,10 @@ export function LoginForm() {
       return;
     }
 
-    window.location.href = "/admin";
+    // Essai expire : le serveur renvoie une redirection vers la page
+    // souscrire / supprimer une fois l'identite confirmee.
+    window.location.href =
+      typeof payload.redirectUrl === "string" ? payload.redirectUrl : "/admin";
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

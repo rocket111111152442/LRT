@@ -108,19 +108,20 @@ export async function POST(request: Request) {
     }
 
     const proAccount = await getProAccountSummary(user.proAccountId);
+    const isExpiredTrial =
+      proAccount?.paymentStatus === "TRIAL" && !isActiveTrial(proAccount);
 
+    // PENDING / CANCELED (jamais en essai actif) : on bloque comme avant.
+    // L'essai EXPIRE, lui, n'est plus bloque ici : on verifie d'abord l'identite
+    // (mot de passe + code email), puis on redirige vers /admin/essai-termine.
     if (
       proAccount &&
       proAccount.paymentStatus !== "PAID" &&
-      !isActiveTrial(proAccount)
+      !isActiveTrial(proAccount) &&
+      !isExpiredTrial
     ) {
       return NextResponse.json(
-        {
-          error:
-            proAccount.paymentStatus === "TRIAL"
-              ? "Votre essai gratuit de 72h est termine. Souscrivez a l abonnement pour retrouver votre espace admin et continuer votre travail."
-              : "Paiement en attente pour ce compte pro.",
-        },
+        { error: "Paiement en attente pour ce compte pro." },
         { status: 403 },
       );
     }
@@ -147,9 +148,20 @@ export async function POST(request: Request) {
       supportIncluded: proAccount?.supportIncluded === true,
     };
 
+    const trialEndedRedirect = isExpiredTrial
+      ? `/admin/essai-termine${
+          proAccount?.slug ? `?compte=${encodeURIComponent(proAccount.slug)}` : ""
+        }`
+      : null;
+
     const loginSuccess = (markTrusted: boolean) => {
       resetRateLimit(`admin-login:${ip}`);
-      const response = NextResponse.json({ user: sessionUser });
+      // Pour un essai expire : identite confirmee, on pose la session (qui sera
+      // traitee comme "trial-expired") et on redirige vers la page souscrire/
+      // supprimer au lieu du tableau de bord.
+      const response = NextResponse.json(
+        trialEndedRedirect ? { redirectUrl: trialEndedRedirect } : { user: sessionUser },
+      );
       setAdminSessionCookie(response, sessionUser, {
         rememberMe: rememberMe || markTrusted,
       });
