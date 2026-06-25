@@ -1,6 +1,10 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
-import { setAdminSessionCookie } from "@/lib/auth";
+import {
+  isTrustedDevice,
+  setAdminSessionCookie,
+  setTrustedDeviceCookie,
+} from "@/lib/auth";
 import {
   sendEmailVerificationCode,
   verifyEmailCode,
@@ -130,7 +134,37 @@ export async function POST(request: Request) {
       );
     }
 
+    const sessionUser = {
+      id: user.id,
+      email: user.email,
+      role: "ADMIN" as const,
+      proAccountId: user.proAccountId,
+      proAccountSlug: proAccount?.slug ?? null,
+      paymentStatus: proAccount?.paymentStatus ?? null,
+      trialEndsAt: proAccount?.trialEndsAt
+        ? new Date(proAccount.trialEndsAt).toISOString()
+        : null,
+      supportIncluded: proAccount?.supportIncluded === true,
+    };
+
+    const loginSuccess = (markTrusted: boolean) => {
+      resetRateLimit(`admin-login:${ip}`);
+      const response = NextResponse.json({ user: sessionUser });
+      setAdminSessionCookie(response, sessionUser, {
+        rememberMe: rememberMe || markTrusted,
+      });
+      if (markTrusted) {
+        setTrustedDeviceCookie(response, user.email);
+      }
+      return response;
+    };
+
     if (!code) {
+      // Appareil de confiance : mot de passe deja valide, on saute le 2FA.
+      if (await isTrustedDevice(user.email)) {
+        return loginSuccess(false);
+      }
+
       const result = await sendEmailVerificationCode(user.email, "LOGIN");
 
       if (result.skipped) {
@@ -171,41 +205,9 @@ export async function POST(request: Request) {
       );
     }
 
-    resetRateLimit(`admin-login:${ip}`);
-
-    const response = NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        role: "ADMIN",
-        proAccountId: user.proAccountId,
-        proAccountSlug: proAccount?.slug ?? null,
-        paymentStatus: proAccount?.paymentStatus ?? null,
-        trialEndsAt: proAccount?.trialEndsAt
-          ? new Date(proAccount.trialEndsAt).toISOString()
-          : null,
-        supportIncluded: proAccount?.supportIncluded === true,
-      },
-    });
-
-    setAdminSessionCookie(
-      response,
-      {
-        id: user.id,
-        email: user.email,
-        role: "ADMIN",
-        proAccountId: user.proAccountId,
-        proAccountSlug: proAccount?.slug ?? null,
-        paymentStatus: proAccount?.paymentStatus ?? null,
-        trialEndsAt: proAccount?.trialEndsAt
-          ? new Date(proAccount.trialEndsAt).toISOString()
-          : null,
-        supportIncluded: proAccount?.supportIncluded === true,
-      },
-      { rememberMe },
-    );
-
-    return response;
+    // Si « se souvenir de moi » est coche, on marque l'appareil comme de
+    // confiance pour sauter le code email la prochaine fois.
+    return loginSuccess(rememberMe);
   } catch (error) {
     console.error("Admin login failed", error);
     return NextResponse.json(

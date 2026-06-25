@@ -135,6 +135,44 @@ export function setAdminSessionCookie(
   });
 }
 
+// ---- Appareil de confiance (« se souvenir de moi ») ----
+// Quand l'utilisateur coche « se souvenir de moi », on pose un cookie signe lie
+// a son email. A la prochaine connexion sur ce navigateur, le mot de passe
+// suffit : on saute le code email 2FA (mais le mot de passe reste exige).
+const TRUSTED_COOKIE = "qoravo_trusted_device";
+const TRUSTED_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
+
+function trustedTokenFor(email: string) {
+  return sign(`trusted:${email.toLowerCase()}`);
+}
+
+export function setTrustedDeviceCookie(response: NextResponse, email: string) {
+  response.cookies.set(TRUSTED_COOKIE, trustedTokenFor(email), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: TRUSTED_MAX_AGE_SECONDS,
+    path: "/",
+  });
+}
+
+export async function isTrustedDevice(email: string): Promise<boolean> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(TRUSTED_COOKIE)?.value;
+    if (!token) return false;
+    const expected = trustedTokenFor(email);
+    const tokenBuffer = Buffer.from(token);
+    const expectedBuffer = Buffer.from(expected);
+    return (
+      tokenBuffer.length === expectedBuffer.length &&
+      timingSafeEqual(tokenBuffer, expectedBuffer)
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function clearAdminSessionCookie(response: NextResponse) {
   response.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,

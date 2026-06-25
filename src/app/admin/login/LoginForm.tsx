@@ -404,8 +404,9 @@ export function LoginForm() {
         <span className="grid gap-1">
           <span className="font-semibold text-slate-950">Se souvenir de moi</span>
           <span>
-            Garder la connexion ouverte sur cet appareil pour eviter de rentrer
-            les identifiants a chaque visite.
+            Garde la connexion ouverte 90 jours sur cet appareil. Les prochaines
+            connexions ne demanderont plus le code recu par email (seul le mot de
+            passe suffira).
           </span>
         </span>
       </label>
