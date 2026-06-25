@@ -141,6 +141,29 @@ select {
     box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
   }
 
+  /* ---- Effet verre dépoli (glassmorphism iOS) ---- */
+  .q-glass {
+    border-radius: 1.75rem;
+    background-color: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 8px 32px rgba(15, 23, 42, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .q-glass-dark {
+    border-radius: 1.75rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 8px 32px rgba(2, 6, 23, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+
   .q-chip {
     display: inline-flex;
     align-items: center;

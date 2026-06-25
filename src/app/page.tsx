@@ -191,7 +191,7 @@ export default function HomePage() {
       <TrialCountdown />
 
       {/* Barre de navigation */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-white/40 bg-white/55 backdrop-blur-xl [-webkit-backdrop-filter:blur(20px)_saturate(180%)] [backdrop-filter:blur(20px)_saturate(180%)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <QoravoLogo />
           <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
@@ -337,7 +337,7 @@ export default function HomePage() {
               const Icon = feature.icon;
 
               return (
-                <article key={feature.title} className="q-card p-6 transition hover:-translate-y-1">
+                <article key={feature.title} className="q-glass p-6 transition hover:-translate-y-1">
                   <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-emerald-100 text-brand-ink">
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </span>
@@ -417,7 +417,7 @@ export default function HomePage() {
             </ul>
           </div>
 
-          <div className="q-card overflow-hidden">
+          <div className="q-glass overflow-hidden">
             <div className="bg-brand-ink p-7 text-white">
               <span className="q-chip border border-white/15 bg-white/10 text-emerald-200">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -470,7 +470,7 @@ export default function HomePage() {
             {volumePlans.map((plan) => (
               <article
                 key={plan.name}
-                className={`relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${plan.tone}`}
+                className={`q-glass relative flex flex-col gap-4 overflow-hidden p-6 transition hover:-translate-y-1 ${plan.highlight ? "ring-2 ring-brand-blue" : ""}`}
               >
                 {plan.badge ? (
                   <span className="q-chip absolute right-4 top-4 bg-brand-blue text-white">
@@ -537,7 +537,7 @@ export default function HomePage() {
       {/* DEUX ESPACES */}
       <section className="bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
-          <article className="relative overflow-hidden rounded-[1.5rem] border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-7 shadow-sm">
+          <article className="q-glass relative overflow-hidden p-7">
             <p className="q-chip bg-brand-blue-soft text-brand-blue">Pour les réparateurs</p>
             <h3 className="mt-4 text-2xl font-extrabold text-slate-950">
               Gérez votre atelier de A à Z.
@@ -559,7 +559,7 @@ export default function HomePage() {
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-7 shadow-sm">
+          <article className="q-glass relative overflow-hidden p-7">
             <p className="q-chip bg-brand-green-soft text-brand-green">Pour les clients</p>
             <h3 className="mt-4 text-2xl font-extrabold text-slate-950">
               Trouvez un magasin et suivez votre réparation.
@@ -617,7 +617,7 @@ export default function HomePage() {
             {faqs.map((faq) => (
               <details
                 key={faq.question}
-                className="group rounded-xl border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300"
+                className="group q-glass p-5 transition hover:-translate-y-0.5"
               >
                 <summary className="cursor-pointer list-none text-base font-bold text-slate-950 marker:hidden">
                   {faq.question}
