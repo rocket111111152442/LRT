@@ -13,6 +13,8 @@ type TrackedRepair = {
   estimatedPriceCents: number | null;
   paidAmountCents: number;
   paymentStatus: string;
+  remainingCents?: number;
+  onlinePaymentAvailable?: boolean;
   expectedPickupAt: string | null;
   warrantyUntil: string | null;
   signatureDone: boolean;
@@ -77,7 +79,33 @@ export function TrackingClient() {
   const [ticket, setTicket] = useState("");
   const [repair, setRepair] = useState<TrackedRepair | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
   const [error, setError] = useState("");
+
+  async function payRepair() {
+    if (!repair) return;
+    setIsPaying(true);
+    setError("");
+    try {
+      const response = await fetch("/api/repair-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticket: repair.ticketNumber }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setError(payload.error ?? "Paiement impossible.");
+        return;
+      }
+      if (payload.checkoutUrl) {
+        window.location.assign(payload.checkoutUrl);
+      }
+    } catch {
+      setError("Paiement impossible.");
+    } finally {
+      setIsPaying(false);
+    }
+  }
 
   const runSearch = useCallback(async (rawTicket: string) => {
     setIsLoading(true);
@@ -207,6 +235,18 @@ export function TrackingClient() {
               Garantie : <strong>{formatOptionalDate(repair.warrantyUntil)}</strong>
             </p>
           </div>
+          {repair.onlinePaymentAvailable && (repair.remainingCents ?? 0) > 0 ? (
+            <button
+              type="button"
+              onClick={payRepair}
+              disabled={isPaying}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-emerald-400 disabled:opacity-60"
+            >
+              {isPaying
+                ? "Ouverture du paiement..."
+                : `Payer ${formatPrice(repair.remainingCents ?? 0)} en ligne`}
+            </button>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <a
               href={`/documents/${repair.ticketNumber}`}

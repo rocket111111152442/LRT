@@ -170,6 +170,8 @@ model ProAccount {
   paymentStatus             PaymentStatus @default(PENDING)
   trialEndsAt               DateTime?
   stripeSessionId           String?
+  stripeAccountId           String?
+  stripeOnboarded           Boolean       @default(false)
   users                     User[]
   repairs                   Repair[]
   inventoryItems            InventoryItem[]
