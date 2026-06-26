@@ -1,7 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+
+// Fenêtre promotionnelle de l'essai gratuit (même minuteur que la page d'accueil).
+const TRIAL_PROMO_KEY = "qoravo_trial_countdown_started_at";
+const TRIAL_PROMO_MS = 72 * 60 * 60 * 1000;
+const TRIAL_UNLOCK_CODE = "ESS26";
 import {
   normalizeSlug,
   ProSignupErrors,
@@ -53,9 +58,27 @@ export function ProSignupForm() {
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [showQrHelp, setShowQrHelp] = useState(false);
+  const [promoWindowExpired, setPromoWindowExpired] = useState(false);
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
   const openingHours = parseShopOpeningHours(values.shopOpeningHours);
+
+  // L'essai gratuit n'est proposé que pendant la fenêtre promo (72h par
+  // visiteur). Passé ce délai, il faut le code ESS26 pour le débloquer.
+  const trialUnlockedByCode =
+    (values.promoCode ?? "").trim().toUpperCase() === TRIAL_UNLOCK_CODE;
+  const trialAvailable = !promoWindowExpired || trialUnlockedByCode;
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(TRIAL_PROMO_KEY);
+    if (!stored) return;
+    const startedAt = Number(stored);
+    if (Number.isNaN(startedAt)) return;
+    if (Date.now() - startedAt >= TRIAL_PROMO_MS) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPromoWindowExpired(true);
+    }
+  }, []);
 
   function updateField(name: keyof ProSignupInput, value: string) {
     setValues((current) => ({
@@ -202,6 +225,13 @@ export function ProSignupForm() {
   async function handleTrialStart() {
     setSubmitError("");
     setMessage("");
+
+    if (!trialAvailable) {
+      setSubmitError(
+        "L'offre d'essai gratuit est terminée. Entrez le code ESS26 pour la débloquer.",
+      );
+      return;
+    }
 
     const validation = validateProSignupInput(values);
 
@@ -561,28 +591,43 @@ export function ProSignupForm() {
 
         {!usesFreeAccessCode ? (
           <div className="grid gap-3">
-            <button
-              type="button"
-              onClick={handleTrialStart}
-              disabled={isSubmitting || isSendingCode}
-              className="q-btn q-btn-primary w-full text-base disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSendingCode
-                ? "Envoi du code..."
-                : isSubmitting
-                  ? "Démarrage de l'essai..."
-                  : codeSent
-                    ? "Valider le code et démarrer l'essai gratuit 72h"
-                    : "Continuer avec l'essai gratuit 72h"}
-            </button>
-            <p className="text-center text-xs text-slate-500">
-              72h gratuites · vous pourrez vous abonner à tout moment et reprendre
-              où vous en étiez.
-            </p>
+            {trialAvailable ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleTrialStart}
+                  disabled={isSubmitting || isSendingCode}
+                  className="q-btn q-btn-primary w-full text-base disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSendingCode
+                    ? "Envoi du code..."
+                    : isSubmitting
+                      ? "Démarrage de l'essai..."
+                      : codeSent
+                        ? "Valider le code et démarrer l'essai gratuit 72h"
+                        : "Continuer avec l'essai gratuit 72h"}
+                </button>
+                <p className="text-center text-xs text-slate-500">
+                  {trialUnlockedByCode
+                    ? "Code ESS26 reconnu · essai gratuit 72h débloqué."
+                    : "72h gratuites · vous pourrez vous abonner à tout moment et reprendre où vous en étiez."}
+                </p>
+              </>
+            ) : (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
+                L&apos;offre d&apos;essai gratuit est terminée. Entrez le code{" "}
+                <strong>ESS26</strong> dans le champ « Code promo » ci-dessus pour
+                débloquer un essai gratuit, ou abonnez-vous directement.
+              </p>
+            )}
             <button
               type="submit"
               disabled={isSubmitting || isSendingCode}
-              className="min-h-11 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+              className={`min-h-11 rounded-lg px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed ${
+                trialAvailable
+                  ? "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 disabled:text-slate-400"
+                  : "q-btn q-btn-primary text-base disabled:opacity-60"
+              }`}
             >
               {isSendingCode
                 ? "Envoi du code..."
