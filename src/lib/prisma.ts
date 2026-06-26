@@ -408,6 +408,21 @@ function createGenericFirestoreModel(
         args.select,
       );
     },
+    async updateMany(args: { where?: Dict; data: Dict }) {
+      const snapshot = await collection(collectionName).get();
+      const records = snapshot.docs
+        .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+        .filter((record) => matchesWhereObject(record, args.where));
+
+      for (const record of records) {
+        await collection(collectionName).doc(String(record.id)).set(
+          firestoreData({ ...args.data, updatedAt: now() }),
+          { merge: true },
+        );
+      }
+
+      return { count: records.length };
+    },
     async upsert(args: { where: Dict; update: Dict; create: Dict; select?: Dict }) {
       const existing = await model.findUnique({ where: args.where });
 
@@ -482,6 +497,41 @@ function createFirestorePrisma() {
         }
 
         return applySelect(user, args.select);
+      },
+      async findFirst(args: { where?: Dict; orderBy?: Dict | Dict[]; select?: Dict } = {}) {
+        const where = args.where ?? {};
+
+        // Recherche par proAccountId (+ role éventuel) : on interroge la
+        // collection users.
+        if (typeof where.proAccountId === "string") {
+          const snapshot = await collection("users")
+            .where("proAccountId", "==", where.proAccountId)
+            .get();
+          const users = snapshot.docs
+            .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+            .filter((u) => !where.role || u.role === where.role)
+            .sort(
+              (left, right) =>
+                Number((left.createdAt as Date | undefined)?.getTime?.() ?? 0) -
+                Number((right.createdAt as Date | undefined)?.getTime?.() ?? 0),
+            );
+          return applySelect(users[0] ?? null, args.select);
+        }
+
+        return applySelect(await findUser(where), args.select);
+      },
+      async findMany(args: { where?: Dict; select?: Dict } = {}) {
+        const where = args.where ?? {};
+        if (typeof where.proAccountId === "string") {
+          const snapshot = await collection("users")
+            .where("proAccountId", "==", where.proAccountId)
+            .get();
+          return snapshot.docs
+            .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+            .filter((u) => !where.role || u.role === where.role)
+            .map((u) => applySelect(u, args.select));
+        }
+        return [];
       },
       async upsert(args: { where: Dict; update: Dict; create: Dict }) {
         const existing = await findUser(args.where);
