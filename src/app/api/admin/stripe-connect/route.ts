@@ -102,10 +102,24 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: link.url });
   } catch (error) {
-    const message =
-      error instanceof Stripe.errors.StripeError && error.message.includes("Connect")
-        ? "Stripe Connect n'est pas activé sur votre compte Stripe. Activez-le dans le dashboard Stripe (Settings > Connect)."
-        : "Connexion Stripe impossible pour le moment.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const needsConnect =
+      error instanceof Stripe.errors.StripeError &&
+      (error.message.includes("Connect") || error.message.includes("connect"));
+
+    if (needsConnect) {
+      return NextResponse.json(
+        {
+          error:
+            "Stripe Connect n'est pas encore activé sur votre compte Stripe. Activez-le (gratuit, une seule fois), puis revenez cliquer sur le bouton.",
+          connectSetupUrl: "https://dashboard.stripe.com/connect/accounts/overview",
+        },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Connexion Stripe impossible pour le moment." },
+      { status: 500 },
+    );
   }
 }

@@ -9,6 +9,7 @@ export function PaymentsClient() {
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
+  const [connectSetupUrl, setConnectSetupUrl] = useState("");
 
   async function loadStatus() {
     try {
@@ -32,11 +33,17 @@ export function PaymentsClient() {
   }, []);
 
   async function startOnboarding() {
-    setWorking(true); setError("");
+    setWorking(true); setError(""); setConnectSetupUrl("");
     try {
       const res = await fetch("/api/admin/stripe-connect", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Connexion impossible."); return; }
+      if (!res.ok) {
+        setError(data.error ?? "Connexion impossible.");
+        if (typeof data.connectSetupUrl === "string") {
+          setConnectSetupUrl(data.connectSetupUrl);
+        }
+        return;
+      }
       if (data.url) window.location.href = data.url;
     } catch {
       setError("Connexion impossible.");
@@ -52,7 +59,19 @@ export function PaymentsClient() {
   return (
     <section className="grid gap-5">
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
+        <div className="grid gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p>{error}</p>
+          {connectSetupUrl ? (
+            <a
+              href={connectSetupUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="q-btn q-btn-primary w-fit text-sm"
+            >
+              Activer Stripe Connect (1 clic) →
+            </a>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="q-card grid gap-4 p-6">
