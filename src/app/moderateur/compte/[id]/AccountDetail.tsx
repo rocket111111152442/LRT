@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   BadgeCheck, Clock, KeyRound, MessageSquare,
   ShieldOff, Sparkles, Trash2, Wrench, XCircle,
+  Hand, LogIn, Ban, Loader2,
 } from "lucide-react";
 
 type Repair  = { id: string; ticketNumber: string | null; firstName: string; lastName: string; status: string; paymentStatus: string; estimatedPriceCents: number | null; paidAmountCents: number | null; brand: string; model: string; deviceType: string; phone: string; email: string; createdAt: string };
@@ -31,6 +32,65 @@ export function AccountDetail({ accountId }: { accountId: string }) {
   const [extendH, setExtendH]   = useState("72");
   const [repairPage, setRepairPage] = useState(0);
   const PAGE_SIZE = 50;
+
+  // --- Prise en main (support à distance) ---
+  const [controlStatus, setControlStatus] = useState<string | null>(null);
+  const [controlBusy, setControlBusy]     = useState(false);
+  const [controlMsg, setControlMsg]       = useState("");
+
+  async function controlAction(body: Record<string, unknown>) {
+    const res = await fetch(`/api/moderateur/compte/${accountId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return { res, payload: await res.json().catch(() => ({})) };
+  }
+
+  async function pollControl() {
+    try {
+      const { res, payload } = await controlAction({ action: "control_status" });
+      if (res.ok) setControlStatus(payload.request?.status ?? null);
+    } catch { /* on réessaiera */ }
+  }
+
+  // Sonde l'état de la demande tant qu'elle est en attente / acceptée.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void pollControl();
+    const id = window.setInterval(pollControl, 4000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId]);
+
+  async function requestControl() {
+    setControlBusy(true); setControlMsg("");
+    try {
+      const { res, payload } = await controlAction({ action: "request_control" });
+      if (res.ok) { setControlStatus("PENDING"); setControlMsg(payload.message ?? ""); }
+      else setControlMsg(payload.error ?? "Erreur.");
+    } catch { setControlMsg("Erreur réseau."); }
+    finally { setControlBusy(false); }
+  }
+
+  async function cancelControl() {
+    setControlBusy(true); setControlMsg("");
+    try {
+      await controlAction({ action: "cancel_control" });
+      setControlStatus("CANCELED");
+    } catch { /* ignore */ }
+    finally { setControlBusy(false); }
+  }
+
+  async function enterControl() {
+    setControlBusy(true); setControlMsg("");
+    try {
+      const { res, payload } = await controlAction({ action: "enter_control" });
+      if (res.ok) { window.location.href = payload.redirect ?? "/admin"; return; }
+      setControlMsg(payload.error ?? "Erreur.");
+    } catch { setControlMsg("Erreur réseau."); }
+    finally { setControlBusy(false); }
+  }
 
   async function load() {
     setLoading(true); setError("");
@@ -112,6 +172,67 @@ export function AccountDetail({ accountId }: { accountId: string }) {
       {/* Alertes action */}
       {actionMsg && <div className="rounded-xl border border-emerald-400/30 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300">{actionMsg}</div>}
       {actionErr && <div className="rounded-xl border border-red-400/30 bg-red-900/20 px-4 py-3 text-sm text-red-300">{actionErr}</div>}
+
+      {/* Prise en main (support à distance avec consentement) */}
+      <section className="rounded-2xl border border-sky-400/30 bg-sky-950/30 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-bold text-white">
+              <Hand className="h-4 w-4 text-sky-400" />
+              Prendre la main sur le logiciel
+            </h2>
+            <p className="mt-1 max-w-xl text-xs text-slate-400">
+              Envoie une demande au commerçant. Une fenêtre s&apos;affiche au centre
+              de son espace admin : il doit accepter avant que vous puissiez entrer
+              dans son logiciel et tout modifier (réparations, stock, agenda, compta…).
+            </p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+            controlStatus === "ACCEPTED" ? "bg-emerald-900/50 text-emerald-300"
+            : controlStatus === "PENDING" ? "bg-amber-900/50 text-amber-300"
+            : controlStatus === "REFUSED" ? "bg-red-900/50 text-red-300"
+            : controlStatus === "EXPIRED" ? "bg-slate-700 text-slate-400"
+            : "bg-slate-800 text-slate-500"}`}>
+            {controlStatus === "ACCEPTED" ? "Accepté"
+              : controlStatus === "PENDING" ? "En attente du commerçant…"
+              : controlStatus === "REFUSED" ? "Refusé"
+              : controlStatus === "EXPIRED" ? "Expiré"
+              : controlStatus === "CANCELED" ? "Annulé"
+              : controlStatus === "ENDED" ? "Session terminée"
+              : "Aucune demande"}
+          </span>
+        </div>
+
+        {controlMsg && <p className="mt-3 text-xs text-slate-300">{controlMsg}</p>}
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {controlStatus === "ACCEPTED" ? (
+            <button onClick={enterControl} disabled={controlBusy}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
+              {controlBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+              Entrer dans le logiciel
+            </button>
+          ) : controlStatus === "PENDING" ? (
+            <>
+              <span className="inline-flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-900/20 px-4 py-2 text-xs font-semibold text-amber-300">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                En attente de l&apos;accord du commerçant…
+              </span>
+              <button onClick={cancelControl} disabled={controlBusy}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/5 disabled:opacity-50">
+                <Ban className="h-4 w-4" />
+                Annuler la demande
+              </button>
+            </>
+          ) : (
+            <button onClick={requestControl} disabled={controlBusy}
+              className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-sky-500 disabled:opacity-50">
+              {controlBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hand className="h-4 w-4" />}
+              Demander la prise en main
+            </button>
+          )}
+        </div>
+      </section>
 
       {/* Boutons d'action */}
       <section className="rounded-2xl border border-white/10 bg-white/5 p-5">

@@ -173,6 +173,85 @@ export async function isTrustedDevice(email: string): Promise<boolean> {
   }
 }
 
+// ---- Prise en main par un modérateur (impersonation) ----
+// Quand un modérateur entre dans le logiciel d'un commerçant (après accord de
+// celui-ci), on pose en plus du cookie de session admin un cookie signé marquant
+// qu'il s'agit d'une prise en main support. Il sert à afficher le bandeau « Mode
+// support » et à ne pas redemander le consentement au modérateur lui-même.
+const IMPERSONATION_COOKIE = "qoravo_impersonator";
+const IMPERSONATION_MAX_AGE_SECONDS = 60 * 60 * 4; // 4 h
+
+type ImpersonationPayload = {
+  proAccountId: string;
+  companyName: string;
+  expiresAt: number;
+};
+
+export function setImpersonationCookie(
+  response: NextResponse,
+  data: { proAccountId: string; companyName: string },
+) {
+  const payload: ImpersonationPayload = {
+    proAccountId: data.proAccountId,
+    companyName: data.companyName,
+    expiresAt: Date.now() + IMPERSONATION_MAX_AGE_SECONDS * 1000,
+  };
+  const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  response.cookies.set(IMPERSONATION_COOKIE, `${encoded}.${sign(encoded)}`, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: IMPERSONATION_MAX_AGE_SECONDS,
+    path: "/",
+  });
+}
+
+export function clearImpersonationCookie(response: NextResponse) {
+  response.cookies.set(IMPERSONATION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  });
+}
+
+export async function getImpersonation(): Promise<{
+  proAccountId: string;
+  companyName: string;
+} | null> {
+  try {
+    const cookieStore = await cookies();
+    const value = cookieStore.get(IMPERSONATION_COOKIE)?.value;
+    if (!value) return null;
+
+    const [encoded, signature] = value.split(".");
+    if (!encoded || !signature) return null;
+
+    const expected = sign(encoded);
+    const sigBuffer = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expected);
+    if (
+      sigBuffer.length !== expectedBuffer.length ||
+      !timingSafeEqual(sigBuffer, expectedBuffer)
+    ) {
+      return null;
+    }
+
+    const payload = JSON.parse(
+      Buffer.from(encoded, "base64url").toString("utf8"),
+    ) as ImpersonationPayload;
+
+    if (payload.expiresAt < Date.now()) return null;
+    return { proAccountId: payload.proAccountId, companyName: payload.companyName };
+  } catch (error) {
+    if (isDynamicServerUsageError(error)) {
+      throw error;
+    }
+    return null;
+  }
+}
+
 export function clearAdminSessionCookie(response: NextResponse) {
   response.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,

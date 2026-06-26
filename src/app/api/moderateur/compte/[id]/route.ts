@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { requireModApi } from "@/lib/modAuth";
+import { setAdminSessionCookie, setImpersonationCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+
+// Durée pendant laquelle une demande de prise en main reste valable (le
+// commerçant doit accepter, et le modérateur entrer, dans ce délai).
+const CONTROL_REQUEST_TTL_MS = 30 * 60 * 1000; // 30 min
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -121,6 +126,114 @@ export async function POST(request: Request, ctx: Context) {
       data: { moderatorNote: note, status },
     });
     return NextResponse.json({ ok: true, message: "Note enregistrée." });
+  }
+
+  // ---- Prise en main (support à distance avec consentement) ----
+
+  if (action === "request_control") {
+    const account = await prisma.proAccount.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!account) return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
+
+    // On annule toute demande encore en cours pour repartir propre.
+    await prisma.controlRequest.updateMany({
+      where: { proAccountId: id, status: { in: ["PENDING", "ACCEPTED"] } },
+      data: { status: "CANCELED", endedAt: new Date() },
+    });
+
+    const reason = readText(body as Record<string, unknown>, "reason");
+    const request = await prisma.controlRequest.create({
+      data: {
+        proAccountId: id,
+        status: "PENDING",
+        reason: reason || null,
+        expiresAt: new Date(Date.now() + CONTROL_REQUEST_TTL_MS),
+      },
+    });
+    return NextResponse.json({
+      ok: true,
+      message: "Demande envoyée. En attente de l'accord du commerçant.",
+      request: { id: request.id, status: request.status, expiresAt: request.expiresAt },
+    });
+  }
+
+  if (action === "control_status") {
+    const request = await prisma.controlRequest.findFirst({
+      where: { proAccountId: id },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!request) return NextResponse.json({ request: null });
+
+    // Une demande PENDING expirée est considérée comme telle.
+    const expired =
+      request.status === "PENDING" && request.expiresAt.getTime() < Date.now();
+    return NextResponse.json({
+      request: {
+        id: request.id,
+        status: expired ? "EXPIRED" : request.status,
+        expiresAt: request.expiresAt,
+        respondedAt: request.respondedAt,
+      },
+    });
+  }
+
+  if (action === "cancel_control") {
+    await prisma.controlRequest.updateMany({
+      where: { proAccountId: id, status: { in: ["PENDING", "ACCEPTED"] } },
+      data: { status: "CANCELED", endedAt: new Date() },
+    });
+    return NextResponse.json({ ok: true, message: "Demande annulée." });
+  }
+
+  if (action === "enter_control") {
+    const request = await prisma.controlRequest.findFirst({
+      where: { proAccountId: id, status: "ACCEPTED" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!request || request.expiresAt.getTime() < Date.now()) {
+      return NextResponse.json(
+        { error: "Aucun accord valide. Renvoyez une demande de prise en main." },
+        { status: 409 },
+      );
+    }
+
+    const account = await prisma.proAccount.findUnique({
+      where: { id },
+      select: { id: true, companyName: true },
+    });
+    const adminUser = await prisma.user.findFirst({
+      where: { proAccountId: id, role: "ADMIN" },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, email: true, proAccountId: true },
+    });
+    if (!account || !adminUser) {
+      return NextResponse.json({ error: "Compte ou utilisateur admin introuvable." }, { status: 404 });
+    }
+
+    const response = NextResponse.json({
+      ok: true,
+      message: "Prise en main active.",
+      redirect: "/admin",
+    });
+    // On impersonifie le premier admin du compte : la session admin donne accès
+    // à tout le logiciel (stock, agenda, réparations, compta...).
+    setAdminSessionCookie(response, {
+      id: adminUser.id,
+      email: adminUser.email,
+      role: "ADMIN",
+      proAccountId: adminUser.proAccountId,
+      proAccountSlug: null,
+      paymentStatus: null,
+      trialEndsAt: null,
+      supportIncluded: false,
+    });
+    setImpersonationCookie(response, {
+      proAccountId: account.id,
+      companyName: account.companyName,
+    });
+    return response;
   }
 
   return NextResponse.json({ error: "Action inconnue." }, { status: 400 });

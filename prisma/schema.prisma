@@ -55,6 +55,14 @@ enum CustomerType {
   PRO
 }
 
+enum ControlRequestStatus {
+  PENDING
+  ACCEPTED
+  REFUSED
+  CANCELED
+  ENDED
+}
+
 model Repair {
   id               String       @id @default(cuid())
   proAccountId     String?
@@ -181,8 +189,29 @@ model ProAccount {
   accountingExpenses        AccountingExpense[]
   accountingEmployees       AccountingEmployee[]
   accountingPayrollEntries  AccountingPayrollEntry[]
+  controlRequests           ControlRequest[]
   createdAt                 DateTime      @default(now())
   updatedAt                 DateTime      @updatedAt
+}
+
+// Demande de « prise en main » (support à distance) émise par un modérateur.
+// Le commerçant doit l'accepter depuis son espace admin avant que le modérateur
+// puisse impersonifier le compte et intervenir sur le logiciel.
+model ControlRequest {
+  id           String               @id @default(cuid())
+  proAccountId String
+  proAccount   ProAccount           @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  status       ControlRequestStatus @default(PENDING)
+  reason       String?
+  requestedAt  DateTime             @default(now())
+  respondedAt  DateTime?
+  expiresAt    DateTime
+  endedAt      DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([proAccountId])
+  @@index([status])
 }
 
 model RepairEvent {
