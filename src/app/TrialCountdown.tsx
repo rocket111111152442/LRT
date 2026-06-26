@@ -43,6 +43,12 @@ export function TrialCountdown() {
 
   const remaining = useMemo(() => formatRemaining(remainingMs), [remainingMs]);
 
+  // Quand le compte a rebours atteint 0, on retire entierement le bandeau et
+  // l'offre d'essai gratuit.
+  if (remainingMs <= 0) {
+    return null;
+  }
+
   return (
     <section className="bg-slate-950 px-4 py-3 text-white sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 rounded-2xl border border-sky-400/30 bg-white/8 p-4 shadow-[0_0_35px_rgba(14,165,233,0.20)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
