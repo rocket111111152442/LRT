@@ -234,6 +234,11 @@ select {
   animation: q-gradient-shift 12s ease infinite;
 }
 
+/* Masque les mentions de l'offre gratuite une fois le minuteur ecoule. */
+html[data-trial-over] .trial-promo {
+  display: none !important;
+}
+
 .q-animate-up {
   animation: q-fade-up 0.7s ease both;
 }

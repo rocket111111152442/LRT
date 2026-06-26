@@ -22,6 +22,7 @@ import { QoravoLogo } from "@/components/QoravoLogo";
 import { PageViews } from "@/components/PageViews";
 import { PublicReviews } from "./PublicReviews";
 import { TrialCountdown } from "./TrialCountdown";
+import { TrialExpiryFlag } from "./TrialExpiryFlag";
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1581993192008-63e896f4f744?auto=format&fit=crop&w=1200&q=80";
@@ -188,6 +189,7 @@ const faqs = [
 export default function HomePage() {
   return (
     <main className="bg-slate-50 text-slate-950">
+      <TrialExpiryFlag />
       <TrialCountdown />
 
       {/* Barre de navigation */}
@@ -233,7 +235,7 @@ export default function HomePage() {
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="q-animate-up max-w-xl">
-            <span className="q-chip border border-white/15 bg-white/10 text-sky-200">
+            <span className="trial-promo q-chip border border-white/15 bg-white/10 text-sky-200">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
               Nouveau · Essai gratuit 72h
             </span>
@@ -419,7 +421,7 @@ export default function HomePage() {
 
           <div className="q-glass overflow-hidden">
             <div className="bg-brand-ink p-7 text-white">
-              <span className="q-chip border border-white/15 bg-white/10 text-emerald-200">
+              <span className="trial-promo q-chip border border-white/15 bg-white/10 text-emerald-200">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                 Essai gratuit 72h
               </span>
@@ -434,7 +436,7 @@ export default function HomePage() {
                 Démarrer gratuitement
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <p className="mt-3 text-center text-xs text-slate-400">
+              <p className="trial-promo mt-3 text-center text-xs text-slate-400">
                 Sans carte requise pour démarrer l&apos;essai
               </p>
             </div>
@@ -617,7 +619,9 @@ export default function HomePage() {
             {faqs.map((faq) => (
               <details
                 key={faq.question}
-                className="group q-glass p-5 transition hover:-translate-y-0.5"
+                className={`group q-glass p-5 transition hover:-translate-y-0.5${
+                  faq.question.toLowerCase().includes("essai gratuit") ? " trial-promo" : ""
+                }`}
               >
                 <summary className="cursor-pointer list-none text-base font-bold text-slate-950 marker:hidden">
                   {faq.question}

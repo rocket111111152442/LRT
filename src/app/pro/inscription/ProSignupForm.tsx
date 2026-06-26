@@ -227,9 +227,7 @@ export function ProSignupForm() {
     setMessage("");
 
     if (!trialAvailable) {
-      setSubmitError(
-        "L'offre d'essai gratuit est terminée. Entrez le code ESS26 pour la débloquer.",
-      );
+      setSubmitError("L'offre d'essai gratuit est terminée.");
       return;
     }
 
@@ -609,15 +607,14 @@ export function ProSignupForm() {
                 </button>
                 <p className="text-center text-xs text-slate-500">
                   {trialUnlockedByCode
-                    ? "Code ESS26 reconnu · essai gratuit 72h débloqué."
+                    ? "Essai gratuit 72h débloqué."
                     : "72h gratuites · vous pourrez vous abonner à tout moment et reprendre où vous en étiez."}
                 </p>
               </>
             ) : (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-                L&apos;offre d&apos;essai gratuit est terminée. Entrez le code{" "}
-                <strong>ESS26</strong> dans le champ « Code promo » ci-dessus pour
-                débloquer un essai gratuit, ou abonnez-vous directement.
+                L&apos;offre d&apos;essai gratuit est terminée. Abonnez-vous
+                directement pour accéder à Qoravo.
               </p>
             )}
             <button
