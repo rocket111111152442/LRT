@@ -37,28 +37,7 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    if (session.metadata?.repairPayment === "1") {
-      // Paiement en ligne d'une réparation par un client.
-      const repairId = session.metadata.repairId;
-      const amount = session.amount_total ?? 0;
-      if (repairId) {
-        const repair = await prisma.repair.findUnique({
-          where: { id: repairId },
-          select: { estimatedPriceCents: true, paidAmountCents: true },
-        });
-        if (repair) {
-          const newPaid = (repair.paidAmountCents ?? 0) + amount;
-          const fullyPaid = newPaid >= (repair.estimatedPriceCents ?? 0);
-          await prisma.repair.update({
-            where: { id: repairId },
-            data: {
-              paidAmountCents: newPaid,
-              paymentStatus: fullyPaid ? "PAYE" : "ACOMPTE",
-            },
-          });
-        }
-      }
-    } else if (session.metadata?.enterprise === "1") {
+    if (session.metadata?.enterprise === "1") {
       // Offre entreprise sur mesure : on active tout ce que le client a choisi.
       await activateEnterpriseCheckoutSession(session);
     } else if (session.metadata?.planUpgrade === "1") {

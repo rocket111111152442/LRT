@@ -71,22 +71,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ticket introuvable." }, { status: 404 });
   }
 
-  const remainingCents = Math.max(
-    (repair.estimatedPriceCents ?? 0) - (repair.paidAmountCents ?? 0),
-    0,
-  );
-
-  // Le paiement en ligne n'est propose que si l'atelier a active Stripe et
-  // qu'il reste un montant a payer.
-  let onlinePaymentAvailable = false;
-  if (remainingCents > 0 && repair.proAccountId) {
-    const shop = await prisma.proAccount.findUnique({
-      where: { id: repair.proAccountId },
-      select: { stripeOnboarded: true },
-    });
-    onlinePaymentAvailable = shop?.stripeOnboarded === true;
-  }
-
   return NextResponse.json({
     repair: {
       ticketNumber: readString(repair.ticketNumber, ticketNumber),
@@ -104,8 +88,6 @@ export async function GET(request: Request) {
         : null,
       warrantyUntil: repair.warrantyUntil ? readDateString(repair.warrantyUntil) : null,
       signatureDone: Boolean(repair.customerPickupSignature),
-      remainingCents,
-      onlinePaymentAvailable,
       updatedAt: readDateString(repair.updatedAt),
     },
   });

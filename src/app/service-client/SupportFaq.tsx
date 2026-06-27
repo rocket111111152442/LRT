@@ -37,11 +37,6 @@ const FAQ: FaqItem[] = [
     tags: ["compta", "tva", "comptabilité"],
   },
   {
-    q: "Un paiement client n'est pas arrivé sur mon compte",
-    a: "Les paiements en ligne passent par Stripe Connect : l'argent va directement sur votre compte Stripe. Vérifiez que votre compte Stripe est bien activé dans Admin → Paiements. Sinon, envoyez une demande (catégorie Paiement).",
-    tags: ["paiement", "stripe", "facturation"],
-  },
-  {
     q: "Comment prolonger ou gérer mon essai gratuit ?",
     a: "L'essai gratuit dure 72h. Pour continuer, abonnez-vous depuis le bandeau ou la page Paiement. Une question sur votre essai ? Envoyez une demande au service client.",
     tags: ["essai", "abonnement", "paiement"],
