@@ -102,16 +102,26 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: link.url });
   } catch (error) {
-    const needsConnect =
-      error instanceof Stripe.errors.StripeError &&
-      (error.message.includes("Connect") || error.message.includes("connect"));
+    if (error instanceof Stripe.errors.StripeError) {
+      // On remonte le VRAI message de Stripe au lieu de le masquer : il contient
+      // en général le lien exact à suivre (ex. compléter le profil de plateforme
+      // Connect). L'erreur la plus fréquente ici n'est pas « Connect désactivé »
+      // — les comptes connectés se créent bien — mais une configuration de
+      // plateforme Connect incomplète, qui bloque la création du lien d'onboarding.
+      const raw = (error.message || "").trim();
+      const looksLikePlatformSetup =
+        /connect|platform profile|profil de plateforme|complete your platform|responsibilit|loss/i.test(
+          raw,
+        );
 
-    if (needsConnect) {
       return NextResponse.json(
         {
-          error:
-            "Stripe Connect n'est pas encore activé sur votre compte Stripe. Activez-le (gratuit, une seule fois), puis revenez cliquer sur le bouton.",
-          connectSetupUrl: "https://dashboard.stripe.com/connect/accounts/overview",
+          error: looksLikePlatformSetup
+            ? `Configuration Stripe Connect à finaliser dans votre dashboard Stripe. Stripe indique : « ${raw} »`
+            : `Stripe a refusé la demande : ${raw}`,
+          stripeMessage: raw,
+          // Réglages Connect de la plateforme (profil de plateforme à compléter).
+          connectSetupUrl: "https://dashboard.stripe.com/settings/connect",
         },
         { status: 409 },
       );

@@ -62,14 +62,20 @@ export function PaymentsClient() {
         <div className="grid gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           <p>{error}</p>
           {connectSetupUrl ? (
-            <a
-              href={connectSetupUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="q-btn q-btn-primary w-fit text-sm"
-            >
-              Activer Stripe Connect (1 clic) →
-            </a>
+            <div className="grid gap-2">
+              <a
+                href={connectSetupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="q-btn q-btn-primary w-fit text-sm"
+              >
+                Ouvrir les réglages Stripe Connect →
+              </a>
+              <p className="text-xs text-red-700/80">
+                Dans Stripe, finalisez votre « profil de plateforme » (Connect),
+                puis revenez cliquer sur « Terminer la configuration Stripe ».
+              </p>
+            </div>
           ) : null}
         </div>
       ) : null}
