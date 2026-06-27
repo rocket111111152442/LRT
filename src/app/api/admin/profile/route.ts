@@ -17,6 +17,7 @@ const editableFields = [
   "shopCapacityPerDay",
   "shopSlotDurationMinutes",
   "shopMaxAppointmentsPerSlot",
+  "publicListed",
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -57,6 +58,7 @@ function profileSelect() {
     shopCapacityPerDay: true,
     shopSlotDurationMinutes: true,
     shopMaxAppointmentsPerSlot: true,
+    publicListed: true,
   };
 }
 
@@ -161,6 +163,8 @@ export async function PATCH(request: Request) {
     shopCapacityPerDay: shopCapacityPerDay ?? 8,
     shopSlotDurationMinutes: shopSlotDurationMinutes ?? 60,
     shopMaxAppointmentsPerSlot: shopMaxAppointmentsPerSlot ?? 1,
+    // Visibilité publique : true par défaut, false seulement si explicitement désactivé.
+    publicListed: body.publicListed !== false,
   };
 
   if (!data.companyName) {

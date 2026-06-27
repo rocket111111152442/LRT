@@ -612,6 +612,7 @@ function createFirestorePrisma() {
           ...data,
           id,
           supportIncluded: data.supportIncluded ?? false,
+          publicListed: data.publicListed ?? true,
           plan: data.plan ?? "basic",
           storageAddonGb: data.storageAddonGb ?? 0,
           stripeAccountId: data.stripeAccountId ?? null,
@@ -1079,6 +1080,11 @@ function createFirestorePrisma() {
       moderatorNote: null,
       offre: null,
       proAccountId: null,
+      category: null,
+      priority: "NORMAL",
+      ticketRef: null,
+      replyText: null,
+      repliedAt: null,
     }),
 
     controlRequest: createGenericFirestoreModel("controlRequests", {

@@ -33,9 +33,13 @@ export async function GET() {
       shopMaxAppointmentsPerSlot: true,
       paymentStatus: true,
       trialEndsAt: true,
+      publicListed: true,
     },
   });
-  const accounts = allAccounts.filter((account) => isProAccountActive(account));
+  const accounts = allAccounts.filter(
+    // Boutique active ET non masquée (publicListed absent = visible par défaut).
+    (account) => isProAccountActive(account) && account.publicListed !== false,
+  );
 
   const shops = await Promise.all(
     accounts.map(async (account) => {

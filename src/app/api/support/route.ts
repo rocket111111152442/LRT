@@ -16,6 +16,52 @@ function readText(source: Record<string, unknown>, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+const SUPPORT_CATEGORIES = [
+  "Connexion / accès",
+  "Paiement / facturation",
+  "Emails / notifications",
+  "QR code / suivi",
+  "Réparations / fiches",
+  "Stock / catalogue",
+  "Comptabilité",
+  "Agenda / rendez-vous",
+  "Bug / erreur technique",
+  "Autre",
+];
+
+export async function GET() {
+  const admin = await requireAdminApi();
+
+  if (!admin.ok) {
+    return admin.response;
+  }
+
+  if (!admin.user.proAccountId) {
+    return NextResponse.json({ messages: [] });
+  }
+
+  const messages = await prisma.supportMessage.findMany({
+    where: { proAccountId: admin.user.proAccountId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json({
+    categories: SUPPORT_CATEGORIES,
+    messages: messages.map((m) => ({
+      id: m.id,
+      subject: m.subject,
+      message: m.message,
+      category: m.category ?? null,
+      priority: m.priority ?? "NORMAL",
+      ticketRef: m.ticketRef ?? null,
+      status: m.status,
+      replyText: m.replyText ?? null,
+      repliedAt: m.repliedAt ?? null,
+      createdAt: m.createdAt,
+    })),
+  });
+}
+
 export async function POST(request: Request) {
   const admin = await requireAdminApi();
 
@@ -51,6 +97,9 @@ export async function POST(request: Request) {
     subject: readText(body, "subject"),
     message: readText(body, "message"),
   };
+  const category = readText(body, "category") || null;
+  const priority = readText(body, "priority") === "URGENT" ? "URGENT" : "NORMAL";
+  const ticketRef = readText(body, "ticketRef") || null;
   const errors: SupportErrors = {};
 
   if (data.name.length < 2) {
@@ -81,10 +130,16 @@ export async function POST(request: Request) {
       email: data.email,
       subject: data.subject,
       message: data.message,
+      category,
+      priority,
+      ticketRef,
     },
   }).catch(() => { /* non bloquant */ });
 
-  const result = await sendSupportMessageEmail(data);
+  const result = await sendSupportMessageEmail({
+    ...data,
+    subject: priority === "URGENT" ? `[URGENT] ${data.subject}` : data.subject,
+  });
 
   if (result.skipped) {
     return NextResponse.json(

@@ -69,6 +69,7 @@ function valuesFromProfile(profile: Profile): FormValues {
 export function ProfileSettingsForm() {
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [publicSlug, setPublicSlug] = useState("");
+  const [publicListed, setPublicListed] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -90,6 +91,7 @@ export function ProfileSettingsForm() {
         if (!ignore && payload.profile) {
           setValues(valuesFromProfile(payload.profile));
           setPublicSlug(payload.profile.slug ?? "");
+          setPublicListed(payload.profile.publicListed !== false);
         }
       } catch {
         if (!ignore) {
@@ -169,7 +171,7 @@ export function ProfileSettingsForm() {
       const response = await fetch("/api/admin/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, publicListed }),
       });
       const payload = await response.json();
 
@@ -179,6 +181,7 @@ export function ProfileSettingsForm() {
       }
 
       setValues(valuesFromProfile(payload.profile));
+      setPublicListed(payload.profile.publicListed !== false);
       setMessage("Parametres enregistres.");
     } catch {
       setError("Enregistrement impossible.");
@@ -207,6 +210,39 @@ export function ProfileSettingsForm() {
           Lien public : <strong>/nouvelle-reparation?compte={publicSlug}</strong>
         </div>
       ) : null}
+
+      <section className={`grid gap-2 rounded-xl border p-4 transition ${
+        publicListed ? "border-emerald-200 bg-emerald-50/60" : "border-amber-200 bg-amber-50/60"
+      }`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="grid gap-1">
+            <h2 className="text-base font-semibold text-slate-950">
+              Afficher ma boutique aux clients
+            </h2>
+            <p className="text-sm leading-6 text-slate-600">
+              {publicListed
+                ? "Votre boutique apparaît dans la recherche publique des réparateurs."
+                : "Votre boutique est masquée : elle n'apparaît plus dans la recherche publique. Votre lien direct reste fonctionnel."}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={publicListed}
+            onClick={() => { setPublicListed((v) => !v); setMessage(""); setError(""); }}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${
+              publicListed ? "bg-emerald-500" : "bg-slate-300"
+            }`}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+              publicListed ? "translate-x-6" : "translate-x-1"
+            }`} />
+          </button>
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {publicListed ? "Visible" : "Masquée"}
+        </p>
+      </section>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field name="companyName" label="Nom du magasin" value={values.companyName} onChange={updateField} />

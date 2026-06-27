@@ -172,6 +172,7 @@ model ProAccount {
   shopMaxAppointmentsPerSlot Int          @default(1)
   monthlyGoal               Int           @default(100)
   referralCode              String?
+  publicListed              Boolean       @default(true)
   supportIncluded           Boolean       @default(false)
   plan                      String        @default("basic")
   storageAddonGb            Int           @default(0)
@@ -237,8 +238,13 @@ model SupportMessage {
   subject      String
   message      String
   offre        String?
+  category     String?
+  priority     String   @default("NORMAL")
+  ticketRef    String?
   status       String   @default("OPEN")
   moderatorNote String?
+  replyText    String?
+  repliedAt    DateTime?
   createdAt    DateTime @default(now())
 
   @@index([proAccountId])

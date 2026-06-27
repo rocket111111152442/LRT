@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   BookOpen,
+  Building2,
   CalendarDays,
   Calculator,
   Clock,
@@ -56,6 +57,7 @@ const navGroups = [
       { href: "/admin/email", label: "Email", icon: Mail, tone: "text-blue-600" },
       { href: "/admin/parametres", label: "Parametres", icon: Settings, tone: "text-slate-700" },
       { href: "/admin/offres", label: "Offres", icon: Rocket, tone: "text-fuchsia-600" },
+      { href: "/admin/offre-entreprise", label: "Offre entreprise", icon: Building2, tone: "text-fuchsia-700" },
       { href: "/admin/paiements", label: "Paiements", icon: CreditCard, tone: "text-emerald-600" },
       { href: "/", label: "Site public", icon: MapPinned, tone: "text-emerald-600" },
     ],

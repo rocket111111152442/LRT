@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { requireModApi } from "@/lib/modAuth";
 import { setAdminSessionCookie, setImpersonationCookie } from "@/lib/auth";
+import { sendSupportReplyEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 
 // Durée pendant laquelle une demande de prise en main reste valable (le
@@ -115,6 +116,44 @@ export async function POST(request: Request, ctx: Context) {
     // La relation ProAccount -> * est définie avec onDelete: Cascade dans le schéma.
     await prisma.proAccount.delete({ where: { id } });
     return NextResponse.json({ ok: true, message: "Compte et toutes ses données supprimés définitivement.", deleted: true });
+  }
+
+  if (action === "reply_message") {
+    const msgId = readText(body as Record<string, unknown>, "messageId");
+    const replyText = readText(body as Record<string, unknown>, "replyText");
+    if (!msgId || replyText.length < 2) {
+      return NextResponse.json({ error: "Réponse trop courte." }, { status: 400 });
+    }
+
+    const message = await prisma.supportMessage.findUnique({ where: { id: msgId } });
+    if (!message) return NextResponse.json({ error: "Message introuvable." }, { status: 404 });
+
+    const result = await sendSupportReplyEmail({
+      to: message.email,
+      customerName: message.name,
+      originalSubject: message.subject,
+      replyMessage: replyText,
+    });
+
+    if (result.skipped) {
+      return NextResponse.json(
+        { error: "Email non envoyé : SMTP non configuré." },
+        { status: 503 },
+      );
+    }
+    if (!result.sent) {
+      return NextResponse.json(
+        { error: "Échec de l'envoi de l'email." },
+        { status: 502 },
+      );
+    }
+
+    await prisma.supportMessage.update({
+      where: { id: msgId },
+      data: { replyText, repliedAt: new Date(), status: "ANSWERED" },
+    });
+
+    return NextResponse.json({ ok: true, message: `Réponse envoyée à ${message.email}.` });
   }
 
   if (action === "message_note") {

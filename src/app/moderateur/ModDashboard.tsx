@@ -17,6 +17,8 @@ type Message = {
   id: string; proAccountId: string | null; name: string; email: string;
   subject: string; message: string; offre: string | null;
   status: string; moderatorNote: string | null; createdAt: string;
+  category: string | null; priority: string | null; ticketRef: string | null;
+  replyText: string | null; repliedAt: string | null;
 };
 
 type Account = {
@@ -194,8 +196,14 @@ function MessagesTab({ messages, onRefresh }: { messages: Message[]; onRefresh: 
   const [status, setStatus]     = useState("OPEN");
   const [saving, setSaving]     = useState(false);
   const [msg, setMsg]           = useState("");
+  const [reply, setReply]       = useState("");
+  const [replying, setReplying] = useState(false);
+  const [replyMsg, setReplyMsg] = useState("");
 
-  function open(m: Message) { setSelected(m); setNote(m.moderatorNote ?? ""); setStatus(m.status); setMsg(""); }
+  function open(m: Message) {
+    setSelected(m); setNote(m.moderatorNote ?? ""); setStatus(m.status);
+    setMsg(""); setReply(""); setReplyMsg("");
+  }
 
   async function saveNote() {
     if (!selected) return;
@@ -210,6 +218,22 @@ function MessagesTab({ messages, onRefresh }: { messages: Message[]; onRefresh: 
       setMsg(payload.message ?? (res.ok ? "Enregistré." : payload.error ?? "Erreur."));
       if (res.ok) { onRefresh(); }
     } finally { setSaving(false); }
+  }
+
+  async function sendReply() {
+    if (!selected || reply.trim().length < 2) return;
+    setReplying(true); setReplyMsg("");
+    try {
+      const res = await fetch(`/api/moderateur/compte/${selected.proAccountId ?? "none"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reply_message", messageId: selected.id, replyText: reply }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      setReplyMsg(payload.message ?? (res.ok ? "Réponse envoyée." : payload.error ?? "Erreur."));
+      if (res.ok) { setReply(""); onRefresh(); }
+    } catch { setReplyMsg("Erreur réseau."); }
+    finally { setReplying(false); }
   }
 
   if (messages.length === 0) return (
@@ -243,7 +267,13 @@ function MessagesTab({ messages, onRefresh }: { messages: Message[]; onRefresh: 
             </div>
             <p className="mt-0.5 text-xs text-slate-400">{m.email} · {new Date(m.createdAt).toLocaleDateString("fr-FR")}</p>
             <p className="mt-1 truncate text-sm text-slate-300">{m.subject}</p>
-            {m.offre ? <p className="mt-1 text-xs text-brand-blue">Offre : {m.offre}</p> : null}
+            <div className="mt-1 flex flex-wrap gap-1">
+              {m.priority === "URGENT" ? <span className="rounded-full bg-red-900/50 px-2 py-0.5 text-[10px] font-bold text-red-300">URGENT</span> : null}
+              {m.category ? <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-slate-300">{m.category}</span> : null}
+              {m.ticketRef ? <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono text-slate-400">#{m.ticketRef}</span> : null}
+              {m.repliedAt ? <span className="rounded-full bg-emerald-900/50 px-2 py-0.5 text-[10px] font-bold text-emerald-300">Répondu</span> : null}
+              {m.offre ? <span className="rounded-full bg-brand-blue/20 px-2 py-0.5 text-[10px] font-semibold text-brand-blue">Offre : {m.offre}</span> : null}
+            </div>
           </button>
         ))}
       </div>
@@ -254,6 +284,13 @@ function MessagesTab({ messages, onRefresh }: { messages: Message[]; onRefresh: 
             <p className="text-xs font-bold uppercase tracking-wide text-brand-blue">Message</p>
             <h3 className="mt-1 text-lg font-bold text-white">{selected.subject}</h3>
             <p className="text-xs text-slate-400">{selected.name} &lt;{selected.email}&gt;</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            {selected.category ? <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-slate-300">Catégorie : {selected.category}</span> : null}
+            <span className={`rounded-full px-2 py-0.5 font-bold ${selected.priority === "URGENT" ? "bg-red-900/50 text-red-300" : "bg-white/10 text-slate-400"}`}>
+              Priorité : {selected.priority ?? "NORMAL"}
+            </span>
+            {selected.ticketRef ? <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-slate-400">Réf : {selected.ticketRef}</span> : null}
           </div>
           <p className="whitespace-pre-wrap rounded-lg bg-white/5 p-3 text-sm leading-6 text-slate-200">
             {selected.message}
@@ -266,12 +303,40 @@ function MessagesTab({ messages, onRefresh }: { messages: Message[]; onRefresh: 
               <Building2 className="h-4 w-4" /> Voir le compte associé
             </Link>
           ) : null}
+
+          {/* Réponse par email au client */}
+          <div className="grid gap-2 rounded-xl border border-sky-400/30 bg-sky-950/30 p-3">
+            <label className="text-xs font-bold uppercase tracking-wide text-sky-300">
+              Répondre par email à {selected.email}
+            </label>
+            {selected.replyText ? (
+              <div className="rounded-lg bg-white/5 p-2 text-xs text-slate-300">
+                <p className="mb-1 font-semibold text-emerald-300">
+                  Dernière réponse {selected.repliedAt ? `· ${new Date(selected.repliedAt).toLocaleString("fr-FR")}` : ""}
+                </p>
+                <p className="whitespace-pre-wrap">{selected.replyText}</p>
+              </div>
+            ) : null}
+            <textarea
+              value={reply}
+              onChange={e => setReply(e.target.value)}
+              rows={4}
+              placeholder="Votre réponse, envoyée par email au client…"
+              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+            />
+            {replyMsg ? <p className="text-xs text-emerald-400">{replyMsg}</p> : null}
+            <button onClick={sendReply} disabled={replying || reply.trim().length < 2}
+              className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-sky-500 disabled:opacity-50">
+              {replying ? "Envoi…" : "Envoyer la réponse par email"}
+            </button>
+          </div>
           <div className="grid gap-2">
             <label className="text-xs font-semibold text-slate-400">Statut</label>
             <select value={status} onChange={e => setStatus(e.target.value)}
               className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white">
               <option value="OPEN">OPEN</option>
               <option value="PENDING">PENDING</option>
+              <option value="ANSWERED">ANSWERED</option>
               <option value="CLOSED">CLOSED</option>
             </select>
           </div>

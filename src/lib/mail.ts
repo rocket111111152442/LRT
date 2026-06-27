@@ -195,6 +195,45 @@ export async function sendSupportMessageEmail(input: {
   });
 }
 
+export async function sendSupportReplyEmail(input: {
+  to: string;
+  customerName?: string | null;
+  originalSubject: string;
+  replyMessage: string;
+}): Promise<SendMailResult> {
+  const greeting = input.customerName ? `Bonjour ${input.customerName},` : "Bonjour,";
+  const text = [
+    greeting,
+    "",
+    "Réponse du service client Qoravo concernant votre demande :",
+    input.originalSubject ? `« ${input.originalSubject} »` : "",
+    "",
+    input.replyMessage,
+    "",
+    "— Service client Qoravo",
+  ].filter(Boolean).join("\n");
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
+      <p>${escapeHtml(greeting)}</p>
+      <p>Réponse du service client Qoravo concernant votre demande${
+        input.originalSubject ? ` <strong>« ${escapeHtml(input.originalSubject)} »</strong>` : ""
+      } :</p>
+      <div style="white-space:pre-wrap;border-left:3px solid #0ea5e9;background:#f0f9ff;padding:12px 16px;border-radius:6px;margin:16px 0">${escapeHtml(
+        input.replyMessage,
+      )}</div>
+      <p style="font-size:13px;color:#475569">— Service client Qoravo</p>
+    </div>
+  `;
+
+  // On passe par le SMTP configuré (paramètres ou variables d'env).
+  return sendWithRepairSmtp({
+    to: input.to,
+    subject: `Re : ${input.originalSubject || "Votre demande au service client Qoravo"}`,
+    text,
+    html,
+  });
+}
+
 export async function sendSetupAppointmentEmail(input: {
   companyName: string;
   ownerEmail: string;

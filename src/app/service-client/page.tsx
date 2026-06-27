@@ -5,6 +5,8 @@ import { QoravoLogo } from "@/components/QoravoLogo";
 import { getCurrentAdmin } from "@/lib/auth";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
 import { SupportForm } from "./SupportForm";
+import { SupportCenter } from "./SupportCenter";
+import { SupportFaq } from "./SupportFaq";
 
 const supportPhoneDisplay = "07 53 30 54 52";
 const supportPhoneHref = "tel:+33753305452";
@@ -185,6 +187,8 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
                 </ul>
               </div>
 
+              <SupportFaq />
+
               <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                 <h2 className="text-lg font-semibold text-slate-950">
                   Exemples de demandes
@@ -208,7 +212,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
                   en train de faire.
                 </p>
               </div>
-              <SupportForm />
+              <SupportCenter />
             </section>
           </section>
         )}
