@@ -221,7 +221,8 @@ export default function HomePage() {
               Connexion
             </Link>
             <Link href="/pro/inscription" className="q-btn q-btn-primary text-sm">
-              Essai gratuit
+              <span className="trial-promo">Essai gratuit</span>
+              <span className="trial-over-only">Créer mon compte</span>
             </Link>
           </div>
         </div>
@@ -250,7 +251,8 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/pro/inscription" className="q-btn q-btn-primary">
-                Démarrer l&apos;essai gratuit
+                <span className="trial-promo">Démarrer l&apos;essai gratuit</span>
+                <span className="trial-over-only">Créer mon compte</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link href="#etapes" className="q-btn q-btn-ghost">
@@ -433,7 +435,8 @@ export default function HomePage() {
                 Espace admin complet · QR code · vitrine publique
               </p>
               <Link href="/pro/inscription" className="q-btn q-btn-light mt-6 w-full">
-                Démarrer gratuitement
+                <span className="trial-promo">Démarrer gratuitement</span>
+                <span className="trial-over-only">Créer mon compte</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <p className="trial-promo mt-3 text-center text-xs text-slate-400">
@@ -647,7 +650,8 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link href="/pro/inscription" className="q-btn q-btn-primary">
-                Démarrer l&apos;essai gratuit
+                <span className="trial-promo">Démarrer l&apos;essai gratuit</span>
+                <span className="trial-over-only">Créer mon compte</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link href="/pro" className="q-btn q-btn-ghost">

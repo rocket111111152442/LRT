@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 const TRIAL_MS = 72 * 60 * 60 * 1000;
 const STORAGE_KEY = "qoravo_trial_countdown_started_at";
+const TRIAL_USED_KEY = "qoravo_trial_used";
 
 function formatRemaining(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -21,8 +22,16 @@ function formatRemaining(ms: number) {
 
 export function TrialCountdown() {
   const [remainingMs, setRemainingMs] = useState(TRIAL_MS);
+  const [trialUsed, setTrialUsed] = useState(false);
 
   useEffect(() => {
+    // Un compte a déjà été créé avec l'essai depuis ce navigateur : on n'affiche
+    // plus le bandeau d'offre.
+    if (window.localStorage.getItem(TRIAL_USED_KEY) === "1") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTrialUsed(true);
+    }
+
     const stored = window.localStorage.getItem(STORAGE_KEY);
     const startedAt = stored ? Number(stored) : Date.now();
 
@@ -43,9 +52,9 @@ export function TrialCountdown() {
 
   const remaining = useMemo(() => formatRemaining(remainingMs), [remainingMs]);
 
-  // Quand le compte a rebours atteint 0, on retire entierement le bandeau et
-  // l'offre d'essai gratuit.
-  if (remainingMs <= 0) {
+  // Quand le compte a rebours atteint 0, ou que l'essai a déjà été utilisé, on
+  // retire entierement le bandeau et l'offre d'essai gratuit.
+  if (remainingMs <= 0 || trialUsed) {
     return null;
   }
 

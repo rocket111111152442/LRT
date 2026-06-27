@@ -5,6 +5,9 @@ import Link from "next/link";
 
 // Fenêtre promotionnelle de l'essai gratuit (même minuteur que la page d'accueil).
 const TRIAL_PROMO_KEY = "qoravo_trial_countdown_started_at";
+// Drapeau posé une fois qu'un compte a été créé avec l'essai gratuit : l'offre
+// d'essai n'est alors plus reproposée depuis ce navigateur.
+const TRIAL_USED_KEY = "qoravo_trial_used";
 const TRIAL_PROMO_MS = 72 * 60 * 60 * 1000;
 const TRIAL_UNLOCK_CODE = "ESS26";
 import {
@@ -59,23 +62,30 @@ export function ProSignupForm() {
   const [codeSent, setCodeSent] = useState(false);
   const [showQrHelp, setShowQrHelp] = useState(false);
   const [promoWindowExpired, setPromoWindowExpired] = useState(false);
+  const [trialAlreadyUsed, setTrialAlreadyUsed] = useState(false);
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
   const openingHours = parseShopOpeningHours(values.shopOpeningHours);
 
   // L'essai gratuit n'est proposé que pendant la fenêtre promo (72h par
-  // visiteur). Passé ce délai, il faut le code ESS26 pour le débloquer.
+  // visiteur) ET tant qu'aucun compte n'a déjà été créé avec l'essai depuis ce
+  // navigateur. Passé cela, il faut le code ESS26 pour le débloquer.
   const trialUnlockedByCode =
     (values.promoCode ?? "").trim().toUpperCase() === TRIAL_UNLOCK_CODE;
-  const trialAvailable = !promoWindowExpired || trialUnlockedByCode;
+  const trialAvailable =
+    (!promoWindowExpired && !trialAlreadyUsed) || trialUnlockedByCode;
 
   useEffect(() => {
+    if (window.localStorage.getItem(TRIAL_USED_KEY) === "1") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTrialAlreadyUsed(true);
+    }
+
     const stored = window.localStorage.getItem(TRIAL_PROMO_KEY);
     if (!stored) return;
     const startedAt = Number(stored);
     if (Number.isNaN(startedAt)) return;
     if (Date.now() - startedAt >= TRIAL_PROMO_MS) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPromoWindowExpired(true);
     }
   }, []);
@@ -287,6 +297,9 @@ export function ProSignupForm() {
         return;
       }
 
+      // Le compte a été créé avec l'essai gratuit : on ne reproposera plus
+      // l'offre d'essai depuis ce navigateur.
+      window.localStorage.setItem(TRIAL_USED_KEY, "1");
       window.location.href = payload.redirectUrl;
     } catch {
       setSubmitError("Essai gratuit impossible.");
