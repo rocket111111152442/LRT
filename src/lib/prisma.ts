@@ -1081,6 +1081,13 @@ function createFirestorePrisma() {
       proAccountId: null,
     }),
 
+    controlRequest: createGenericFirestoreModel("controlRequests", {
+      status: "PENDING",
+      reason: null,
+      respondedAt: null,
+      endedAt: null,
+    }),
+
     accountingSettings: createGenericFirestoreModel(
       "accountingSettings",
       {
