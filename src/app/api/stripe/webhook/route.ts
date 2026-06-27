@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
+import { activateEnterpriseCheckoutSession } from "@/lib/pro/enterpriseActivation";
 import { restoreFullPremiumPriceForRenewals } from "@/lib/stripeDiscounts";
 
 export async function POST(request: Request) {
@@ -57,6 +58,9 @@ export async function POST(request: Request) {
           });
         }
       }
+    } else if (session.metadata?.enterprise === "1") {
+      // Offre entreprise sur mesure : on active tout ce que le client a choisi.
+      await activateEnterpriseCheckoutSession(session);
     } else if (session.metadata?.planUpgrade === "1") {
       const { optionId, proAccountId } = session.metadata;
       if (proAccountId && optionId) {

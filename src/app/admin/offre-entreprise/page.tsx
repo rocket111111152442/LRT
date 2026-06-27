@@ -1,14 +1,38 @@
 import type { Metadata } from "next";
+import Stripe from "stripe";
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { activateEnterpriseCheckoutSession } from "@/lib/pro/enterpriseActivation";
 import { EnterpriseQuoteClient } from "./EnterpriseQuoteClient";
 
 export const metadata: Metadata = { title: "Offre entreprise — Qoravo Admin" };
 export const dynamic = "force-dynamic";
 
-export default async function EnterpriseOfferPage() {
+type Props = { searchParams: Promise<{ paid?: string; session_id?: string }> };
+
+// Filet de sécurité : si le webhook Stripe n'a pas (encore) activé l'offre, on
+// confirme aussi au retour du paiement.
+async function confirmEnterprisePayment(sessionId?: string) {
+  if (!sessionId || !process.env.STRIPE_SECRET_KEY) return false;
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const result = await activateEnterpriseCheckoutSession(session);
+    return result.ok;
+  } catch {
+    return false;
+  }
+}
+
+export default async function EnterpriseOfferPage({ searchParams }: Props) {
   const admin = await requireAdminPage();
+  const { paid, session_id: sessionId } = await searchParams;
+
+  let paymentConfirmed = false;
+  if (paid === "1") {
+    paymentConfirmed = await confirmEnterprisePayment(sessionId);
+  }
 
   let companyName = "";
   if (admin.proAccountId) {
@@ -42,6 +66,18 @@ export default async function EnterpriseOfferPage() {
               clic. Sinon, un conseiller vous recontacte pour l&apos;adapter.
             </p>
           </header>
+          {paid === "1" ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+              {paymentConfirmed
+                ? "Paiement reçu ! Votre offre entreprise est activée : plan entreprise, support et stockage mis à jour."
+                : "Paiement reçu. L'activation est en cours de confirmation — rechargez la page dans quelques instants si besoin."}
+            </div>
+          ) : null}
+          {paid === "cancel" ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+              Paiement annulé. Vous pouvez ajuster votre offre et réessayer quand vous voulez.
+            </div>
+          ) : null}
           <EnterpriseQuoteClient adminEmail={admin.email} companyName={companyName} />
         </div>
       </main>

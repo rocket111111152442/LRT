@@ -2,35 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { Building2, Check, SendHorizonal, ThumbsDown } from "lucide-react";
+import {
+  MONTHLY_OPTIONS,
+  ONE_TIME_OPTIONS,
+  VOLUME_TIERS,
+  computeEnterpriseQuote,
+  normalizeSelection,
+  summarizeSelection,
+  type EnterpriseSelection,
+} from "@/lib/enterpriseQuote";
 
 type Props = { adminEmail: string; companyName: string };
-
-// Options récurrentes (prix mensuel en euros).
-const MONTHLY_OPTIONS: { id: string; label: string; price: number; help: string }[] = [
-  { id: "priority_support", label: "Support prioritaire 24/7", price: 39, help: "Réponse garantie en priorité, jour et nuit." },
-  { id: "custom_branding", label: "Personnalisation (logo, couleurs)", price: 15, help: "Vos couleurs et logo sur l'espace client." },
-  { id: "api_access", label: "Accès API / intégrations", price: 49, help: "Connectez Qoravo à vos autres outils." },
-  { id: "advanced_backups", label: "Sauvegardes renforcées", price: 19, help: "Sauvegardes quotidiennes et restauration rapide." },
-  { id: "sla", label: "SLA garanti", price: 59, help: "Engagement contractuel de disponibilité." },
-  { id: "roles", label: "Multi-utilisateurs avancé (rôles)", price: 25, help: "Comptes employés avec permissions fines." },
-  { id: "advanced_stats", label: "Statistiques avancées", price: 19, help: "Tableaux de bord et exports détaillés." },
-  { id: "advanced_payments", label: "Paiements en ligne avancés", price: 15, help: "Acomptes, échéanciers, relances automatiques." },
-];
-
-// Frais ponctuels (one-time).
-const ONE_TIME_OPTIONS: { id: string; label: string; price: number }[] = [
-  { id: "data_migration", label: "Migration de vos données existantes", price: 199 },
-  { id: "training", label: "Formation initiale de votre équipe", price: 149 },
-  { id: "onboarding", label: "Accompagnement personnalisé au démarrage", price: 99 },
-];
-
-const VOLUME_TIERS: { id: string; label: string; price: number }[] = [
-  { id: "v0", label: "Moins de 50 réparations / mois", price: 0 },
-  { id: "v1", label: "50 à 150 / mois", price: 29 },
-  { id: "v2", label: "150 à 400 / mois", price: 59 },
-  { id: "v3", label: "400 à 1000 / mois", price: 99 },
-  { id: "v4", label: "Plus de 1000 / mois", price: 179 },
-];
 
 function eur(n: number) {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
@@ -50,63 +32,29 @@ export function EnterpriseQuoteClient({ adminEmail, companyName }: Props) {
   const [sentMsg, setSentMsg] = useState("");
   const [sentErr, setSentErr] = useState("");
 
-  const quote = useMemo(() => {
-    const lines: { label: string; amount: number }[] = [];
-    lines.push({ label: "Plateforme Qoravo (base)", amount: 29 });
+  const selection = useMemo<EnterpriseSelection>(
+    () =>
+      normalizeSelection({
+        shops,
+        seats,
+        storageGb,
+        volume,
+        billing,
+        monthlyOptions: Object.keys(monthly).filter((k) => monthly[k]),
+        oneTimeOptions: Object.keys(oneTime).filter((k) => oneTime[k]),
+      }),
+    [shops, seats, storageGb, volume, billing, monthly, oneTime],
+  );
+  const quote = useMemo(() => computeEnterpriseQuote(selection), [selection]);
 
-    const extraShops = Math.max(0, shops - 1);
-    if (extraShops > 0) lines.push({ label: `Boutiques supplémentaires (${extraShops} × 19 €)`, amount: extraShops * 19 });
-
-    const extraSeats = Math.max(0, seats - 2);
-    if (extraSeats > 0) lines.push({ label: `Postes employés en plus (${extraSeats} × 9 €)`, amount: extraSeats * 9 });
-
-    const extraStorage = Math.max(0, Math.ceil((storageGb - 10) / 10));
-    if (extraStorage > 0) lines.push({ label: `Stockage +${extraStorage * 10} Go (${extraStorage} × 5 €)`, amount: extraStorage * 5 });
-
-    const tier = VOLUME_TIERS.find((t) => t.id === volume);
-    if (tier && tier.price > 0) lines.push({ label: `Volume : ${tier.label}`, amount: tier.price });
-
-    for (const opt of MONTHLY_OPTIONS) {
-      if (monthly[opt.id]) lines.push({ label: opt.label, amount: opt.price });
-    }
-
-    const monthlyBeforeDiscount = lines.reduce((sum, l) => sum + l.amount, 0);
-    const annualDiscount = billing === "annual" ? monthlyBeforeDiscount * 0.15 : 0;
-    const monthlyAfter = monthlyBeforeDiscount - annualDiscount;
-
-    const oneTimeLines = ONE_TIME_OPTIONS.filter((o) => oneTime[o.id]);
-    const oneTimeTotal = oneTimeLines.reduce((sum, o) => sum + o.price, 0);
-
-    return {
-      lines,
-      monthlyBeforeDiscount,
-      annualDiscount,
-      monthlyAfter,
-      annualTotal: monthlyAfter * 12,
-      oneTimeLines,
-      oneTimeTotal,
-    };
-  }, [shops, seats, storageGb, volume, billing, monthly, oneTime]);
-
-  function buildSummary(satisfied: boolean) {
-    const tier = VOLUME_TIERS.find((t) => t.id === volume);
-    const monthlyOpts = MONTHLY_OPTIONS.filter((o) => monthly[o.id]).map((o) => o.label);
-    const oneTimeOpts = ONE_TIME_OPTIONS.filter((o) => oneTime[o.id]).map((o) => o.label);
+  function buildSupportMessage() {
     return [
-      satisfied
-        ? "Demande d'offre entreprise (le client souhaite cette offre) :"
-        : "Demande d'offre entreprise SUR MESURE (l'estimation automatique ne convient pas) :",
+      "Demande d'offre entreprise SUR MESURE (l'estimation automatique ne convient pas) :",
       "",
       `Boutique : ${companyName}`,
       `Email admin : ${adminEmail}`,
       "",
-      `Nombre de boutiques : ${shops}`,
-      `Postes employés : ${seats}`,
-      `Stockage souhaité : ${storageGb} Go`,
-      `Volume de réparations : ${tier?.label ?? volume}`,
-      `Facturation : ${billing === "annual" ? "Annuelle (-15%)" : "Mensuelle"}`,
-      `Options mensuelles : ${monthlyOpts.length ? monthlyOpts.join(", ") : "aucune"}`,
-      `Services ponctuels : ${oneTimeOpts.length ? oneTimeOpts.join(", ") : "aucun"}`,
+      summarizeSelection(selection),
       "",
       `Estimation mensuelle : ${eur(quote.monthlyAfter)}`,
       `Estimation annuelle : ${eur(quote.annualTotal)}`,
@@ -116,7 +64,30 @@ export function EnterpriseQuoteClient({ adminEmail, companyName }: Props) {
     ].filter(Boolean).join("\n");
   }
 
-  async function submit(satisfied: boolean) {
+  // « Cette offre me convient » → redirection vers le paiement Stripe.
+  async function pay() {
+    setSending(true); setSentMsg(""); setSentErr("");
+    try {
+      const res = await fetch("/api/admin/enterprise-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selection),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (res.ok && payload.checkoutUrl) {
+        window.location.href = payload.checkoutUrl;
+        return;
+      }
+      setSentErr(payload.error ?? "Paiement impossible pour le moment.");
+    } catch {
+      setSentErr("Erreur réseau.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  // « Ça ne me convient pas » → message au service client pour un devis humain.
+  async function contactSupport() {
     setSending(true); setSentMsg(""); setSentErr("");
     try {
       const res = await fetch("/api/contact-offre", {
@@ -126,16 +97,12 @@ export function EnterpriseQuoteClient({ adminEmail, companyName }: Props) {
           name: companyName || adminEmail,
           email: adminEmail,
           offre: "enterprise",
-          message: buildSummary(satisfied),
+          message: buildSupportMessage(),
         }),
       });
       const payload = await res.json().catch(() => ({}));
       if (res.ok) {
-        setSentMsg(
-          satisfied
-            ? "Demande envoyée ! Nous revenons vers vous sous 24h pour finaliser votre offre entreprise."
-            : "Demande envoyée au service client. Un conseiller vous proposera une offre vraiment adaptée sous 24h.",
-        );
+        setSentMsg("Demande envoyée au service client. Un conseiller vous proposera une offre vraiment adaptée sous 24h.");
       } else {
         setSentErr(payload.error ?? "Envoi impossible.");
       }
@@ -280,16 +247,16 @@ export function EnterpriseQuoteClient({ adminEmail, companyName }: Props) {
 
           <button
             type="button"
-            onClick={() => submit(true)}
+            onClick={pay}
             disabled={sending}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-fuchsia-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-fuchsia-500 disabled:opacity-50"
           >
             <Check className="h-4 w-4" aria-hidden="true" />
-            Cette offre me convient — la demander
+            {sending ? "Redirection…" : "Cette offre me convient — payer"}
           </button>
           <button
             type="button"
-            onClick={() => submit(false)}
+            onClick={contactSupport}
             disabled={sending}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
           >
@@ -298,7 +265,7 @@ export function EnterpriseQuoteClient({ adminEmail, companyName }: Props) {
           </button>
           <p className="flex items-center gap-1.5 text-xs text-slate-400">
             <SendHorizonal className="h-3.5 w-3.5" aria-hidden="true" />
-            Votre demande est envoyée au service client Qoravo.
+            Paiement sécurisé par Stripe. Tout est activé automatiquement après paiement.
           </p>
         </div>
       </aside>

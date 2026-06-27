@@ -613,6 +613,7 @@ function createFirestorePrisma() {
           id,
           supportIncluded: data.supportIncluded ?? false,
           publicListed: data.publicListed ?? true,
+          enterprisePlanDetails: data.enterprisePlanDetails ?? null,
           plan: data.plan ?? "basic",
           storageAddonGb: data.storageAddonGb ?? 0,
           stripeAccountId: data.stripeAccountId ?? null,

@@ -173,6 +173,7 @@ model ProAccount {
   monthlyGoal               Int           @default(100)
   referralCode              String?
   publicListed              Boolean       @default(true)
+  enterprisePlanDetails     String?
   supportIncluded           Boolean       @default(false)
   plan                      String        @default("basic")
   storageAddonGb            Int           @default(0)
