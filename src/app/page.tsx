@@ -7,6 +7,7 @@ import {
   Clock,
   FileText,
   HardDrive,
+  Leaf,
   Mail,
   MapPinned,
   Package,
@@ -450,6 +451,70 @@ export default function HomePage() {
               </div>
               <span className="text-lg font-extrabold text-brand-blue">+29,99 €/an</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* QUALIREPAR */}
+      <section id="qualirepar" className="bg-emerald-50 px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_1fr]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">
+              <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              Bonus QualiRépar intégré
+            </span>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Gestion QualiRépar incluse
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-700">
+              Qoravo détecte automatiquement les réparations éligibles, déduit le
+              bonus sur la facture, et transmet le dossier à Ecologic ou Ecosystem
+              en quelques secondes.{" "}
+              <strong className="text-emerald-800">
+                Zéro portail à ouvrir, zéro ressaisie.
+              </strong>
+            </p>
+            <ul className="mt-8 grid gap-2.5">
+              {[
+                "Détection d'éligibilité en temps réel",
+                "Bonus déduit automatiquement du devis et de la facture",
+                "Dossier envoyé à l'éco-organisme compétent, sans quitter Qoravo",
+                "Suivi des remboursements dans votre tableau de bord",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                  <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="q-glass overflow-hidden bg-white">
+            <div className="flex items-center gap-3 border-b border-emerald-100 bg-emerald-600 p-5 text-white">
+              <Leaf className="h-6 w-6" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-bold">Bonus Réparation par appareil</p>
+                <p className="text-xs text-emerald-100">Financé par l&apos;éco-organisme</p>
+              </div>
+            </div>
+            <ul className="divide-y divide-slate-100">
+              {[
+                { label: "Smartphone", amount: "25 €" },
+                { label: "Tablette", amount: "25 €" },
+                { label: "PC portable", amount: "50 €" },
+                { label: "Téléviseur", amount: "60 €" },
+                { label: "Électroménager", amount: "15 – 50 €" },
+              ].map((row) => (
+                <li key={row.label} className="flex items-center justify-between px-5 py-3">
+                  <span className="text-sm font-semibold text-slate-800">{row.label}</span>
+                  <span className="text-base font-extrabold text-emerald-700">{row.amount}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="px-5 py-3 text-xs text-slate-500">
+              Montants indicatifs. Le bonus exact est calculé automatiquement selon
+              l&apos;appareil, la panne et le barème en vigueur.
+            </p>
           </div>
         </div>
       </section>

@@ -114,6 +114,15 @@ model Repair {
   quoteSentAt      DateTime?
   quoteRespondedAt DateTime?
   photos           String[]     @default([])
+  qualireparApplied     Boolean  @default(false)
+  qualireparBonusCents  Int?
+  qualireparEcoOrg      String?
+  qualireparBrandId     String?
+  qualireparProductId   String?
+  qualireparSymptom     String?
+  qualireparRequestId   String?
+  qualireparStatus      String?
+  qualireparError       String?
   customerDropOffSignature String?
   customerPickupSignature String?
   partsStatus      PartStatus   @default(NONE)
@@ -174,6 +183,8 @@ model ProAccount {
   referralCode              String?
   publicListed              Boolean       @default(true)
   enterprisePlanDetails     String?
+  qualireparApiKey          String?
+  qualireparSiteId          String?
   supportIncluded           Boolean       @default(false)
   plan                      String        @default("basic")
   storageAddonGb            Int           @default(0)
