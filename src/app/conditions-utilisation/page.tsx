@@ -52,11 +52,11 @@ const sections = [
   },
   {
     title: "13. Disponibilite du service",
-    text: "Qoravo fait ses meilleurs efforts pour fournir un service stable, mais ne garantit pas une disponibilite permanente et ininterrompue. Des interruptions peuvent venir de la maintenance, de Vercel, Firebase, Stripe, d'un fournisseur email, d'une panne reseau ou d'une mauvaise configuration. L'utilisateur doit conserver une organisation minimale pour pouvoir travailler en cas d'indisponibilite temporaire.",
+    text: "Qoravo fait ses meilleurs efforts pour fournir un service stable, mais ne garantit pas une disponibilite permanente et ininterrompue. Des interruptions peuvent venir de la maintenance, de nos prestataires techniques (hebergement, base de donnees, paiement, email), d'une panne reseau ou d'une mauvaise configuration. L'utilisateur doit conserver une organisation minimale pour pouvoir travailler en cas d'indisponibilite temporaire.",
   },
   {
     title: "14. Securite du compte",
-    text: "L'utilisateur doit proteger son adresse email admin, son mot de passe, ses codes de validation, ses cles Stripe, ses cles Firebase et ses mots de passe d'application. Il ne doit pas partager ces informations avec des personnes non autorisees. Toute suspicion d'acces non autorise doit etre traitee rapidement par changement de mot de passe et verification des configurations.",
+    text: "L'utilisateur doit proteger son adresse email admin, son mot de passe, ses codes de validation, ses cles techniques et ses mots de passe d'application. Il ne doit pas partager ces informations avec des personnes non autorisees. Toute suspicion d'acces non autorise doit etre traitee rapidement par changement de mot de passe et verification des configurations.",
   },
   {
     title: "15. Usage interdit",

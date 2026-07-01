@@ -329,8 +329,12 @@ export function ShopLocator() {
 
         {availableShops.length === 0 ? (
           <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-            Aucun magasin ouvert et disponible n&apos;est propose pour le moment.
-            Essayez plus tard ou choisissez un autre horaire avec l&apos;atelier.
+            Aucun atelier n&apos;a de créneau libre à cet instant. Vous pouvez
+            revenir un peu plus tard, ou{" "}
+            <a href="/suivi" className="font-semibold text-sky-700 underline-offset-2 hover:underline">
+              suivre une réparation en cours
+            </a>{" "}
+            avec votre numéro de ticket.
           </p>
         ) : null}
       </div>

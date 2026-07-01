@@ -89,9 +89,11 @@ export function PublicReviews() {
             Ce que les utilisateurs pensent de Qoravo
           </h2>
         </div>
-        <p className="text-sm font-semibold text-slate-600">
-          {reviews.length} avis public(s)
-        </p>
+        {reviews.length > 0 ? (
+          <p className="text-sm font-semibold text-slate-600">
+            {reviews.length} avis public(s)
+          </p>
+        ) : null}
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
@@ -108,8 +110,9 @@ export function PublicReviews() {
           </article>
         ))}
         {reviews.length === 0 ? (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 md:col-span-3">
-            Aucun avis public pour le moment.
+          <p className="rounded-xl border border-dashed border-sky-200 bg-sky-50/60 p-4 text-sm text-slate-700 md:col-span-3">
+            Vous utilisez Qoravo ? Partagez votre expérience ci-dessous — soyez le
+            premier à laisser un avis public.
           </p>
         ) : null}
       </div>
