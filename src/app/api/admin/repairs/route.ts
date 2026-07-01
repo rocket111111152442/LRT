@@ -41,6 +41,7 @@ export async function GET(request: Request) {
               { email: { contains: search, mode: "insensitive" } },
               { brand: { contains: search, mode: "insensitive" } },
               { model: { contains: search, mode: "insensitive" } },
+              { storageLocation: { contains: search, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -59,6 +60,7 @@ export async function GET(request: Request) {
       status: true,
       urgent: true,
       technicianName: true,
+      storageLocation: true,
       expectedPickupAt: true,
       estimatedPriceCents: true,
       partsCostCents: true,
@@ -112,6 +114,10 @@ export async function POST(request: Request) {
     const urgent = body && typeof body === "object" && "urgent" in body
       ? (body as Record<string, unknown>).urgent === true
       : false;
+    const storageLocation =
+      body && typeof body === "object" && "storageLocation" in body
+        ? String((body as Record<string, unknown>).storageLocation ?? "").trim() || null
+        : null;
 
     const repair = await prisma.repair.create({
       data: {
@@ -121,6 +127,7 @@ export async function POST(request: Request) {
         status: "PAS_ENCORE_EN_REPARATION",
         expressMode,
         urgent,
+        storageLocation,
       },
       select: {
         id: true,

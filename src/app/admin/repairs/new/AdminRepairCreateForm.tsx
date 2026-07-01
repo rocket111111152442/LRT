@@ -90,6 +90,7 @@ export function AdminRepairCreateForm() {
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
   const [expressMode, setExpressMode] = useState(false);
   const [urgent, setUrgent] = useState(false);
+  const [storageLocation, setStorageLocation] = useState("");
   const [errors, setErrors] = useState<RepairInputErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,7 +131,7 @@ export function AdminRepairCreateForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...validation.data, expressMode, urgent }),
+        body: JSON.stringify({ ...validation.data, expressMode, urgent, storageLocation }),
       });
       const payload = await response.json();
 
@@ -180,6 +181,19 @@ export function AdminRepairCreateForm() {
             className="h-4 w-4"
           />
           Priorite urgente
+        </label>
+        <label className="grid gap-1 text-sm font-medium text-slate-800">
+          Emplacement dans l&apos;atelier
+          <input
+            type="text"
+            value={storageLocation}
+            onChange={(event) => setStorageLocation(event.target.value)}
+            placeholder="Ex : Tiroir 3, Étagère B2, Sac bleu"
+            className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          />
+          <span className="text-xs font-normal text-slate-500">
+            Où l&apos;appareil est rangé — visible en grand sur l&apos;étiquette.
+          </span>
         </label>
       </fieldset>
 

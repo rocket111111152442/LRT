@@ -8,12 +8,14 @@ export function RepairLabel({
   device,
   shopName,
   trackingUrl,
+  storageLocation,
 }: {
   ticketNumber: string;
   customerName: string;
   device: string;
   shopName: string;
   trackingUrl: string;
+  storageLocation?: string | null;
 }) {
   return (
     <div className="mx-auto grid max-w-md gap-4">
@@ -44,6 +46,16 @@ export function RepairLabel({
           <p className="text-slate-600">{device || "Appareil"}</p>
           <p className="text-xs text-slate-500">Scannez pour suivre la réparation</p>
         </div>
+        {storageLocation ? (
+          <div className="mt-3 rounded-lg border-2 border-slate-900 bg-slate-900 px-3 py-2 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+              Emplacement
+            </p>
+            <p className="text-2xl font-extrabold leading-tight text-white">
+              {storageLocation}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <p className="no-print text-center text-xs text-slate-500">

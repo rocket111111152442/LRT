@@ -461,6 +461,7 @@ function matchesSearch(record: Dict, search: string) {
     "email",
     "brand",
     "model",
+    "storageLocation",
   ];
 
   return fields.some((field) =>
@@ -810,6 +811,7 @@ function createFirestorePrisma() {
           reviewRespondedAt: args.data.reviewRespondedAt ?? null,
           quoteStatus: args.data.quoteStatus ?? "NONE",
           photos: args.data.photos ?? [],
+          storageLocation: args.data.storageLocation ?? null,
           qualireparApplied: args.data.qualireparApplied ?? false,
           qualireparBonusCents: args.data.qualireparBonusCents ?? null,
           qualireparEcoOrg: args.data.qualireparEcoOrg ?? null,

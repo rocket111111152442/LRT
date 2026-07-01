@@ -54,6 +54,7 @@ type RepairDetail = {
   warrantyReturn: boolean;
   expectedPickupAt: string | null;
   technicianName: string | null;
+  storageLocation: string | null;
   timeSpentMinutes: number;
   checklistDiagnostic: boolean;
   checklistBackup: boolean;
@@ -196,6 +197,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [warrantyReturn, setWarrantyReturn] = useState(false);
   const [expectedPickupAt, setExpectedPickupAt] = useState("");
   const [technicianName, setTechnicianName] = useState("");
+  const [storageLocation, setStorageLocation] = useState("");
   const [timeSpentMinutes, setTimeSpentMinutes] = useState("0");
   const [checklistDiagnostic, setChecklistDiagnostic] = useState(false);
   const [checklistBackup, setChecklistBackup] = useState(false);
@@ -234,6 +236,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     setWarrantyReturn(payloadRepair.warrantyReturn);
     setExpectedPickupAt(dateTimeToInput(payloadRepair.expectedPickupAt));
     setTechnicianName(payloadRepair.technicianName ?? "");
+    setStorageLocation(payloadRepair.storageLocation ?? "");
     setTimeSpentMinutes(String(payloadRepair.timeSpentMinutes ?? 0));
     setChecklistDiagnostic(payloadRepair.checklistDiagnostic);
     setChecklistBackup(payloadRepair.checklistBackup);
@@ -385,6 +388,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     await patchRepair({
       status,
       internalNotes,
+      storageLocation,
       urgent,
       expressMode,
       estimatedPriceCents: inputToCents(estimatedPrice),
@@ -628,6 +632,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               />
               <DetailItem label="Devis" value={repair.quoteStatus} />
               <DetailItem label="Technicien" value={repair.technicianName || "-"} />
+              <DetailItem label="Emplacement" value={repair.storageLocation || "-"} />
               <DetailItem label="Temps passe" value={`${repair.timeSpentMinutes} min`} />
               <DetailItem label="Recuperation prevue" value={formatDate(repair.expectedPickupAt)} />
               <div className="grid gap-1">
@@ -897,6 +902,12 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               label="Technicien"
               value={technicianName}
               onChange={setTechnicianName}
+            />
+            <TextField
+              id="storage-location"
+              label="Emplacement (tiroir, étagère…)"
+              value={storageLocation}
+              onChange={setStorageLocation}
             />
             <TextField
               id="time-spent"

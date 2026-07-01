@@ -168,6 +168,7 @@ function repairSelect() {
     warrantyReturn: true,
     expectedPickupAt: true,
     technicianName: true,
+    storageLocation: true,
     timeSpentMinutes: true,
     checklistDiagnostic: true,
     checklistBackup: true,
@@ -351,6 +352,7 @@ function normalizeRepairForResponse(value: unknown) {
     warrantyReturn: readBoolean(repair.warrantyReturn),
     expectedPickupAt: readDateString(repair.expectedPickupAt),
     technicianName: readNullableString(repair.technicianName),
+    storageLocation: readNullableString(repair.storageLocation),
     timeSpentMinutes: readNullableNumber(repair.timeSpentMinutes) ?? 0,
     checklistDiagnostic: readBoolean(repair.checklistDiagnostic),
     checklistBackup: readBoolean(repair.checklistBackup),
@@ -583,6 +585,10 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if ("technicianName" in body) {
     data.technicianName = readOptionalText(body, "technicianName") || null;
+  }
+
+  if ("storageLocation" in body) {
+    data.storageLocation = readOptionalText(body, "storageLocation") || null;
   }
 
   if ("timeSpentMinutes" in body) {

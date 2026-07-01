@@ -96,6 +96,7 @@ model Repair {
   warrantyReturn  Boolean      @default(false)
   expectedPickupAt DateTime?
   technicianName  String?
+  storageLocation String?
   timeSpentMinutes Int         @default(0)
   checklistDiagnostic Boolean  @default(false)
   checklistBackup Boolean      @default(false)

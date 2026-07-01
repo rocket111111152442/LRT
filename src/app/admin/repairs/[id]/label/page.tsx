@@ -22,6 +22,7 @@ export default async function RepairLabelPage({ params }: Props) {
     deviceType: string;
     brand: string;
     model: string;
+    storageLocation: string | null;
   } | null = null;
 
   try {
@@ -30,6 +31,7 @@ export default async function RepairLabelPage({ params }: Props) {
       select: {
         id: true, ticketNumber: true, proAccountId: true,
         firstName: true, lastName: true, deviceType: true, brand: true, model: true,
+        storageLocation: true,
       },
     });
   } catch {
@@ -79,6 +81,7 @@ export default async function RepairLabelPage({ params }: Props) {
             device={`${repair.deviceType} ${repair.brand} ${repair.model}`.trim()}
             shopName={admin.email}
             trackingUrl={trackingUrl}
+            storageLocation={repair.storageLocation}
           />
         </div>
       </main>
