@@ -413,6 +413,7 @@ model AccountingSale {
   vatRateBps     Int         @default(2000)
   paymentMethod  String?
   notes          String?
+  inventoryItemId String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 

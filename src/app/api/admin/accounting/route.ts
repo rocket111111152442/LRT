@@ -285,12 +285,45 @@ export async function POST(request: Request) {
     const quantity = Math.max(readInt(body, "quantity", 1), 1);
     const unitPriceCents = centsFromDecimal(body.unitPrice);
     const unitCostCents = centsFromDecimal(body.unitCost);
+    const inventoryItemId = readText(body, "inventoryItemId");
 
     if (!label || unitPriceCents <= 0) {
       return NextResponse.json(
         { error: "Nom et prix de vente requis." },
         { status: 400 },
       );
+    }
+
+    // Vente liée à un article du stock : on vérifie la disponibilité puis on
+    // décrémente. Si la quantité tombe à 0, l'article disparaît du stock.
+    let stockRemoved = false;
+    if (inventoryItemId) {
+      const item = await prisma.inventoryItem.findUnique({
+        where: { id: inventoryItemId },
+        select: { id: true, proAccountId: true, quantity: true },
+      });
+
+      if (!item || (proAccountId && item.proAccountId !== proAccountId)) {
+        return NextResponse.json({ error: "Article de stock introuvable." }, { status: 404 });
+      }
+
+      if (item.quantity < quantity) {
+        return NextResponse.json(
+          { error: `Stock insuffisant : ${item.quantity} en stock, ${quantity} demandé(s).` },
+          { status: 400 },
+        );
+      }
+
+      const remaining = item.quantity - quantity;
+      if (remaining <= 0) {
+        await prisma.inventoryItem.delete({ where: { id: item.id } });
+        stockRemoved = true;
+      } else {
+        await prisma.inventoryItem.update({
+          where: { id: item.id },
+          data: { quantity: remaining },
+        });
+      }
     }
 
     const sale = await prisma.accountingSale.create({
@@ -306,10 +339,11 @@ export async function POST(request: Request) {
         vatRateBps: percentToBps(body.vatRatePercent, 2000),
         paymentMethod: readOptionalText(body, "paymentMethod"),
         notes: readOptionalText(body, "notes"),
+        inventoryItemId: inventoryItemId || null,
       },
     });
 
-    return NextResponse.json({ sale }, { status: 201 });
+    return NextResponse.json({ sale, stockRemoved }, { status: 201 });
   }
 
   if (action === "expense") {

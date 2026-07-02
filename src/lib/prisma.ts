@@ -1129,6 +1129,10 @@ function createFirestorePrisma() {
       quantity: 1,
       unitCostCents: 0,
       vatRateBps: 2000,
+      customerName: null,
+      paymentMethod: null,
+      notes: null,
+      inventoryItemId: null,
     }),
 
     accountingExpense: createGenericFirestoreModel("accountingExpenses", {

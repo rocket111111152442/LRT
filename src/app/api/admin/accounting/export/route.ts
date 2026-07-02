@@ -114,7 +114,15 @@ export async function GET(request: Request) {
       cents(sale.quantity * sale.unitPriceCents),
       cents(sale.quantity * sale.unitCostCents),
       "0,00",
-      sale.notes ?? "",
+      [
+        `Qte ${sale.quantity}`,
+        `PU ${cents(sale.unitPriceCents)} EUR`,
+        `Marge ${cents(sale.quantity * (sale.unitPriceCents - sale.unitCostCents))} EUR`,
+        sale.paymentMethod ? `Paiement ${sale.paymentMethod}` : "",
+        sale.customerName ? `Client ${sale.customerName}` : "",
+        sale.inventoryItemId ? "Vendu depuis le stock" : "",
+        sale.notes ?? "",
+      ].filter(Boolean).join(" - "),
     ]),
     ...expenses.map((expense) => [
       "Depense",
