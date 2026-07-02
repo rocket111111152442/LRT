@@ -15,3 +15,7 @@ build
 backups
 
 tsconfig.tsbuildinfo
+
+# Projet ASSURIO independant (repo git separe)
+assurio/
+.claude/
