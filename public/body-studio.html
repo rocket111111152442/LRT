@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Body Studio — Joue avec ton corps 🕺</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: #0b0f1a;
+    color: #e5eaf5;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---------- Barre du haut ---------- */
+  #topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    background: rgba(15, 20, 35, .85);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    flex-wrap: wrap;
+    z-index: 5;
+  }
+  #topbar h1 { font-size: 17px; font-weight: 800; letter-spacing: .3px; white-space: nowrap; }
+  #topbar h1 span { background: linear-gradient(90deg,#22d3ee,#a78bfa,#fb7185); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #modes { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mode-btn {
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(255,255,255,.05);
+    color: #e5eaf5;
+    padding: 7px 14px; border-radius: 999px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all .15s ease;
+  }
+  .mode-btn:hover { background: rgba(255,255,255,.12); transform: translateY(-1px); }
+  .mode-btn.active {
+    background: linear-gradient(90deg, rgba(34,211,238,.25), rgba(167,139,250,.25));
+    border-color: #22d3ee;
+    box-shadow: 0 0 14px rgba(34,211,238,.35);
+  }
+
+  /* ---------- Scène ---------- */
+  #stage { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 8px; }
+  #cam { display: none; }
+  #canvas { max-width: 100%; max-height: 100%; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+
+  /* ---------- Alerte cadrage ---------- */
+  #framing {
+    position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+    padding: 9px 18px; border-radius: 999px;
+    font-size: 15px; font-weight: 700; white-space: nowrap;
+    max-width: 94%; overflow: hidden; text-overflow: ellipsis;
+    backdrop-filter: blur(6px);
+    transition: background .25s, color .25s, box-shadow .25s;
+    z-index: 6;
+  }
+  #framing.ok   { background: rgba(22, 101, 52, .85); color: #bbf7d0; box-shadow: 0 0 18px rgba(74,222,128,.35); }
+  #framing.warn { background: rgba(154, 82, 8, .9);  color: #fde68a; box-shadow: 0 0 18px rgba(251,146,60,.45); }
+  #framing.bad  { background: rgba(127, 29, 29, .9); color: #fecaca; box-shadow: 0 0 18px rgba(248,113,113,.5); }
+
+  /* ---------- Toast (astuce de mode) ---------- */
+  #toast {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,20,35,.9); border: 1px solid rgba(255,255,255,.15);
+    padding: 10px 20px; border-radius: 12px; font-size: 15px; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+    z-index: 6; text-align: center; max-width: 92%;
+  }
+  #toast.show { opacity: 1; }
+
+  /* ---------- Écran de démarrage ---------- */
+  #start-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: radial-gradient(1200px 800px at 30% 20%, #1e2a4a 0%, #0b0f1a 60%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 22px; padding: 24px; text-align: center; overflow-y: auto;
+  }
+  #start-overlay h2 { font-size: clamp(28px, 5vw, 46px); font-weight: 900; }
+  #start-overlay h2 span { background: linear-gradient(90deg,#22d3ee,#a78bfa,#fb7185); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #start-overlay p.sub { font-size: 17px; color: #a5b0c8; max-width: 560px; }
+  .features { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 720px; }
+  .feat {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 12px 16px; font-size: 14px; font-weight: 600;
+  }
+  .feat b { display: block; font-size: 22px; margin-bottom: 4px; }
+  #startBtn {
+    font-size: 20px; font-weight: 800; color: #06121f;
+    background: linear-gradient(90deg,#22d3ee,#4ade80);
+    border: none; border-radius: 999px; padding: 16px 42px; cursor: pointer;
+    box-shadow: 0 8px 30px rgba(34,211,238,.4);
+    transition: transform .15s;
+  }
+  #startBtn:hover { transform: scale(1.05); }
+  #startBtn:disabled { opacity: .6; cursor: wait; transform: none; }
+  #startStatus { font-size: 15px; color: #a5b0c8; min-height: 22px; }
+  #startStatus.error { color: #fca5a5; font-weight: 700; }
+  .tips { font-size: 13px; color: #7c88a3; max-width: 520px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <h1>🕺 <span>Body Studio</span></h1>
+  <nav id="modes"></nav>
+</header>
+
+<main id="stage">
+  <video id="cam" autoplay muted playsinline></video>
+  <canvas id="canvas" width="1280" height="720"></canvas>
+  <div id="framing" class="bad">👀 En attente de la caméra…</div>
+  <div id="toast"></div>
+</main>
+
+<div id="start-overlay">
+  <h2>🕺 <span>Body Studio</span></h2>
+  <p class="sub">Ta caméra suit <b>33 points de ton corps</b> en direct : tête, épaules, coudes, mains, hanches, genoux, pieds… Et tu joues avec !</p>
+  <div class="features">
+    <div class="feat"><b>🦴</b>Squelette</div>
+    <div class="feat"><b>🥁</b>Batterie aérienne</div>
+    <div class="feat"><b>🎹</b>Thérémine</div>
+    <div class="feat"><b>🫧</b>Chasse aux bulles</div>
+    <div class="feat"><b>✨</b>Néon</div>
+  </div>
+  <button id="startBtn">🎥 Démarrer la caméra</button>
+  <div id="startStatus"></div>
+  <p class="tips">
+    💡 Astuces : place-toi à <b>2–3 mètres</b> de la caméra pour qu'elle voie tout ton corps (tête ET pieds),
+    avec une bonne lumière face à toi. Une alerte t'indique en permanence si le cadrage est bon.
+    Tout se passe dans ton navigateur : aucune image n'est envoyée nulle part.
+  </p>
+</div>
+
+<noscript>Ce logiciel a besoin de JavaScript pour fonctionner.</noscript>
+
+<script type="module">
+import { PoseLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+/* =========================================================
+   Constantes corps humain (indices MediaPipe Pose, 33 points)
+   ========================================================= */
+const NAME = {
+  0:"Tête", 11:"Épaule G", 12:"Épaule D", 13:"Coude G", 14:"Coude D",
+  15:"Main G", 16:"Main D", 23:"Hanche G", 24:"Hanche D",
+  25:"Genou G", 26:"Genou D", 27:"Pied G", 28:"Pied D"
+};
+const BONES = [
+  [11,12,"#4ade80"],[11,23,"#4ade80"],[12,24,"#4ade80"],[23,24,"#4ade80"],
+  [11,13,"#22d3ee"],[13,15,"#22d3ee"],
+  [12,14,"#fb7185"],[14,16,"#fb7185"],
+  [23,25,"#fb923c"],[25,27,"#fb923c"],[27,29,"#fb923c"],[29,31,"#fb923c"],[27,31,"#fb923c"],
+  [24,26,"#a78bfa"],[26,28,"#a78bfa"],[28,30,"#a78bfa"],[30,32,"#a78bfa"],[28,32,"#a78bfa"]
+];
+const JOINT_COLOR = {
+  0:"#facc15", 11:"#4ade80",12:"#4ade80",23:"#4ade80",24:"#4ade80",
+  13:"#22d3ee",15:"#22d3ee", 14:"#fb7185",16:"#fb7185",
+  25:"#fb923c",27:"#fb923c", 26:"#a78bfa",28:"#a78bfa"
+};
+// Groupes vérifiés pour le cadrage "corps entier"
+const FRAMING_GROUPS = [
+  { label: "ta tête",     ids: [0] },
+  { label: "tes épaules", ids: [11,12] },
+  { label: "tes hanches", ids: [23,24] },
+  { label: "tes genoux",  ids: [25,26] },
+  { label: "tes pieds",   ids: [27,28] },
+];
+
+/* =========================================================
+   État global
+   ========================================================= */
+const video   = document.getElementById("cam");
+const canvas  = document.getElementById("canvas");
+const ctx     = canvas.getContext("2d");
+const framingEl = document.getElementById("framing");
+const toastEl = document.getElementById("toast");
+
+let W = canvas.width, H = canvas.height;
+let landmarker = null;
+let running = false;
+let lastVideoTime = -1;
+let rawLm = null;               // derniers landmarks bruts (ou null)
+let detected = false;
+let framingOk = false;
+let fps = 0;
+let lastFrameT = performance.now();
+let lastDetectT = 0;
+
+// Landmarks lissés en coordonnées écran-miroir normalisées (x déjà inversé)
+const S = Array.from({length:33}, () => ({x:.5, y:.5, vis:0, vx:0, vy:0, init:false}));
+
+function P(i){ const s = S[i]; return { x: s.x*W, y: s.y*H, vis: s.vis, sp: Math.hypot(s.vx, s.vy) }; }
+const clamp = (v,a,b) => Math.min(b, Math.max(a,v));
+
+/* =========================================================
+   Moteur audio (tout est synthétisé, aucun fichier)
+   ========================================================= */
+let ac = null, master = null, noiseBuf = null, theremin = null;
+
+function audioInit(){
+  if (ac) return;
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  const comp = ac.createDynamicsCompressor();
+  master = ac.createGain();
+  master.gain.value = 0.9;
+  master.connect(comp).connect(ac.destination);
+
+  // Thérémine : oscillateur continu + vibrato + filtre, silencieux par défaut
+  const osc = ac.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = 220;
+  const lfo = ac.createOscillator(); lfo.frequency.value = 5;
+  const lfoGain = ac.createGain(); lfoGain.gain.value = 3;
+  lfo.connect(lfoGain).connect(osc.frequency);
+  const filter = ac.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 1600;
+  const gain = ac.createGain(); gain.gain.value = 0;
+  osc.connect(filter).connect(gain).connect(master);
+  osc.start(); lfo.start();
+  theremin = { osc, gain, filter };
+}
+function getNoise(){
+  if (!noiseBuf){
+    noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+  }
+  return noiseBuf;
+}
+function env(node, v, decay){
+  const t = ac.currentTime;
+  node.gain.setValueAtTime(Math.max(v, .001), t);
+  node.gain.exponentialRampToValueAtTime(.001, t + decay);
+}
+function playKick(v){
+  const t = ac.currentTime;
+  const o = ac.createOscillator(); o.type = "sine";
+  o.frequency.setValueAtTime(150, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + .12);
+  const g = ac.createGain(); env(g, v, .3);
+  o.connect(g).connect(master); o.start(t); o.stop(t + .32);
+}
+function playTom(v){
+  const t = ac.currentTime;
+  const o = ac.createOscillator(); o.type = "sine";
+  o.frequency.setValueAtTime(200, t);
+  o.frequency.exponentialRampToValueAtTime(95, t + .2);
+  const g = ac.createGain(); env(g, v*.9, .3);
+  o.connect(g).connect(master); o.start(t); o.stop(t + .32);
+}
+function playSnare(v){
+  const t = ac.currentTime;
+  const n = ac.createBufferSource(); n.buffer = getNoise();
+  const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1800;
+  const g = ac.createGain(); env(g, v*.8, .18);
+  n.connect(bp).connect(g).connect(master); n.start(t); n.stop(t + .2);
+  const o = ac.createOscillator(); o.type = "triangle"; o.frequency.value = 190;
+  const g2 = ac.createGain(); env(g2, v*.4, .09);
+  o.connect(g2).connect(master); o.start(t); o.stop(t + .1);
+}
+function playHihat(v){
+  const t = ac.currentTime;
+  const n = ac.createBufferSource(); n.buffer = getNoise();
+  const hp = ac.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 7500;
+  const g = ac.createGain(); env(g, v*.5, .06);
+  n.connect(hp).connect(g).connect(master); n.start(t); n.stop(t + .08);
+}
+function playCrash(v){
+  const t = ac.currentTime;
+  const n = ac.createBufferSource(); n.buffer = getNoise();
+  const hp = ac.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 4500;
+  const g = ac.createGain(); env(g, v*.55, .9);
+  n.connect(hp).connect(g).connect(master); n.start(t); n.stop(t + 1);
+}
+function playPluck(freq, v){
+  const t = ac.currentTime;
+  const o = ac.createOscillator(); o.type = "triangle"; o.frequency.value = freq;
+  const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2500;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(.001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(v*.5, .01), t + .01);
+  g.gain.exponentialRampToValueAtTime(.001, t + .4);
+  o.connect(lp).connect(g).connect(master); o.start(t); o.stop(t + .42);
+}
+const midiFreq = m => 440 * Math.pow(2, (m - 69) / 12);
+const PENTA = [57,60,62,64,67,69,72,74,76,79,81]; // La mineur pentatonique
+const PENTA_NAMES = ["La","Do","Ré","Mi","Sol","La","Do","Ré","Mi","Sol","La"];
+
+/* =========================================================
+   Particules et textes flottants (partagés entre les modes)
+   ========================================================= */
+const particles = [];
+const floats = [];
+function burst(x, y, hue, n, power){
+  for (let i = 0; i < n; i++){
+    if (particles.length > 400) particles.shift();
+    const a = Math.random()*Math.PI*2, sp = (Math.random()*.5 + .5) * power;
+    particles.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 60, hue, life: 1 });
+  }
+}
+function drawParticles(dt){
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (let i = particles.length - 1; i >= 0; i--){
+    const p = particles[i];
+    p.life -= dt * 1.4;
+    if (p.life <= 0){ particles.splice(i,1); continue; }
+    p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 220*dt;
+    ctx.fillStyle = `hsla(${p.hue},95%,65%,${p.life*.9})`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3 + p.life*4, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+  for (let i = floats.length - 1; i >= 0; i--){
+    const f = floats[i];
+    f.life -= dt;
+    if (f.life <= 0){ floats.splice(i,1); continue; }
+    f.y -= 50*dt;
+    ctx.save();
+    ctx.globalAlpha = clamp(f.life, 0, 1);
+    ctx.font = `bold ${Math.round(H*.045)}px system-ui`;
+    ctx.textAlign = "center";
+    ctx.fillStyle = `hsl(${f.hue},95%,70%)`;
+    ctx.fillText(f.txt, f.x, f.y);
+    ctx.restore();
+  }
+}
+function addFloat(x, y, txt, hue){ floats.push({x, y, txt, hue, life: 1.1}); }
+
+/* =========================================================
+   Dessins communs
+   ========================================================= */
+function rrect(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x+r, y);
+  c.arcTo(x+w, y, x+w, y+h, r);
+  c.arcTo(x+w, y+h, x, y+h, r);
+  c.arcTo(x, y+h, x, y, r);
+  c.arcTo(x, y, x+w, y, r);
+  c.closePath();
+}
+function drawSkeleton(colored, alpha){
+  if (!detected) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.lineCap = "round";
+  const lw = Math.max(3, H*.008);
+  for (const [a, b, col] of BONES){
+    const pa = P(a), pb = P(b);
+    if (pa.vis < .4 || pb.vis < .4) continue;
+    ctx.strokeStyle = colored ? col : "#ffffff";
+    ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+  }
+  // Tête : cercle centré entre les oreilles
+  const e1 = P(7), e2 = P(8), nose = P(0);
+  if (nose.vis > .4){
+    const cx = (e1.vis > .4 && e2.vis > .4) ? (e1.x+e2.x)/2 : nose.x;
+    const cy = (e1.vis > .4 && e2.vis > .4) ? (e1.y+e2.y)/2 : nose.y;
+    const r  = (e1.vis > .4 && e2.vis > .4) ? Math.max(Math.hypot(e1.x-e2.x, e1.y-e2.y)*.9, 18) : H*.06;
+    ctx.strokeStyle = colored ? "#facc15" : "#ffffff";
+    ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+  }
+  // Articulations
+  for (const k in JOINT_COLOR){
+    const p = P(+k);
+    if (p.vis < .4) continue;
+    ctx.fillStyle = colored ? JOINT_COLOR[k] : "#ffffff";
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(4, H*.009), 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawLabel(x, y, txt, color){
+  ctx.save();
+  ctx.font = `bold ${Math.round(H*.024)}px system-ui`;
+  const w = ctx.measureText(txt).width + 14;
+  const h = H*.038;
+  rrect(ctx, x - w/2, y - h - 12, w, h, h/2);
+  ctx.fillStyle = "rgba(5,10,20,.7)";
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(txt, x, y - h/2 - 12);
+  ctx.restore();
+}
+function drawPointer(i, hue){
+  const p = P(i);
+  if (p.vis < .4) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  const r = Math.max(10, H*.018);
+  const g = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, r*2.2);
+  g.addColorStop(0, `hsla(${hue},95%,70%,.95)`);
+  g.addColorStop(1, `hsla(${hue},95%,60%,0)`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, r*2.2, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function centerText(txt, y, size, color){
+  ctx.save();
+  ctx.font = `bold ${Math.round(size)}px system-ui`;
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(5,10,20,.55)";
+  const w = ctx.measureText(txt).width + 30;
+  rrect(ctx, W/2 - w/2, y - size*1.05, w, size*1.5, 12);
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.fillText(txt, W/2, y);
+  ctx.restore();
+}
+
+/* =========================================================
+   MODE 1 — Squelette (exploration du corps)
+   ========================================================= */
+const modeSkeleton = {
+  label: "Squelette", emoji: "🦴", dim: .18,
+  tip: "🦴 Bouge : chaque partie de ton corps est suivie et nommée en direct !",
+  update(dt, now){
+    drawSkeleton(true, .95);
+    if (!detected) return;
+    for (const k in NAME){
+      const p = P(+k);
+      if (p.vis < .5) continue;
+      drawLabel(p.x, p.y, NAME[k], JOINT_COLOR[k] || "#fff");
+    }
+    // La partie du corps la plus rapide
+    let best = -1, bestSp = 0;
+    for (const i of [15,16,27,28,0]){
+      const p = P(i);
+      if (p.vis > .5 && p.sp > bestSp){ bestSp = p.sp; best = i; }
+    }
+    if (best >= 0 && bestSp > 1.6){
+      centerText(`⚡ ${NAME[best]} à toute vitesse !`, H*.12, H*.045, "#facc15");
+      const p = P(best);
+      burst(p.x, p.y, 50, 2, 120);
+    }
+  }
+};
+
+/* =========================================================
+   MODE 2 — Batterie aérienne
+   ========================================================= */
+const DRUM_ZONES = [
+  { x:.16, y:.28, r:.14, label:"Charley 🎩",     play: playHihat, color:"#22d3ee", feet:false },
+  { x:.84, y:.28, r:.14, label:"Cymbale 💥",     play: playCrash, color:"#facc15", feet:false },
+  { x:.13, y:.60, r:.14, label:"Caisse claire",  play: playSnare, color:"#fb7185", feet:false },
+  { x:.87, y:.60, r:.14, label:"Tom",            play: playTom,   color:"#a78bfa", feet:false },
+  { x:.50, y:.90, r:.17, label:"Grosse caisse 👣", play: playKick, color:"#4ade80", feet:true },
+];
+for (const z of DRUM_ZONES){ z.inside = new Set(); z.lastHit = 0; z.flash = 0; }
+
+const modeDrums = {
+  label: "Batterie", emoji: "🥁", dim: .3,
+  tip: "🥁 Frappe les cercles avec tes mains — et tape du pied au milieu pour la grosse caisse !",
+  update(dt, now){
+    drawSkeleton(false, .3);
+    for (const z of DRUM_ZONES){
+      const cx = z.x*W, cy = z.y*H, r = z.r*H;
+      const flash = Math.max(0, 1 - (now - z.flash)/300);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, r * (1 + flash*.12), 0, Math.PI*2);
+      ctx.fillStyle = z.color + (flash > 0 ? "55" : "22");
+      ctx.fill();
+      ctx.lineWidth = 3 + flash*6;
+      ctx.strokeStyle = z.color;
+      ctx.shadowColor = z.color; ctx.shadowBlur = 12 + flash*30;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font = `bold ${Math.round(H*.028)}px system-ui`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "#fff";
+      ctx.fillText(z.label, cx, cy);
+      ctx.restore();
+
+      if (!detected) { z.inside.clear(); continue; }
+      const points = z.feet ? [27, 28] : [15, 16];
+      for (const i of points){
+        const p = P(i);
+        const inside = p.vis > .4 && Math.hypot(p.x - cx, p.y - cy) < r;
+        const was = z.inside.has(i);
+        const minSpeed = z.feet ? .25 : .5;
+        if (inside && !was && p.sp > minSpeed && now - z.lastHit > 120){
+          z.lastHit = now; z.flash = now;
+          const vol = clamp(p.sp / 2.5, .3, 1);
+          z.play(vol);
+          burst(p.x, p.y, parseInt(z.color.slice(1), 16) % 360, 14, 220);
+        }
+        if (inside) z.inside.add(i); else z.inside.delete(i);
+      }
+    }
+    drawPointer(15, 190); drawPointer(16, 330);
+    drawPointer(27, 30);  drawPointer(28, 270);
+    if (!detected) centerText("👀 Mets-toi devant la caméra pour jouer !", H*.5, H*.045, "#fff");
+  }
+};
+
+/* =========================================================
+   MODE 3 — Thérémine (musique avec les mains)
+   ========================================================= */
+const modeTheremin = {
+  label: "Thérémine", emoji: "🎹", dim: .35,
+  tip: "🎹 Main droite = hauteur de la note · Main gauche = volume. Monte et descends les mains !",
+  update(dt, now){
+    const bandTop = .08, bandBottom = .92, span = bandBottom - bandTop;
+    const n = PENTA.length;
+    const right = detected ? P(16) : null; // main droite de la personne
+    const left  = detected ? P(15) : null;
+    const active = right && right.vis > .5;
+    let idx = -1;
+    if (active) idx = clamp(Math.floor((bandBottom - right.y/H) / span * n), 0, n - 1);
+
+    // Bandes de notes
+    ctx.save();
+    ctx.font = `bold ${Math.round(H*.026)}px system-ui`;
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (let i = 0; i < n; i++){
+      const yTop = (bandBottom - (i+1)/n * span) * H;
+      const bh = span/n * H;
+      if (i === idx){
+        ctx.fillStyle = "rgba(34,211,238,.22)";
+        ctx.fillRect(0, yTop, W, bh);
+      }
+      ctx.strokeStyle = "rgba(255,255,255,.15)";
+      ctx.beginPath(); ctx.moveTo(0, yTop); ctx.lineTo(W, yTop); ctx.stroke();
+      ctx.fillStyle = i === idx ? "#22d3ee" : "rgba(255,255,255,.45)";
+      ctx.fillText(PENTA_NAMES[i], W - 14, yTop + bh/2);
+    }
+    ctx.restore();
+
+    drawSkeleton(false, .3);
+
+    // Volume : main gauche
+    let vol = .22;
+    if (left && left.vis > .5) vol = clamp((0.9 - left.y/H) / .7, 0, 1) * .4;
+
+    if (ac && theremin){
+      const t = ac.currentTime;
+      if (active){
+        theremin.osc.frequency.setTargetAtTime(midiFreq(PENTA[idx]), t, .04);
+        theremin.gain.gain.setTargetAtTime(vol, t, .06);
+      } else {
+        theremin.gain.gain.setTargetAtTime(0, t, .08);
+      }
+    }
+
+    // Barre de volume à gauche
+    ctx.save();
+    const barX = 20, barY = H*.15, barH = H*.7;
+    rrect(ctx, barX, barY, 14, barH, 7);
+    ctx.fillStyle = "rgba(255,255,255,.12)"; ctx.fill();
+    const fh = barH * (vol/.4);
+    rrect(ctx, barX, barY + barH - fh, 14, fh, 7);
+    ctx.fillStyle = "#4ade80"; ctx.fill();
+    ctx.font = `bold ${Math.round(H*.024)}px system-ui`;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#a5b0c8";
+    ctx.fillText("🔊", barX - 2, barY - 12);
+    ctx.restore();
+
+    if (active){
+      drawPointer(16, 190);
+      drawLabel(right.x, right.y, `🎵 ${PENTA_NAMES[idx]}`, "#22d3ee");
+      centerText(`♪ ${PENTA_NAMES[idx]} ♪`, H*.12, H*.06, "#22d3ee");
+    } else {
+      centerText("✋ Lève ta main droite pour jouer !", H*.5, H*.045, "#fff");
+    }
+    if (left && left.vis > .5){
+      drawPointer(15, 120);
+      drawLabel(left.x, left.y, "🔊 volume", "#4ade80");
+    }
+  },
+  exit(){
+    if (ac && theremin) theremin.gain.gain.setTargetAtTime(0, ac.currentTime, .05);
+  }
+};
+
+/* =========================================================
+   MODE 4 — Chasse aux bulles
+   ========================================================= */
+let bubbles = [], lastSpawn = 0, score = 0, combo = 0, lastPop = 0;
+let best = +(localStorage.getItem("bodyStudioBest") || 0);
+
+const modeBubbles = {
+  label: "Bulles", emoji: "🫧", dim: .25,
+  tip: "🫧 Éclate les bulles avec tes mains, tes pieds… ou ta tête ! Enchaîne vite pour faire des combos.",
+  update(dt, now){
+    drawSkeleton(false, .25);
+    if (now - lastSpawn > 1000 && bubbles.length < 6){
+      lastSpawn = now;
+      bubbles.push({
+        x: .15 + Math.random()*.7,
+        y: .45 + Math.random()*.45,
+        r: .05 + Math.random()*.025,
+        hue: Math.random()*360,
+        vy: .02 + Math.random()*.04,
+        born: now
+      });
+    }
+    const pointers = [15, 16, 31, 32, 0];
+    for (let i = bubbles.length - 1; i >= 0; i--){
+      const b = bubbles[i];
+      b.y -= b.vy * dt;
+      const age = (now - b.born)/1000;
+      if (b.y < .03 || age > 9){ bubbles.splice(i,1); continue; }
+      const bx = b.x*W, by = b.y*H, br = b.r*H;
+
+      // Dessin de la bulle
+      ctx.save();
+      const g = ctx.createRadialGradient(bx - br*.3, by - br*.3, br*.1, bx, by, br);
+      g.addColorStop(0, `hsla(${b.hue},90%,80%,.9)`);
+      g.addColorStop(.7, `hsla(${b.hue},90%,60%,.4)`);
+      g.addColorStop(1, `hsla(${b.hue},90%,55%,.15)`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = `hsla(${b.hue},90%,75%,.8)`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.85)";
+      ctx.beginPath(); ctx.arc(bx - br*.35, by - br*.35, br*.15, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // Éclatement ?
+      if (!detected) continue;
+      for (const pi of pointers){
+        const p = P(pi);
+        if (p.vis < .4) continue;
+        if (Math.hypot(p.x - bx, p.y - by) < br + 14){
+          bubbles.splice(i,1);
+          combo = (now - lastPop < 1500) ? combo + 1 : 1;
+          lastPop = now;
+          score += combo;
+          if (score > best){ best = score; localStorage.setItem("bodyStudioBest", best); }
+          burst(bx, by, b.hue, 18, 260);
+          addFloat(bx, by, combo > 1 ? `+${combo} 🔥` : "+1", b.hue);
+          playPluck(midiFreq(PENTA[(Math.random()*PENTA.length)|0]), .8);
+          break;
+        }
+      }
+    }
+    for (const pi of pointers) drawPointer(pi, pi === 0 ? 55 : pi % 2 ? 190 : 330);
+
+    // Score
+    ctx.save();
+    ctx.font = `bold ${Math.round(H*.04)}px system-ui`;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(5,10,20,.55)";
+    rrect(ctx, 14, 14, W*.3, H*.075, 12); ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText(`Score : ${score}`, 28, 14 + H*.05);
+    ctx.font = `bold ${Math.round(H*.024)}px system-ui`;
+    ctx.fillStyle = "#facc15";
+    ctx.fillText(`🏆 Record : ${best}${combo > 1 ? `   🔥 Combo x${combo}` : ""}`, 28, 14 + H*.07 - 2);
+    ctx.restore();
+    if (!detected) centerText("👀 Mets-toi devant la caméra pour éclater les bulles !", H*.5, H*.045, "#fff");
+  }
+};
+
+/* =========================================================
+   MODE 5 — Néon (traînées lumineuses)
+   ========================================================= */
+const TRAIL_PARTS = [ [15,190], [16,330], [27,30], [28,270] ];
+const trails = new Map(TRAIL_PARTS.map(([i]) => [i, []]));
+
+const modeNeon = {
+  label: "Néon", emoji: "✨", dim: .55,
+  tip: "✨ Danse ! Tes mains et tes pieds laissent des traînées de lumière.",
+  update(dt, now){
+    drawSkeleton(false, .2);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (const [i, hue] of TRAIL_PARTS){
+      const tr = trails.get(i);
+      const p = detected ? P(i) : null;
+      if (p && p.vis > .4){
+        tr.push({x: p.x, y: p.y, t: now});
+        if (p.sp > 1) burst(p.x, p.y, hue, Math.min(3, p.sp|0), 90);
+      }
+      while (tr.length && now - tr[0].t > 700) tr.shift();
+      for (let k = 1; k < tr.length; k++){
+        const age = (now - tr[k].t)/700;
+        ctx.strokeStyle = `hsla(${hue},95%,65%,${(1-age)*.85})`;
+        ctx.lineWidth = (1-age)*14 + 2;
+        ctx.shadowColor = `hsl(${hue},95%,60%)`;
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.moveTo(tr[k-1].x, tr[k-1].y);
+        ctx.lineTo(tr[k].x, tr[k].y);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    if (!detected) centerText("👀 Mets-toi devant la caméra et danse !", H*.5, H*.045, "#fff");
+  }
+};
+
+/* =========================================================
+   Registre des modes + barre de navigation
+   ========================================================= */
+const MODES = { squelette: modeSkeleton, batterie: modeDrums, theremine: modeTheremin, bulles: modeBubbles, neon: modeNeon };
+let currentMode = "squelette";
+
+const nav = document.getElementById("modes");
+for (const [key, m] of Object.entries(MODES)){
+  const btn = document.createElement("button");
+  btn.className = "mode-btn" + (key === currentMode ? " active" : "");
+  btn.textContent = `${m.emoji} ${m.label}`;
+  btn.dataset.mode = key;
+  btn.addEventListener("click", () => setMode(key));
+  nav.appendChild(btn);
+}
+function setMode(key){
+  if (key === currentMode || !MODES[key]) return;
+  const old = MODES[currentMode];
+  if (old.exit) old.exit();
+  currentMode = key;
+  document.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === key));
+  showToast(MODES[key].tip);
+}
+document.addEventListener("keydown", e => {
+  const keys = Object.keys(MODES);
+  const n = +e.key;
+  if (n >= 1 && n <= keys.length) setMode(keys[n-1]);
+});
+
+let toastTimer = 0;
+function showToast(txt){
+  toastEl.textContent = txt;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 4000);
+}
+
+/* =========================================================
+   Cadrage : la caméra doit toujours voir TOUT le corps
+   ========================================================= */
+let lastFramingMsg = "";
+function updateFraming(){
+  let cls, msg;
+  if (!detected){
+    cls = "bad"; msg = "👀 Mets-toi devant la caméra !";
+    framingOk = false;
+  } else {
+    const missing = [];
+    for (const g of FRAMING_GROUPS){
+      const visible = g.ids.every(i => {
+        const lm = rawLm[i];
+        return (lm.visibility ?? 1) > .5 && lm.x > -.05 && lm.x < 1.05 && lm.y > -.02 && lm.y < 1.02;
+      });
+      if (!visible) missing.push(g.label);
+    }
+    if (missing.length){
+      cls = "warn";
+      const advice = (missing.some(m => m.includes("pieds") || m.includes("tête"))) ? "recule un peu !" : "replace-toi !";
+      msg = `⚠️ Je ne vois pas ${missing.join(", ")} — ${advice}`;
+      framingOk = false;
+    } else {
+      const bodyH = (rawLm[27].y + rawLm[28].y)/2 - rawLm[0].y;
+      if (bodyH < .45){
+        cls = "warn"; msg = "🔍 Je te vois en entier mais de loin — rapproche-toi un peu !";
+        framingOk = true;
+      } else {
+        cls = "ok"; msg = "✅ Corps entier visible — parfait, joue !";
+        framingOk = true;
+      }
+    }
+  }
+  if (msg !== lastFramingMsg){
+    lastFramingMsg = msg;
+    framingEl.textContent = msg;
+    framingEl.className = cls;
+  }
+  // Liseré orange autour de l'image quand le cadrage n'est pas bon
+  if (!framingOk){
+    ctx.save();
+    ctx.strokeStyle = "rgba(251,146,60,.8)";
+    ctx.lineWidth = 10;
+    ctx.shadowColor = "rgba(251,146,60,.8)";
+    ctx.shadowBlur = 25;
+    ctx.strokeRect(5, 5, W-10, H-10);
+    ctx.restore();
+  }
+}
+
+/* =========================================================
+   IA : détection de pose (MediaPipe)
+   ========================================================= */
+const statusEl = document.getElementById("startStatus");
+function setStatus(txt, isError){
+  statusEl.textContent = txt;
+  statusEl.className = isError ? "error" : "";
+}
+
+async function initPose(){
+  const resolver = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+  );
+  const opts = delegate => ({
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+      delegate
+    },
+    runningMode: "VIDEO",
+    numPoses: 1,
+    minPoseDetectionConfidence: .5,
+    minPosePresenceConfidence: .5,
+    minTrackingConfidence: .5
+  });
+  try {
+    landmarker = await PoseLandmarker.createFromOptions(resolver, opts("GPU"));
+  } catch {
+    landmarker = await PoseLandmarker.createFromOptions(resolver, opts("CPU"));
+  }
+}
+// On précharge l'IA dès l'ouverture de la page pour un démarrage rapide
+const posePromise = initPose().catch(e => { throw e; });
+
+async function startCamera(){
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
+    audio: false
+  });
+  video.srcObject = stream;
+  await new Promise(res => { video.onloadedmetadata = res; });
+  await video.play();
+  canvas.width = W = video.videoWidth || 1280;
+  canvas.height = H = video.videoHeight || 720;
+}
+
+/* =========================================================
+   Boucle principale
+   ========================================================= */
+function loop(now){
+  if (!running) return;
+  requestAnimationFrame(loop);
+  const dt = Math.min((now - lastFrameT)/1000, .1);
+  lastFrameT = now;
+  fps += ((1/Math.max(dt,.001)) - fps) * .08;
+
+  // Détection sur nouvelle image vidéo uniquement
+  if (landmarker && video.currentTime !== lastVideoTime){
+    lastVideoTime = video.currentTime;
+    const result = landmarker.detectForVideo(video, now);
+    const lm = result.landmarks && result.landmarks[0];
+    detected = !!lm;
+    rawLm = lm || null;
+    if (lm){
+      const ddt = Math.min(Math.max((now - lastDetectT)/1000, .008), .1);
+      lastDetectT = now;
+      const a = 1 - Math.exp(-ddt*14);
+      for (let i = 0; i < 33; i++){
+        const s = S[i], nx = 1 - lm[i].x, ny = lm[i].y;
+        if (!s.init){ s.x = nx; s.y = ny; s.vx = 0; s.vy = 0; s.init = true; }
+        const px = s.x, py = s.y;
+        s.x += (nx - s.x)*a;
+        s.y += (ny - s.y)*a;
+        s.vx += ((s.x - px)/ddt - s.vx)*.35;
+        s.vy += ((s.y - py)/ddt - s.vy)*.35;
+        s.vis = lm[i].visibility ?? 1;
+      }
+    }
+  }
+
+  // Image caméra en miroir
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, -W, 0, W, H);
+  ctx.restore();
+  const mode = MODES[currentMode];
+  ctx.fillStyle = `rgba(5,8,16,${mode.dim})`;
+  ctx.fillRect(0, 0, W, H);
+
+  mode.update(dt, now);
+  drawParticles(dt);
+  updateFraming();
+
+  // Compteur d'images par seconde
+  ctx.save();
+  ctx.font = `600 ${Math.round(H*.02)}px system-ui`;
+  ctx.textAlign = "right";
+  ctx.fillStyle = "rgba(255,255,255,.5)";
+  ctx.fillText(`${fps|0} img/s`, W - 12, H*.035);
+  ctx.restore();
+}
+
+/* =========================================================
+   Démarrage
+   ========================================================= */
+const startBtn = document.getElementById("startBtn");
+startBtn.addEventListener("click", async () => {
+  startBtn.disabled = true;
+  try {
+    audioInit();
+    setStatus("🧠 Chargement de l'IA de détection du corps…");
+    await posePromise;
+    setStatus("🎥 Démarrage de la caméra…");
+    await startCamera();
+    document.getElementById("start-overlay").style.display = "none";
+    running = true;
+    lastFrameT = performance.now();
+    showToast(MODES[currentMode].tip);
+    requestAnimationFrame(loop);
+  } catch (e){
+    console.error(e);
+    startBtn.disabled = false;
+    if (e && (e.name === "NotAllowedError" || e.name === "PermissionDeniedError")){
+      setStatus("🚫 Accès caméra refusé. Autorise la caméra dans ton navigateur puis réessaie.", true);
+    } else if (e && e.name === "NotFoundError"){
+      setStatus("🔌 Aucune caméra trouvée. Branche une webcam puis réessaie.", true);
+    } else {
+      setStatus("❌ Erreur : " + (e && e.message ? e.message : e) + " — vérifie ta connexion internet puis réessaie.", true);
+    }
+  }
+});
+</script>
+</body>
+</html>
