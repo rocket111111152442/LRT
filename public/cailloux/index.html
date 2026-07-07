@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Cailloux — Ton coach sportif complet</title>
+  <meta name="description" content="Cailloux : l'application de sport la plus complète. Plus de 5 000 exercices, programmes, séances guidées, suivi de progression, nutrition, minuteurs, défis et bien plus. Gratuit, sans compte, tes données restent chez toi.">
+  <meta name="theme-color" content="#0e1116">
+  <link rel="manifest" href="/cailloux/manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='52' rx='22' ry='9' fill='%23515c6b'/%3E%3Cellipse cx='32' cy='38' rx='16' ry='8' fill='%236b7787'/%3E%3Cellipse cx='32' cy='25' rx='11' ry='6.5' fill='%238894a5'/%3E%3Ccircle cx='32' cy='13' r='6' fill='%23ff7a1a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/cailloux/styles.css">
+</head>
+<body data-theme="dark">
+
+<div id="layout">
+
+  <aside id="sidebar">
+    <div class="logo">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="32" cy="52" rx="22" ry="9" fill="#515c6b"/>
+        <ellipse cx="32" cy="38" rx="16" ry="8" fill="#6b7787"/>
+        <ellipse cx="32" cy="25" rx="11" ry="6.5" fill="#8894a5"/>
+        <circle cx="32" cy="13" r="6" fill="#ff7a1a"/>
+      </svg>
+      <div>
+        <div class="t">Cail<span>loux</span></div>
+        <div class="sub">Un caillou à la fois</div>
+      </div>
+    </div>
+    <nav id="nav-side"></nav>
+    <div class="sidebar-foot">
+      <div id="side-count"></div>
+      <div>v1.0 · 100 % gratuit</div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="view"></div>
+  </main>
+
+</div>
+
+<nav id="bottomnav"></nav>
+
+<div id="modal-root" onclick="if(event.target===this)A.closeModal()"></div>
+
+<div id="rest-overlay">
+  <div class="l">Repos</div>
+  <div class="t" id="rest-time">90</div>
+  <div class="row">
+    <button class="btn sec" onclick="A.restAdd(15)">+15 s</button>
+    <button class="btn" onclick="A.restSkip()">Passer ➔</button>
+  </div>
+  <div class="muted" id="rest-next"></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/cailloux/exercises.js"></script>
+<script src="/cailloux/app.js"></script>
+</body>
+</html>

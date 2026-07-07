@@ -1,0 +1,17 @@
+{
+  "name": "Cailloux — Ton coach sportif complet",
+  "short_name": "Cailloux",
+  "description": "L'application de sport la plus complète : +5 000 exercices, programmes, suivi, nutrition, minuteurs et défis.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0e1116",
+  "theme_color": "#0e1116",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e1116'/%3E%3Cellipse cx='32' cy='50' rx='20' ry='8' fill='%23515c6b'/%3E%3Cellipse cx='32' cy='37' rx='14' ry='7' fill='%236b7787'/%3E%3Cellipse cx='32' cy='25' rx='10' ry='6' fill='%238894a5'/%3E%3Ccircle cx='32' cy='14' r='5.5' fill='%23ff7a1a'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

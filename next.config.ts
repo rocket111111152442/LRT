@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  async rewrites() {
+    return [
+      // Application sport Cailloux (statique dans public/cailloux/).
+      { source: "/cailloux", destination: "/cailloux/index.html" },
+    ];
+  },
 };
 
 export default nextConfig;
