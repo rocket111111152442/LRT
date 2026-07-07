@@ -19,3 +19,6 @@ tsconfig.tsbuildinfo
 # Projet ASSURIO independant (repo git separe)
 assurio/
 .claude/
+
+# Certificats locaux du serveur interne (generes sur chaque PC)
+serveur-interne/*.pem
