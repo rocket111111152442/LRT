@@ -189,14 +189,24 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
       />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-3xl gap-5">
-          <div className="no-print flex flex-wrap items-center justify-between gap-3">
-            <Link
-              href={`/admin/repairs/${repair.id}`}
-              className="font-semibold text-slate-950 underline-offset-4 hover:underline"
-            >
-              Retour a la fiche
-            </Link>
-            <PrintButton label="Imprimer / PDF" />
+          <div className="no-print grid gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Link
+                href={`/admin/repairs/${repair.id}`}
+                className="font-semibold text-slate-950 underline-offset-4 hover:underline"
+              >
+                Retour a la fiche
+              </Link>
+              <PrintButton
+                label="Télécharger en PDF"
+                documentTitle={`Facture ${repair.ticketNumber ?? repair.id}`}
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              Dans la fenêtre qui s&apos;ouvre, choisissez « Enregistrer au format PDF »
+              (ou « PDF » / « Destination : Enregistrer en PDF ») pour sauvegarder la
+              facture sur votre ordinateur.
+            </p>
           </div>
 
           <article className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
