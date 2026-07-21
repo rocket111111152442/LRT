@@ -8,6 +8,8 @@ type ReadyRepairEmailInput = {
   deviceType: string;
   brand: string;
   model: string;
+  // Atelier propriétaire de la réparation : sert à charger SES réglages e-mail.
+  proAccountId?: string | null;
 };
 
 type RepairStatusEmailInput = ReadyRepairEmailInput & {
@@ -273,18 +275,27 @@ export async function sendSetupAppointmentEmail(input: {
   });
 }
 
-async function getSmtpConfig(): Promise<SmtpConfig | null> {
-  try {
-    const settings = await prisma.emailSettings.findUnique({
-      where: { id: "default" },
-    });
+async function getSmtpConfig(
+  proAccountId?: string | null,
+): Promise<SmtpConfig | null> {
+  // Réglages e-mail cloisonnés par atelier : on ne lit QUE l'enregistrement de
+  // l'atelier concerné. Si l'atelier n'a rien configuré, on retombe sur le
+  // compte de service neutre (variables d'environnement), jamais sur les
+  // réglages d'un autre atelier.
+  const settingsId = proAccountId && proAccountId.trim() ? proAccountId.trim() : null;
 
-    if (
-      settings?.smtpEmail &&
-      settings.smtpAppPassword &&
-      settings.smtpHost &&
-      settings.smtpPort
-    ) {
+  if (settingsId) {
+    try {
+      const settings = await prisma.emailSettings.findUnique({
+        where: { id: settingsId },
+      });
+
+      if (
+        settings?.smtpEmail &&
+        settings.smtpAppPassword &&
+        settings.smtpHost &&
+        settings.smtpPort
+      ) {
       const shopLines = [
         settings.shopName || process.env.SHOP_NAME,
         settings.shopAddress || process.env.SHOP_ADDRESS,
@@ -311,8 +322,9 @@ async function getSmtpConfig(): Promise<SmtpConfig | null> {
         reviewEmailTemplate: settings.reviewEmailTemplate,
       };
     }
-  } catch (error) {
-    console.error("Email settings lookup failed", error);
+    } catch (error) {
+      console.error("Email settings lookup failed", error);
+    }
   }
 
   return getEnvSmtpConfig();
@@ -355,8 +367,9 @@ async function sendWithRepairSmtp(input: {
   subject: string;
   text: string;
   html?: string;
+  proAccountId?: string | null;
 }): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig();
+  const smtpConfig = await getSmtpConfig(input.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };
@@ -388,7 +401,7 @@ async function sendWithRepairSmtp(input: {
 export async function sendQuoteEmail(
   repair: QuoteEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig();
+  const smtpConfig = await getSmtpConfig(repair.proAccountId);
   const quoteUrl = `${getPublicAppUrl()}/devis/${repair.quoteToken}`;
   const acceptUrl = `${quoteUrl}?decision=ACCEPTED`;
   const refuseUrl = `${quoteUrl}?decision=REFUSED`;
@@ -438,6 +451,7 @@ export async function sendQuoteEmail(
 
   return sendWithRepairSmtp({
     to: repair.email,
+    proAccountId: repair.proAccountId,
     subject: `Votre devis Qoravo ${repair.ticketNumber ?? ""}`.trim(),
     text,
     html,
@@ -448,7 +462,7 @@ export async function sendRepairCreatedEmail(
   repair: CreatedRepairEmailInput,
   options: { alreadyDeposited?: boolean } = {},
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig();
+  const smtpConfig = await getSmtpConfig(repair.proAccountId);
   const ticket = repair.ticketNumber ?? "non attribue";
   const trackingUrl = `${getPublicAppUrl()}/suivi`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
@@ -494,6 +508,7 @@ export async function sendRepairCreatedEmail(
 
   return sendWithRepairSmtp({
     to: repair.email,
+    proAccountId: repair.proAccountId,
     subject: `Votre ticket Qoravo ${ticket}`.trim(),
     text,
     html,
@@ -534,6 +549,7 @@ export async function sendShopRepairRequestEmail(
 
   return sendWithRepairSmtp({
     to: input.shopEmail,
+    proAccountId: input.proAccountId,
     subject: `Nouvelle demande Qoravo ${ticket}`.trim(),
     text,
   });
@@ -542,7 +558,7 @@ export async function sendShopRepairRequestEmail(
 export async function sendReviewRequestEmail(
   repair: ReviewEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig();
+  const smtpConfig = await getSmtpConfig(repair.proAccountId);
   const reviewUrl = repair.reviewToken
     ? `${getPublicAppUrl()}/avis/${repair.reviewToken}`
     : smtpConfig?.googleReviewUrl;
@@ -589,6 +605,7 @@ export async function sendReviewRequestEmail(
 
   return sendWithRepairSmtp({
     to: repair.email,
+    proAccountId: repair.proAccountId,
     subject: "Votre avis compte pour nous",
     text,
     html,
@@ -608,6 +625,7 @@ export async function sendReadyReminderEmail(
 
   return sendWithRepairSmtp({
     to: repair.email,
+    proAccountId: repair.proAccountId,
     subject: "Rappel : votre appareil est pret",
     text: defaultText,
   });
@@ -616,7 +634,7 @@ export async function sendReadyReminderEmail(
 export async function sendReadyRepairEmail(
   repair: ReadyRepairEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig();
+  const smtpConfig = await getSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };
@@ -735,7 +753,7 @@ function buildRepairStatusEmail(repair: RepairStatusEmailInput) {
 export async function sendRepairStatusEmail(
   repair: RepairStatusEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig();
+  const smtpConfig = await getSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };

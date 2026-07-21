@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const SETTINGS_ID = "default";
+// Réglages e-mail cloisonnés par atelier : l'identifiant de l'enregistrement est
+// le proAccountId de l'admin connecté. Un super-admin sans atelier retombe sur
+// "default" (enregistrement global, désormais isolé et non partagé).
+function settingsIdFor(proAccountId: string | null | undefined) {
+  return proAccountId && proAccountId.trim() ? proAccountId.trim() : "default";
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -61,10 +66,12 @@ export async function GET() {
     return admin.response;
   }
 
+  const settingsId = settingsIdFor(admin.user.proAccountId);
+
   const settings = await prisma.emailSettings.upsert({
-    where: { id: SETTINGS_ID },
+    where: { id: settingsId },
     update: {},
-    create: { id: SETTINGS_ID },
+    create: { id: settingsId },
   });
 
   return NextResponse.json({ settings: serializeSettings(settings) });
@@ -107,8 +114,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Port SMTP invalide." }, { status: 400 });
   }
 
+  const settingsId = settingsIdFor(admin.user.proAccountId);
+
   const settings = await prisma.emailSettings.upsert({
-    where: { id: SETTINGS_ID },
+    where: { id: settingsId },
     update: {
       smtpEmail,
       smtpHost,
@@ -127,7 +136,7 @@ export async function PATCH(request: Request) {
       reviewEmailTemplate: readOptionalText(body, "reviewEmailTemplate"),
     },
     create: {
-      id: SETTINGS_ID,
+      id: settingsId,
       smtpEmail,
       smtpHost,
       smtpPort,
