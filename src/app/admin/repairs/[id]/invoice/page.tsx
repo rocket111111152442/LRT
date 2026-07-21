@@ -63,6 +63,65 @@ async function loadRepair(id: string) {
   });
 }
 
+type ShopInfo = {
+  name: string | null;
+  addressLines: string[];
+  phone: string | null;
+  email: string | null;
+  openingHours: string | null;
+};
+
+// Coordonnées de l'atelier pour l'en-tête de facture. On privilégie les réglages
+// e-mail (que l'atelier configure pour ses clients), sinon la fiche ProAccount.
+// Chaque atelier ne voit QUE ses propres infos (cloisonnement par proAccountId).
+async function loadShopInfo(proAccountId: string | null): Promise<ShopInfo | null> {
+  if (!proAccountId) {
+    return null;
+  }
+
+  try {
+    const [account, email] = await Promise.all([
+      prisma.proAccount.findUnique({
+        where: { id: proAccountId },
+        select: {
+          companyName: true,
+          publicAddress: true,
+          shopAddress: true,
+          shopPostalCode: true,
+          shopCity: true,
+          shopPhone: true,
+          publicPhone: true,
+          shopEmail: true,
+          ownerEmail: true,
+        },
+      }),
+      prisma.emailSettings.findUnique({ where: { id: proAccountId } }),
+    ]);
+
+    const name = email?.shopName || account?.companyName || null;
+    const cityLine = [account?.shopPostalCode, account?.shopCity]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    const addressLines = [
+      email?.shopAddress || account?.shopAddress || account?.publicAddress || null,
+      cityLine || null,
+    ].filter(Boolean) as string[];
+    const phone = email?.shopPhone || account?.shopPhone || account?.publicPhone || null;
+    const contactEmail = account?.shopEmail || account?.ownerEmail || null;
+    const openingHours = email?.shopOpeningHours || null;
+
+    if (!name && addressLines.length === 0 && !phone && !contactEmail) {
+      return null;
+    }
+
+    return { name, addressLines, phone, email: contactEmail, openingHours };
+  } catch (error) {
+    console.error("Invoice shop info load failed", error);
+    return null;
+  }
+}
+
 export default async function RepairInvoicePage({ params }: InvoicePageProps) {
   const admin = await requireAdminPage();
   const { id } = await params;
@@ -112,6 +171,8 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
     );
   }
 
+  const shop = await loadShopInfo(repair.proAccountId);
+
   const totalCents = toCents(repair.estimatedPriceCents);
   const paidAmountCents = toCents(repair.paidAmountCents);
   const depositCents = toCents(repair.depositCents);
@@ -139,16 +200,38 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
           </div>
 
           <article className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
-            <header className="grid gap-2 border-b border-slate-200 pb-4">
-              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Facture Qoravo
-              </p>
-              <h1 className="text-3xl font-semibold text-slate-950">
-                {repair.ticketNumber ?? repair.id}
-              </h1>
-              <p className="text-sm text-slate-600">
-                Date : {formatDate(repair.createdAt)}
-              </p>
+            <header className="grid gap-3 border-b border-slate-200 pb-4">
+              {shop ? (
+                <div className="grid gap-0.5">
+                  {shop.name ? (
+                    <p className="text-lg font-semibold text-slate-950">{shop.name}</p>
+                  ) : null}
+                  {shop.addressLines.map((line, index) => (
+                    <p key={index} className="text-sm text-slate-600">
+                      {line}
+                    </p>
+                  ))}
+                  {shop.phone || shop.email ? (
+                    <p className="text-sm text-slate-600">
+                      {[shop.phone, shop.email].filter(Boolean).join(" · ")}
+                    </p>
+                  ) : null}
+                  {shop.openingHours ? (
+                    <p className="text-xs text-slate-500">{shop.openingHours}</p>
+                  ) : null}
+                </div>
+              ) : null}
+              <div className="grid gap-2">
+                <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Facture
+                </p>
+                <h1 className="text-3xl font-semibold text-slate-950">
+                  {repair.ticketNumber ?? repair.id}
+                </h1>
+                <p className="text-sm text-slate-600">
+                  Date : {formatDate(repair.createdAt)}
+                </p>
+              </div>
             </header>
 
             <section className="grid gap-4 sm:grid-cols-2">
