@@ -1,8 +1,23 @@
 import { NextResponse } from "next/server";
-import { checkModPassword, setModSession } from "@/lib/modAuth";
+import {
+  checkModPassword,
+  isModeratorPasswordConfigured,
+  setModSession,
+} from "@/lib/modAuth";
 import { clientIp, rateLimit, resetRateLimit } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
+  if (!isModeratorPasswordConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Le mot de passe moderateur n est pas disponible dans ce deploiement. Ajoutez MODERATOR_PASSWORD (8 caracteres minimum) dans Production sur Vercel, puis redeployez.",
+        code: "MODERATOR_PASSWORD_NOT_CONFIGURED",
+      },
+      { status: 503 },
+    );
+  }
+
   // Mot de passe unique partagé = cible privilégiée : limite stricte.
   const ip = clientIp(request);
   const limit = rateLimit(`mod-login:${ip}`, 5, 15 * 60 * 1000);
@@ -22,7 +37,14 @@ export async function POST(request: Request) {
     : "";
 
   if (!checkModPassword(password)) {
-    return NextResponse.json({ error: "Mot de passe incorrect." }, { status: 401 });
+    return NextResponse.json(
+      {
+        error:
+          "Mot de passe incorrect. Verifiez la valeur MODERATOR_PASSWORD du deploiement Production, sans espace ajoute.",
+        code: "MODERATOR_PASSWORD_MISMATCH",
+      },
+      { status: 401 },
+    );
   }
 
   resetRateLimit(`mod-login:${ip}`);

@@ -9,6 +9,7 @@ const COOKIE =
     : "qoravo_mod_session";
 const MAX_AGE = 60 * 60; // 1 h pour ce panneau très sensible.
 const MIN_MODERATOR_PASSWORD_LENGTH = 8;
+const MAX_MODERATOR_PASSWORD_LENGTH = 128;
 
 function secret() {
   const value =
@@ -79,18 +80,53 @@ function verify(token: string | undefined, userAgent: string): boolean {
   }
 }
 
-export function checkModPassword(password: string): boolean {
-  const expected = process.env.MODERATOR_PASSWORD;
+function passwordVariants(value: string | undefined) {
+  if (!value || value.length > MAX_MODERATOR_PASSWORD_LENGTH + 2) {
+    return [];
+  }
+
+  const trimmed = value.trim();
+  const variants = new Set([value, trimmed]);
+  const first = trimmed[0];
+  const last = trimmed[trimmed.length - 1];
+
+  // L'import de variables Vercel depuis un fichier .env peut conserver les
+  // guillemets. On accepte alors la valeur intérieure sans modifier le secret.
   if (
-    !expected ||
-    expected.length < MIN_MODERATOR_PASSWORD_LENGTH ||
-    expected.length > 128 ||
-    password.length < MIN_MODERATOR_PASSWORD_LENGTH ||
-    password.length > 128
+    trimmed.length >= 2 &&
+    ((first === `"` && last === `"`) || (first === `'` && last === `'`))
   ) {
+    variants.add(trimmed.slice(1, -1));
+  }
+
+  return [...variants].filter(
+    (candidate) =>
+      candidate.length >= MIN_MODERATOR_PASSWORD_LENGTH &&
+      candidate.length <= MAX_MODERATOR_PASSWORD_LENGTH,
+  );
+}
+
+export function isModeratorPasswordConfigured() {
+  return passwordVariants(process.env.MODERATOR_PASSWORD).length > 0;
+}
+
+export function checkModPassword(password: string): boolean {
+  const expectedVariants = passwordVariants(process.env.MODERATOR_PASSWORD);
+  const providedVariants = passwordVariants(password);
+
+  if (expectedVariants.length === 0 || providedVariants.length === 0) {
     return false;
   }
-  return safeEqual(password, expected);
+
+  let matches = false;
+
+  for (const expected of expectedVariants) {
+    for (const provided of providedVariants) {
+      matches = safeEqual(provided, expected) || matches;
+    }
+  }
+
+  return matches;
 }
 
 export async function setModSession(request: Request) {
