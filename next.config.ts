@@ -31,7 +31,7 @@ const securityHeaders = [
       "form-action 'self'",
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
+      "img-src 'self' data: blob: https://images.unsplash.com",
       "font-src 'self' data:",
       "connect-src 'self' https://vitals.vercel-insights.com",
       "manifest-src 'self'",
