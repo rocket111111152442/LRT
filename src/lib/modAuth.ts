@@ -12,16 +12,26 @@ const MIN_MODERATOR_PASSWORD_LENGTH = 8;
 const MAX_MODERATOR_PASSWORD_LENGTH = 128;
 
 function secret() {
-  const value =
-    process.env.MODERATOR_SECRET ??
-    (process.env.NODE_ENV === "production" ? undefined : process.env.AUTH_SECRET);
+  const value = process.env.MODERATOR_SECRET ?? process.env.AUTH_SECRET;
 
   if (value && value.length >= 32) {
     return value;
   }
 
+  const moderatorPassword = passwordVariants(
+    process.env.MODERATOR_PASSWORD,
+  )[0];
+
+  if (moderatorPassword) {
+    return createHmac("sha256", "qoravo-moderator-session-v1")
+      .update(moderatorPassword)
+      .digest("hex");
+  }
+
   if (process.env.NODE_ENV === "production") {
-    throw new Error("MODERATOR_SECRET manquant en production.");
+    throw new Error(
+      "MODERATOR_SECRET et MODERATOR_PASSWORD manquants en production.",
+    );
   }
 
   return "dev-mod-secret-change-me-please";
