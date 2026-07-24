@@ -27,7 +27,6 @@ import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { FirstUseTour } from "./FirstUseTour";
 import { AdminTrialBanner } from "./AdminTrialBanner";
 import { SupportSubscribeButton } from "./SupportSubscribeButton";
-import { ControlConsent } from "./ControlConsent";
 import { ImpersonationBanner } from "./ImpersonationBanner";
 
 type AdminHeaderProps = {
@@ -142,7 +141,6 @@ export function AdminHeader({
   return (
     <>
       <ImpersonationBanner />
-      <ControlConsent />
       <AdminTrialBanner
         paymentStatus={paymentStatus}
         trialEndsAt={trialEndsAt}

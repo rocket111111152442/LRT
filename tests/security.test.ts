@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { escapeCsvCell } from "../src/lib/csvSecurity";
+import { validateControlSignal } from "../src/lib/controlSignalValidation";
 import {
   isAllowedSmtpPort,
   isPrivateOrReservedIp,
@@ -142,6 +143,38 @@ test("les photos et champs trop volumineux sont refuses", () => {
       ...baseInput,
       photos: ["data:image/svg+xml;base64,PHN2Zz48L3N2Zz4="],
     }).ok,
+    false,
+  );
+});
+
+test("les signaux de partage d ecran sont limites par role et par taille", () => {
+  const offer = validateControlSignal(
+    {
+      kind: "OFFER",
+      payload: JSON.stringify({ type: "offer", sdp: "v=0\r\n" }),
+    },
+    "CLIENT",
+  );
+
+  assert.equal(offer.ok, true);
+  assert.equal(
+    validateControlSignal(
+      {
+        kind: "ANSWER",
+        payload: JSON.stringify({ type: "answer", sdp: "v=0\r\n" }),
+      },
+      "CLIENT",
+    ).ok,
+    false,
+  );
+  assert.equal(
+    validateControlSignal(
+      {
+        kind: "ICE",
+        payload: JSON.stringify({ candidate: "x".repeat(8_001) }),
+      },
+      "MODERATOR",
+    ).ok,
     false,
   );
 });

@@ -537,6 +537,18 @@ function createGenericFirestoreModel(
       await collection(collectionName).doc(String((existing as Dict).id)).delete();
       return existing;
     },
+    async deleteMany(args: { where?: Dict } = {}) {
+      const snapshot = await collection(collectionName).get();
+      const records = snapshot.docs
+        .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+        .filter((record) => matchesWhereObject(record, args.where));
+
+      for (const record of records) {
+        await collection(collectionName).doc(String(record.id)).delete();
+      }
+
+      return { count: records.length };
+    },
   };
 
   return model;
@@ -1210,6 +1222,8 @@ function createFirestorePrisma() {
       respondedAt: null,
       endedAt: null,
     }),
+
+    controlSignal: createGenericFirestoreModel("controlSignals"),
 
     accountingSettings: createGenericFirestoreModel(
       "accountingSettings",

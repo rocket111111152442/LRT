@@ -13,7 +13,7 @@ export async function GET() {
   const impersonation = await getImpersonation();
   if (impersonation) return NextResponse.json({ pending: false });
 
-  const request = await prisma.controlRequest.findFirst({
+  const pendingRequest = await prisma.controlRequest.findFirst({
     where: {
       proAccountId: admin.proAccountId,
       status: "PENDING",
@@ -22,12 +22,35 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  if (!request) return NextResponse.json({ pending: false });
+  if (pendingRequest) {
+    return NextResponse.json({
+      pending: true,
+      accepted: false,
+      requestId: pendingRequest.id,
+      reason: pendingRequest.reason,
+      requestedAt: pendingRequest.requestedAt,
+    });
+  }
+
+  const acceptedRequest = await prisma.controlRequest.findFirst({
+    where: {
+      proAccountId: admin.proAccountId,
+      status: "ACCEPTED",
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!acceptedRequest) {
+    return NextResponse.json({ pending: false, accepted: false });
+  }
+
   return NextResponse.json({
-    pending: true,
-    requestId: request.id,
-    reason: request.reason,
-    requestedAt: request.requestedAt,
+    pending: false,
+    accepted: true,
+    requestId: acceptedRequest.id,
+    reason: acceptedRequest.reason,
+    expiresAt: acceptedRequest.expiresAt,
   });
 }
 

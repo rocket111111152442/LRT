@@ -221,11 +221,29 @@ model ControlRequest {
   respondedAt  DateTime?
   expiresAt    DateTime
   endedAt      DateTime?
+  signals      ControlSignal[]
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
 
   @@index([proAccountId])
   @@index([status])
+}
+
+// Signaux WebRTC éphémères utilisés uniquement pour une session d'assistance
+// explicitement acceptée par le commerçant. Le contenu est chiffré avant
+// d'être stocké et expire automatiquement côté application.
+model ControlSignal {
+  id               String         @id @default(cuid())
+  controlRequestId String
+  controlRequest   ControlRequest @relation(fields: [controlRequestId], references: [id], onDelete: Cascade)
+  sender           String
+  kind             String
+  payload          String
+  expiresAt        DateTime
+  createdAt        DateTime       @default(now())
+
+  @@index([controlRequestId, createdAt])
+  @@index([expiresAt])
 }
 
 model RepairEvent {

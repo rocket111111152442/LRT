@@ -6,6 +6,7 @@ import {
   ShieldOff, Sparkles, Trash2, Wrench, XCircle,
   Hand, LogIn, Ban, Loader2,
 } from "lucide-react";
+import { LiveScreenViewer } from "./LiveScreenViewer";
 
 type Repair  = { id: string; ticketNumber: string | null; firstName: string; lastName: string; status: string; paymentStatus: string; estimatedPriceCents: number | null; paidAmountCents: number | null; brand: string; model: string; deviceType: string; phone: string; email: string; createdAt: string };
 type Message = { id: string; name: string; email: string; subject: string; message: string; status: string; createdAt: string };
@@ -84,11 +85,28 @@ export function AccountDetail({ accountId }: { accountId: string }) {
 
   async function enterControl() {
     setControlBusy(true); setControlMsg("");
+    const accountWindow = window.open("about:blank", "_blank");
+
+    if (accountWindow) {
+      accountWindow.opener = null;
+    }
+
     try {
       const { res, payload } = await controlAction({ action: "enter_control" });
-      if (res.ok) { window.location.href = payload.redirect ?? "/admin"; return; }
+      if (res.ok) {
+        if (accountWindow) {
+          accountWindow.location.href = payload.redirect ?? "/admin";
+        } else {
+          window.location.href = payload.redirect ?? "/admin";
+        }
+        return;
+      }
+      accountWindow?.close();
       setControlMsg(payload.error ?? "Erreur.");
-    } catch { setControlMsg("Erreur réseau."); }
+    } catch {
+      accountWindow?.close();
+      setControlMsg("Erreur réseau.");
+    }
     finally { setControlBusy(false); }
   }
 
@@ -227,10 +245,17 @@ export function AccountDetail({ accountId }: { accountId: string }) {
 
         <div className="mt-4 flex flex-wrap gap-2">
           {controlStatus === "ACCEPTED" ? (
-            <button onClick={enterControl} disabled={controlBusy}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50">
-              {controlBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-              Entrer dans le logiciel
+            <button
+              onClick={enterControl}
+              disabled={controlBusy}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+            >
+              {controlBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="h-4 w-4" />
+              )}
+              Ouvrir le compte dans un nouvel onglet
             </button>
           ) : controlStatus === "PENDING" ? (
             <>
@@ -252,6 +277,11 @@ export function AccountDetail({ accountId }: { accountId: string }) {
             </button>
           )}
         </div>
+
+        <LiveScreenViewer
+          accountId={accountId}
+          controlAccepted={controlStatus === "ACCEPTED"}
+        />
       </section>
 
       {/* Boutons d'action */}
