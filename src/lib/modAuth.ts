@@ -8,6 +8,7 @@ const COOKIE =
     ? "__Host-qoravo_mod_session"
     : "qoravo_mod_session";
 const MAX_AGE = 60 * 60; // 1 h pour ce panneau très sensible.
+const MIN_MODERATOR_PASSWORD_LENGTH = 8;
 
 function secret() {
   const value =
@@ -82,8 +83,9 @@ export function checkModPassword(password: string): boolean {
   const expected = process.env.MODERATOR_PASSWORD;
   if (
     !expected ||
-    expected.length < 12 ||
+    expected.length < MIN_MODERATOR_PASSWORD_LENGTH ||
     expected.length > 128 ||
+    password.length < MIN_MODERATOR_PASSWORD_LENGTH ||
     password.length > 128
   ) {
     return false;

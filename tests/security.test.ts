@@ -16,6 +16,7 @@ import {
   isSameOriginRequest,
   normalizedOrigin,
 } from "../src/lib/requestSecurity";
+import { checkModPassword } from "../src/lib/modAuth";
 import { isFreeAccessCode } from "../src/lib/pro/promoCodes";
 import { clientIp } from "../src/lib/rateLimit";
 import {
@@ -177,4 +178,18 @@ test("les signaux de partage d ecran sont limites par role et par taille", () =>
     ).ok,
     false,
   );
+});
+
+test("le panneau moderateur accepte les mots de passe existants de huit caracteres ou plus", () => {
+  const previousPassword = process.env.MODERATOR_PASSWORD;
+  process.env.MODERATOR_PASSWORD = "ancien-mdp";
+
+  assert.equal(checkModPassword("ancien-mdp"), true);
+  assert.equal(checkModPassword("mauvais-mdp"), false);
+
+  if (previousPassword === undefined) {
+    delete process.env.MODERATOR_PASSWORD;
+  } else {
+    process.env.MODERATOR_PASSWORD = previousPassword;
+  }
 });
