@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  encryptSecret,
+  isEncryptedSecret,
+} from "@/lib/secretEncryption";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -22,6 +26,18 @@ export async function GET() {
     where: { id: admin.user.proAccountId },
     select: { qualireparApiKey: true, qualireparSiteId: true },
   });
+
+  if (
+    account?.qualireparApiKey &&
+    !isEncryptedSecret(account.qualireparApiKey)
+  ) {
+    await prisma.proAccount.update({
+      where: { id: admin.user.proAccountId },
+      data: {
+        qualireparApiKey: encryptSecret(account.qualireparApiKey),
+      },
+    });
+  }
 
   return NextResponse.json({
     hasApiKey: Boolean(account?.qualireparApiKey),
@@ -46,13 +62,20 @@ export async function PATCH(request: Request) {
   const siteId = readText(body, "siteId");
   const clearApiKey = body.clearApiKey === true;
 
+  if (apiKey.length > 2_000 || siteId.length > 200) {
+    return NextResponse.json(
+      { error: "Clé API ou identifiant de site trop long." },
+      { status: 400 },
+    );
+  }
+
   const data: Record<string, unknown> = { qualireparSiteId: siteId || null };
   if (clearApiKey) {
     data.qualireparApiKey = null;
   } else if (apiKey) {
     // On ne remplace la clé que si une nouvelle valeur est saisie (le champ est
     // vide par défaut car la clé n'est jamais renvoyée au navigateur).
-    data.qualireparApiKey = apiKey;
+    data.qualireparApiKey = encryptSecret(apiKey);
   }
 
   await prisma.proAccount.update({

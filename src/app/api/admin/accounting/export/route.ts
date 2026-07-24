@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { periodRange } from "@/lib/accounting";
 import { requireAdminApi } from "@/lib/auth";
+import { escapeCsvCell } from "@/lib/csvSecurity";
 import { prisma } from "@/lib/prisma";
-
-function csvCell(value: unknown) {
-  const text = String(value ?? "");
-  return `"${text.replace(/"/g, '""')}"`;
-}
 
 function cents(value: number) {
   return (value / 100).toFixed(2).replace(".", ",");
@@ -145,7 +141,7 @@ export async function GET(request: Request) {
       entry.notes ?? "",
     ]),
   ];
-  const csv = rows.map((row) => row.map(csvCell).join(";")).join("\n");
+  const csv = rows.map((row) => row.map(escapeCsvCell).join(";")).join("\n");
 
   return new NextResponse(csv, {
     headers: {

@@ -8,6 +8,7 @@ export function TrialEndedClient({ slug }: { slug: string | null }) {
   const [confirming, setConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
 
   const paymentHref = slug
     ? `/pro/paiement?compte=${encodeURIComponent(slug)}`
@@ -22,7 +23,11 @@ export function TrialEndedClient({ slug }: { slug: string | null }) {
     setError("");
 
     try {
-      const response = await fetch("/api/admin/account", { method: "DELETE" });
+      const response = await fetch("/api/admin/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword }),
+      });
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
@@ -85,11 +90,22 @@ export function TrialEndedClient({ slug }: { slug: string | null }) {
                   (réparations, clients, compta, stock) ? Cette action est
                   irréversible.
                 </p>
+                <label className="grid gap-1 text-sm font-semibold text-red-900">
+                  Confirmez votre mot de passe
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    autoComplete="current-password"
+                    maxLength={128}
+                    className="min-h-11 rounded-lg border border-red-200 bg-white px-3 text-slate-950 outline-none focus:border-red-500"
+                  />
+                </label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={handleDelete}
-                    disabled={isDeleting}
+                    disabled={isDeleting || !currentPassword}
                     className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />

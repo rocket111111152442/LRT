@@ -6,9 +6,13 @@
 // externe. Pour une protection forte multi-instances, brancher un store type
 // Upstash/Redis.
 
+import { isIP } from "node:net";
+
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
+const MAX_BUCKETS = 20_000;
+let operationsSinceCleanup = 0;
 
 export type RateLimitResult = {
   allowed: boolean;
@@ -26,6 +30,28 @@ export function rateLimit(
   windowMs: number,
 ): RateLimitResult {
   const now = Date.now();
+  operationsSinceCleanup += 1;
+
+  if (operationsSinceCleanup >= 250 || buckets.size >= MAX_BUCKETS) {
+    operationsSinceCleanup = 0;
+
+    for (const [bucketKey, value] of buckets) {
+      if (value.resetAt <= now) {
+        buckets.delete(bucketKey);
+      }
+    }
+
+    while (buckets.size >= MAX_BUCKETS) {
+      const oldestKey = buckets.keys().next().value;
+
+      if (typeof oldestKey !== "string") {
+        break;
+      }
+
+      buckets.delete(oldestKey);
+    }
+  }
+
   const bucket = buckets.get(key);
 
   if (!bucket || bucket.resetAt <= now) {
@@ -51,7 +77,22 @@ export function resetRateLimit(key: string) {
 
 /** Extrait une IP cliente best-effort depuis les en-têtes de la requête. */
 export function clientIp(request: Request): string {
+  const vercelForwarded = request.headers.get("x-vercel-forwarded-for");
+  const realIp = request.headers.get("x-real-ip");
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return request.headers.get("x-real-ip") ?? "unknown";
+  const candidates = [
+    vercelForwarded?.split(",").at(-1),
+    realIp,
+    forwarded?.split(",").at(-1),
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = candidate?.trim().replace(/^\[|\]$/g, "");
+
+    if (normalized && normalized.length <= 45 && isIP(normalized)) {
+      return normalized;
+    }
+  }
+
+  return "unknown";
 }

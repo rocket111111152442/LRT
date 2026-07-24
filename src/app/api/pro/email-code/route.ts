@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmailVerificationCode } from "@/lib/emailVerification";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 async function findPaidAccountConflict(ownerEmail: string, slug: string) {
   const existingUser = await prisma.user.findUnique({
@@ -54,6 +55,19 @@ async function findPaidAccountConflict(ownerEmail: string, slug: string) {
 }
 
 export async function POST(request: Request) {
+  const ip = clientIp(request);
+  const ipLimit = rateLimit(`signup-code:${ip}`, 6, 15 * 60 * 1000);
+
+  if (!ipLimit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de demandes. Reessayez dans quelques minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(ipLimit.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -66,6 +80,22 @@ export async function POST(request: Request) {
 
   if (!validation.ok) {
     return NextResponse.json({ errors: validation.errors }, { status: 400 });
+  }
+
+  const emailLimit = rateLimit(
+    `signup-code-email:${validation.data.ownerEmail}`,
+    3,
+    15 * 60 * 1000,
+  );
+
+  if (!emailLimit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de codes envoyes. Attendez quelques minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(emailLimit.retryAfterSeconds) },
+      },
+    );
   }
 
   try {

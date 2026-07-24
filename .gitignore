@@ -8,6 +8,10 @@ build
 .env.*
 !.env.example
 .env*.local
+.secrets/
+*-firebase-adminsdk-*.json
+service-account*.json
+google-application-credentials*.json
 
 /generated/prisma
 

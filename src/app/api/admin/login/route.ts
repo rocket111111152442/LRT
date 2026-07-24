@@ -12,6 +12,9 @@ import {
 import { prisma } from "@/lib/prisma";
 import { clientIp, rateLimit, resetRateLimit } from "@/lib/rateLimit";
 
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$r7imavEnwxuYuegUwFtUGuZKk24P/0KRh65pyE/7GjKK/aREYTNcW";
+
 type ProAccountSummary = {
   slug: string;
   paymentStatus: string;
@@ -81,10 +84,23 @@ export async function POST(request: Request) {
     typeof body.verificationId === "string" ? body.verificationId.trim() : "";
   const rememberMe = body.rememberMe === true;
 
-  if (!email || !password) {
+  if (!email || email.length > 254 || !password || password.length > 128) {
     return NextResponse.json(
       { error: "Email et mot de passe requis." },
       { status: 400 },
+    );
+  }
+
+  const emailLimitKey = `admin-login-email:${email}`;
+  const emailLimit = rateLimit(emailLimitKey, 8, 15 * 60 * 1000);
+
+  if (!emailLimit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez dans quelques minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(emailLimit.retryAfterSeconds) },
+      },
     );
   }
 
@@ -101,6 +117,16 @@ export async function POST(request: Request) {
     });
 
     if (!user || user.role !== "ADMIN") {
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+      return NextResponse.json(
+        { error: "Identifiants invalides." },
+        { status: 401 },
+      );
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isValidPassword) {
       return NextResponse.json(
         { error: "Identifiants invalides." },
         { status: 401 },
@@ -126,12 +152,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isValidPassword) {
+    if (!user.proAccountId || !proAccount) {
       return NextResponse.json(
-        { error: "Identifiants invalides." },
-        { status: 401 },
+        {
+          error:
+            "Ce compte administrateur n'est associé à aucun atelier Qoravo.",
+        },
+        { status: 403 },
       );
     }
 
@@ -156,6 +183,7 @@ export async function POST(request: Request) {
 
     const loginSuccess = (markTrusted: boolean) => {
       resetRateLimit(`admin-login:${ip}`);
+      resetRateLimit(emailLimitKey);
       // Pour un essai expire : identite confirmee, on pose la session (qui sera
       // traitee comme "trial-expired") et on redirige vers la page souscrire/
       // supprimer au lieu du tableau de bord.
@@ -163,17 +191,18 @@ export async function POST(request: Request) {
         trialEndedRedirect ? { redirectUrl: trialEndedRedirect } : { user: sessionUser },
       );
       setAdminSessionCookie(response, sessionUser, {
+        passwordHash: user.passwordHash,
         rememberMe: rememberMe || markTrusted,
       });
       if (markTrusted) {
-        setTrustedDeviceCookie(response, user.email);
+        setTrustedDeviceCookie(response, user.email, user.passwordHash);
       }
       return response;
     };
 
     if (!code) {
       // Appareil de confiance : mot de passe deja valide, on saute le 2FA.
-      if (await isTrustedDevice(user.email)) {
+      if (await isTrustedDevice(user.email, user.passwordHash)) {
         return loginSuccess(false);
       }
 

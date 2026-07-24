@@ -26,6 +26,6 @@ export async function POST(request: Request) {
   }
 
   resetRateLimit(`mod-login:${ip}`);
-  await setModSession();
+  await setModSession(request);
   return NextResponse.json({ ok: true });
 }

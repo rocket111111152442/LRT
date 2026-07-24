@@ -1,4 +1,3 @@
-export const FREE_ACCESS_CODE = "REP2026";
 export const PREMIUM_DISCOUNT_CODE = "QORAVO10";
 const PREMIUM_DISCOUNT_ALIASES = new Set(["QORAVO10", "QOR10", "LRT10"]);
 export const PREMIUM_DISCOUNT_PERCENT = 10;
@@ -8,7 +7,11 @@ export function normalizePromoCode(value?: string | null) {
 }
 
 export function isFreeAccessCode(value?: string | null) {
-  return normalizePromoCode(value) === FREE_ACCESS_CODE;
+  const configuredCode = normalizePromoCode(process.env.FREE_ACCESS_CODE);
+
+  return Boolean(
+    configuredCode && normalizePromoCode(value) === configuredCode,
+  );
 }
 
 export function isPremiumDiscountCode(value?: string | null) {

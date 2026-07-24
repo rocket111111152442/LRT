@@ -1,26 +1,12 @@
 import type { Metadata } from "next";
 export const metadata: Metadata = { title: "QR Code — Qoravo Admin" };
-import { headers } from "next/headers";
 import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { getPublicAppUrl } from "@/lib/appUrl";
 import { QrCodeClient } from "./QrCodeClient";
 
-async function getBaseUrl() {
-  const headerStore = await headers();
-  const forwardedHost = headerStore.get("x-forwarded-host");
-  const forwardedProto = headerStore.get("x-forwarded-proto") || "https";
-
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
-  }
-
-  return getPublicAppUrl();
-}
-
-async function getNewRepairUrl(slug?: string | null) {
-  const baseUrl = await getBaseUrl();
-  const url = new URL("/nouvelle-reparation", baseUrl);
+function getNewRepairUrl(slug?: string | null) {
+  const url = new URL("/nouvelle-reparation", getPublicAppUrl());
 
   if (slug) {
     url.searchParams.set("compte", slug);
@@ -31,9 +17,8 @@ async function getNewRepairUrl(slug?: string | null) {
   return url.toString();
 }
 
-async function getDepositUrl(slug?: string | null) {
-  const baseUrl = await getBaseUrl();
-  const url = new URL("/depot", baseUrl);
+function getDepositUrl(slug?: string | null) {
+  const url = new URL("/depot", getPublicAppUrl());
 
   if (slug) {
     url.searchParams.set("compte", slug);
@@ -44,8 +29,8 @@ async function getDepositUrl(slug?: string | null) {
 
 export default async function AdminQrCodePage() {
   const admin = await requireAdminPage();
-  const newRepairUrl = await getNewRepairUrl(admin.proAccountSlug);
-  const depositUrl = await getDepositUrl(admin.proAccountSlug);
+  const newRepairUrl = getNewRepairUrl(admin.proAccountSlug);
+  const depositUrl = getDepositUrl(admin.proAccountSlug);
 
   return (
     <>

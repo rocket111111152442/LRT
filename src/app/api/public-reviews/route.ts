@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -31,6 +32,22 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    `public-review:${clientIp(request)}`,
+    3,
+    24 * 60 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop d avis envoyes depuis cet appareil." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -46,6 +63,11 @@ export async function POST(request: Request) {
   const name = readText(body, "name").slice(0, 80);
   const comment = readText(body, "comment").slice(0, 500);
   const rating = Number(body.rating);
+  const website = readText(body, "website");
+
+  if (website) {
+    return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
+  }
 
   if (!name || comment.length < 10) {
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getPublicAppUrl } from "@/lib/appUrl";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,13 +8,6 @@ import {
   normalizeSelection,
   type EnterpriseSelection,
 } from "@/lib/enterpriseQuote";
-
-function getAppUrl(request: Request) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
-  if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
-  return new URL(request.url).origin;
-}
 
 function getStripeErrorMessage(error: unknown) {
   if (
@@ -65,7 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
   }
 
-  const appUrl = getAppUrl(request);
+  const appUrl = getPublicAppUrl();
   const intervalLabel = quote.recurringInterval === "year" ? "an" : "mois";
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [

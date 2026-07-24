@@ -14,10 +14,10 @@ export async function GET(request: Request) {
 
   // Sans secret configuré : refus total en production (l'endpoint envoie des
   // emails, il ne doit jamais être déclenchable publiquement).
-  if (!cronSecret) {
+  if (!cronSecret || cronSecret.length < 32) {
     if (process.env.NODE_ENV === "production") {
       return NextResponse.json(
-        { error: "CRON_SECRET non configure." },
+        { error: "CRON_SECRET non configure ou trop court." },
         { status: 503 },
       );
     }

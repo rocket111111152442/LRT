@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const securityHeaders = [
   // Empêche l'affichage du site dans une iframe tierce (clickjacking).
-  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Frame-Options", value: "DENY" },
   // Empêche le MIME-sniffing.
   { key: "X-Content-Type-Options", value: "nosniff" },
   // Limite les informations de provenance envoyées aux sites externes.
@@ -15,12 +15,36 @@ const securityHeaders = [
   // Désactive les API navigateur non utilisées.
   {
     key: "Permissions-Policy",
-    value: "microphone=(), payment=(), usb=(), interest-cohort=()",
+    value:
+      "camera=(), microphone=(), payment=(), usb=(), interest-cohort=(), browsing-topics=()",
+  },
+  { key: "X-DNS-Prefetch-Control", value: "off" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://vitals.vercel-insights.com",
+      "manifest-src 'self'",
+      "worker-src 'self' blob:",
+      "upgrade-insecure-requests",
+    ].join("; "),
   },
 ];
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
   turbopack: {
     root: process.cwd(),
   },

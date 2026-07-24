@@ -13,6 +13,7 @@ export async function GET() {
   // Le filtrage en JS reste compatible avec la couche Firebase (pas de OR natif).
   const allAccounts = await prisma.proAccount.findMany({
     orderBy: { companyName: "asc" },
+    take: 250,
     select: {
       id: true,
       companyName: true,

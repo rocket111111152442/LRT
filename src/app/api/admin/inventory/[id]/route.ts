@@ -22,15 +22,35 @@ function readOptionalText(body: Record<string, unknown>, key: string) {
 
 function readInt(body: Record<string, unknown>, key: string, fallback: number) {
   const value = Number(body[key] ?? fallback);
-  return Number.isInteger(value) && value >= 0 ? value : null;
+  return Number.isInteger(value) && value >= 0 && value <= 2_000_000_000
+    ? value
+    : null;
 }
 
 function readCents(body: Record<string, unknown>, key: string, fallback = 0) {
   const value = Number(body[key] ?? fallback);
-  return Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
+  return Number.isFinite(value) && value >= 0 && value <= 2_000_000_000
+    ? Math.round(value)
+    : null;
 }
 
-async function getAuthorizedItem(id: string, proAccountId: string | null) {
+function hasValidTextLengths(input: {
+  name: string;
+  reference: string | null;
+  supplier: string | null;
+  location: string | null;
+  notes: string | null;
+}) {
+  return (
+    input.name.length <= 160 &&
+    (input.reference?.length ?? 0) <= 120 &&
+    (input.supplier?.length ?? 0) <= 160 &&
+    (input.location?.length ?? 0) <= 160 &&
+    (input.notes?.length ?? 0) <= 5_000
+  );
+}
+
+async function getAuthorizedItem(id: string, proAccountId: string) {
   const item = await prisma.inventoryItem.findUnique({
     where: { id },
     select: {
@@ -39,7 +59,7 @@ async function getAuthorizedItem(id: string, proAccountId: string | null) {
     },
   });
 
-  if (!item || (proAccountId && item.proAccountId !== proAccountId)) {
+  if (!item || item.proAccountId !== proAccountId) {
     return null;
   }
 
@@ -83,6 +103,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     lowStockThreshold === null ||
     unitCostCents === null ||
     unitPriceCents === null
+    || !hasValidTextLengths({ name, reference, supplier, location, notes })
   ) {
     return NextResponse.json({ error: "Donnees invalides." }, { status: 400 });
   }

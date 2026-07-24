@@ -7,6 +7,7 @@
     "build": "node scripts/prisma-migrate-on-vercel.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint src prisma next.config.ts middleware.ts eslint.config.mjs",
+    "test:security": "tsx --test tests/security.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed"
@@ -21,7 +22,7 @@
     "bcrypt": "^6.0.0",
     "firebase-admin": "^14.0.0",
     "lucide-react": "^1.21.0",
-    "next": "^16.2.9",
+    "next": "^16.2.11",
     "nodemailer": "^9.0.1",
     "pg": "^8.21.0",
     "qrcode.react": "^4.2.0",
@@ -39,11 +40,27 @@
     "autoprefixer": "^10.5.0",
     "dotenv": "^17.4.2",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.9",
+    "eslint-config-next": "^16.2.11",
     "postcss": "^8.5.15",
     "prisma": "^7.8.0",
     "tailwindcss": "^4.3.1",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "find-my-way": "9.7.0",
+    "postcss@<=8.5.11": "8.5.22",
+    "sharp": "0.35.3",
+    "@google-cloud/storage": {
+      "gaxios": "7.3.0",
+      "retry-request": "8.0.4",
+      "teeny-request": "10.1.4"
+    },
+    "gaxios": {
+      "uuid": "14.0.1"
+    },
+    "teeny-request": {
+      "uuid": "14.0.1"
+    }
   }
 }

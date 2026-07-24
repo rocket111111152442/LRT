@@ -9,9 +9,7 @@ export async function GET() {
   const admin = await requireAdminApi();
   if (!admin.ok) return admin.response;
 
-  const where = admin.user.proAccountId
-    ? { proAccountId: admin.user.proAccountId }
-    : {};
+  const where = { proAccountId: admin.user.proAccountId };
 
   const [repairs, inventory, sales, expenses] = await Promise.all([
     prisma.repair.findMany({ where, orderBy: { createdAt: "desc" } }),

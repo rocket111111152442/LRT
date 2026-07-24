@@ -18,12 +18,32 @@ function readOptionalText(body: Record<string, unknown>, key: string) {
 
 function readInt(body: Record<string, unknown>, key: string, fallback: number) {
   const value = Number(body[key] ?? fallback);
-  return Number.isInteger(value) && value >= 0 ? value : null;
+  return Number.isInteger(value) && value >= 0 && value <= 2_000_000_000
+    ? value
+    : null;
 }
 
 function readCents(body: Record<string, unknown>, key: string, fallback = 0) {
   const value = Number(body[key] ?? fallback);
-  return Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
+  return Number.isFinite(value) && value >= 0 && value <= 2_000_000_000
+    ? Math.round(value)
+    : null;
+}
+
+function hasValidTextLengths(input: {
+  name: string;
+  reference: string | null;
+  supplier: string | null;
+  location: string | null;
+  notes: string | null;
+}) {
+  return (
+    input.name.length <= 160 &&
+    (input.reference?.length ?? 0) <= 120 &&
+    (input.supplier?.length ?? 0) <= 160 &&
+    (input.location?.length ?? 0) <= 160 &&
+    (input.notes?.length ?? 0) <= 5_000
+  );
 }
 
 export async function GET() {
@@ -35,7 +55,7 @@ export async function GET() {
 
   const items = await prisma.inventoryItem.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
     },
     orderBy: { name: "asc" },
     select: {
@@ -88,13 +108,14 @@ export async function POST(request: Request) {
     lowStockThreshold === null ||
     unitCostCents === null ||
     unitPriceCents === null
+    || !hasValidTextLengths({ name, reference, supplier, location, notes })
   ) {
     return NextResponse.json({ error: "Donnees invalides." }, { status: 400 });
   }
 
   const existingItems = await prisma.inventoryItem.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
     },
     select: {
       id: true,
@@ -112,6 +133,13 @@ export async function POST(request: Request) {
   );
 
   if (existingItem) {
+    if (existingItem.quantity + quantity > 2_000_000_000) {
+      return NextResponse.json(
+        { error: "Quantite maximale depassee." },
+        { status: 400 },
+      );
+    }
+
     const item = await prisma.inventoryItem.update({
       where: { id: existingItem.id },
       data: {
@@ -133,7 +161,7 @@ export async function POST(request: Request) {
 
   const item = await prisma.inventoryItem.create({
     data: {
-      proAccountId: admin.user.proAccountId ?? undefined,
+      proAccountId: admin.user.proAccountId,
       name,
       category,
       reference,

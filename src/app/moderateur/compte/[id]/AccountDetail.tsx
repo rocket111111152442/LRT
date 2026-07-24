@@ -112,12 +112,32 @@ export function AccountDetail({ accountId }: { accountId: string }) {
   }, [accountId]);
 
   async function action(body: Record<string, unknown>) {
+    const sensitiveActions = new Set([
+      "extend_trial",
+      "set_paid",
+      "set_plan",
+      "toggle_support",
+      "reset_password",
+      "cancel_account",
+      "delete_account",
+      "enter_control",
+    ]);
+    let securedBody = body;
+
+    if (sensitiveActions.has(String(body.action))) {
+      const moderatorPassword = window.prompt(
+        "Confirmez cette action sensible avec le mot de passe moderateur :",
+      );
+      if (!moderatorPassword) return;
+      securedBody = { ...body, moderatorPassword };
+    }
+
     setWorking(true); setActionMsg(""); setActionErr("");
     try {
       const res = await fetch(`/api/moderateur/compte/${accountId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(securedBody),
       });
       const payload = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -292,10 +312,10 @@ export function AccountDetail({ accountId }: { accountId: string }) {
           {/* Reset mot de passe */}
           <div className="grid gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
             <p className="flex items-center gap-2 text-sm font-semibold text-slate-200"><KeyRound className="h-4 w-4 text-blue-400" />Nouveau mot de passe</p>
-            <input type="text" value={newPwd} onChange={e => setNewPwd(e.target.value)}
-              placeholder="Min. 6 caractères"
+            <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)}
+              placeholder="12 caractères, lettre + chiffre"
               className="min-h-9 rounded-lg border border-white/10 bg-white/10 px-2 text-sm text-white placeholder:text-slate-600" />
-            <button onClick={() => action({ action: "reset_password", newPassword: newPwd })} disabled={working || newPwd.length < 6}
+            <button onClick={() => action({ action: "reset_password", newPassword: newPwd })} disabled={working || newPwd.length < 12}
               className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-500 disabled:opacity-50">
               Réinitialiser
             </button>

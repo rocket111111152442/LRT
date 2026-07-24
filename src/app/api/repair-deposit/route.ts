@@ -4,6 +4,11 @@ import { isProAccountActive } from "@/lib/accountStatus";
 import { sendRepairStatusEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { normalizeTicketNumber } from "@/lib/ticketFormat";
+import {
+  verifyRepairAccessToken,
+  verifyRepairEmail,
+} from "@/lib/repairAccess";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -14,6 +19,22 @@ function readString(value: unknown) {
 }
 
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    `repair-deposit:${clientIp(request)}`,
+    12,
+    15 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -28,6 +49,8 @@ export async function POST(request: Request) {
 
   const slug = readString(body.proAccountSlug);
   const ticketNumber = normalizeTicketNumber(readString(body.ticketNumber));
+  const email = readString(body.email);
+  const accessToken = readString(body.accessToken);
 
   if (!slug) {
     return NextResponse.json({ error: "QR code magasin invalide." }, { status: 400 });
@@ -70,6 +93,16 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Ticket introuvable pour ce magasin." },
       { status: 404 },
+    );
+  }
+
+  if (
+    !verifyRepairAccessToken(repair, accessToken) &&
+    !verifyRepairEmail(repair, email)
+  ) {
+    return NextResponse.json(
+      { error: "Verification client invalide." },
+      { status: 403 },
     );
   }
 

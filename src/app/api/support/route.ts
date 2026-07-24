@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { sendSupportMessageEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rateLimit";
 
 type SupportErrors = Partial<
   Record<"name" | "email" | "subject" | "message", string>
@@ -79,6 +80,22 @@ export async function POST(request: Request) {
     );
   }
 
+  const limiter = rateLimit(
+    `support:${admin.user.id}`,
+    10,
+    60 * 60 * 1000,
+  );
+
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: "Trop de demandes. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limiter.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -104,18 +121,36 @@ export async function POST(request: Request) {
 
   if (data.name.length < 2) {
     errors.name = "Nom requis.";
+  } else if (data.name.length > 120) {
+    errors.name = "Nom trop long.";
   }
 
-  if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+  if (
+    !data.email ||
+    data.email.length > 320 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
+  ) {
     errors.email = "Email invalide.";
   }
 
   if (data.subject.length < 3) {
     errors.subject = "Sujet requis.";
+  } else if (data.subject.length > 200) {
+    errors.subject = "Sujet trop long.";
   }
 
   if (data.message.length < 10) {
     errors.message = "Message trop court.";
+  } else if (data.message.length > 10_000) {
+    errors.message = "Message trop long.";
+  }
+
+  if (ticketRef && ticketRef.length > 100) {
+    return NextResponse.json({ error: "Reference trop longue." }, { status: 400 });
+  }
+
+  if (category && !SUPPORT_CATEGORIES.includes(category)) {
+    return NextResponse.json({ error: "Categorie invalide." }, { status: 400 });
   }
 
   if (Object.keys(errors).length > 0) {

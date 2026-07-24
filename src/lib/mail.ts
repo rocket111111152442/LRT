@@ -1,6 +1,13 @@
 import nodemailer from "nodemailer";
 import { getPublicAppUrl } from "@/lib/appUrl";
+import { resolvePublicSmtpHost } from "@/lib/networkSecurity";
 import { prisma } from "@/lib/prisma";
+import { createRepairAccessToken } from "@/lib/repairAccess";
+import {
+  decryptSecret,
+  encryptSecret,
+  isEncryptedSecret,
+} from "@/lib/secretEncryption";
 
 type ReadyRepairEmailInput = {
   firstName: string;
@@ -17,6 +24,7 @@ type RepairStatusEmailInput = ReadyRepairEmailInput & {
 };
 
 type CreatedRepairEmailInput = ReadyRepairEmailInput & {
+  id: string;
   ticketNumber: string | null;
 };
 
@@ -51,6 +59,7 @@ const DEFAULT_SERVICE_EMAIL = "lrt.service.client@gmail.com";
 
 type SmtpConfig = {
   host: string;
+  servername?: string;
   port: number;
   secure: boolean;
   auth?: {
@@ -75,7 +84,7 @@ function getEnvShopLines() {
   ].filter(Boolean) as string[];
 }
 
-function getEnvSmtpConfig(): SmtpConfig | null {
+async function getEnvSmtpConfig(): Promise<SmtpConfig | null> {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
   const from = process.env.SMTP_FROM || process.env.SMTP_USER || DEFAULT_SERVICE_EMAIL;
@@ -84,12 +93,19 @@ function getEnvSmtpConfig(): SmtpConfig | null {
     return null;
   }
 
+  const endpoint = await resolvePublicSmtpHost(host, port);
+
+  if (!endpoint) {
+    return null;
+  }
+
   const user =
     process.env.SMTP_USER || (process.env.SMTP_PASSWORD ? DEFAULT_SERVICE_EMAIL : "");
   const pass = process.env.SMTP_PASSWORD;
 
   return {
-    host,
+    host: endpoint.address,
+    servername: endpoint.servername,
     port,
     secure: process.env.SMTP_SECURE === "true" || port === 465,
     auth: user && pass ? { user, pass } : undefined,
@@ -104,7 +120,7 @@ async function sendWithEnvSmtp(input: {
   subject: string;
   text: string;
 }): Promise<SendMailResult> {
-  const smtpConfig = getEnvSmtpConfig();
+  const smtpConfig = await getEnvSmtpConfig();
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };
@@ -116,6 +132,7 @@ async function sendWithEnvSmtp(input: {
       port: smtpConfig.port,
       secure: smtpConfig.secure,
       auth: smtpConfig.auth,
+      tls: smtpConfig.servername ? { servername: smtpConfig.servername } : undefined,
     });
 
     await transporter.sendMail({
@@ -296,6 +313,27 @@ async function getSmtpConfig(
         settings.smtpHost &&
         settings.smtpPort
       ) {
+      const password = decryptSecret(settings.smtpAppPassword);
+      const endpoint = await resolvePublicSmtpHost(
+        settings.smtpHost,
+        settings.smtpPort,
+      );
+
+      if (!password || !endpoint) {
+        return getEnvSmtpConfig();
+      }
+
+      if (!isEncryptedSecret(settings.smtpAppPassword)) {
+        await prisma.emailSettings
+          .update({
+            where: { id: settingsId },
+            data: {
+              smtpAppPassword: encryptSecret(settings.smtpAppPassword),
+            },
+          })
+          .catch(() => null);
+      }
+
       const shopLines = [
         settings.shopName || process.env.SHOP_NAME,
         settings.shopAddress || process.env.SHOP_ADDRESS,
@@ -304,12 +342,13 @@ async function getSmtpConfig(
       ].filter(Boolean) as string[];
 
       return {
-        host: settings.smtpHost,
+        host: endpoint.address,
+        servername: endpoint.servername,
         port: settings.smtpPort,
         secure: settings.smtpSecure,
         auth: {
           user: settings.smtpEmail,
-          pass: settings.smtpAppPassword,
+          pass: password,
         },
         from: settings.smtpFromName
           ? `${settings.smtpFromName} <${settings.smtpEmail}>`
@@ -381,6 +420,7 @@ async function sendWithRepairSmtp(input: {
       port: smtpConfig.port,
       secure: smtpConfig.secure,
       auth: smtpConfig.auth,
+      tls: smtpConfig.servername ? { servername: smtpConfig.servername } : undefined,
     });
 
     await transporter.sendMail({
@@ -464,7 +504,11 @@ export async function sendRepairCreatedEmail(
 ): Promise<SendMailResult> {
   const smtpConfig = await getSmtpConfig(repair.proAccountId);
   const ticket = repair.ticketNumber ?? "non attribue";
-  const trackingUrl = `${getPublicAppUrl()}/suivi`;
+  const accessToken = createRepairAccessToken(repair);
+  const trackingUrl = `${getPublicAppUrl()}/suivi?${new URLSearchParams({
+    ticket,
+    access: accessToken,
+  }).toString()}`;
   const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
   const depositInstruction = options.alreadyDeposited
     ? "Votre appareil a ete enregistre comme depose au magasin."
@@ -664,6 +708,7 @@ export async function sendReadyRepairEmail(
       port: smtpConfig.port,
       secure: smtpConfig.secure,
       auth: smtpConfig.auth,
+      tls: smtpConfig.servername ? { servername: smtpConfig.servername } : undefined,
     });
 
     await transporter.sendMail({
@@ -783,6 +828,7 @@ export async function sendRepairStatusEmail(
       port: smtpConfig.port,
       secure: smtpConfig.secure,
       auth: smtpConfig.auth,
+      tls: smtpConfig.servername ? { servername: smtpConfig.servername } : undefined,
     });
 
     await transporter.sendMail({
@@ -795,6 +841,69 @@ export async function sendRepairStatusEmail(
     return { sent: true, skipped: false };
   } catch (error) {
     console.error("Repair status email failed", error);
+    return { sent: false, skipped: false };
+  }
+}
+
+export async function sendRepairDelayEmail(
+  repair: RepairStatusEmailInput & {
+    ticketNumber?: string | null;
+    expectedPickupAt: Date | string;
+  },
+): Promise<SendMailResult> {
+  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+
+  if (!smtpConfig) {
+    return { sent: false, skipped: true };
+  }
+
+  const expectedPickupAt = new Date(repair.expectedPickupAt);
+
+  if (Number.isNaN(expectedPickupAt.getTime())) {
+    return { sent: false, skipped: true };
+  }
+
+  const formattedDate = new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: "Europe/Paris",
+  }).format(expectedPickupAt);
+  const device = `${repair.deviceType} ${repair.brand} ${repair.model}`.trim();
+  const text = [
+    `Bonjour ${repair.firstName},`,
+    "",
+    `Nous vous informons que la reparation de votre ${device} prendra un peu plus de temps que prevu.`,
+    `La nouvelle date estimee de disponibilite est le ${formattedDate}.`,
+    repair.ticketNumber ? `Ticket : ${repair.ticketNumber}` : "",
+    "",
+    "Nous sommes desoles pour ce retard et vous remercions pour votre patience.",
+    "",
+    ...smtpConfig.shopLines,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpConfig.host,
+      port: smtpConfig.port,
+      secure: smtpConfig.secure,
+      auth: smtpConfig.auth,
+      tls: smtpConfig.servername
+        ? { servername: smtpConfig.servername }
+        : undefined,
+    });
+
+    await transporter.sendMail({
+      from: smtpConfig.from,
+      to: repair.email,
+      subject: "Retard sur votre reparation",
+      text,
+    });
+
+    return { sent: true, skipped: false };
+  } catch (error) {
+    console.error("Repair delay email failed", error);
     return { sent: false, skipped: false };
   }
 }

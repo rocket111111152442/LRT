@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyEmailCode } from "@/lib/emailVerification";
 import {
   createPaidProAccount,
+  createPendingProSignup,
   createTrialProAccount,
   PaidProAccountData,
 } from "@/lib/pro/paymentActivation";
@@ -12,8 +13,8 @@ import {
   isPremiumDiscountCode,
   PREMIUM_DISCOUNT_CODE,
 } from "@/lib/pro/promoCodes";
-import { createSignupToken } from "@/lib/pro/signupToken";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 const TRIAL_DURATION_MS = 72 * 60 * 60 * 1000;
 
@@ -38,7 +39,11 @@ function isActiveTrial(account?: { paymentStatus?: string | null; trialEndsAt?: 
   return !Number.isNaN(trialEndsAt.getTime()) && trialEndsAt > new Date();
 }
 
-async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
+async function removeOldUnpaidAccounts(
+  ownerEmail: string,
+  slug: string,
+  startTrial: boolean,
+) {
   const existingUser = await prisma.user.findUnique({
     where: { email: ownerEmail },
     select: {
@@ -61,6 +66,14 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
       error:
         "Cet email a deja un compte pro actif. Connectez-vous avec ce compte ou utilisez un autre email.",
       errors: { ownerEmail: "Un compte existe deja avec cet email." },
+    };
+  }
+
+  if (startTrial && existingUser?.proAccount?.paymentStatus === "TRIAL") {
+    return {
+      error:
+        "L'essai gratuit a deja ete utilise avec cet email. Vous pouvez reprendre vos donnees en vous abonnant.",
+      errors: { ownerEmail: "Essai gratuit deja utilise." },
     };
   }
 
@@ -90,6 +103,14 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
     };
   }
 
+  if (startTrial && existingOwnerAccount?.paymentStatus === "TRIAL") {
+    return {
+      error:
+        "L'essai gratuit a deja ete utilise avec cet email. Vous pouvez reprendre vos donnees en vous abonnant.",
+      errors: { ownerEmail: "Essai gratuit deja utilise." },
+    };
+  }
+
   await deleteUnpaidProAccount(existingOwnerAccount?.id);
 
   const existingSlugAccount = await prisma.proAccount.findUnique({
@@ -108,6 +129,13 @@ async function removeOldUnpaidAccounts(ownerEmail: string, slug: string) {
     };
   }
 
+  if (startTrial && existingSlugAccount?.paymentStatus === "TRIAL") {
+    return {
+      error: "Cet atelier a deja beneficie de l'essai gratuit.",
+      errors: { slug: "Essai gratuit deja utilise pour cet atelier." },
+    };
+  }
+
   await deleteUnpaidProAccount(existingSlugAccount?.id);
 
   return null;
@@ -123,6 +151,19 @@ function readOptionalNumber(value?: string) {
 }
 
 export async function POST(request: Request) {
+  const ip = clientIp(request);
+  const limit = rateLimit(`pro-checkout:${ip}`, 12, 15 * 60 * 1000);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez dans quelques minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -148,29 +189,28 @@ export async function POST(request: Request) {
     const conflict = await removeOldUnpaidAccounts(
       validation.data.ownerEmail,
       validation.data.slug,
+      startTrial,
     );
 
     if (conflict) {
       return NextResponse.json(conflict, { status: 400 });
     }
 
-    if (!usesFreeAccessCode) {
-      const isEmailVerified = await verifyEmailCode(
-        validation.data.ownerEmail,
-        "SIGNUP",
-        validation.data.emailCode ?? "",
-        validation.data.emailVerificationId,
-      );
+    const isEmailVerified = await verifyEmailCode(
+      validation.data.ownerEmail,
+      "SIGNUP",
+      validation.data.emailCode ?? "",
+      validation.data.emailVerificationId,
+    );
 
-      if (!isEmailVerified) {
-        return NextResponse.json(
-          {
-            error: "Code email invalide ou expire.",
-            errors: { emailCode: "Code invalide ou expire." },
-          },
-          { status: 400 },
-        );
-      }
+    if (!isEmailVerified) {
+      return NextResponse.json(
+        {
+          error: "Code email invalide ou expire.",
+          errors: { emailCode: "Code invalide ou expire." },
+        },
+        { status: 400 },
+      );
     }
 
     const passwordHash = await bcrypt.hash(validation.data.password, 12);
@@ -227,9 +267,9 @@ export async function POST(request: Request) {
       });
     }
 
-    const signupToken = createSignupToken(accountData);
+    const pendingSignup = await createPendingProSignup(accountData);
     const paymentParams = new URLSearchParams({
-      inscriptionToken: signupToken,
+      inscription: pendingSignup.id,
     });
 
     return NextResponse.json({

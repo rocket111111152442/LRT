@@ -280,12 +280,27 @@ function compareDate(value: unknown, condition: Dict) {
   return true;
 }
 
-function matchesWhereValue(recordValue: unknown, condition: unknown) {
+function matchesWhereValue(recordValue: unknown, condition: unknown): boolean {
   if (typeof condition !== "object" || condition === null || Array.isArray(condition)) {
     return recordValue === condition;
   }
 
+  if (condition instanceof Date) {
+    return (
+      recordValue instanceof Date &&
+      recordValue.getTime() === condition.getTime()
+    );
+  }
+
   const conditionDict = condition as Dict;
+
+  if ("equals" in conditionDict) {
+    return matchesWhereValue(recordValue, conditionDict.equals);
+  }
+
+  if ("not" in conditionDict) {
+    return !matchesWhereValue(recordValue, conditionDict.not);
+  }
 
   if ("notIn" in conditionDict && Array.isArray(conditionDict.notIn)) {
     return !conditionDict.notIn.includes(recordValue);
@@ -304,7 +319,38 @@ function matchesWhereValue(recordValue: unknown, condition: unknown) {
     return compareDate(recordValue, conditionDict);
   }
 
-  return true;
+  const stringOperations = ["contains", "startsWith", "endsWith"] as const;
+  const stringOperation = stringOperations.find(
+    (operation) => operation in conditionDict,
+  );
+
+  if (stringOperation) {
+    if (
+      typeof recordValue !== "string" ||
+      typeof conditionDict[stringOperation] !== "string"
+    ) {
+      return false;
+    }
+
+    const insensitive = conditionDict.mode === "insensitive";
+    const source = insensitive ? recordValue.toLowerCase() : recordValue;
+    const searched = insensitive
+      ? conditionDict[stringOperation].toLowerCase()
+      : conditionDict[stringOperation];
+
+    if (stringOperation === "contains") {
+      return source.includes(searched);
+    }
+
+    if (stringOperation === "startsWith") {
+      return source.startsWith(searched);
+    }
+
+    return source.endsWith(searched);
+  }
+
+  // Unknown operators must never broaden a query silently.
+  return false;
 }
 
 function matchesWhereObject(record: Dict, where: Dict | undefined) {
@@ -312,9 +358,55 @@ function matchesWhereObject(record: Dict, where: Dict | undefined) {
     return true;
   }
 
-  return Object.entries(where).every(([field, condition]) =>
-    matchesWhereValue(record[field], condition),
-  );
+  if ("AND" in where) {
+    const conditions = Array.isArray(where.AND) ? where.AND : [where.AND];
+
+    if (
+      !conditions.every(
+        (condition) =>
+          typeof condition === "object" &&
+          condition !== null &&
+          matchesWhereObject(record, condition as Dict),
+      )
+    ) {
+      return false;
+    }
+  }
+
+  if ("OR" in where) {
+    if (
+      !Array.isArray(where.OR) ||
+      !where.OR.some(
+        (condition) =>
+          typeof condition === "object" &&
+          condition !== null &&
+          matchesWhereObject(record, condition as Dict),
+      )
+    ) {
+      return false;
+    }
+  }
+
+  if ("NOT" in where) {
+    const conditions = Array.isArray(where.NOT) ? where.NOT : [where.NOT];
+
+    if (
+      conditions.some(
+        (condition) =>
+          typeof condition === "object" &&
+          condition !== null &&
+          matchesWhereObject(record, condition as Dict),
+      )
+    ) {
+      return false;
+    }
+  }
+
+  return Object.entries(where)
+    .filter(([field]) => !["AND", "OR", "NOT"].includes(field))
+    .every(([field, condition]) =>
+      matchesWhereValue(record[field], condition),
+    );
 }
 
 function compareRecordsByOrder(left: Dict, right: Dict, orderBy: Dict | Dict[] | undefined) {
@@ -368,7 +460,10 @@ function createGenericFirestoreModel(
               ? await findById(collectionName, String(args.where[field]))
               : await findByField(collectionName, field, args.where[field]);
 
-          return applySelect(record, args.select);
+          return applySelect(
+            record && matchesWhereObject(record, args.where) ? record : null,
+            args.select,
+          );
         }
       }
 
@@ -771,32 +866,40 @@ function createFirestorePrisma() {
         return repairs.map((repair) => applySelect(repair, args.select));
       },
       async findUnique(args: { where: Dict; select?: Dict }) {
+        let repair: Dict | null = null;
+
         if (typeof args.where.id === "string") {
-          return applySelect(await findById("repairs", args.where.id), args.select);
+          repair = await findById("repairs", args.where.id);
         }
 
-        if (typeof args.where.ticketNumber === "string") {
-          return applySelect(
-            await findByField("repairs", "ticketNumber", args.where.ticketNumber),
-            args.select,
+        if (!repair && typeof args.where.ticketNumber === "string") {
+          repair = await findByField(
+            "repairs",
+            "ticketNumber",
+            args.where.ticketNumber,
           );
         }
 
-        if (typeof args.where.quoteToken === "string") {
-          return applySelect(
-            await findByField("repairs", "quoteToken", args.where.quoteToken),
-            args.select,
+        if (!repair && typeof args.where.quoteToken === "string") {
+          repair = await findByField(
+            "repairs",
+            "quoteToken",
+            args.where.quoteToken,
           );
         }
 
-        if (typeof args.where.reviewToken === "string") {
-          return applySelect(
-            await findByField("repairs", "reviewToken", args.where.reviewToken),
-            args.select,
+        if (!repair && typeof args.where.reviewToken === "string") {
+          repair = await findByField(
+            "repairs",
+            "reviewToken",
+            args.where.reviewToken,
           );
         }
 
-        return null;
+        return applySelect(
+          repair && matchesWhereObject(repair, args.where) ? repair : null,
+          args.select,
+        );
       },
       async create(args: { data: Dict; select?: Dict }) {
         const id = randomUUID();

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sendRepairCreatedEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 type RouteContext = {
   params: Promise<{ token: string }>;
@@ -27,7 +28,33 @@ function quoteSelect() {
   } as const;
 }
 
+function publicQuoteRepair(
+  repair: Awaited<ReturnType<typeof getRepair>>,
+) {
+  if (!repair) {
+    return null;
+  }
+
+  return {
+    ticketNumber: repair.ticketNumber,
+    firstName: repair.firstName,
+    lastName: repair.lastName,
+    deviceType: repair.deviceType,
+    brand: repair.brand,
+    model: repair.model,
+    status: repair.status,
+    estimatedPriceCents: repair.estimatedPriceCents,
+    quoteStatus: repair.quoteStatus,
+    quoteSentAt: repair.quoteSentAt,
+    quoteRespondedAt: repair.quoteRespondedAt,
+  };
+}
+
 async function getRepair(token: string) {
+  if (!/^[A-Za-z0-9_-]{32}$/.test(token)) {
+    return null;
+  }
+
   return prisma.repair.findUnique({
     where: { quoteToken: token },
     select: quoteSelect(),
@@ -42,10 +69,26 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
   }
 
-  return NextResponse.json({ repair });
+  return NextResponse.json({ repair: publicQuoteRepair(repair) });
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
+  const limit = rateLimit(
+    `quote-response:${clientIp(request)}`,
+    10,
+    15 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const { token } = await context.params;
   const body = await request.json().catch(() => null);
 
@@ -64,7 +107,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   if (repair.quoteStatus === "ACCEPTED" || repair.quoteStatus === "REFUSED") {
-    return NextResponse.json({ repair });
+    return NextResponse.json({ repair: publicQuoteRepair(repair) });
   }
 
   const action = String((body as Record<string, unknown>).action) as
@@ -101,5 +144,5 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
   }
 
-  return NextResponse.json({ repair: updatedRepair });
+  return NextResponse.json({ repair: publicQuoteRepair(updatedRepair) });
 }

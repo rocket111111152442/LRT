@@ -69,15 +69,22 @@ export function ModDashboard() {
 
   async function resetDb() {
     const code = window.prompt(
-      "⚠️ RESET BASE DE DONNÉES\n\nTous les comptes sauf lullinismael0@gmail.com seront supprimés définitivement.\n\nTapez RESET_CONFIRMED pour continuer :"
+      "RESET BASE DE DONNEES\n\nTous les comptes sauf le compte protege seront supprimes definitivement.\n\nTapez exactement : SUPPRIMER TOUS LES COMPTES"
     );
-    if (code !== "RESET_CONFIRMED") return;
+    if (code !== "SUPPRIMER TOUS LES COMPTES") return;
+    const moderatorPassword = window.prompt(
+      "Confirmez avec le mot de passe moderateur :",
+    );
+    if (!moderatorPassword) return;
     setResetting(true); setResetMsg("");
     try {
       const res = await fetch("/api/moderateur/reset-db", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirm: "RESET_CONFIRMED" }),
+        body: JSON.stringify({
+          confirm: "SUPPRIMER TOUS LES COMPTES",
+          moderatorPassword,
+        }),
       });
       const payload = await res.json().catch(() => ({}));
       setResetMsg(payload.message ?? (res.ok ? "Reset effectué." : payload.error ?? "Erreur."));

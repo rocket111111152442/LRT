@@ -83,23 +83,68 @@ export function validateProSignupInput(input: unknown):
 
   if (!data.companyName) {
     errors.companyName = "Nom de societe requis.";
+  } else if (data.companyName.length > 160) {
+    errors.companyName = "Nom de societe trop long.";
   }
 
   if (!data.slug || data.slug.length < 3) {
     errors.slug = "Identifiant requis, 3 caracteres minimum.";
   }
 
-  if (!data.ownerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.ownerEmail)) {
+  if (
+    !data.ownerEmail ||
+    data.ownerEmail.length > 320 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.ownerEmail)
+  ) {
     errors.ownerEmail = "Email invalide.";
   }
 
-  if (data.password.length < 8) {
-    errors.password = "Mot de passe requis, 8 caracteres minimum.";
+  const textLimits: Array<[keyof ProSignupInput, number]> = [
+    ["firebaseApiKey", 500],
+    ["firebaseProjectId", 253],
+    ["firebaseAppId", 500],
+    ["shopAddress", 500],
+    ["shopPostalCode", 30],
+    ["shopCity", 120],
+    ["shopCountry", 120],
+    ["shopPhone", 50],
+    ["shopEmail", 320],
+    ["shopOpeningHours", 10_000],
+    ["promoCode", 100],
+    ["emailVerificationId", 2_000],
+  ];
+
+  for (const [field, maxLength] of textLimits) {
+    const value = data[field];
+
+    if (typeof value === "string" && value.length > maxLength) {
+      errors[field] = "Valeur trop longue.";
+    }
+  }
+
+  if (
+    data.shopEmail &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.shopEmail)
+  ) {
+    errors.shopEmail = "Email du magasin invalide.";
+  }
+
+  if (
+    data.password.length < 12 ||
+    data.password.length > 128 ||
+    !/[A-Za-z]/.test(data.password) ||
+    !/\d/.test(data.password)
+  ) {
+    errors.password =
+      "12 caracteres minimum avec au moins une lettre et un chiffre.";
   }
 
   const capacity = Number(data.shopCapacityPerDay ?? "8");
 
-  if (data.shopCapacityPerDay && (!Number.isInteger(capacity) || capacity < 1)) {
+  if (
+    data.shopCapacityPerDay &&
+    (!Number.isInteger(capacity) || capacity < 1 || capacity > 10_000)
+  ) {
     errors.shopCapacityPerDay = "Capacite invalide.";
   }
 
@@ -121,10 +166,21 @@ export function validateProSignupInput(input: unknown):
     errors.shopMaxAppointmentsPerSlot = "Nombre de rendez-vous invalide.";
   }
 
-  for (const key of ["shopLatitude", "shopLongitude"] as const) {
-    if (data[key] && Number.isNaN(Number(data[key]))) {
-      errors[key] = "Coordonnee invalide.";
-    }
+  const latitude = data.shopLatitude ? Number(data.shopLatitude) : null;
+  const longitude = data.shopLongitude ? Number(data.shopLongitude) : null;
+
+  if (
+    latitude !== null &&
+    (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)
+  ) {
+    errors.shopLatitude = "Latitude invalide.";
+  }
+
+  if (
+    longitude !== null &&
+    (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)
+  ) {
+    errors.shopLongitude = "Longitude invalide.";
   }
 
   if (Object.keys(errors).length > 0) {

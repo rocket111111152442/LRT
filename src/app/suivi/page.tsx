@@ -19,7 +19,8 @@ export default function TrackingPage() {
             Suivre une reparation
           </h1>
           <p className="text-sm leading-6 text-slate-600">
-            Entrez le ticket donne par l&apos;atelier, par exemple QOR-000123.
+            Utilisez le lien sécurisé reçu par email ou entrez votre ticket et
+            l&apos;adresse email utilisée pour la réparation.
           </p>
         </header>
         <TrackingClient />

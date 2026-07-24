@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
+import { escapeCsvCell } from "@/lib/csvSecurity";
 import { prisma } from "@/lib/prisma";
 import { REPAIR_STATUSES } from "@/lib/repairValidation";
 import type { RepairStatus as PrismaRepairStatus } from "../../../../../../generated/prisma/client";
-
-function csvEscape(value: unknown) {
-  const text = String(value ?? "");
-  return `"${text.replace(/"/g, '""')}"`;
-}
 
 function isRepairStatus(value: string): value is PrismaRepairStatus {
   return REPAIR_STATUSES.includes(value as (typeof REPAIR_STATUSES)[number]);
@@ -60,7 +56,7 @@ export async function GET(request: Request) {
 
   const repairs = await prisma.repair.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
       ...(statusFilter ? { status: statusFilter } : {}),
       ...(month && /^\d{4}-\d{2}$/.test(month)
         ? {
@@ -187,7 +183,7 @@ export async function GET(request: Request) {
     ]),
   ];
 
-  const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+  const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\n");
 
   return new NextResponse(csv, {
     headers: {

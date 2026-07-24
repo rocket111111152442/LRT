@@ -2,14 +2,19 @@ import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { PrintButton } from "@/components/PrintButton";
 import { prisma } from "@/lib/prisma";
+import { verifyRepairAccessToken } from "@/lib/repairAccess";
 import type { Prisma } from "../../../../generated/prisma/client";
 
 type DocumentsPageProps = {
   params: Promise<{ ticket: string }>;
+  searchParams: Promise<{ access?: string }>;
 };
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const metadata = {
+  robots: { index: false, follow: false },
+};
 
 function normalizeTicket(value: string) {
   const normalized = value
@@ -55,6 +60,7 @@ function formatDate(value: Date | string | number | null | undefined) {
 
 function documentRepairSelect() {
   return {
+    id: true,
     ticketNumber: true,
     firstName: true,
     lastName: true,
@@ -77,8 +83,12 @@ type DocumentRepair = Prisma.RepairGetPayload<{
   select: ReturnType<typeof documentRepairSelect>;
 }>;
 
-export default async function DocumentsPage({ params }: DocumentsPageProps) {
+export default async function DocumentsPage({
+  params,
+  searchParams,
+}: DocumentsPageProps) {
   const { ticket } = await params;
+  const { access = "" } = await searchParams;
   const ticketNumber = normalizeTicket(ticket);
   let repair: DocumentRepair | null;
 
@@ -108,7 +118,7 @@ export default async function DocumentsPage({ params }: DocumentsPageProps) {
     );
   }
 
-  if (!repair) {
+  if (!repair || !verifyRepairAccessToken(repair, access)) {
     return (
       <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-xl rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">

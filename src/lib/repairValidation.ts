@@ -80,6 +80,18 @@ const fieldLabels: Record<keyof RepairInput, string> = {
   wantsPriceBeforeDeposit: "La demande de prix",
 };
 
+const textLimits: Partial<Record<keyof RepairInput, number>> = {
+  firstName: 80,
+  lastName: 80,
+  phone: 40,
+  email: 254,
+  deviceType: 80,
+  brand: 80,
+  model: 120,
+  issueDescription: 5000,
+  unlockCodeOrNote: 500,
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -126,7 +138,9 @@ function isValidEmail(email: string) {
 }
 
 function isImageDataUrl(value: string) {
-  return /^data:image\/(png|jpeg|jpg|webp);base64,/.test(value);
+  return /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(
+    value,
+  );
 }
 
 export function emptyRepairInput(): RepairInput {
@@ -182,6 +196,16 @@ export function validateRepairInput(input: unknown): ValidationResult {
     }
   }
 
+  for (const [field, limit] of Object.entries(textLimits) as Array<
+    [keyof RepairInput, number]
+  >) {
+    const value = data[field];
+
+    if (typeof value === "string" && value.length > limit) {
+      errors[field] = `${fieldLabels[field]} est trop long (${limit} caracteres maximum).`;
+    }
+  }
+
   if (data.email && !isValidEmail(data.email)) {
     errors.email = "L'email doit etre valide.";
   }
@@ -195,7 +219,11 @@ export function validateRepairInput(input: unknown): ValidationResult {
       "La description doit contenir au moins 10 caracteres.";
   }
 
-  if (data.photos?.some((photo) => !isImageDataUrl(photo) || photo.length > 700000)) {
+  if (
+    data.photos?.some(
+      (photo) => !isImageDataUrl(photo) || photo.length > 700000,
+    )
+  ) {
     errors.photos = "Ajoutez 3 photos maximum, au format image.";
   }
 
@@ -210,7 +238,11 @@ export function validateRepairInput(input: unknown): ValidationResult {
   if (data.requestedAppointmentAt) {
     const requestedAt = new Date(data.requestedAppointmentAt);
 
-    if (Number.isNaN(requestedAt.getTime()) || requestedAt <= new Date()) {
+    if (
+      Number.isNaN(requestedAt.getTime()) ||
+      requestedAt <= new Date() ||
+      requestedAt.getTime() > Date.now() + 366 * 24 * 60 * 60 * 1000
+    ) {
       errors.requestedAppointmentAt = "Choisissez un creneau futur.";
     }
   }

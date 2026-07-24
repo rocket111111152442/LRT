@@ -60,7 +60,7 @@ export async function GET() {
 
   const repairs = (await prisma.repair.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
     },
     orderBy: { createdAt: "desc" },
     select: {

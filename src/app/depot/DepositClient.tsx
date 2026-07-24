@@ -17,6 +17,7 @@ type DepositResult = {
 
 export function DepositClient({ proAccountSlug, shopName }: DepositClientProps) {
   const [ticketNumber, setTicketNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [result, setResult] = useState<DepositResult | null>(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +44,7 @@ export function DepositClient({ proAccountSlug, shopName }: DepositClientProps) 
         body: JSON.stringify({
           proAccountSlug,
           ticketNumber: normalizedTicket,
+          email,
         }),
       });
       const payload = await response.json().catch(() => ({}));
@@ -81,7 +83,7 @@ export function DepositClient({ proAccountSlug, shopName }: DepositClientProps) 
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-2 text-sm font-medium text-slate-800">
           Numero de ticket
           <input
@@ -94,10 +96,21 @@ export function DepositClient({ proAccountSlug, shopName }: DepositClientProps) 
             className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
           />
         </label>
+        <label className="grid gap-2 text-sm font-medium text-slate-800">
+          Email du dossier
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            required
+            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+          />
+        </label>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="min-h-11 self-end rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+          className="min-h-11 self-end rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 sm:col-span-2"
         >
           {isSubmitting ? "Confirmation..." : "Confirmer le depot"}
         </button>

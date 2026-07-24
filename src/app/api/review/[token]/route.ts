@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 type RouteContext = {
   params: Promise<{ token: string }>;
@@ -24,7 +25,32 @@ function reviewSelect() {
   } as const;
 }
 
+function publicReviewRepair(
+  repair: Awaited<ReturnType<typeof getRepair>>,
+) {
+  if (!repair) {
+    return null;
+  }
+
+  return {
+    ticketNumber: repair.ticketNumber,
+    firstName: repair.firstName,
+    lastName: repair.lastName,
+    deviceType: repair.deviceType,
+    brand: repair.brand,
+    model: repair.model,
+    status: repair.status,
+    reviewRespondedAt: repair.reviewRespondedAt,
+    satisfactionRating: repair.satisfactionRating,
+    satisfactionComment: repair.satisfactionComment,
+  };
+}
+
 async function getRepair(token: string) {
+  if (!/^[A-Za-z0-9_-]{32}$/.test(token)) {
+    return null;
+  }
+
   return prisma.repair.findUnique({
     where: { reviewToken: token },
     select: reviewSelect(),
@@ -48,10 +74,26 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Lien d'avis introuvable." }, { status: 404 });
   }
 
-  return NextResponse.json({ repair });
+  return NextResponse.json({ repair: publicReviewRepair(repair) });
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const limit = rateLimit(
+    `review-response:${clientIp(request)}`,
+    10,
+    15 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const { token } = await context.params;
   const body = await request.json().catch(() => null);
 
@@ -98,5 +140,5 @@ export async function POST(request: Request, context: RouteContext) {
     message: `Avis client recu : ${rating}/5.`,
   });
 
-  return NextResponse.json({ repair: updatedRepair });
+  return NextResponse.json({ repair: publicReviewRepair(updatedRepair) });
 }

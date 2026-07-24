@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { requireModApi } from "@/lib/modAuth";
+import { checkModPassword, requireModApi } from "@/lib/modAuth";
 import { setAdminSessionCookie, setImpersonationCookie } from "@/lib/auth";
 import { sendSupportReplyEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +8,25 @@ import { prisma } from "@/lib/prisma";
 // Durée pendant laquelle une demande de prise en main reste valable (le
 // commerçant doit accepter, et le modérateur entrer, dans ce délai).
 const CONTROL_REQUEST_TTL_MS = 30 * 60 * 1000; // 30 min
+const SENSITIVE_ACTIONS = new Set([
+  "extend_trial",
+  "set_paid",
+  "set_plan",
+  "toggle_support",
+  "reset_password",
+  "cancel_account",
+  "delete_account",
+  "enter_control",
+]);
+const ALLOWED_PLANS = new Set([
+  "basic",
+  "extra_storage_10gb",
+  "extra_storage_25gb",
+  "active_shop_pack",
+  "big_workshop_pack",
+  "multi_shop_pack",
+  "enterprise",
+]);
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -21,7 +40,21 @@ export async function GET(_req: Request, ctx: Context) {
 
   const { id } = await ctx.params;
   const [account, users, repairs, messages] = await Promise.all([
-    prisma.proAccount.findUnique({ where: { id } }),
+    prisma.proAccount.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        companyName: true,
+        slug: true,
+        ownerEmail: true,
+        paymentStatus: true,
+        trialEndsAt: true,
+        supportIncluded: true,
+        plan: true,
+        storageAddonGb: true,
+        createdAt: true,
+      },
+    }),
     prisma.user.findMany
       ? prisma.user.findMany({ where: { proAccountId: id } } as Parameters<typeof prisma.user.findMany>[0]).catch(() => [])
       : Promise.resolve([]),
@@ -63,10 +96,30 @@ export async function POST(request: Request, ctx: Context) {
 
   const action = readText(body as Record<string, unknown>, "action");
 
+  if (
+    SENSITIVE_ACTIONS.has(action) &&
+    !checkModPassword(
+      readText(body as Record<string, unknown>, "moderatorPassword"),
+    )
+  ) {
+    return NextResponse.json(
+      { error: "Mot de passe moderateur requis pour cette action." },
+      { status: 403 },
+    );
+  }
+
   // ---- Actions disponibles ----
 
   if (action === "extend_trial") {
     const hours = Number((body as Record<string, unknown>).hours ?? 72);
+
+    if (!Number.isInteger(hours) || hours < 1 || hours > 720) {
+      return NextResponse.json(
+        { error: "Duree invalide (1 a 720 heures)." },
+        { status: 400 },
+      );
+    }
+
     await prisma.proAccount.update({
       where: { id },
       data: {
@@ -87,6 +140,11 @@ export async function POST(request: Request, ctx: Context) {
 
   if (action === "set_plan") {
     const plan = readText(body as Record<string, unknown>, "plan") || "basic";
+
+    if (!ALLOWED_PLANS.has(plan)) {
+      return NextResponse.json({ error: "Plan invalide." }, { status: 400 });
+    }
+
     await prisma.proAccount.update({ where: { id }, data: { plan } });
     return NextResponse.json({ ok: true, message: `Plan mis à jour : ${plan}.` });
   }
@@ -100,7 +158,20 @@ export async function POST(request: Request, ctx: Context) {
 
   if (action === "reset_password") {
     const newPassword = readText(body as Record<string, unknown>, "newPassword");
-    if (newPassword.length < 6) return NextResponse.json({ error: "Mot de passe trop court (6 min)." }, { status: 400 });
+    if (
+      newPassword.length < 12 ||
+      newPassword.length > 128 ||
+      !/[A-Za-z]/.test(newPassword) ||
+      !/\d/.test(newPassword)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Mot de passe trop faible (12 caracteres, une lettre et un chiffre minimum).",
+        },
+        { status: 400 },
+      );
+    }
     const hash = await bcrypt.hash(newPassword, 12);
     await prisma.user.updateMany({ where: { proAccountId: id }, data: { passwordHash: hash } });
     return NextResponse.json({ ok: true, message: "Mot de passe réinitialisé." });
@@ -121,12 +192,14 @@ export async function POST(request: Request, ctx: Context) {
   if (action === "reply_message") {
     const msgId = readText(body as Record<string, unknown>, "messageId");
     const replyText = readText(body as Record<string, unknown>, "replyText");
-    if (!msgId || replyText.length < 2) {
+    if (!msgId || replyText.length < 2 || replyText.length > 10_000) {
       return NextResponse.json({ error: "Réponse trop courte." }, { status: 400 });
     }
 
     const message = await prisma.supportMessage.findUnique({ where: { id: msgId } });
-    if (!message) return NextResponse.json({ error: "Message introuvable." }, { status: 404 });
+    if (!message || message.proAccountId !== id) {
+      return NextResponse.json({ error: "Message introuvable." }, { status: 404 });
+    }
 
     const result = await sendSupportReplyEmail({
       to: message.email,
@@ -160,6 +233,17 @@ export async function POST(request: Request, ctx: Context) {
     const msgId = readText(body as Record<string, unknown>, "messageId");
     const note  = readText(body as Record<string, unknown>, "note");
     const status = readText(body as Record<string, unknown>, "status") || "OPEN";
+    const message = await prisma.supportMessage.findUnique({ where: { id: msgId } });
+
+    if (
+      !message ||
+      message.proAccountId !== id ||
+      note.length > 5_000 ||
+      !new Set(["OPEN", "ANSWERED", "CLOSED"]).has(status)
+    ) {
+      return NextResponse.json({ error: "Note ou statut invalide." }, { status: 400 });
+    }
+
     await prisma.supportMessage.update({
       where: { id: msgId },
       data: { moderatorNote: note, status },
@@ -183,6 +267,9 @@ export async function POST(request: Request, ctx: Context) {
     });
 
     const reason = readText(body as Record<string, unknown>, "reason");
+    if (reason.length > 500) {
+      return NextResponse.json({ error: "Motif trop long." }, { status: 400 });
+    }
     const request = await prisma.controlRequest.create({
       data: {
         proAccountId: id,
@@ -245,7 +332,7 @@ export async function POST(request: Request, ctx: Context) {
     const adminUser = await prisma.user.findFirst({
       where: { proAccountId: id, role: "ADMIN" },
       orderBy: { createdAt: "asc" },
-      select: { id: true, email: true, proAccountId: true },
+      select: { id: true, email: true, passwordHash: true, proAccountId: true },
     });
     if (!account || !adminUser) {
       return NextResponse.json({ error: "Compte ou utilisateur admin introuvable." }, { status: 404 });
@@ -267,6 +354,8 @@ export async function POST(request: Request, ctx: Context) {
       paymentStatus: null,
       trialEndsAt: null,
       supportIncluded: false,
+    }, {
+      passwordHash: adminUser.passwordHash,
     });
     setImpersonationCookie(response, {
       proAccountId: account.id,

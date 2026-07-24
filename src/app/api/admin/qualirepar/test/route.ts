@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { testConnection } from "@/lib/qualirepar";
+import {
+  decryptSecret,
+  encryptSecret,
+  isEncryptedSecret,
+} from "@/lib/secretEncryption";
 
 function readText(body: unknown, key: string) {
   return body && typeof body === "object" && key in body
@@ -21,12 +26,34 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   let apiKey = readText(body, "apiKey");
 
+  if (apiKey.length > 2_000) {
+    return NextResponse.json(
+      { ok: false, error: "Clé API trop longue." },
+      { status: 400 },
+    );
+  }
+
   if (!apiKey) {
     const account = await prisma.proAccount.findUnique({
       where: { id: admin.user.proAccountId },
       select: { qualireparApiKey: true },
     });
-    apiKey = account?.qualireparApiKey ?? "";
+
+    if (
+      account?.qualireparApiKey &&
+      !isEncryptedSecret(account.qualireparApiKey)
+    ) {
+      await prisma.proAccount
+        .update({
+          where: { id: admin.user.proAccountId },
+          data: {
+            qualireparApiKey: encryptSecret(account.qualireparApiKey),
+          },
+        })
+        .catch(() => null);
+    }
+
+    apiKey = decryptSecret(account?.qualireparApiKey);
   }
 
   if (!apiKey) {

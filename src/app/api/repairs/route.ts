@@ -6,6 +6,8 @@ import { hasSlotAt } from "@/lib/shopAvailability";
 import { addRepairEvent } from "@/lib/repairEvents";
 import { generateTicketNumber } from "@/lib/repairTickets";
 import { validateRepairInput } from "@/lib/repairValidation";
+import { encryptSecret } from "@/lib/secretEncryption";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -27,6 +29,32 @@ export async function POST(request: Request) {
 
   if (!validation.ok) {
     return NextResponse.json({ errors: validation.errors }, { status: 400 });
+  }
+
+  const ipLimit = rateLimit(
+    `public-repair:${clientIp(request)}`,
+    20,
+    60 * 60 * 1000,
+  );
+  const emailLimit = rateLimit(
+    `public-repair-email:${validation.data.email.toLowerCase()}`,
+    6,
+    60 * 60 * 1000,
+  );
+
+  if (!ipLimit.allowed || !emailLimit.allowed) {
+    const retryAfterSeconds = Math.max(
+      ipLimit.retryAfterSeconds,
+      emailLimit.retryAfterSeconds,
+    );
+
+    return NextResponse.json(
+      { error: "Trop de demandes. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(retryAfterSeconds) },
+      },
+    );
   }
 
   try {
@@ -131,6 +159,7 @@ export async function POST(request: Request) {
     const repair = await prisma.repair.create({
       data: {
         ...repairData,
+        unlockCodeOrNote: encryptSecret(repairData.unlockCodeOrNote),
         proAccountId,
         ticketNumber: await generateTicketNumber(),
         status:

@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { sendSetupAppointmentEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -22,6 +23,22 @@ function readMetadataText(
 }
 
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    `setup-appointment:${clientIp(request)}`,
+    5,
+    60 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de demandes. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const secretKey = process.env.STRIPE_SECRET_KEY;
 
   if (!secretKey) {
@@ -48,8 +65,12 @@ export async function POST(request: Request) {
   const contactPhone = readText(body, "contactPhone");
   const notes = readText(body, "notes").slice(0, 1000);
 
-  if (!sessionId) {
+  if (!/^cs_(?:test|live)_[A-Za-z0-9_]+$/.test(sessionId)) {
     return NextResponse.json({ error: "Session Stripe manquante." }, { status: 400 });
+  }
+
+  if (sessionId.length > 300 || contactPhone.length > 50) {
+    return NextResponse.json({ error: "Valeur trop longue." }, { status: 400 });
   }
 
   if (Number.isNaN(requestedAt.getTime())) {

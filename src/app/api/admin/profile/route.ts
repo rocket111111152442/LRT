@@ -116,7 +116,9 @@ export async function PATCH(request: Request) {
 
   if (
     shopCapacityPerDay !== null &&
-    (!Number.isInteger(shopCapacityPerDay) || shopCapacityPerDay < 1)
+    (!Number.isInteger(shopCapacityPerDay) ||
+      shopCapacityPerDay < 1 ||
+      shopCapacityPerDay > 10_000)
   ) {
     return NextResponse.json(
       { error: "La capacite doit etre un nombre entier positif." },
@@ -172,6 +174,48 @@ export async function PATCH(request: Request) {
       { error: "Le nom du magasin est requis." },
       { status: 400 },
     );
+  }
+
+  const textLimits: Array<[string, string | null, number]> = [
+    ["nom du magasin", data.companyName, 160],
+    ["description", data.publicDescription, 5_000],
+    ["adresse", data.shopAddress, 500],
+    ["code postal", data.shopPostalCode, 30],
+    ["ville", data.shopCity, 120],
+    ["pays", data.shopCountry, 120],
+    ["telephone", data.shopPhone, 50],
+    ["email", data.shopEmail, 320],
+    ["horaires", data.shopOpeningHours, 10_000],
+  ];
+
+  for (const [label, value, maxLength] of textLimits) {
+    if (value && value.length > maxLength) {
+      return NextResponse.json(
+        { error: `Le champ ${label} est trop long.` },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (
+    data.shopEmail &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.shopEmail)
+  ) {
+    return NextResponse.json({ error: "Email du magasin invalide." }, { status: 400 });
+  }
+
+  if (
+    data.shopLatitude !== null &&
+    (data.shopLatitude < -90 || data.shopLatitude > 90)
+  ) {
+    return NextResponse.json({ error: "Latitude invalide." }, { status: 400 });
+  }
+
+  if (
+    data.shopLongitude !== null &&
+    (data.shopLongitude < -180 || data.shopLongitude > 180)
+  ) {
+    return NextResponse.json({ error: "Longitude invalide." }, { status: 400 });
   }
 
   const profile = await prisma.proAccount.update({

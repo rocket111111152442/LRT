@@ -1,9 +1,15 @@
+import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
-import { clearAdminSessionCookie, getSessionUserId } from "@/lib/auth";
+import {
+  clearAdminSessionCookie,
+  clearTrustedDeviceCookie,
+  getSessionUserId,
+} from "@/lib/auth";
 import { deleteProAccountAndData } from "@/lib/pro/deleteAccount";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rateLimit";
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   const userId = await getSessionUserId();
 
   if (!userId) {
@@ -12,13 +18,45 @@ export async function DELETE() {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, proAccountId: true },
+    select: { id: true, passwordHash: true, proAccountId: true },
   });
 
   if (!user?.proAccountId) {
     return NextResponse.json(
       { error: "Aucun compte a supprimer." },
       { status: 400 },
+    );
+  }
+
+  const limiter = rateLimit(`delete-account:${user.id}`, 5, 60 * 60 * 1000);
+
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limiter.retryAfterSeconds) },
+      },
+    );
+  }
+
+  const body = await request.json().catch(() => null);
+  const currentPassword =
+    body &&
+    typeof body === "object" &&
+    "currentPassword" in body &&
+    typeof body.currentPassword === "string"
+      ? body.currentPassword
+      : "";
+
+  if (
+    !currentPassword ||
+    currentPassword.length > 128 ||
+    !(await bcrypt.compare(currentPassword, user.passwordHash))
+  ) {
+    return NextResponse.json(
+      { error: "Mot de passe incorrect." },
+      { status: 403 },
     );
   }
 
@@ -52,5 +90,6 @@ export async function DELETE() {
 
   const response = NextResponse.json({ ok: true });
   clearAdminSessionCookie(response);
+  clearTrustedDeviceCookie(response);
   return response;
 }

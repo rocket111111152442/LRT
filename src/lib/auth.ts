@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const COOKIE_NAME = "repair_admin_session";
+const COOKIE_NAME =
+  process.env.NODE_ENV === "production"
+    ? "__Host-qoravo_admin_session"
+    : "qoravo_admin_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 const REMEMBER_ME_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 
@@ -12,6 +15,7 @@ type SessionPayload = {
   userId: string;
   role: "ADMIN";
   expiresAt: number;
+  credentialDigest: string;
 };
 
 export type AdminUser = {
@@ -35,7 +39,7 @@ type ProAccountSummary = {
 function getAuthSecret() {
   const secret = process.env.AUTH_SECRET;
 
-  if (secret && secret.length >= 16) {
+  if (secret && secret.length >= 32) {
     return secret;
   }
 
@@ -44,7 +48,7 @@ function getAuthSecret() {
   // session admin valide.
   if (process.env.NODE_ENV === "production") {
     throw new Error(
-      "AUTH_SECRET manquant ou trop court (>= 16 caractères requis) en production.",
+      "AUTH_SECRET manquant ou trop court (>= 32 caractères requis) en production.",
     );
   }
 
@@ -55,14 +59,20 @@ function sign(value: string) {
   return createHmac("sha256", getAuthSecret()).update(value).digest("base64url");
 }
 
+function credentialDigestFor(passwordHash: string) {
+  return sign(`credential:${passwordHash}`);
+}
+
 function createSessionValue(
   user: AdminUser,
+  passwordHash: string,
   maxAgeSeconds = SESSION_MAX_AGE_SECONDS,
 ) {
   const payload: SessionPayload = {
     userId: user.id,
     role: user.role,
     expiresAt: Date.now() + maxAgeSeconds * 1000,
+    credentialDigest: credentialDigestFor(passwordHash),
   };
   const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
     "base64url",
@@ -107,7 +117,15 @@ function verifySessionValue(value?: string): SessionPayload | null {
       Buffer.from(encodedPayload, "base64url").toString("utf8"),
     ) as SessionPayload;
 
-    if (payload.role !== "ADMIN" || payload.expiresAt < Date.now()) {
+    if (
+      payload.role !== "ADMIN" ||
+      typeof payload.userId !== "string" ||
+      !payload.userId ||
+      typeof payload.expiresAt !== "number" ||
+      typeof payload.credentialDigest !== "string" ||
+      !payload.credentialDigest ||
+      payload.expiresAt < Date.now()
+    ) {
       return null;
     }
 
@@ -120,48 +138,66 @@ function verifySessionValue(value?: string): SessionPayload | null {
 export function setAdminSessionCookie(
   response: NextResponse,
   user: AdminUser,
-  options: { rememberMe?: boolean } = {},
+  options: { passwordHash: string; rememberMe?: boolean },
 ) {
   const maxAge = options.rememberMe
     ? REMEMBER_ME_MAX_AGE_SECONDS
     : SESSION_MAX_AGE_SECONDS;
 
-  response.cookies.set(COOKIE_NAME, createSessionValue(user, maxAge), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge,
-    path: "/",
-  });
+  response.cookies.set(
+    COOKIE_NAME,
+    createSessionValue(user, options.passwordHash, maxAge),
+    {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge,
+      path: "/",
+      priority: "high",
+    },
+  );
 }
 
 // ---- Appareil de confiance (« se souvenir de moi ») ----
 // Quand l'utilisateur coche « se souvenir de moi », on pose un cookie signe lie
 // a son email. A la prochaine connexion sur ce navigateur, le mot de passe
 // suffit : on saute le code email 2FA (mais le mot de passe reste exige).
-const TRUSTED_COOKIE = "qoravo_trusted_device";
+const TRUSTED_COOKIE =
+  process.env.NODE_ENV === "production"
+    ? "__Host-qoravo_trusted_device"
+    : "qoravo_trusted_device";
 const TRUSTED_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 
-function trustedTokenFor(email: string) {
-  return sign(`trusted:${email.toLowerCase()}`);
+function trustedTokenFor(email: string, passwordHash: string) {
+  return sign(
+    `trusted:${email.toLowerCase()}:${credentialDigestFor(passwordHash)}`,
+  );
 }
 
-export function setTrustedDeviceCookie(response: NextResponse, email: string) {
-  response.cookies.set(TRUSTED_COOKIE, trustedTokenFor(email), {
+export function setTrustedDeviceCookie(
+  response: NextResponse,
+  email: string,
+  passwordHash: string,
+) {
+  response.cookies.set(TRUSTED_COOKIE, trustedTokenFor(email, passwordHash), {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: TRUSTED_MAX_AGE_SECONDS,
     path: "/",
+    priority: "high",
   });
 }
 
-export async function isTrustedDevice(email: string): Promise<boolean> {
+export async function isTrustedDevice(
+  email: string,
+  passwordHash: string,
+): Promise<boolean> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(TRUSTED_COOKIE)?.value;
     if (!token) return false;
-    const expected = trustedTokenFor(email);
+    const expected = trustedTokenFor(email, passwordHash);
     const tokenBuffer = Buffer.from(token);
     const expectedBuffer = Buffer.from(expected);
     return (
@@ -173,12 +209,25 @@ export async function isTrustedDevice(email: string): Promise<boolean> {
   }
 }
 
+export function clearTrustedDeviceCookie(response: NextResponse) {
+  response.cookies.set(TRUSTED_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  });
+}
+
 // ---- Prise en main par un modérateur (impersonation) ----
 // Quand un modérateur entre dans le logiciel d'un commerçant (après accord de
 // celui-ci), on pose en plus du cookie de session admin un cookie signé marquant
 // qu'il s'agit d'une prise en main support. Il sert à afficher le bandeau « Mode
 // support » et à ne pas redemander le consentement au modérateur lui-même.
-const IMPERSONATION_COOKIE = "qoravo_impersonator";
+const IMPERSONATION_COOKIE =
+  process.env.NODE_ENV === "production"
+    ? "__Host-qoravo_impersonator"
+    : "qoravo_impersonator";
 const IMPERSONATION_MAX_AGE_SECONDS = 60 * 60 * 4; // 4 h
 
 type ImpersonationPayload = {
@@ -199,17 +248,18 @@ export function setImpersonationCookie(
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
   response.cookies.set(IMPERSONATION_COOKIE, `${encoded}.${sign(encoded)}`, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: IMPERSONATION_MAX_AGE_SECONDS,
     path: "/",
+    priority: "high",
   });
 }
 
 export function clearImpersonationCookie(response: NextResponse) {
   response.cookies.set(IMPERSONATION_COOKIE, "", {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: 0,
     path: "/",
@@ -242,7 +292,15 @@ export async function getImpersonation(): Promise<{
       Buffer.from(encoded, "base64url").toString("utf8"),
     ) as ImpersonationPayload;
 
-    if (payload.expiresAt < Date.now()) return null;
+    if (
+      typeof payload.proAccountId !== "string" ||
+      !payload.proAccountId ||
+      typeof payload.companyName !== "string" ||
+      typeof payload.expiresAt !== "number" ||
+      payload.expiresAt < Date.now()
+    ) {
+      return null;
+    }
     return { proAccountId: payload.proAccountId, companyName: payload.companyName };
   } catch (error) {
     if (isDynamicServerUsageError(error)) {
@@ -255,7 +313,7 @@ export async function getImpersonation(): Promise<{
 export function clearAdminSessionCookie(response: NextResponse) {
   response.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: 0,
     path: "/",
@@ -281,12 +339,18 @@ export async function getAdminSessionState(): Promise<AdminSessionState> {
       select: {
         id: true,
         email: true,
+        passwordHash: true,
         role: true,
         proAccountId: true,
       },
     });
 
-    if (!user || user.role !== "ADMIN") {
+    if (
+      !user ||
+      user.role !== "ADMIN" ||
+      !user.proAccountId ||
+      payload.credentialDigest !== credentialDigestFor(user.passwordHash)
+    ) {
       return { status: "none" };
     }
 
@@ -302,6 +366,10 @@ export async function getAdminSessionState(): Promise<AdminSessionState> {
           supportIncluded: true,
         },
       });
+    }
+
+    if (!proAccount) {
+      return { status: "none" };
     }
 
     const trialEndsAt = proAccount?.trialEndsAt
@@ -367,7 +435,25 @@ export async function getSessionUserId(): Promise<string | null> {
   try {
     const cookieStore = await cookies();
     const payload = verifySessionValue(cookieStore.get(COOKIE_NAME)?.value);
-    return payload?.userId ?? null;
+
+    if (!payload) {
+      return null;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, passwordHash: true, role: true },
+    });
+
+    if (
+      !user ||
+      user.role !== "ADMIN" ||
+      payload.credentialDigest !== credentialDigestFor(user.passwordHash)
+    ) {
+      return null;
+    }
+
+    return user.id;
   } catch (error) {
     if (isDynamicServerUsageError(error)) {
       throw error;
@@ -396,17 +482,20 @@ export async function requireAdminPage() {
 }
 
 export async function requireAdminApi(): Promise<
-  | { ok: true; user: AdminUser }
+  | { ok: true; user: AdminUser & { proAccountId: string } }
   | { ok: false; response: NextResponse<{ error: string }> }
 > {
   const admin = await getCurrentAdmin();
 
-  if (!admin) {
+  if (!admin || !admin.proAccountId) {
     return {
       ok: false,
       response: NextResponse.json({ error: "Non authentifie." }, { status: 401 }),
     };
   }
 
-  return { ok: true, user: admin };
+  return {
+    ok: true,
+    user: admin as AdminUser & { proAccountId: string },
+  };
 }

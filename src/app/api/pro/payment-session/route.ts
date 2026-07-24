@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getPublicAppUrl } from "@/lib/appUrl";
 import { prisma } from "@/lib/prisma";
-import type { PaidProAccountData } from "@/lib/pro/paymentActivation";
+import { createPendingProSignup } from "@/lib/pro/paymentActivation";
 import {
   applyPremiumDiscountCents,
   isPremiumDiscountCode,
@@ -9,6 +10,7 @@ import {
   PREMIUM_DISCOUNT_PERCENT,
 } from "@/lib/pro/promoCodes";
 import { readSignupToken } from "@/lib/pro/signupToken";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 const PRO_PRICE_CENTS = 8999;
 const SETUP_HELP_PRICE_CENTS = 2999;
@@ -16,19 +18,26 @@ const PREMIUM_FULL_PRICE_CENTS = PRO_PRICE_CENTS;
 const PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS =
   applyPremiumDiscountCents(PRO_PRICE_CENTS);
 
-function getAppUrl(request: Request) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
-
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
-  }
-
-  return new URL(request.url).origin;
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function dateValue(value: unknown) {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof value.toDate === "function"
+  ) {
+    return value.toDate();
+  }
+
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function getStripeErrorMessage(error: unknown) {
@@ -48,60 +57,6 @@ function getStripeErrorMessage(error: unknown) {
   }
 
   return "Paiement impossible pour le moment.";
-}
-
-function buildSignupMetadata(data: PaidProAccountData) {
-  const metadata: Record<string, string> = {
-    directProSignup: "1",
-    companyName: data.companyName,
-    slug: data.slug,
-    ownerEmail: data.ownerEmail,
-    passwordHash: data.passwordHash,
-    firebaseApiKey: data.firebaseApiKey,
-    firebaseAuthDomain: data.firebaseAuthDomain,
-    firebaseProjectId: data.firebaseProjectId,
-    firebaseAppId: data.firebaseAppId,
-  };
-
-  if (data.firebaseStorageBucket) {
-    metadata.firebaseStorageBucket = data.firebaseStorageBucket;
-  }
-
-  if (data.firebaseMessagingSenderId) {
-    metadata.firebaseMessagingSenderId = data.firebaseMessagingSenderId;
-  }
-
-  for (const [key, value] of Object.entries({
-    shopAddress: data.shopAddress,
-    shopPostalCode: data.shopPostalCode,
-    shopCity: data.shopCity,
-    shopCountry: data.shopCountry,
-    shopPhone: data.shopPhone,
-    shopEmail: data.shopEmail,
-    shopOpeningHours: data.shopOpeningHours,
-    shopLatitude:
-      typeof data.shopLatitude === "number" ? String(data.shopLatitude) : null,
-    shopLongitude:
-      typeof data.shopLongitude === "number" ? String(data.shopLongitude) : null,
-    shopCapacityPerDay:
-      typeof data.shopCapacityPerDay === "number"
-        ? String(data.shopCapacityPerDay)
-        : null,
-    shopSlotDurationMinutes:
-      typeof data.shopSlotDurationMinutes === "number"
-        ? String(data.shopSlotDurationMinutes)
-        : null,
-    shopMaxAppointmentsPerSlot:
-      typeof data.shopMaxAppointmentsPerSlot === "number"
-        ? String(data.shopMaxAppointmentsPerSlot)
-        : null,
-  })) {
-    if (value) {
-      metadata[key] = value;
-    }
-  }
-
-  return metadata;
 }
 
 function buildLineItems(input: {
@@ -155,10 +110,26 @@ function buildLineItems(input: {
 
 function successUrl(request: Request, setupHelp: boolean) {
   const path = setupHelp ? "/pro/aide-installation" : "/pro/merci";
-  return `${getAppUrl(request)}${path}?session_id={CHECKOUT_SESSION_ID}`;
+  return `${getPublicAppUrl()}${path}?session_id={CHECKOUT_SESSION_ID}`;
 }
 
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    `payment-session:${clientIp(request)}`,
+    10,
+    15 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de tentatives de paiement. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -218,19 +189,22 @@ export async function POST(request: Request) {
     const discountApplied = isPremiumDiscountCode(effectivePromoCode);
 
     try {
+      // Les donnees d'inscription (dont le hash du mot de passe) restent dans
+      // notre base. Stripe ne recoit qu'un identifiant opaque.
+      const pendingSignup = await createPendingProSignup(signup);
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
         customer_email: signup.ownerEmail,
-        client_reference_id: signup.slug,
+        client_reference_id: pendingSignup.id,
         line_items: buildLineItems({
           companyName: signup.companyName,
           setupHelp,
           promoCode: effectivePromoCode,
         }),
         metadata: {
-          ...buildSignupMetadata(signup),
+          pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
           premiumDiscountApplied: discountApplied ? "1" : "0",
           premiumDiscountFirstYearOnly: discountApplied ? "1" : "0",
@@ -243,8 +217,8 @@ export async function POST(request: Request) {
             : "0",
         },
         success_url: successUrl(request, setupHelp),
-        cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
-          inscriptionToken: signupToken,
+        cancel_url: `${getPublicAppUrl()}/pro/paiement?${new URLSearchParams({
+          inscription: pendingSignup.id,
         }).toString()}`,
       });
 
@@ -254,6 +228,11 @@ export async function POST(request: Request) {
           { status: 500 },
         );
       }
+
+      await prisma.pendingProSignup.update({
+        where: { id: pendingSignup.id },
+        data: { stripeSessionId: session.id },
+      });
 
       return NextResponse.json({ checkoutUrl: session.url });
     } catch (error) {
@@ -272,6 +251,7 @@ export async function POST(request: Request) {
         companyName: true,
         slug: true,
         ownerEmail: true,
+        createdAt: true,
       },
     });
 
@@ -282,6 +262,22 @@ export async function POST(request: Request) {
             "Inscription introuvable. Recommencez l inscription pour ouvrir le paiement.",
         },
         { status: 404 },
+      );
+    }
+
+    const pendingCreatedAt = dateValue(pendingSignup.createdAt);
+
+    if (
+      !pendingCreatedAt ||
+      pendingCreatedAt.getTime() < Date.now() - 24 * 60 * 60 * 1000
+    ) {
+      await prisma.pendingProSignup
+        .delete({ where: { id: pendingSignup.id } })
+        .catch(() => null);
+
+      return NextResponse.json(
+        { error: "Cette inscription a expire. Recommencez l inscription." },
+        { status: 410 },
       );
     }
 
@@ -313,7 +309,7 @@ export async function POST(request: Request) {
             : "0",
         },
         success_url: successUrl(request, setupHelp),
-        cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
+        cancel_url: `${getPublicAppUrl()}/pro/paiement?${new URLSearchParams({
           inscription: pendingSignup.id,
         }).toString()}`,
       });
@@ -387,7 +383,7 @@ export async function POST(request: Request) {
           : "0",
       },
       success_url: successUrl(request, setupHelp),
-      cancel_url: `${getAppUrl(request)}/pro/paiement?${new URLSearchParams({
+      cancel_url: `${getPublicAppUrl()}/pro/paiement?${new URLSearchParams({
         compte: proAccount.slug,
       }).toString()}`,
     });

@@ -57,6 +57,8 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.expired") {
     const session = event.data.object;
     const proAccountId = session.metadata?.proAccountId;
+    const pendingSignupId =
+      session.metadata?.pendingProSignupId ?? session.client_reference_id;
 
     if (proAccountId) {
       await prisma.proAccount.update({
@@ -66,6 +68,12 @@ export async function POST(request: Request) {
           stripeSessionId: session.id,
         },
       });
+    }
+
+    if (pendingSignupId) {
+      await prisma.pendingProSignup
+        .delete({ where: { id: pendingSignupId } })
+        .catch(() => null);
     }
   }
 

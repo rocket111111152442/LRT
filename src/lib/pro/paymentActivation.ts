@@ -192,6 +192,35 @@ export async function createTrialProAccount(
   });
 }
 
+export async function createPendingProSignup(data: PaidProAccountData) {
+  return prisma.pendingProSignup.create({
+    data: {
+      companyName: data.companyName,
+      slug: data.slug,
+      ownerEmail: data.ownerEmail,
+      passwordHash: data.passwordHash,
+      firebaseApiKey: data.firebaseApiKey,
+      firebaseAuthDomain: data.firebaseAuthDomain,
+      firebaseProjectId: data.firebaseProjectId,
+      firebaseStorageBucket: data.firebaseStorageBucket,
+      firebaseMessagingSenderId: data.firebaseMessagingSenderId,
+      firebaseAppId: data.firebaseAppId,
+      shopAddress: data.shopAddress,
+      shopPostalCode: data.shopPostalCode,
+      shopCity: data.shopCity,
+      shopCountry: data.shopCountry,
+      shopPhone: data.shopPhone,
+      shopEmail: data.shopEmail,
+      shopOpeningHours: data.shopOpeningHours,
+      shopLatitude: data.shopLatitude,
+      shopLongitude: data.shopLongitude,
+      shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
+      shopSlotDurationMinutes: data.shopSlotDurationMinutes ?? 60,
+      shopMaxAppointmentsPerSlot: data.shopMaxAppointmentsPerSlot ?? 1,
+    },
+  });
+}
+
 async function deletePendingSignup(id: string) {
   try {
     await prisma.pendingProSignup.delete({ where: { id } });
@@ -313,6 +342,27 @@ export async function activatePaidCheckoutSession(
   });
 
   if (!pendingSignup) {
+    return { ok: false, reason: "missing-signup" };
+  }
+
+  const rawCreatedAt: unknown = pendingSignup.createdAt;
+  const createdAt =
+    rawCreatedAt instanceof Date
+      ? rawCreatedAt
+      : new Date(
+          typeof rawCreatedAt === "object" &&
+          rawCreatedAt !== null &&
+          "toDate" in rawCreatedAt &&
+          typeof rawCreatedAt.toDate === "function"
+            ? rawCreatedAt.toDate()
+            : String(rawCreatedAt),
+        );
+
+  if (
+    Number.isNaN(createdAt.getTime()) ||
+    createdAt.getTime() < Date.now() - 24 * 60 * 60 * 1000
+  ) {
+    await deletePendingSignup(pendingSignupId);
     return { ok: false, reason: "missing-signup" };
   }
 

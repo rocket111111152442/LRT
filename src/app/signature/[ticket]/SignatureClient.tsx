@@ -3,8 +3,15 @@
 import { FormEvent, useState } from "react";
 import { SignaturePad } from "@/components/SignaturePad";
 
-export function SignatureClient({ ticket }: { ticket: string }) {
+export function SignatureClient({
+  ticket,
+  accessToken,
+}: {
+  ticket: string;
+  accessToken: string;
+}) {
   const [signature, setSignature] = useState("");
+  const [email, setEmail] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -25,7 +32,12 @@ export function SignatureClient({ ticket }: { ticket: string }) {
       const response = await fetch("/api/repair-signature", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticketNumber: ticket, signature }),
+        body: JSON.stringify({
+          ticketNumber: ticket,
+          signature,
+          accessToken,
+          email,
+        }),
       });
       const payload = await response.json();
 
@@ -52,6 +64,19 @@ export function SignatureClient({ ticket }: { ticket: string }) {
         value={signature}
         onChange={setSignature}
       />
+      {!accessToken ? (
+        <label className="grid gap-2 text-sm font-medium text-slate-800">
+          Email du dossier
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            required
+            className="min-h-11 rounded-md border border-slate-300 px-3 py-2"
+          />
+        </label>
+      ) : null}
       {error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}

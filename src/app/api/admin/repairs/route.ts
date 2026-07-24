@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { REPAIR_STATUSES, validateRepairInput } from "@/lib/repairValidation";
 import { addRepairEvent } from "@/lib/repairEvents";
 import { generateTicketNumber } from "@/lib/repairTickets";
+import { encryptSecret } from "@/lib/secretEncryption";
 import type { RepairStatus as PrismaRepairStatus } from "../../../../../generated/prisma/client";
 
 function isRepairStatus(value: string): value is PrismaRepairStatus {
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 
   const repairs = await prisma.repair.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
       ...(statusFilter ? { status: statusFilter } : {}),
       ...(search
         ? {
@@ -119,10 +120,18 @@ export async function POST(request: Request) {
         ? String((body as Record<string, unknown>).storageLocation ?? "").trim() || null
         : null;
 
+    if (storageLocation && storageLocation.length > 200) {
+      return NextResponse.json(
+        { error: "Emplacement de stockage trop long." },
+        { status: 400 },
+      );
+    }
+
     const repair = await prisma.repair.create({
       data: {
         ...repairData,
-        proAccountId: admin.user.proAccountId ?? undefined,
+        unlockCodeOrNote: encryptSecret(repairData.unlockCodeOrNote),
+        proAccountId: admin.user.proAccountId,
         ticketNumber: await generateTicketNumber(),
         status: "PAS_ENCORE_EN_REPARATION",
         expressMode,

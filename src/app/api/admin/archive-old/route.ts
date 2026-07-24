@@ -15,7 +15,7 @@ export async function POST() {
 
   const repairs = await prisma.repair.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
       status: "RECUPERE",
       archivedAt: null,
       updatedAt: { lte: limitDate },

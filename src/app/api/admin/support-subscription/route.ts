@@ -1,20 +1,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getPublicAppUrl } from "@/lib/appUrl";
 import { requireAdminApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const SUPPORT_PRICE_CENTS = 2999;
-
-function getAppUrl(request: Request) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
-
-  if (forwardedHost) {
-    return `${forwardedProto}://${forwardedHost}`;
-  }
-
-  return new URL(request.url).origin;
-}
 
 function getStripeErrorMessage(error: unknown) {
   if (
@@ -27,7 +17,7 @@ function getStripeErrorMessage(error: unknown) {
   return "Activation du support impossible pour le moment.";
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   const admin = await requireAdminApi();
 
   if (!admin.ok) {
@@ -90,8 +80,8 @@ export async function POST(request: Request) {
         supportOnly: "1",
         proAccountId: proAccount.id,
       },
-      success_url: `${getAppUrl(request)}/service-client?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${getAppUrl(request)}/admin`,
+      success_url: `${getPublicAppUrl()}/service-client?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${getPublicAppUrl()}/admin`,
     });
 
     if (!session.url) {

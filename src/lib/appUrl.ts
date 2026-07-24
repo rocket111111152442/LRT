@@ -23,6 +23,16 @@ function normalizeUrl(value: string | undefined) {
 
   try {
     const url = new URL(withProtocol);
+
+    if (
+      url.username ||
+      url.password ||
+      (process.env.NODE_ENV === "production" && url.protocol !== "https:") ||
+      !["http:", "https:"].includes(url.protocol)
+    ) {
+      return "";
+    }
+
     return url.origin;
   } catch {
     return "";

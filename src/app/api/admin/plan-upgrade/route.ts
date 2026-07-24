@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getPublicAppUrl } from "@/lib/appUrl";
 import { requireAdminApi } from "@/lib/auth";
 import { getPlanOption } from "@/lib/plans";
 import { prisma } from "@/lib/prisma";
-
-function getAppUrl(request: Request) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
-  if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
-  return new URL(request.url).origin;
-}
 
 function getStripeErrorMessage(error: unknown) {
   if (
@@ -79,7 +73,7 @@ export async function POST(request: Request) {
   }
 
   const priceCents = Math.round(option.priceYearly * 100);
-  const appUrl = getAppUrl(request);
+  const appUrl = getPublicAppUrl();
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

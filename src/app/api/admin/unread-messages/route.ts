@@ -8,7 +8,7 @@ export async function GET() {
 
   const messages = await prisma.supportMessage.findMany({
     where: {
-      ...(admin.user.proAccountId ? { proAccountId: admin.user.proAccountId } : {}),
+      proAccountId: admin.user.proAccountId,
       status: "OPEN",
     },
     select: { id: true },

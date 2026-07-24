@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { sendSupportMessageEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 const OFFRE_LABELS: Record<string, string> = {
   extra_storage_10gb: "Option Stockage Plus (+10 Go)",
@@ -17,6 +18,22 @@ function read(body: Record<string, unknown>, key: string) {
 }
 
 export async function POST(request: Request) {
+  const limit = rateLimit(
+    `contact-offer:${clientIp(request)}`,
+    5,
+    60 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de demandes. Reessayez plus tard." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   let body: unknown;
   try { body = await request.json(); } catch {
     return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
@@ -29,13 +46,14 @@ export async function POST(request: Request) {
   const name    = read(b, "name");
   const email   = read(b, "email").toLowerCase();
   const offreId = read(b, "offre");
-  const message = read(b, "message");
+  const message = read(b, "message").slice(0, 5000);
 
-  if (name.length < 2)   return NextResponse.json({ errors: { name: "Nom requis." } }, { status: 400 });
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ errors: { email: "Email invalide." } }, { status: 400 });
+  if (name.length < 2 || name.length > 120) return NextResponse.json({ errors: { name: "Nom invalide." } }, { status: 400 });
+  if (email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ errors: { email: "Email invalide." } }, { status: 400 });
+  if (offreId && !(offreId in OFFRE_LABELS)) return NextResponse.json({ errors: { offre: "Offre invalide." } }, { status: 400 });
   if (message.length < 5) return NextResponse.json({ errors: { message: "Message requis." } }, { status: 400 });
 
-  const offreLabel = OFFRE_LABELS[offreId] ?? offreId;
+  const offreLabel = OFFRE_LABELS[offreId] ?? "Offre Qoravo";
   const subject    = `Demande d'activation : ${offreLabel}`;
 
   // Récupère le proAccountId si l'utilisateur est connecté

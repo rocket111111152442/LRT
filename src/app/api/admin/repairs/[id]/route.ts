@@ -4,11 +4,18 @@ import { requireAdminApi } from "@/lib/auth";
 import {
   sendQuoteEmail,
   sendRepairCreatedEmail,
+  sendRepairDelayEmail,
   sendRepairStatusEmail,
   sendReviewRequestEmail,
 } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
+import {
+  decryptSecret,
+  encryptSecret,
+  isEncryptedSecret,
+} from "@/lib/secretEncryption";
+import { rateLimit } from "@/lib/rateLimit";
 import {
   CUSTOMER_TYPES,
   PART_STATUSES,
@@ -67,7 +74,11 @@ function readOptionalCents(body: Record<string, unknown>, key: string) {
 
   const numberValue = Number(value);
 
-  if (!Number.isFinite(numberValue) || numberValue < 0) {
+  if (
+    !Number.isFinite(numberValue) ||
+    numberValue < 0 ||
+    numberValue > 2_000_000_000
+  ) {
     return undefined;
   }
 
@@ -83,7 +94,11 @@ function readOptionalInteger(body: Record<string, unknown>, key: string) {
 
   const numberValue = Number(value);
 
-  if (!Number.isInteger(numberValue) || numberValue < 0) {
+  if (
+    !Number.isInteger(numberValue) ||
+    numberValue < 0 ||
+    numberValue > 2_000_000_000
+  ) {
     return undefined;
   }
 
@@ -214,11 +229,9 @@ async function getEvents(repairId: string) {
   });
 }
 
-async function getInventoryItems(proAccountId: string | null) {
+async function getInventoryItems(proAccountId: string) {
   return prisma.inventoryItem.findMany({
-    where: {
-      ...(proAccountId ? { proAccountId } : {}),
-    },
+    where: { proAccountId },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -334,7 +347,8 @@ function normalizeRepairForResponse(value: unknown) {
     brand: readString(repair.brand),
     model: readString(repair.model),
     issueDescription: readString(repair.issueDescription, "-"),
-    unlockCodeOrNote: readNullableString(repair.unlockCodeOrNote),
+    unlockCodeOrNote:
+      decryptSecret(readNullableString(repair.unlockCodeOrNote)) || null,
     status: readRepairStatus(repair.status),
     internalNotes: readNullableString(repair.internalNotes),
     readyEmailSent: readBoolean(repair.readyEmailSent),
@@ -417,14 +431,28 @@ export async function GET(_request: Request, context: RouteContext) {
     );
   }
 
-  if (!repair || (admin.user.proAccountId && repair.proAccountId !== admin.user.proAccountId)) {
+  if (!repair || repair.proAccountId !== admin.user.proAccountId) {
     return NextResponse.json({ error: "Reparation introuvable." }, { status: 404 });
+  }
+
+  if (
+    repair.unlockCodeOrNote &&
+    !isEncryptedSecret(repair.unlockCodeOrNote)
+  ) {
+    await prisma.repair
+      .update({
+        where: { id: repair.id },
+        data: {
+          unlockCodeOrNote: encryptSecret(repair.unlockCodeOrNote),
+        },
+      })
+      .catch(() => null);
   }
 
   return NextResponse.json({
     repair: normalizeRepairForResponse(repair),
     events: normalizeEventsForResponse(await getEvents(repair.id)),
-    inventoryItems: await getInventoryItems(repair.proAccountId),
+    inventoryItems: await getInventoryItems(admin.user.proAccountId),
     customerHistory: (await getCustomerHistory(repair)).map((item) => ({
       id: readString(item.id),
       ticketNumber: readNullableString(item.ticketNumber),
@@ -477,12 +505,61 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (
     !currentRepair ||
-    (admin.user.proAccountId && currentRepair.proAccountId !== admin.user.proAccountId)
+    currentRepair.proAccountId !== admin.user.proAccountId
   ) {
     return NextResponse.json({ error: "Reparation introuvable." }, { status: 404 });
   }
 
   const data: Record<string, unknown> = {};
+  const notifyDelay = body.notifyDelay === true;
+
+  if (notifyDelay) {
+    const delayUntil = readOptionalDate(body, "delayUntil");
+
+    if (!delayUntil) {
+      return NextResponse.json(
+        { error: "Choisissez la nouvelle date de disponibilite." },
+        { status: 400 },
+      );
+    }
+
+    const latestAllowedDate = Date.now() + 2 * 365 * 24 * 60 * 60 * 1000;
+
+    if (
+      delayUntil.getTime() <= Date.now() ||
+      delayUntil.getTime() > latestAllowedDate
+    ) {
+      return NextResponse.json(
+        { error: "La nouvelle date doit etre future et raisonnable." },
+        { status: 400 },
+      );
+    }
+
+    if (["RECUPERE", "ANNULE"].includes(currentRepair.status)) {
+      return NextResponse.json(
+        { error: "Cette reparation est deja terminee." },
+        { status: 409 },
+      );
+    }
+
+    const delayLimit = rateLimit(
+      `repair-delay:${admin.user.id}:${currentRepair.id}`,
+      5,
+      60 * 60 * 1000,
+    );
+
+    if (!delayLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop d alertes envoyees. Reessayez plus tard." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(delayLimit.retryAfterSeconds) },
+        },
+      );
+    }
+
+    data.expectedPickupAt = delayUntil;
+  }
 
   if ("urgent" in body) {
     data.urgent = body.urgent === true;
@@ -503,6 +580,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   if ("internalNotes" in body) {
     if (typeof body.internalNotes !== "string") {
       return NextResponse.json({ error: "Notes invalides." }, { status: 400 });
+    }
+
+    if (body.internalNotes.length > 20_000) {
+      return NextResponse.json({ error: "Notes trop longues." }, { status: 400 });
     }
 
     data.internalNotes = body.internalNotes.trim() || null;
@@ -584,11 +665,19 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   if ("technicianName" in body) {
-    data.technicianName = readOptionalText(body, "technicianName") || null;
+    const technicianName = readOptionalText(body, "technicianName");
+    if (technicianName.length > 160) {
+      return NextResponse.json({ error: "Nom de technicien trop long." }, { status: 400 });
+    }
+    data.technicianName = technicianName || null;
   }
 
   if ("storageLocation" in body) {
-    data.storageLocation = readOptionalText(body, "storageLocation") || null;
+    const storageLocation = readOptionalText(body, "storageLocation");
+    if (storageLocation.length > 200) {
+      return NextResponse.json({ error: "Emplacement trop long." }, { status: 400 });
+    }
+    data.storageLocation = storageLocation || null;
   }
 
   if ("timeSpentMinutes" in body) {
@@ -628,11 +717,19 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   if ("supplierOrderNote" in body) {
-    data.supplierOrderNote = readOptionalText(body, "supplierOrderNote") || null;
+    const supplierOrderNote = readOptionalText(body, "supplierOrderNote");
+    if (supplierOrderNote.length > 5_000) {
+      return NextResponse.json({ error: "Note fournisseur trop longue." }, { status: 400 });
+    }
+    data.supplierOrderNote = supplierOrderNote || null;
   }
 
   if ("partsUsed" in body) {
-    data.partsUsed = readOptionalText(body, "partsUsed") || null;
+    const partsUsed = readOptionalText(body, "partsUsed");
+    if (partsUsed.length > 5_000) {
+      return NextResponse.json({ error: "Liste de pieces trop longue." }, { status: 400 });
+    }
+    data.partsUsed = partsUsed || null;
   }
 
   if ("partsStatus" in body) {
@@ -644,7 +741,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   if ("partsDescription" in body) {
-    data.partsDescription = readOptionalText(body, "partsDescription") || null;
+    const partsDescription = readOptionalText(body, "partsDescription");
+    if (partsDescription.length > 5_000) {
+      return NextResponse.json({ error: "Description de piece trop longue." }, { status: 400 });
+    }
+    data.partsDescription = partsDescription || null;
   }
 
   if ("usedInventoryItemId" in body || "usedInventoryQuantity" in body) {
@@ -673,7 +774,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
       if (
         !item ||
-        (admin.user.proAccountId && item.proAccountId !== admin.user.proAccountId)
+        item.proAccountId !== admin.user.proAccountId
       ) {
         return NextResponse.json({ error: "Piece introuvable." }, { status: 404 });
       }
@@ -955,6 +1056,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   let acceptedTicketEmailSentNow = false;
   let statusEmailSentNow = false;
   let reviewEmailSentNow = false;
+  let delayEmailSentNow = false;
 
   if (acceptClientRequest && currentRepair.quoteStatus !== "ACCEPTED") {
     const acceptedTicketMail = await sendRepairCreatedEmail(repair);
@@ -993,6 +1095,26 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
   }
 
+  if (notifyDelay && repair.expectedPickupAt) {
+    const delayResult = await sendRepairDelayEmail({
+      ...repair,
+      expectedPickupAt: repair.expectedPickupAt,
+    });
+    delayEmailSentNow = delayResult.sent;
+
+    await addRepairEvent({
+      repairId: repair.id,
+      proAccountId: repair.proAccountId,
+      type: delayResult.sent ? "DELAY_EMAIL_SENT" : "DELAY_EMAIL_FAILED",
+      message: delayResult.sent
+        ? "Client informe du retard et de la nouvelle date prevue."
+        : "Retard enregistre, mais l email client n a pas pu etre envoye.",
+      metadata: {
+        expectedPickupAt: new Date(repair.expectedPickupAt).toISOString(),
+      },
+    });
+  }
+
   if (shouldSendReviewEmail) {
     const reviewResult = await sendReviewRequestEmail(repair);
 
@@ -1016,7 +1138,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   return NextResponse.json({
     repair: normalizeRepairForResponse(repair),
     events: normalizeEventsForResponse(await getEvents(repair.id)),
-    inventoryItems: await getInventoryItems(repair.proAccountId),
+    inventoryItems: await getInventoryItems(admin.user.proAccountId),
     customerHistory: (await getCustomerHistory(repair)).map((item) => ({
       id: readString(item.id),
       ticketNumber: readNullableString(item.ticketNumber),
@@ -1034,6 +1156,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       acceptedTicketSent: acceptedTicketEmailSentNow,
       reviewAttempted: shouldSendReviewEmail,
       reviewSent: reviewEmailSentNow,
+      delayAttempted: notifyDelay,
+      delaySent: delayEmailSentNow,
     },
   });
 }
@@ -1053,7 +1177,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   if (
     !existingRepair ||
-    (admin.user.proAccountId && existingRepair.proAccountId !== admin.user.proAccountId)
+    existingRepair.proAccountId !== admin.user.proAccountId
   ) {
     return NextResponse.json({ error: "Reparation introuvable." }, { status: 404 });
   }

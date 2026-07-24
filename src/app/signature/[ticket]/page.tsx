@@ -3,10 +3,15 @@ import { SignatureClient } from "./SignatureClient";
 
 type SignaturePageProps = {
   params: Promise<{ ticket: string }>;
+  searchParams: Promise<{ access?: string }>;
 };
 
-export default async function SignaturePage({ params }: SignaturePageProps) {
+export default async function SignaturePage({
+  params,
+  searchParams,
+}: SignaturePageProps) {
   const { ticket } = await params;
+  const { access = "" } = await searchParams;
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
@@ -24,7 +29,7 @@ export default async function SignaturePage({ params }: SignaturePageProps) {
             client au moment de la recuperation.
           </p>
         </header>
-        <SignatureClient ticket={ticket} />
+        <SignatureClient ticket={ticket} accessToken={access} />
       </div>
     </main>
   );

@@ -7,6 +7,7 @@ import {
 } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationCodeEmail } from "@/lib/mail";
+import { rateLimit, resetRateLimit } from "@/lib/rateLimit";
 
 export type EmailVerificationPurpose = "SIGNUP" | "LOGIN" | "PASSWORD_RESET";
 
@@ -32,7 +33,19 @@ function normalizeCode(code: string) {
 }
 
 function getSecret() {
-  return process.env.AUTH_SECRET || "dev-secret-change-me";
+  const secret = process.env.AUTH_SECRET;
+
+  if (secret && secret.length >= 32) {
+    return secret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET manquant ou trop court pour les codes de verification.",
+    );
+  }
+
+  return "dev-secret-change-me-please-set-auth-secret";
 }
 
 function hmac(value: string) {
@@ -299,8 +312,15 @@ export async function verifyEmailCode(
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedCode = normalizeCode(code);
   const latestVerificationId = verificationId(normalizedEmail, purpose);
+  const attemptKey = `email-code:${purpose}:${normalizedEmail}`;
 
   if (normalizedCode.length !== 6) {
+    return false;
+  }
+
+  const attemptLimit = rateLimit(attemptKey, 8, CODE_TTL_MS);
+
+  if (!attemptLimit.allowed) {
     return false;
   }
 
@@ -312,6 +332,9 @@ export async function verifyEmailCode(
   });
 
   if (tokenResult !== null) {
+    if (tokenResult) {
+      resetRateLimit(attemptKey);
+    }
     return tokenResult;
   }
 
@@ -357,6 +380,7 @@ export async function verifyEmailCode(
     return false;
   }
 
+  resetRateLimit(attemptKey);
   await prisma.emailVerificationCode
     .delete({ where: { id: storedCode.id } })
     .catch(() => null);

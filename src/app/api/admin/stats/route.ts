@@ -16,9 +16,7 @@ export async function GET() {
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-  const whereAccount = admin.user.proAccountId
-    ? { proAccountId: admin.user.proAccountId }
-    : {};
+  const whereAccount = { proAccountId: admin.user.proAccountId };
 
   const [repairs, monthlyRepairsRaw, proAccount, inventoryItems] = await Promise.all([
     prisma.repair.findMany({
@@ -38,12 +36,10 @@ export async function GET() {
         estimatedPriceCents: true, partsCostCents: true, paidAmountCents: true, createdAt: true,
       },
     }),
-    admin.user.proAccountId
-      ? prisma.proAccount.findUnique({
-          where: { id: admin.user.proAccountId },
-          select: { monthlyGoal: true },
-        })
-      : Promise.resolve(null),
+    prisma.proAccount.findUnique({
+      where: { id: admin.user.proAccountId },
+      select: { monthlyGoal: true },
+    }),
     prisma.inventoryItem.findMany({
       where: whereAccount,
       select: { id: true, name: true, quantity: true, lowStockThreshold: true, unitCostCents: true },

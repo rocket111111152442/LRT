@@ -215,6 +215,8 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [showDelayForm, setShowDelayForm] = useState(false);
+  const [delayUntil, setDelayUntil] = useState("");
 
   function syncRepair(
     payloadRepair: RepairDetail,
@@ -344,7 +346,15 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         payload.customerHistory ?? [],
       );
 
-      if (payload.mail?.reviewAttempted && payload.mail?.reviewSent) {
+      if (payload.mail?.delayAttempted && payload.mail?.delaySent) {
+        setMessage(
+          "Retard enregistre. Le client a recu la nouvelle date par email.",
+        );
+      } else if (payload.mail?.delayAttempted && !payload.mail?.delaySent) {
+        setMessage(
+          "Retard enregistre, mais l email n a pas pu etre envoye. Verifiez la configuration SMTP.",
+        );
+      } else if (payload.mail?.reviewAttempted && payload.mail?.reviewSent) {
         setMessage("Mise a jour enregistree. Email d'avis envoye au client.");
       } else if (payload.mail?.reviewAttempted && !payload.mail?.reviewSent) {
         setMessage(
@@ -453,6 +463,38 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     }
   }
 
+  async function handleDelayAlert(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!delayUntil) {
+      setError("Choisissez la nouvelle date de disponibilite.");
+      return;
+    }
+
+    const parsedDelayUntil = new Date(delayUntil);
+
+    if (Number.isNaN(parsedDelayUntil.getTime())) {
+      setError("La nouvelle date est invalide.");
+      return;
+    }
+
+    const updatedRepair = await patchRepair({
+      notifyDelay: true,
+      delayUntil: parsedDelayUntil.toISOString(),
+    });
+
+    if (updatedRepair) {
+      setShowDelayForm(false);
+    }
+  }
+
+  function openDelayForm() {
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    setDelayUntil(expectedPickupAt || dateTimeToInput(tomorrow));
+    setError("");
+    setShowDelayForm(true);
+  }
+
   async function handleDelete() {
     const confirmed = window.confirm(
       "Supprimer definitivement cette reparation ? Cette action est irreversible.",
@@ -532,11 +574,9 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const trackingUrl =
     typeof window === "undefined"
       ? "/suivi"
-      : `${window.location.origin}/suivi`;
-  const signatureUrl =
-    typeof window === "undefined"
-      ? `/signature/${repair.ticketNumber ?? repair.id}`
-      : `${window.location.origin}/signature/${repair.ticketNumber ?? repair.id}`;
+      : `${window.location.origin}/suivi?${new URLSearchParams({
+          ticket: repair.ticketNumber ?? repair.id,
+        }).toString()}`;
 
   return (
     <section className="grid gap-6">
@@ -567,6 +607,18 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             Étiquette QR
           </Link>
           <CopyTrackingLinkButton ticket={repair.ticketNumber ?? repair.id} />
+          <button
+            type="button"
+            onClick={openDelayForm}
+            disabled={
+              isSaving ||
+              repair.status === "RECUPERE" ||
+              repair.status === "ANNULE"
+            }
+            className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Signaler un retard
+          </button>
           {!repair.archivedAt ? (
             <button
               type="button"
@@ -587,6 +639,46 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
           </button>
         </div>
       </div>
+
+      {showDelayForm ? (
+        <form
+          onSubmit={handleDelayAlert}
+          className="grid gap-4 border-y border-amber-200 bg-amber-50 px-4 py-5 sm:grid-cols-[minmax(240px,360px)_auto] sm:items-end"
+        >
+          <label className="grid gap-2 text-sm font-semibold text-amber-950">
+            Nouvelle date estimee de disponibilite
+            <input
+              type="datetime-local"
+              value={delayUntil}
+              min={dateTimeToInput(new Date().toISOString())}
+              onChange={(event) => setDelayUntil(event.target.value)}
+              required
+              className="min-h-11 rounded-md border border-amber-300 bg-white px-3 py-2 text-slate-950 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="min-h-11 rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSaving ? "Envoi..." : "Prevenir le client"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDelayForm(false)}
+              disabled={isSaving}
+              className="min-h-11 rounded-md border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-100 disabled:opacity-60"
+            >
+              Annuler
+            </button>
+          </div>
+          <p className="text-sm leading-6 text-amber-900 sm:col-span-2">
+            La date prevue sera mise a jour dans le suivi et un email de retard
+            sera envoye au client.
+          </p>
+        </form>
+      ) : null}
 
       {error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -697,10 +789,8 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
                 <span className="font-semibold text-slate-950">{trackingUrl}</span>
               </p>
               <p>
-                Signature recuperation :{" "}
-                <span className="break-all font-semibold text-slate-950">
-                  {signatureUrl}
-                </span>
+                La signature de recuperation est accessible uniquement au
+                client depuis son suivi securise.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -715,12 +805,6 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
                 className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
               >
                 Facture
-              </Link>
-              <Link
-                href={`/documents/${repair.ticketNumber ?? repair.id}`}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
-              >
-                Page documents client
               </Link>
             </div>
           </div>

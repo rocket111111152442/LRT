@@ -17,6 +17,7 @@ type TrackedRepair = {
   warrantyUntil: string | null;
   signatureDone: boolean;
   updatedAt: string;
+  accessToken: string;
 };
 
 const steps = [
@@ -75,11 +76,16 @@ function normalizeTicket(value: string) {
 
 export function TrackingClient() {
   const [ticket, setTicket] = useState("");
+  const [email, setEmail] = useState("");
+  const [accessToken, setAccessToken] = useState("");
   const [repair, setRepair] = useState<TrackedRepair | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const runSearch = useCallback(async (rawTicket: string) => {
+  const runSearch = useCallback(async (
+    rawTicket: string,
+    providedAccessToken = "",
+  ) => {
     setIsLoading(true);
     setError("");
     setRepair(null);
@@ -93,8 +99,17 @@ export function TrackingClient() {
     }
 
     try {
+      const effectiveAccessToken = providedAccessToken || accessToken;
+      const params = new URLSearchParams({ ticket: normalizedTicket });
+
+      if (effectiveAccessToken) {
+        params.set("access", effectiveAccessToken);
+      } else if (email.trim()) {
+        params.set("email", email.trim());
+      }
+
       const response = await fetch(
-        `/api/track-repair?ticket=${encodeURIComponent(normalizedTicket)}`,
+        `/api/track-repair?${params.toString()}`,
       );
       const payload = await response.json();
 
@@ -104,21 +119,24 @@ export function TrackingClient() {
       }
 
       setRepair(payload.repair);
+      setAccessToken(payload.repair.accessToken ?? effectiveAccessToken);
     } catch {
       setError("Recherche impossible.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [accessToken, email]);
 
   // Pré-remplissage + recherche auto depuis ?ticket= (QR collé sur l'appareil).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const fromUrl = params.get("ticket");
+    const accessFromUrl = params.get("access") ?? "";
     if (fromUrl) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTicket(fromUrl);
-      void runSearch(fromUrl);
+      setAccessToken(accessFromUrl);
+      void runSearch(fromUrl, accessFromUrl);
     }
   }, [runSearch]);
 
@@ -129,7 +147,7 @@ export function TrackingClient() {
 
   return (
     <section className="grid gap-5 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+      <form onSubmit={handleSubmit} className="grid gap-3">
         <input
           type="text"
           value={ticket}
@@ -137,6 +155,17 @@ export function TrackingClient() {
           placeholder="QOR-000123"
           className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
         />
+        {!accessToken ? (
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="Email utilise pour la reparation"
+            autoComplete="email"
+            required
+            className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+          />
+        ) : null}
         <button
           type="submit"
           disabled={isLoading || !ticket.trim()}
@@ -209,14 +238,18 @@ export function TrackingClient() {
           </div>
           <div className="flex flex-wrap gap-2">
             <a
-              href={`/documents/${repair.ticketNumber}`}
+              href={`/documents/${repair.ticketNumber}?access=${encodeURIComponent(
+                repair.accessToken,
+              )}`}
               className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
             >
               Mes documents
             </a>
             {!repair.signatureDone ? (
               <a
-                href={`/signature/${repair.ticketNumber}`}
+                href={`/signature/${repair.ticketNumber}?access=${encodeURIComponent(
+                  repair.accessToken,
+                )}`}
                 className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
               >
                 Signer la recuperation

@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {
+  createRepairAccessToken,
+  verifyRepairAccessToken,
+  verifyRepairEmail,
+} from "@/lib/repairAccess";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 function normalizeTicket(value: string) {
   const normalized = value
@@ -38,8 +44,26 @@ function readDateString(value: unknown) {
 }
 
 export async function GET(request: Request) {
+  const limit = rateLimit(
+    `track-repair:${clientIp(request)}`,
+    20,
+    10 * 60 * 1000,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Trop de recherches. Reessayez dans quelques minutes." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limit.retryAfterSeconds) },
+      },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const ticketNumber = normalizeTicket(searchParams.get("ticket") ?? "");
+  const accessToken = searchParams.get("access");
+  const email = searchParams.get("email");
 
   if (!ticketNumber) {
     return NextResponse.json({ error: "Ticket requis." }, { status: 400 });
@@ -48,9 +72,11 @@ export async function GET(request: Request) {
   const repair = await prisma.repair.findUnique({
     where: { ticketNumber },
     select: {
+      id: true,
       ticketNumber: true,
       proAccountId: true,
       firstName: true,
+      email: true,
       deviceType: true,
       brand: true,
       model: true,
@@ -71,6 +97,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ticket introuvable." }, { status: 404 });
   }
 
+  if (
+    !verifyRepairAccessToken(repair, accessToken) &&
+    !verifyRepairEmail(repair, email)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Verification requise. Utilisez le lien recu par email ou saisissez l email du dossier.",
+      },
+      { status: 403 },
+    );
+  }
+
+  const verifiedAccessToken = createRepairAccessToken(repair);
+
   return NextResponse.json({
     repair: {
       ticketNumber: readString(repair.ticketNumber, ticketNumber),
@@ -89,6 +130,7 @@ export async function GET(request: Request) {
       warrantyUntil: repair.warrantyUntil ? readDateString(repair.warrantyUntil) : null,
       signatureDone: Boolean(repair.customerPickupSignature),
       updatedAt: readDateString(repair.updatedAt),
+      accessToken: verifiedAccessToken,
     },
   });
 }
