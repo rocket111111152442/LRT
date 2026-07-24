@@ -22,10 +22,9 @@ import {
 } from "@/lib/pro/promoCodes";
 import {
   parseShopOpeningHours,
-  SHOP_DAYS,
-  ShopDayKey,
   stringifyShopOpeningHours,
 } from "@/lib/shopHours";
+import { OpeningHoursEditor } from "@/components/OpeningHoursEditor";
 
 const initialValues: ProSignupInput = {
   companyName: "",
@@ -65,8 +64,6 @@ export function ProSignupForm() {
   const [trialAlreadyUsed, setTrialAlreadyUsed] = useState(false);
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
-  const openingHours = parseShopOpeningHours(values.shopOpeningHours);
-
   // L'essai gratuit n'est proposé que pendant la fenêtre promo (72h par
   // visiteur) ET tant qu'aucun compte n'a déjà été créé avec l'essai depuis ce
   // navigateur. Passé cela, il faut le code ESS26 pour le débloquer.
@@ -102,27 +99,6 @@ export function ProSignupForm() {
     if (name !== "emailCode" && name !== "promoCode") {
       setCodeSent(false);
     }
-  }
-
-  function updateOpeningHours(
-    day: ShopDayKey,
-    patch: Partial<{ open: boolean; opensAt: string; closesAt: string }>,
-  ) {
-    setValues((current) => {
-      const schedule = parseShopOpeningHours(current.shopOpeningHours);
-
-      return {
-        ...current,
-        shopOpeningHours: stringifyShopOpeningHours({
-          ...schedule,
-          [day]: { ...schedule[day], ...patch },
-        }),
-      };
-    });
-    setErrors((current) => ({ ...current, shopOpeningHours: undefined }));
-    setSubmitError("");
-    setMessage("");
-    setCodeSent(false);
   }
 
   async function sendSignupCode(data: ProSignupInput) {
@@ -454,58 +430,16 @@ export function ProSignupForm() {
               Horaires d&apos;ouverture
             </h2>
             <p className="text-sm leading-6 text-slate-600">
-              Ces horaires serviront a proposer votre magasin seulement quand
-              il est ouvert.
+              Ajoutez plusieurs plages si la boutique ferme en journee. Aucun
+              rendez-vous ne sera propose pendant ces coupures.
             </p>
           </div>
-          <div className="grid gap-3">
-            {SHOP_DAYS.map((day) => {
-              const dayHours = openingHours[day.key];
-
-              return (
-                <div
-                  key={day.key}
-                  className="grid gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-[150px_1fr_1fr] sm:items-center"
-                >
-                  <label className="inline-flex items-center gap-3 text-sm font-semibold text-slate-900">
-                    <input
-                      type="checkbox"
-                      checked={dayHours.open}
-                      onChange={(event) =>
-                        updateOpeningHours(day.key, { open: event.target.checked })
-                      }
-                      className="h-4 w-4 rounded border-slate-300 text-sky-600"
-                    />
-                    {day.label}
-                  </label>
-                  <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Ouverture
-                    <input
-                      type="time"
-                      value={dayHours.opensAt}
-                      disabled={!dayHours.open}
-                      onChange={(event) =>
-                        updateOpeningHours(day.key, { opensAt: event.target.value })
-                      }
-                      className="min-h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
-                    />
-                  </label>
-                  <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Fermeture
-                    <input
-                      type="time"
-                      value={dayHours.closesAt}
-                      disabled={!dayHours.open}
-                      onChange={(event) =>
-                        updateOpeningHours(day.key, { closesAt: event.target.value })
-                      }
-                      className="min-h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-950 disabled:bg-slate-100 disabled:text-slate-400"
-                    />
-                  </label>
-                </div>
-              );
-            })}
-          </div>
+          <OpeningHoursEditor
+            value={values.shopOpeningHours}
+            onChange={(nextValue) =>
+              updateField("shopOpeningHours", nextValue)
+            }
+          />
         </div>
       </fieldset>
 

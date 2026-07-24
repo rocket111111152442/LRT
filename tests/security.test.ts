@@ -16,6 +16,13 @@ import {
   isSameOriginRequest,
   normalizedOrigin,
 } from "../src/lib/requestSecurity";
+import { getAvailableSlots } from "../src/lib/shopAvailability";
+import {
+  formatOpeningHours,
+  isShopOpenAt,
+  parseShopOpeningHours,
+  stringifyShopOpeningHours,
+} from "../src/lib/shopHours";
 import {
   checkModPassword,
   isModeratorPasswordConfigured,
@@ -200,4 +207,51 @@ test("le panneau moderateur accepte les mots de passe existants de huit caracter
   } else {
     process.env.MODERATOR_PASSWORD = previousPassword;
   }
+});
+
+test("les horaires acceptent une fermeture entre deux plages", () => {
+  const schedule = parseShopOpeningHours(null);
+  schedule.monday = {
+    open: true,
+    periods: [
+      { opensAt: "09:00", closesAt: "12:00" },
+      { opensAt: "13:00", closesAt: "18:00" },
+    ],
+  };
+  const value = stringifyShopOpeningHours(schedule);
+
+  assert.equal(isShopOpenAt(value, new Date(2026, 6, 27, 11, 30)), true);
+  assert.equal(isShopOpenAt(value, new Date(2026, 6, 27, 12, 30)), false);
+  assert.equal(isShopOpenAt(value, new Date(2026, 6, 27, 13, 30)), true);
+  assert.match(formatOpeningHours(value), /09:00-12:00 \/ 13:00-18:00/);
+
+  const slots = getAvailableSlots({
+    openingHours: value,
+    scheduledDates: [],
+    now: new Date(2026, 6, 27, 8, 0),
+    days: 1,
+    limit: 20,
+    slotDurationMinutes: 60,
+  });
+
+  assert.deepEqual(
+    slots.map((slot) => slot.getHours()),
+    [9, 10, 11, 13, 14, 15, 16, 17],
+  );
+});
+
+test("les anciens horaires restent compatibles", () => {
+  const schedule = parseShopOpeningHours(
+    JSON.stringify({
+      monday: {
+        open: true,
+        opensAt: "08:30",
+        closesAt: "17:30",
+      },
+    }),
+  );
+
+  assert.deepEqual(schedule.monday.periods, [
+    { opensAt: "08:30", closesAt: "17:30" },
+  ]);
 });

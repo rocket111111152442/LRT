@@ -10,22 +10,26 @@ export const SHOP_DAYS = [
 
 export type ShopDayKey = (typeof SHOP_DAYS)[number]["key"];
 
-export type ShopDayHours = {
-  open: boolean;
+export type ShopTimePeriod = {
   opensAt: string;
   closesAt: string;
+};
+
+export type ShopDayHours = {
+  open: boolean;
+  periods: ShopTimePeriod[];
 };
 
 export type ShopOpeningHours = Record<ShopDayKey, ShopDayHours>;
 
 export const defaultShopOpeningHours: ShopOpeningHours = {
-  monday: { open: true, opensAt: "09:00", closesAt: "18:00" },
-  tuesday: { open: true, opensAt: "09:00", closesAt: "18:00" },
-  wednesday: { open: true, opensAt: "09:00", closesAt: "18:00" },
-  thursday: { open: true, opensAt: "09:00", closesAt: "18:00" },
-  friday: { open: true, opensAt: "09:00", closesAt: "18:00" },
-  saturday: { open: true, opensAt: "10:00", closesAt: "17:00" },
-  sunday: { open: false, opensAt: "10:00", closesAt: "17:00" },
+  monday: { open: true, periods: [{ opensAt: "09:00", closesAt: "18:00" }] },
+  tuesday: { open: true, periods: [{ opensAt: "09:00", closesAt: "18:00" }] },
+  wednesday: { open: true, periods: [{ opensAt: "09:00", closesAt: "18:00" }] },
+  thursday: { open: true, periods: [{ opensAt: "09:00", closesAt: "18:00" }] },
+  friday: { open: true, periods: [{ opensAt: "09:00", closesAt: "18:00" }] },
+  saturday: { open: true, periods: [{ opensAt: "10:00", closesAt: "17:00" }] },
+  sunday: { open: false, periods: [{ opensAt: "10:00", closesAt: "17:00" }] },
 };
 
 const jsDayToShopDay: ShopDayKey[] = [
@@ -39,7 +43,10 @@ const jsDayToShopDay: ShopDayKey[] = [
 ];
 
 function isValidTime(value: unknown) {
-  return typeof value === "string" && /^\d{2}:\d{2}$/.test(value);
+  return (
+    typeof value === "string" &&
+    /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)
+  );
 }
 
 function cloneDefaultHours(): ShopOpeningHours {
@@ -58,7 +65,16 @@ export function parseShopOpeningHours(value: string | null | undefined) {
   }
 
   try {
-    const parsed = JSON.parse(value) as Partial<Record<ShopDayKey, Partial<ShopDayHours>>>;
+    const parsed = JSON.parse(value) as Partial<
+      Record<
+        ShopDayKey,
+        Partial<ShopDayHours> & {
+          opensAt?: unknown;
+          closesAt?: unknown;
+          periods?: unknown;
+        }
+      >
+    >;
 
     for (const day of SHOP_DAYS) {
       const dayHours = parsed[day.key];
@@ -67,14 +83,45 @@ export function parseShopOpeningHours(value: string | null | undefined) {
         continue;
       }
 
+      const parsedPeriods = Array.isArray(dayHours.periods)
+        ? dayHours.periods
+            .slice(0, 6)
+            .flatMap((period) => {
+              if (
+                !period ||
+                typeof period !== "object" ||
+                !("opensAt" in period) ||
+                !("closesAt" in period) ||
+                !isValidTime(period.opensAt) ||
+                !isValidTime(period.closesAt)
+              ) {
+                return [];
+              }
+
+              return [{
+                opensAt: String(period.opensAt),
+                closesAt: String(period.closesAt),
+              }];
+            })
+        : [];
+
+      // Compatibilité avec les horaires enregistrés avant l'ajout des pauses.
+      const legacyPeriod =
+        isValidTime(dayHours.opensAt) && isValidTime(dayHours.closesAt)
+          ? [{
+              opensAt: String(dayHours.opensAt),
+              closesAt: String(dayHours.closesAt),
+            }]
+          : [];
+
       fallback[day.key] = {
         open: Boolean(dayHours.open),
-        opensAt: isValidTime(dayHours.opensAt)
-          ? String(dayHours.opensAt)
-          : fallback[day.key].opensAt,
-        closesAt: isValidTime(dayHours.closesAt)
-          ? String(dayHours.closesAt)
-          : fallback[day.key].closesAt,
+        periods:
+          parsedPeriods.length > 0
+            ? parsedPeriods
+            : legacyPeriod.length > 0
+              ? legacyPeriod
+              : fallback[day.key].periods,
       };
     }
 
@@ -93,18 +140,9 @@ function currentMinutes(date: Date) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
-export function isShopOpenAt(value: string | null | undefined, date = new Date()) {
-  const hours = parseShopOpeningHours(value);
-  const day = jsDayToShopDay[date.getDay()];
-  const today = hours[day];
-
-  if (!today.open) {
-    return false;
-  }
-
-  const openAt = minutesFromTime(today.opensAt);
-  const closeAt = minutesFromTime(today.closesAt);
-  const now = currentMinutes(date);
+function isMinuteInsidePeriod(now: number, period: ShopTimePeriod) {
+  const openAt = minutesFromTime(period.opensAt);
+  const closeAt = minutesFromTime(period.closesAt);
 
   if (openAt === closeAt) {
     return false;
@@ -117,13 +155,28 @@ export function isShopOpenAt(value: string | null | undefined, date = new Date()
   return now >= openAt || now < closeAt;
 }
 
+export function isShopOpenAt(value: string | null | undefined, date = new Date()) {
+  const hours = parseShopOpeningHours(value);
+  const day = jsDayToShopDay[date.getDay()];
+  const today = hours[day];
+
+  if (!today.open) {
+    return false;
+  }
+
+  const now = currentMinutes(date);
+  return today.periods.some((period) => isMinuteInsidePeriod(now, period));
+}
+
 export function formatOpeningHours(value: string | null | undefined) {
   const hours = parseShopOpeningHours(value);
 
   return SHOP_DAYS.map((day) => {
     const dayHours = hours[day.key];
     const valueLabel = dayHours.open
-      ? `${dayHours.opensAt}-${dayHours.closesAt}`
+      ? dayHours.periods
+          .map((period) => `${period.opensAt}-${period.closesAt}`)
+          .join(" / ")
       : "ferme";
 
     return `${day.shortLabel}. ${valueLabel}`;
@@ -140,5 +193,7 @@ export function todayOpeningLabel(value: string | null | undefined, date = new D
     return `${dayLabel} : ferme`;
   }
 
-  return `${dayLabel} : ${today.opensAt}-${today.closesAt}`;
+  return `${dayLabel} : ${today.periods
+    .map((period) => `${period.opensAt}-${period.closesAt}`)
+    .join(" / ")}`;
 }

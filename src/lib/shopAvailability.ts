@@ -100,27 +100,30 @@ function buildDaySlots(
     return [];
   }
 
-  const opensAt = minutesFromTime(dayHours.opensAt);
-  const closesAt = minutesFromTime(dayHours.closesAt);
-
-  if (opensAt === closesAt) {
-    return [];
-  }
-
-  const endMinutes = closesAt > opensAt ? closesAt : closesAt + 24 * 60;
   const slots: Date[] = [];
 
-  for (
-    let minutes = opensAt;
-    minutes + slotDurationMinutes <= endMinutes;
-    minutes += slotDurationMinutes
-  ) {
-    const slot = new Date(dayStart);
-    slot.setMinutes(minutes);
-    slots.push(slot);
+  for (const period of dayHours.periods) {
+    const opensAt = minutesFromTime(period.opensAt);
+    const closesAt = minutesFromTime(period.closesAt);
+
+    if (opensAt === closesAt) {
+      continue;
+    }
+
+    const endMinutes = closesAt > opensAt ? closesAt : closesAt + 24 * 60;
+
+    for (
+      let minutes = opensAt;
+      minutes + slotDurationMinutes <= endMinutes;
+      minutes += slotDurationMinutes
+    ) {
+      const slot = new Date(dayStart);
+      slot.setMinutes(minutes);
+      slots.push(slot);
+    }
   }
 
-  return slots;
+  return slots.sort((a, b) => a.getTime() - b.getTime());
 }
 
 export function getAvailableSlots(input: AvailabilityInput) {
