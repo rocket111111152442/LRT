@@ -53,6 +53,19 @@ type SendMailResult = {
   skipped: boolean;
 };
 
+export type ModeratorBroadcastRecipient = {
+  email: string;
+  companyName: string;
+  paymentStatus: string;
+};
+
+export type ModeratorBroadcastResult = {
+  configured: boolean;
+  requested: number;
+  sent: number;
+  failed: number;
+};
+
 type VerificationEmailPurpose = "SIGNUP" | "LOGIN" | "PASSWORD_RESET";
 
 const DEFAULT_SERVICE_EMAIL = "lrt.service.client@gmail.com";
@@ -147,6 +160,106 @@ async function sendWithEnvSmtp(input: {
     console.error("Verification email failed", error);
     return { sent: false, skipped: false };
   }
+}
+
+function personalizeModeratorMessage(
+  value: string,
+  recipient: ModeratorBroadcastRecipient,
+) {
+  return value
+    .replaceAll("{{nom_magasin}}", recipient.companyName)
+    .replaceAll("{{email_admin}}", recipient.email)
+    .replaceAll("{{statut_compte}}", recipient.paymentStatus);
+}
+
+export async function sendModeratorBroadcastEmails(input: {
+  recipients: ModeratorBroadcastRecipient[];
+  subject: string;
+  message: string;
+}): Promise<ModeratorBroadcastResult> {
+  const smtpConfig = await getEnvSmtpConfig();
+  const recipients = input.recipients.slice(0, 500);
+
+  if (!smtpConfig) {
+    return {
+      configured: false,
+      requested: recipients.length,
+      sent: 0,
+      failed: 0,
+    };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: smtpConfig.host,
+    port: smtpConfig.port,
+    secure: smtpConfig.secure,
+    auth: smtpConfig.auth,
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
+    tls: smtpConfig.servername
+      ? { servername: smtpConfig.servername }
+      : undefined,
+  });
+  let sent = 0;
+  let failed = 0;
+
+  try {
+    for (let offset = 0; offset < recipients.length; offset += 5) {
+      const batch = recipients.slice(offset, offset + 5);
+      const results = await Promise.allSettled(
+        batch.map(async (recipient) => {
+          const subject = personalizeModeratorMessage(
+            input.subject,
+            recipient,
+          );
+          const message = personalizeModeratorMessage(
+            input.message,
+            recipient,
+          );
+          const htmlMessage = escapeHtml(message).replaceAll("\n", "<br>");
+
+          await transporter.sendMail({
+            from: smtpConfig.from,
+            to: recipient.email,
+            subject,
+            text: [
+              message,
+              "",
+              "Cet email concerne votre compte professionnel Qoravo.",
+            ].join("\n"),
+            html: `
+              <div style="font-family:Arial,sans-serif;line-height:1.65;color:#0f172a;max-width:640px;margin:0 auto">
+                <div style="border-bottom:3px solid #0ea5e9;padding:18px 0;font-size:22px;font-weight:700">Qoravo</div>
+                <div style="padding:24px 0">${htmlMessage}</div>
+                <p style="border-top:1px solid #e2e8f0;padding-top:16px;font-size:12px;color:#64748b">
+                  Cet email concerne votre compte professionnel Qoravo.
+                </p>
+              </div>
+            `,
+          });
+        }),
+      );
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          sent += 1;
+        } else {
+          failed += 1;
+          console.error("Moderator broadcast email failed", result.reason);
+        }
+      }
+    }
+  } finally {
+    transporter.close();
+  }
+
+  return {
+    configured: true,
+    requested: recipients.length,
+    sent,
+    failed,
+  };
 }
 
 export async function sendVerificationCodeEmail(input: {

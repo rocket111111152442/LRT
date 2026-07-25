@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { PageViews } from "@/components/PageViews";
+import { BroadcastEmailTab } from "./BroadcastEmailTab";
 
 type Message = {
   id: string; proAccountId: string | null; name: string; email: string;
@@ -41,7 +42,7 @@ export function ModDashboard() {
   const [data, setData]       = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
-  const [tab, setTab]         = useState<"messages" | "comptes">("messages");
+  const [tab, setTab]         = useState<"messages" | "comptes" | "diffusion">("messages");
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg]   = useState("");
 
@@ -107,7 +108,7 @@ export function ModDashboard() {
   return (
     <main className="min-h-screen bg-brand-ink text-slate-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between gap-4 border-b border-white/10 bg-brand-ink/95 px-6 py-3 backdrop-blur">
+      <header className="sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-white/10 bg-brand-ink/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="flex items-center gap-3">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-blue/20 text-brand-blue">
             <BadgeCheck className="h-5 w-5" />
@@ -122,9 +123,13 @@ export function ModDashboard() {
           <button onClick={load} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 transition hover:bg-white/10">
             <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <button onClick={logout} className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10">
+          <button
+            onClick={logout}
+            className="inline-flex h-9 w-9 items-center justify-center gap-2 rounded-lg bg-white/5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 sm:w-auto sm:px-3"
+            aria-label="Déconnexion"
+          >
             <LogOut className="h-3.5 w-3.5" />
-            Déconnexion
+            <span className="hidden sm:inline">Déconnexion</span>
           </button>
         </div>
       </header>
@@ -170,7 +175,7 @@ export function ModDashboard() {
 
         {/* Tabs */}
         <div className="mb-4 flex gap-2">
-          {(["messages", "comptes"] as const).map(t => (
+          {(["messages", "comptes", "diffusion"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -180,7 +185,11 @@ export function ModDashboard() {
                   : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
               }`}
             >
-              {t === "messages" ? `Messages (${openMessages.length})` : `Comptes (${accounts.length})`}
+              {t === "messages"
+                ? `Messages (${openMessages.length})`
+                : t === "comptes"
+                  ? `Comptes (${accounts.length})`
+                  : "Envoyer un email"}
             </button>
           ))}
         </div>
@@ -189,8 +198,10 @@ export function ModDashboard() {
           <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-sm text-slate-400">Chargement...</div>
         ) : tab === "messages" ? (
           <MessagesTab messages={data?.messages ?? []} onRefresh={load} />
-        ) : (
+        ) : tab === "comptes" ? (
           <ComptesTab accounts={data?.accounts ?? []} statusBadge={statusBadge} />
+        ) : (
+          <BroadcastEmailTab accounts={data?.accounts ?? []} />
         )}
       </div>
     </main>
