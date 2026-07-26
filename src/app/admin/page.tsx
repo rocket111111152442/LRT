@@ -7,7 +7,6 @@ import { AdminStatsClient } from "./AdminStatsClient";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { requireAdminPage } from "@/lib/auth";
 import Link from "next/link";
-import { StorageUsageCard } from "./StorageUsageCard";
 
 export const dynamic = "force-dynamic";
 
@@ -53,17 +52,6 @@ export default async function AdminPage() {
             }
           >
             <AdminStatsClient />
-          </ClientErrorBoundary>
-          <ClientErrorBoundary
-            name="Admin storage usage"
-            fallback={
-              <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                Le suivi de l&apos;espace serveur n&apos;a pas pu charger. Vous
-                pouvez toujours consulter la page Offres.
-              </p>
-            }
-          >
-            <StorageUsageCard />
           </ClientErrorBoundary>
           <ClientErrorBoundary
             name="Admin repairs list"

@@ -209,6 +209,14 @@ model ProAccount {
   updatedAt                 DateTime      @updatedAt
 }
 
+model PlatformSettings {
+  id                String   @id @default("default")
+  storageLimitGb    Float    @default(1)
+  storageUpgradeUrl String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 // Demande de « prise en main » (support à distance) émise par un modérateur.
 // Le commerçant doit l'accepter depuis son espace admin avant que le modérateur
 // puisse impersonifier le compte et intervenir sur le logiciel.

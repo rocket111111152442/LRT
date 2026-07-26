@@ -6,6 +6,7 @@ import {
   BadgeCheck,
   Building2,
   Clock,
+  HardDrive,
   LogOut,
   MessageSquare,
   RefreshCw,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { PageViews } from "@/components/PageViews";
 import { BroadcastEmailTab } from "./BroadcastEmailTab";
+import { ModeratorStoragePanel } from "./ModeratorStoragePanel";
 
 type Message = {
   id: string; proAccountId: string | null; name: string; email: string;
@@ -42,7 +44,7 @@ export function ModDashboard() {
   const [data, setData]       = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
-  const [tab, setTab]         = useState<"messages" | "comptes" | "diffusion">("messages");
+  const [tab, setTab]         = useState<"messages" | "comptes" | "stockage" | "diffusion">("messages");
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg]   = useState("");
 
@@ -174,8 +176,8 @@ export function ModDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-4 flex gap-2">
-          {(["messages", "comptes", "diffusion"] as const).map(t => (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {(["messages", "comptes", "stockage", "diffusion"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -189,6 +191,13 @@ export function ModDashboard() {
                 ? `Messages (${openMessages.length})`
                 : t === "comptes"
                   ? `Comptes (${accounts.length})`
+                  : t === "stockage"
+                    ? (
+                      <span className="inline-flex items-center gap-2">
+                        <HardDrive className="h-4 w-4" />
+                        Stockage serveur
+                      </span>
+                    )
                   : "Envoyer un email"}
             </button>
           ))}
@@ -200,6 +209,8 @@ export function ModDashboard() {
           <MessagesTab messages={data?.messages ?? []} onRefresh={load} />
         ) : tab === "comptes" ? (
           <ComptesTab accounts={data?.accounts ?? []} statusBadge={statusBadge} />
+        ) : tab === "stockage" ? (
+          <ModeratorStoragePanel />
         ) : (
           <BroadcastEmailTab accounts={data?.accounts ?? []} />
         )}

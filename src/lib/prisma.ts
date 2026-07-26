@@ -651,7 +651,11 @@ function createFirestorePrisma() {
             .filter((u) => !where.role || u.role === where.role)
             .map((u) => applySelect(u, args.select));
         }
-        return [];
+        const snapshot = await collection("users").get();
+        return snapshot.docs
+          .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+          .filter((u) => !where.role || u.role === where.role)
+          .map((u) => applySelect(u, args.select));
       },
       async upsert(args: { where: Dict; update: Dict; create: Dict }) {
         const existing = await findUser(args.where);
@@ -698,7 +702,9 @@ function createFirestorePrisma() {
       async findUnique(args: { where: Dict; select?: Dict }) {
         return applySelect(await findProAccount(args.where), args.select);
       },
-      async findMany(args: { where?: Dict; select?: Dict; orderBy?: Dict }) {
+      async findMany(
+        args: { where?: Dict; select?: Dict; orderBy?: Dict } = {},
+      ) {
         const snapshot = await collection("proAccounts").get();
         const where = args.where ?? {};
         const accounts = snapshot.docs
@@ -1172,6 +1178,29 @@ function createFirestorePrisma() {
     },
 
     setupAppointment: {
+      async findMany(
+        args: { where?: Dict; select?: Dict; orderBy?: Dict | Dict[] } = {},
+      ) {
+        let firestoreQuery: Query = collection("setupAppointments");
+        if (typeof args.where?.proAccountId === "string") {
+          firestoreQuery = firestoreQuery.where(
+            "proAccountId",
+            "==",
+            args.where.proAccountId,
+          );
+        }
+
+        const snapshot = await firestoreQuery.get();
+        return snapshot.docs
+          .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
+          .filter((appointment) =>
+            matchesWhereObject(appointment, args.where),
+          )
+          .sort((left, right) =>
+            compareRecordsByOrder(left, right, args.orderBy),
+          )
+          .map((appointment) => applySelect(appointment, args.select));
+      },
       async findUnique(args: { where: Dict; select?: Dict }) {
         return applySelect(await findSetupAppointment(args.where), args.select);
       },
@@ -1277,6 +1306,15 @@ function createFirestorePrisma() {
     }),
 
     accountingPayrollEntry: createGenericFirestoreModel("accountingPayrollEntries"),
+
+    platformSettings: createGenericFirestoreModel(
+      "platformSettings",
+      {
+        storageLimitGb: 1,
+        storageUpgradeUrl: null,
+      },
+      ["id"],
+    ),
 
     async $disconnect() {
       return undefined;

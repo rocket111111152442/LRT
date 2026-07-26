@@ -101,12 +101,14 @@ function repairStorage(repairs: unknown[]) {
       signaturesBytes += byteLength(repair.customerPickupSignature);
     }
 
-    const {
-      photos: _photos,
-      customerDropOffSignature: _dropOffSignature,
-      customerPickupSignature: _pickupSignature,
-      ...repairWithoutMedia
-    } = repair;
+    const repairWithoutMedia = Object.fromEntries(
+      Object.entries(repair).filter(
+        ([key]) =>
+          key !== "photos" &&
+          key !== "customerDropOffSignature" &&
+          key !== "customerPickupSignature",
+      ),
+    );
     repairsBytes += serializedBytes(repairWithoutMedia);
   }
 
@@ -147,7 +149,7 @@ export async function computeAccountUsage(
     : {};
 
   const [
-    account,
+    accounts,
     users,
     repairs,
     events,
@@ -161,8 +163,10 @@ export async function computeAccountUsage(
     accountingPayrollEntries,
   ] = await Promise.all([
     proAccountId
-      ? prisma.proAccount.findUnique({ where: { id: proAccountId } })
-      : Promise.resolve(null),
+      ? prisma.proAccount
+          .findUnique({ where: { id: proAccountId } })
+          .then((account) => (account ? [account] : []))
+      : prisma.proAccount.findMany(),
     prisma.user.findMany({ where: scopedWhere }),
     prisma.repair.findMany({ where: scopedWhere }),
     prisma.repairEvent.findMany({ where: scopedWhere }),
@@ -192,7 +196,7 @@ export async function computeAccountUsage(
     ...accountingEmployees,
     ...accountingPayrollEntries,
   ];
-  const accountRecords = [account, ...users].filter(Boolean);
+  const accountRecords = [...accounts, ...users];
   const storageBreakdown = [
     breakdownItem("photos", media.photosBytes, media.photosTotal),
     breakdownItem(
