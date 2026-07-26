@@ -438,7 +438,19 @@ function createGenericFirestoreModel(
 ) {
   const model = {
     async findMany(args: { where?: Dict; orderBy?: Dict | Dict[]; take?: number; select?: Dict } = {}) {
-      const snapshot = await collection(collectionName).get();
+      // La majorité des données métier sont isolées par atelier. Filtrer
+      // directement dans Firestore évite de télécharger les documents des
+      // autres boutiques, notamment lors du calcul de leur stockage.
+      let firestoreQuery: Query = collection(collectionName);
+      if (typeof args.where?.proAccountId === "string") {
+        firestoreQuery = firestoreQuery.where(
+          "proAccountId",
+          "==",
+          args.where.proAccountId,
+        );
+      }
+
+      const snapshot = await firestoreQuery.get();
       const records = snapshot.docs
         .map((doc) => normalizeDoc(doc.id, doc.data()) as Dict)
         .filter((record) => matchesWhereObject(record, args.where))
@@ -726,6 +738,7 @@ function createFirestorePrisma() {
           qualireparSiteId: data.qualireparSiteId ?? null,
           plan: data.plan ?? "basic",
           storageAddonGb: data.storageAddonGb ?? 0,
+          lastPlanUpgradeSessionId: data.lastPlanUpgradeSessionId ?? null,
           stripeAccountId: data.stripeAccountId ?? null,
           stripeOnboarded: data.stripeOnboarded ?? false,
           paymentStatus: data.paymentStatus ?? "PENDING",

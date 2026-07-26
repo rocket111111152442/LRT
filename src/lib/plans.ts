@@ -6,6 +6,7 @@
 
 export const GB = 1024 * 1024 * 1024;
 const MB = 1024 * 1024;
+const KB = 1024;
 
 export type PlanLimits = {
   storageBytes: number;
@@ -172,6 +173,12 @@ export function resolveAccountLimits(account: AccountPlanInput): PlanLimits {
     limits.prioritySupport = true;
   }
 
+  // Compatibilité avec les premiers achats : avant juillet 2026, un add-on
+  // était enregistré dans `plan` au lieu d'incrémenter `storageAddonGb`.
+  if (pack && pack.kind === "addon" && pack.addStorageBytes) {
+    limits.storageBytes += pack.addStorageBytes;
+  }
+
   const addonGb = Math.max(0, account.storageAddonGb ?? 0);
   limits.storageBytes += addonGb * GB;
 
@@ -181,6 +188,8 @@ export function resolveAccountLimits(account: AccountPlanInput): PlanLimits {
 export type UsageEvaluation = {
   storageUsedBytes: number;
   storageLimitBytes: number;
+  storageRemainingBytes: number;
+  storageFreePercent: number;
   storagePercent: number;
   storageState: "ok" | "warning" | "full";
   repairsThisMonth: number;
@@ -233,6 +242,8 @@ export function evaluateUsage(input: {
   return {
     storageUsedBytes,
     storageLimitBytes,
+    storageRemainingBytes: Math.max(0, storageLimitBytes - storageUsedBytes),
+    storageFreePercent: Math.max(0, 100 - storagePercent),
     storagePercent,
     storageState: storageFull ? "full" : storageWarning ? "warning" : "ok",
     repairsThisMonth,
@@ -300,7 +311,13 @@ export function formatStorage(bytes: number): string {
   if (bytes >= GB) {
     return `${(bytes / GB).toFixed(bytes % GB === 0 ? 0 : 1)} Go`;
   }
-  return `${Math.round(bytes / MB)} Mo`;
+  if (bytes >= MB) {
+    return `${(bytes / MB).toFixed(bytes >= 10 * MB ? 0 : 1)} Mo`;
+  }
+  if (bytes >= KB) {
+    return `${(bytes / KB).toFixed(bytes >= 10 * KB ? 0 : 1)} Ko`;
+  }
+  return `${Math.max(0, Math.round(bytes))} octet${bytes > 1 ? "s" : ""}`;
 }
 
 export function formatOptionPrice(option: PlanOption): string {

@@ -192,6 +192,7 @@ model ProAccount {
   paymentStatus             PaymentStatus @default(PENDING)
   trialEndsAt               DateTime?
   stripeSessionId           String?
+  lastPlanUpgradeSessionId  String?
   stripeAccountId           String?
   stripeOnboarded           Boolean       @default(false)
   users                     User[]

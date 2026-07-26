@@ -20,8 +20,18 @@ import {
 
 type UsagePayload = {
   plan: string;
+  capacity: {
+    includedBytes: number;
+    purchasedAddonBytes: number;
+    purchasedAddonGb: number;
+  };
   evaluation: UsageEvaluation;
   options: PlanOption[];
+  provider: {
+    name: string;
+    consoleUrl: string | null;
+    pricingUrl: string;
+  };
 };
 
 export function OffresClient() {
@@ -192,8 +202,23 @@ export function OffresClient() {
             />
           </div>
           <p className="mt-2 text-xs font-semibold text-slate-500">
-            {evaluation.storagePercent}% utilisé
+            {evaluation.storagePercent}% utilisé ·{" "}
+            {formatStorage(evaluation.storageRemainingBytes)} encore disponible
           </p>
+          <div className="mt-3 grid grid-cols-2 border-t border-slate-100 pt-3 text-xs text-slate-600">
+            <span>
+              Inclus :{" "}
+              <strong className="text-slate-900">
+                {formatStorage(data.capacity.includedBytes)}
+              </strong>
+            </span>
+            <span>
+              Acheté en plus :{" "}
+              <strong className="text-slate-900">
+                {formatStorage(data.capacity.purchasedAddonBytes)}
+              </strong>
+            </span>
+          </div>
         </article>
 
         <article className="q-card p-5">
@@ -223,7 +248,7 @@ export function OffresClient() {
         </article>
       </div>
 
-      <div className="grid gap-4">
+      <div id="augmenter-stockage" className="grid scroll-mt-6 gap-4">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-brand-gold" aria-hidden="true" />
           <h2 className="text-xl font-bold text-slate-950">
@@ -309,6 +334,26 @@ export function OffresClient() {
           offre ou un devis sur mesure, contactez-nous : nous configurons votre
           compte sous 24h.
         </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+          {data.provider.consoleUrl ? (
+            <a
+              href={data.provider.consoleUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-sky-700 hover:underline"
+            >
+              Consulter la console {data.provider.name}
+            </a>
+          ) : null}
+          <a
+            href={data.provider.pricingUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-slate-600 hover:text-sky-700 hover:underline"
+          >
+            Voir les tarifs officiels Firebase
+          </a>
+        </div>
       </div>
     </section>
   );
