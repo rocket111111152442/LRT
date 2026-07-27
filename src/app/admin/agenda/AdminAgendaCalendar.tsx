@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
+import { repairStatusLabel } from "@/lib/repairValidation";
 
 export type AgendaRepair = {
   id: string;
@@ -377,7 +378,8 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
             </div>
             {selectedRepair ? (
               <p className="rounded-lg border border-white bg-white px-3 py-2 text-xs text-slate-600">
-                {formatRepairDevice(selectedRepair)} - {selectedRepair.status}
+                {formatRepairDevice(selectedRepair)} -{" "}
+                {repairStatusLabel(selectedRepair.status)}
               </p>
             ) : null}
             {error ? (
@@ -438,7 +440,8 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
                       {formatRepairTitle(repair)}
                     </span>
                     <span className="mt-1 block text-xs text-slate-600">
-                      {formatRepairDevice(repair)} - {repair.status}
+                      {formatRepairDevice(repair)} -{" "}
+                      {repairStatusLabel(repair.status)}
                     </span>
                   </Link>
                 ))}

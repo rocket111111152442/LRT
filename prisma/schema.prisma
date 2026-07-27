@@ -72,9 +72,14 @@ model Repair {
   lastName         String
   phone            String
   email            String
+  streetAddress    String?
+  postalCode       String?
+  city             String?
   deviceType       String
   brand            String
   model            String
+  imei             String?
+  serialNumber     String?
   issueDescription String
   unlockCodeOrNote String?
   status           RepairStatus @default(PAS_ENCORE_EN_REPARATION)

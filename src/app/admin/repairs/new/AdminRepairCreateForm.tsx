@@ -21,6 +21,8 @@ type FieldConfig = {
   type?: string;
   multiline?: boolean;
   autoComplete?: string;
+  inputMode?: "text" | "numeric";
+  wide?: boolean;
 };
 
 const customerFields: FieldConfig[] = [
@@ -28,12 +30,26 @@ const customerFields: FieldConfig[] = [
   { name: "lastName", label: "Nom", autoComplete: "family-name" },
   { name: "phone", label: "Telephone", type: "tel", autoComplete: "tel" },
   { name: "email", label: "Email", type: "email", autoComplete: "email" },
+  {
+    name: "streetAddress",
+    label: "Rue",
+    autoComplete: "address-line1",
+    wide: true,
+  },
+  {
+    name: "postalCode",
+    label: "Code postal",
+    autoComplete: "postal-code",
+  },
+  { name: "city", label: "Ville", autoComplete: "address-level2" },
 ];
 
 const deviceFields: FieldConfig[] = [
   { name: "deviceType", label: "Type d'appareil" },
   { name: "brand", label: "Marque" },
   { name: "model", label: "Modele" },
+  { name: "imei", label: "IMEI", inputMode: "numeric" },
+  { name: "serialNumber", label: "N° de serie" },
   {
     name: "issueDescription",
     label: "Description du probleme",
@@ -325,7 +341,11 @@ function FormField({
     "min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10";
 
   return (
-    <div className={field.multiline ? "grid gap-2 sm:col-span-2" : "grid gap-2"}>
+    <div
+      className={
+        field.multiline || field.wide ? "grid gap-2 sm:col-span-2" : "grid gap-2"
+      }
+    >
       <label htmlFor={id} className="text-sm font-medium text-slate-800">
         {field.label}
       </label>
@@ -345,6 +365,7 @@ function FormField({
           type={field.type ?? "text"}
           value={value}
           autoComplete={field.autoComplete}
+          inputMode={field.inputMode}
           onChange={(event) => onChange(field.name, event.target.value)}
           className={inputClassName}
           aria-invalid={Boolean(error)}

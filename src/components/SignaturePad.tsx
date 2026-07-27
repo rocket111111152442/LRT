@@ -1,6 +1,6 @@
 "use client";
 
-import { type PointerEvent, useRef, useState } from "react";
+import { type PointerEvent, useEffect, useRef, useState } from "react";
 
 type SignaturePadProps = {
   title: string;
@@ -11,6 +11,15 @@ type SignaturePadProps = {
 export function SignaturePad({ title, value, onChange }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    if (value) {
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+  }, [value]);
 
   function getPoint(event: PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
@@ -85,14 +94,6 @@ export function SignaturePad({ title, value, onChange }: SignaturePadProps) {
   return (
     <div className="grid gap-2">
       <p className="text-sm font-medium text-slate-800">{title}</p>
-      {value ? (
-        // eslint-disable-next-line @next/next/no-img-element -- data URL (canvas), non optimisable par next/image
-        <img
-          src={value}
-          alt={title}
-          className="h-28 w-full rounded-md border border-slate-200 bg-white object-contain"
-        />
-      ) : null}
       <canvas
         ref={canvasRef}
         width={520}
@@ -106,7 +107,8 @@ export function SignaturePad({ title, value, onChange }: SignaturePadProps) {
       <button
         type="button"
         onClick={clearSignature}
-        className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline"
+        disabled={!value}
+        className="w-fit text-sm font-semibold text-slate-950 underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
       >
         Effacer
       </button>

@@ -48,9 +48,14 @@ async function loadRepair(id: string) {
       lastName: true,
       email: true,
       phone: true,
+      streetAddress: true,
+      postalCode: true,
+      city: true,
       deviceType: true,
       brand: true,
       model: true,
+      imei: true,
+      serialNumber: true,
       issueDescription: true,
       estimatedPriceCents: true,
       partsCostCents: true,
@@ -254,11 +259,28 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
                 value={`${repair.phone ?? "-"} - ${repair.email ?? "-"}`}
               />
               <InvoiceItem
+                label="Adresse client"
+                value={
+                  [
+                    repair.streetAddress,
+                    [repair.postalCode, repair.city].filter(Boolean).join(" "),
+                  ]
+                    .filter(Boolean)
+                    .join("\n") || "-"
+                }
+                wide
+              />
+              <InvoiceItem
                 label="Appareil"
                 value={`${repair.deviceType ?? ""} ${repair.brand ?? ""} ${
                   repair.model ?? ""
                 }`.trim() || "-"}
                 wide
+              />
+              <InvoiceItem label="IMEI" value={repair.imei || "-"} />
+              <InvoiceItem
+                label="N° de serie"
+                value={repair.serialNumber || "-"}
               />
               <InvoiceItem
                 label="Intervention"

@@ -580,6 +580,11 @@ function matchesSearch(record: Dict, search: string) {
     "email",
     "brand",
     "model",
+    "imei",
+    "serialNumber",
+    "streetAddress",
+    "postalCode",
+    "city",
     "storageLocation",
   ];
 

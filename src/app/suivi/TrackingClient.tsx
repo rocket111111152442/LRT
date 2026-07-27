@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { repairStatusLabel } from "@/lib/repairValidation";
 
 type TrackedRepair = {
   ticketNumber: string;
@@ -214,7 +215,7 @@ export function TrackingClient() {
           </div>
           <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
             <p>
-              Statut actuel : <strong>{repair.status}</strong>
+              Statut actuel : <strong>{repairStatusLabel(repair.status)}</strong>
             </p>
             <p>
               Devis : <strong>{repair.quoteStatus}</strong>

@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { REPAIR_STATUSES } from "@/lib/repairValidation";
+import {
+  REPAIR_STATUSES,
+  repairStatusLabel,
+} from "@/lib/repairValidation";
 import type { RepairStatus } from "@/lib/repairValidation";
 
 type RepairListItem = {
@@ -330,7 +333,7 @@ export function AdminRepairsClient() {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Nom, telephone, email, marque ou modele"
+            placeholder="Nom, contact, marque, modele, IMEI ou n° de serie"
             className="min-h-11 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
           />
         </div>
@@ -347,7 +350,7 @@ export function AdminRepairsClient() {
             <option value="">Tous les statuts</option>
             {REPAIR_STATUSES.map((repairStatus) => (
               <option key={repairStatus} value={repairStatus}>
-                {repairStatus}
+                {repairStatusLabel(repairStatus)}
               </option>
             ))}
           </select>
@@ -493,14 +496,16 @@ export function AdminRepairsClient() {
               <tr>
                 <th className="px-4 py-3 font-semibold">Client</th>
                 <th className="px-4 py-3 font-semibold">Ticket</th>
-                <th className="px-4 py-3 font-semibold">Contact</th>
+                <th className="hidden px-4 py-3 font-semibold xl:table-cell">Contact</th>
                 <th className="px-4 py-3 font-semibold">Appareil</th>
                 <th className="px-4 py-3 font-semibold">Statut</th>
-                <th className="px-4 py-3 font-semibold">Planning</th>
+                <th className="hidden px-4 py-3 font-semibold 2xl:table-cell">Planning</th>
                 <th className="px-4 py-3 font-semibold">Paiement</th>
-                <th className="px-4 py-3 font-semibold">Devis</th>
-                <th className="px-4 py-3 font-semibold">Creee le</th>
-                <th className="px-4 py-3 font-semibold">Action</th>
+                <th className="hidden px-4 py-3 font-semibold xl:table-cell">Devis</th>
+                <th className="hidden px-4 py-3 font-semibold 2xl:table-cell">Creee le</th>
+                <th className="sticky right-0 z-10 bg-slate-100 px-4 py-3 font-semibold">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -534,7 +539,7 @@ export function AdminRepairsClient() {
                   <td className="px-4 py-3 font-semibold text-slate-950">
                     {repair.ticketNumber ?? (repair.id ? repair.id.slice(0, 8) : "-")}
                   </td>
-                  <td className="px-4 py-3 text-slate-700">
+                  <td className="hidden px-4 py-3 text-slate-700 xl:table-cell">
                     <div>{repair.phone}</div>
                     <div>{repair.email}</div>
                   </td>
@@ -544,8 +549,10 @@ export function AdminRepairsClient() {
                       {repair.brand} {repair.model}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-slate-700">{repair.status}</td>
                   <td className="px-4 py-3 text-slate-700">
+                    {repairStatusLabel(repair.status)}
+                  </td>
+                  <td className="hidden px-4 py-3 text-slate-700 2xl:table-cell">
                     {formatDate(repair.expectedPickupAt)}
                   </td>
                   <td className="px-4 py-3 text-slate-700">
@@ -555,13 +562,13 @@ export function AdminRepairsClient() {
                       {formatPrice(repair.estimatedPriceCents)}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden px-4 py-3 xl:table-cell">
                     <QuoteBadge status={repair.quoteStatus} />
                   </td>
-                  <td className="px-4 py-3 text-slate-700">
+                  <td className="hidden px-4 py-3 text-slate-700 2xl:table-cell">
                     {formatDate(repair.createdAt)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="sticky right-0 z-10 bg-white px-4 py-3 shadow-[-10px_0_14px_-14px_rgba(15,23,42,0.7)]">
                     {repair.id ? (
                       <Link
                         href={`/admin/repairs/${repair.id}`}

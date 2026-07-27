@@ -22,14 +22,33 @@ export type PartStatus = (typeof PART_STATUSES)[number];
 export type RepairPaymentStatus = (typeof REPAIR_PAYMENT_STATUSES)[number];
 export type CustomerType = (typeof CUSTOMER_TYPES)[number];
 
+export const REPAIR_STATUS_LABELS: Record<RepairStatus, string> = {
+  PAS_ENCORE_RECU_CLIENT: "A deposer",
+  PAS_ENCORE_EN_REPARATION: "A reparer",
+  EN_REPARATION: "En reparation",
+  EN_ATTENTE_PIECE: "Piece en attente",
+  PRET: "Pret",
+  RECUPERE: "Recupere",
+  ANNULE: "Annule",
+};
+
+export function repairStatusLabel(status: string) {
+  return REPAIR_STATUS_LABELS[status as RepairStatus] ?? status.replaceAll("_", " ");
+}
+
 export type RepairInput = {
   firstName: string;
   lastName: string;
   phone: string;
   email: string;
+  streetAddress?: string;
+  postalCode?: string;
+  city?: string;
   deviceType: string;
   brand: string;
   model: string;
+  imei?: string;
+  serialNumber?: string;
   issueDescription: string;
   unlockCodeOrNote?: string;
   photos?: string[];
@@ -52,6 +71,11 @@ const requiredFields: Array<
     | "customerDropOffSignature"
     | "requestedAppointmentAt"
     | "wantsPriceBeforeDeposit"
+    | "streetAddress"
+    | "postalCode"
+    | "city"
+    | "imei"
+    | "serialNumber"
   >
 > = [
   "firstName",
@@ -69,9 +93,14 @@ const fieldLabels: Record<keyof RepairInput, string> = {
   lastName: "Le nom",
   phone: "Le telephone",
   email: "L'email",
+  streetAddress: "La rue",
+  postalCode: "Le code postal",
+  city: "La ville",
   deviceType: "Le type d'appareil",
   brand: "La marque",
   model: "Le modele",
+  imei: "L'IMEI",
+  serialNumber: "Le numero de serie",
   issueDescription: "La description du probleme",
   unlockCodeOrNote: "Le code ou la note de deverrouillage",
   photos: "Les photos",
@@ -85,9 +114,14 @@ const textLimits: Partial<Record<keyof RepairInput, number>> = {
   lastName: 80,
   phone: 40,
   email: 254,
+  streetAddress: 200,
+  postalCode: 32,
+  city: 120,
   deviceType: 80,
   brand: 80,
   model: 120,
+  imei: 32,
+  serialNumber: 120,
   issueDescription: 5000,
   unlockCodeOrNote: 500,
 };
@@ -149,9 +183,14 @@ export function emptyRepairInput(): RepairInput {
     lastName: "",
     phone: "",
     email: "",
+    streetAddress: "",
+    postalCode: "",
+    city: "",
     deviceType: "",
     brand: "",
     model: "",
+    imei: "",
+    serialNumber: "",
     issueDescription: "",
     unlockCodeOrNote: "",
     photos: [],
@@ -176,9 +215,14 @@ export function validateRepairInput(input: unknown): ValidationResult {
     lastName: readText(input, "lastName"),
     phone: readText(input, "phone"),
     email: readText(input, "email"),
+    streetAddress: readText(input, "streetAddress") || undefined,
+    postalCode: readText(input, "postalCode") || undefined,
+    city: readText(input, "city") || undefined,
     deviceType: readText(input, "deviceType"),
     brand: readText(input, "brand"),
     model: readText(input, "model"),
+    imei: readText(input, "imei") || undefined,
+    serialNumber: readText(input, "serialNumber") || undefined,
     issueDescription: readText(input, "issueDescription"),
     unlockCodeOrNote: readText(input, "unlockCodeOrNote") || undefined,
     photos: readDataUrls(input, "photos"),
@@ -212,6 +256,16 @@ export function validateRepairInput(input: unknown): ValidationResult {
 
   if (data.phone && data.phone.replace(/\D/g, "").length < 6) {
     errors.phone = "Le telephone doit contenir au moins 6 chiffres.";
+  }
+
+  if (data.imei) {
+    const imeiDigits = data.imei.replace(/\D/g, "");
+
+    if (imeiDigits.length !== 15) {
+      errors.imei = "L'IMEI doit contenir exactement 15 chiffres.";
+    } else {
+      data.imei = imeiDigits;
+    }
   }
 
   if (data.issueDescription && data.issueDescription.length < 10) {

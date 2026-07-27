@@ -160,9 +160,14 @@ function repairSelect() {
     lastName: true,
     phone: true,
     email: true,
+    streetAddress: true,
+    postalCode: true,
+    city: true,
     deviceType: true,
     brand: true,
     model: true,
+    imei: true,
+    serialNumber: true,
     issueDescription: true,
     unlockCodeOrNote: true,
     status: true,
@@ -343,9 +348,14 @@ function normalizeRepairForResponse(value: unknown) {
     lastName: readString(repair.lastName),
     phone: readString(repair.phone, "-"),
     email: readString(repair.email, "-"),
+    streetAddress: readNullableString(repair.streetAddress),
+    postalCode: readNullableString(repair.postalCode),
+    city: readNullableString(repair.city),
     deviceType: readString(repair.deviceType, "-"),
     brand: readString(repair.brand),
     model: readString(repair.model),
+    imei: readNullableString(repair.imei),
+    serialNumber: readNullableString(repair.serialNumber),
     issueDescription: readString(repair.issueDescription, "-"),
     unlockCodeOrNote:
       decryptSecret(readNullableString(repair.unlockCodeOrNote)) || null,
@@ -575,6 +585,41 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     data.status = body.status;
+  }
+
+  if ("imei" in body) {
+    if (typeof body.imei !== "string") {
+      return NextResponse.json({ error: "IMEI invalide." }, { status: 400 });
+    }
+
+    const imeiDigits = body.imei.replace(/\D/g, "");
+
+    if (body.imei.trim() && imeiDigits.length !== 15) {
+      return NextResponse.json(
+        { error: "L'IMEI doit contenir exactement 15 chiffres." },
+        { status: 400 },
+      );
+    }
+
+    data.imei = imeiDigits || null;
+  }
+
+  if ("serialNumber" in body) {
+    if (typeof body.serialNumber !== "string") {
+      return NextResponse.json(
+        { error: "Numero de serie invalide." },
+        { status: 400 },
+      );
+    }
+
+    if (body.serialNumber.trim().length > 120) {
+      return NextResponse.json(
+        { error: "Numero de serie trop long." },
+        { status: 400 },
+      );
+    }
+
+    data.serialNumber = body.serialNumber.trim() || null;
   }
 
   if ("internalNotes" in body) {

@@ -12,6 +12,8 @@ import {
   PART_STATUSES,
   REPAIR_PAYMENT_STATUSES,
   REPAIR_STATUSES,
+  REPAIR_STATUS_LABELS,
+  repairStatusLabel,
   type CustomerType,
   type PartStatus,
   type RepairPaymentStatus,
@@ -33,9 +35,14 @@ type RepairDetail = {
   lastName: string;
   phone: string;
   email: string;
+  streetAddress: string | null;
+  postalCode: string | null;
+  city: string | null;
   deviceType: string;
   brand: string;
   model: string;
+  imei: string | null;
+  serialNumber: string | null;
   issueDescription: string;
   unlockCodeOrNote: string | null;
   status: RepairStatus;
@@ -184,6 +191,8 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [customerHistory, setCustomerHistory] = useState<CustomerHistoryItem[]>([]);
   const [status, setStatus] = useState<RepairStatus>("PAS_ENCORE_EN_REPARATION");
+  const [imei, setImei] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [expressMode, setExpressMode] = useState(false);
@@ -226,6 +235,8 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   ) {
     setRepair(payloadRepair);
     setStatus(payloadRepair.status);
+    setImei(payloadRepair.imei ?? "");
+    setSerialNumber(payloadRepair.serialNumber ?? "");
     setInternalNotes(payloadRepair.internalNotes ?? "");
     setUrgent(payloadRepair.urgent);
     setExpressMode(payloadRepair.expressMode);
@@ -397,6 +408,8 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     event.preventDefault();
     await patchRepair({
       status,
+      imei,
+      serialNumber,
       internalNotes,
       storageLocation,
       urgent,
@@ -698,16 +711,30 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             <h2 className="text-xl font-semibold text-slate-950">Details</h2>
             <dl className="grid gap-4 sm:grid-cols-2">
               <DetailItem label="Ticket" value={repair.ticketNumber ?? repair.id} />
-              <DetailItem label="Statut" value={repair.status} />
+              <DetailItem label="Statut" value={repairStatusLabel(repair.status)} />
               <DetailItem label="Priorite" value={repair.urgent ? "Urgent" : "Normal"} />
               <DetailItem label="Mode express" value={repair.expressMode ? "Oui" : "Non"} />
               <DetailItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
               <DetailItem label="Type client" value={repair.customerType} />
               <DetailItem label="Telephone" value={repair.phone} />
               <DetailItem label="Email" value={repair.email} />
+              <DetailItem
+                label="Adresse"
+                value={
+                  [
+                    repair.streetAddress,
+                    [repair.postalCode, repair.city].filter(Boolean).join(" "),
+                  ]
+                    .filter(Boolean)
+                    .join("\n") || "-"
+                }
+                wide
+              />
               <DetailItem label="Type" value={repair.deviceType} />
               <DetailItem label="Marque" value={repair.brand} />
               <DetailItem label="Modele" value={repair.model} />
+              <DetailItem label="IMEI" value={repair.imei || "-"} />
+              <DetailItem label="N° de serie" value={repair.serialNumber || "-"} />
               <DetailItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
               <DetailItem label="Cout pieces" value={formatPrice(repair.partsCostCents)} />
               <DetailItem label="Acompte" value={formatPrice(repair.depositCents)} />
@@ -826,7 +853,9 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
                   <span className="text-slate-700">
                     {item.deviceType} {item.brand} {item.model}
                   </span>
-                  <span className="text-slate-500">{item.status}</span>
+                  <span className="text-slate-500">
+                    {repairStatusLabel(item.status)}
+                  </span>
                   <span className="text-slate-500">
                     {formatDate(item.createdAt)}
                   </span>
@@ -970,8 +999,26 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             label="Statut"
             value={status}
             options={REPAIR_STATUSES}
+            optionLabels={REPAIR_STATUS_LABELS}
             onChange={(value) => setStatus(value as RepairStatus)}
           />
+          <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-950">
+              Identification appareil
+            </p>
+            <TextField
+              id="repair-imei"
+              label="IMEI (15 chiffres)"
+              value={imei}
+              onChange={setImei}
+            />
+            <TextField
+              id="repair-serial-number"
+              label="Numero de serie"
+              value={serialNumber}
+              onChange={setSerialNumber}
+            />
+          </div>
           <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-semibold text-slate-950">Agenda atelier</p>
             <TextField

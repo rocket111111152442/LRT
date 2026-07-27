@@ -3,6 +3,7 @@ import { QoravoLogo } from "@/components/QoravoLogo";
 import { PrintButton } from "@/components/PrintButton";
 import { prisma } from "@/lib/prisma";
 import { verifyRepairAccessToken } from "@/lib/repairAccess";
+import { repairStatusLabel } from "@/lib/repairValidation";
 import type { Prisma } from "../../../../generated/prisma/client";
 
 type DocumentsPageProps = {
@@ -66,9 +67,14 @@ function documentRepairSelect() {
     lastName: true,
     phone: true,
     email: true,
+    streetAddress: true,
+    postalCode: true,
+    city: true,
     deviceType: true,
     brand: true,
     model: true,
+    imei: true,
+    serialNumber: true,
     issueDescription: true,
     status: true,
     estimatedPriceCents: true,
@@ -158,13 +164,27 @@ export default async function DocumentsPage({
           <dl className="grid gap-4 sm:grid-cols-2">
             <DocumentItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
             <DocumentItem label="Contact" value={`${repair.phone} - ${repair.email}`} />
-            <DocumentItem label="Statut" value={repair.status} />
+            <DocumentItem
+              label="Adresse"
+              value={
+                [
+                  repair.streetAddress,
+                  [repair.postalCode, repair.city].filter(Boolean).join(" "),
+                ]
+                  .filter(Boolean)
+                  .join("\n") || "-"
+              }
+              wide
+            />
+            <DocumentItem label="Statut" value={repairStatusLabel(repair.status)} />
             <DocumentItem label="Paiement" value={repair.paymentStatus} />
             <DocumentItem
               label="Appareil"
               value={`${repair.deviceType} ${repair.brand} ${repair.model}`}
               wide
             />
+            <DocumentItem label="IMEI" value={repair.imei || "-"} />
+            <DocumentItem label="N° de serie" value={repair.serialNumber || "-"} />
             <DocumentItem label="Probleme" value={repair.issueDescription} wide />
             <DocumentItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
             <DocumentItem label="Deja paye" value={formatPrice(repair.paidAmountCents)} />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { repairStatusLabel } from "@/lib/repairValidation";
 
 type ReceiptRepair = {
   id: string;
@@ -11,9 +12,14 @@ type ReceiptRepair = {
   lastName: string;
   phone: string;
   email: string;
+  streetAddress: string | null;
+  postalCode: string | null;
+  city: string | null;
   deviceType: string;
   brand: string;
   model: string;
+  imei: string | null;
+  serialNumber: string | null;
   issueDescription: string;
   status: string;
   estimatedPriceCents: number | null;
@@ -127,11 +133,25 @@ export function ReceiptClient({ repairId }: { repairId: string }) {
             <ReceiptItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
             <ReceiptItem label="Telephone" value={repair.phone} />
             <ReceiptItem label="Email" value={repair.email} />
-            <ReceiptItem label="Statut" value={repair.status} />
+            <ReceiptItem
+              label="Adresse"
+              value={
+                [
+                  repair.streetAddress,
+                  [repair.postalCode, repair.city].filter(Boolean).join(" "),
+                ]
+                  .filter(Boolean)
+                  .join("\n") || "-"
+              }
+              wide
+            />
+            <ReceiptItem label="Statut" value={repairStatusLabel(repair.status)} />
             <ReceiptItem
               label="Appareil"
               value={`${repair.deviceType} ${repair.brand} ${repair.model}`}
             />
+            <ReceiptItem label="IMEI" value={repair.imei || "-"} />
+            <ReceiptItem label="N° de serie" value={repair.serialNumber || "-"} />
             <ReceiptItem label="Prix estime" value={formatPrice(repair.estimatedPriceCents)} />
             <ReceiptItem label="Probleme" value={repair.issueDescription} wide />
           </dl>
