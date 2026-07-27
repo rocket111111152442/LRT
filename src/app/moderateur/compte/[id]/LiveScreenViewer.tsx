@@ -9,7 +9,12 @@ type ClientSignal = {
   payload: string;
 };
 
-type ViewerStatus = "idle" | "waiting" | "connected" | "error";
+type ViewerStatus =
+  | "idle"
+  | "permission"
+  | "waiting"
+  | "connected"
+  | "error";
 
 const PEER_CONFIGURATION: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -31,6 +36,7 @@ export function LiveScreenViewer({
   const queuedCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
   const endpoint = `/api/moderateur/compte/${encodeURIComponent(accountId)}/control-session`;
+  const accountEndpoint = `/api/moderateur/compte/${encodeURIComponent(accountId)}`;
 
   const sendSignal = useCallback(
     async (kind: "ANSWER" | "ICE" | "END", payload = "{}") => {
@@ -102,6 +108,36 @@ export function LiveScreenViewer({
       return;
     }
 
+    if (data.screenShareStatus === "PENDING") {
+      setStatus("permission");
+      return;
+    }
+
+    if (
+      data.screenShareStatus === "REFUSED" ||
+      data.screenShareStatus === "CANCELED" ||
+      data.screenShareStatus === "EXPIRED"
+    ) {
+      closeViewer();
+      setStatus("error");
+      setError(
+        data.screenShareStatus === "EXPIRED"
+          ? "La demande d affichage a expire. Vous pouvez en envoyer une nouvelle."
+          : "Le commercant n a pas autorise l affichage de son ecran.",
+      );
+      return;
+    }
+
+    if (data.screenShareStatus !== "ACCEPTED") {
+      closeViewer();
+      setStatus("idle");
+      return;
+    }
+
+    setStatus((current) =>
+      current === "permission" ? "waiting" : current,
+    );
+
     for (const signal of (data.signals ?? []) as ClientSignal[]) {
       if (seenSignalsRef.current.has(signal.id)) {
         continue;
@@ -138,7 +174,7 @@ export function LiveScreenViewer({
         setError("Le flux video n a pas pu etre negocie.");
       }
     }
-  }, [endpoint, sendSignal, stopViewer]);
+  }, [closeViewer, endpoint, sendSignal, stopViewer]);
 
   const startViewer = useCallback(async () => {
     if (!controlAccepted) {
@@ -146,47 +182,94 @@ export function LiveScreenViewer({
     }
 
     closeViewer();
-    setStatus("waiting");
+    setStatus("permission");
     setError("");
 
-    const peer = new RTCPeerConnection(PEER_CONFIGURATION);
-    peerRef.current = peer;
+    try {
+      const permissionResponse = await fetch(accountEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "request_screen_share" }),
+      });
+      const permissionData = await permissionResponse
+        .json()
+        .catch(() => ({}));
 
-    peer.onicecandidate = (event) => {
-      if (event.candidate) {
-        void sendSignal(
-          "ICE",
-          JSON.stringify(event.candidate.toJSON()),
-        ).catch(() => {
-          setStatus("error");
-          setError("Un signal video n a pas pu etre transmis.");
-        });
+      if (!permissionResponse.ok) {
+        throw new Error(
+          permissionData.error ?? "Demande d affichage impossible.",
+        );
       }
-    };
-    peer.ontrack = (event) => {
-      if (videoRef.current) {
-        videoRef.current.srcObject = event.streams[0] ?? null;
-        void videoRef.current.play().catch(() => null);
-      }
-      setStatus("connected");
-    };
-    peer.onconnectionstatechange = () => {
-      if (peer.connectionState === "connected") {
+
+      const peer = new RTCPeerConnection(PEER_CONFIGURATION);
+      peerRef.current = peer;
+
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          void sendSignal(
+            "ICE",
+            JSON.stringify(event.candidate.toJSON()),
+          ).catch(() => {
+            setStatus("error");
+            setError("Un signal video n a pas pu etre transmis.");
+          });
+        }
+      };
+      peer.ontrack = (event) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = event.streams[0] ?? null;
+          void videoRef.current.play().catch(() => null);
+        }
         setStatus("connected");
-      } else if (
-        ["failed", "disconnected", "closed"].includes(peer.connectionState)
-      ) {
-        setStatus("error");
-        setError("Le partage d ecran a ete interrompu.");
-      }
-    };
+      };
+      peer.onconnectionstatechange = () => {
+        if (peer.connectionState === "connected") {
+          setStatus("connected");
+        } else if (
+          ["failed", "disconnected", "closed"].includes(peer.connectionState)
+        ) {
+          setStatus("error");
+          setError("Le partage d ecran a ete interrompu.");
+        }
+      };
 
-    await readClientSignals();
-    pollRef.current = window.setInterval(
-      () => void readClientSignals(),
-      1_000,
-    );
-  }, [closeViewer, controlAccepted, readClientSignals, sendSignal]);
+      await readClientSignals();
+      pollRef.current = window.setInterval(
+        () => void readClientSignals(),
+        1_000,
+      );
+    } catch (requestError) {
+      closeViewer();
+      setStatus("error");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Demande d affichage impossible.",
+      );
+    }
+  }, [
+    accountEndpoint,
+    closeViewer,
+    controlAccepted,
+    readClientSignals,
+    sendSignal,
+  ]);
+
+  const stopOrCancelViewer = useCallback(async () => {
+    if (status === "permission") {
+      await fetch(accountEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel_screen_share" }),
+      }).catch(() => null);
+      closeViewer();
+      setStatus("idle");
+      setError("");
+      return;
+    }
+
+    await stopViewer(true);
+  }, [accountEndpoint, closeViewer, status, stopViewer]);
 
   useEffect(() => {
     return () => closeViewer();
@@ -222,7 +305,7 @@ export function LiveScreenViewer({
         ) : (
           <button
             type="button"
-            onClick={() => void stopViewer(true)}
+            onClick={() => void stopOrCancelViewer()}
             className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-3 py-2 text-xs font-bold text-white hover:bg-red-600"
           >
             <MonitorOff className="h-4 w-4" aria-hidden="true" />
@@ -243,7 +326,18 @@ export function LiveScreenViewer({
         />
         {status !== "connected" ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-            {status === "waiting" ? (
+            {status === "permission" ? (
+              <>
+                <Loader2
+                  className="h-8 w-8 animate-spin text-amber-400"
+                  aria-hidden="true"
+                />
+                <p className="text-sm font-semibold text-slate-300">
+                  Autorisation envoyee. Le commercant doit choisir Autoriser
+                  ou Ne pas autoriser sur son ecran.
+                </p>
+              </>
+            ) : status === "waiting" ? (
               <>
                 <Loader2
                   className="h-8 w-8 animate-spin text-sky-400"

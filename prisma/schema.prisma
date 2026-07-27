@@ -226,18 +226,22 @@ model PlatformSettings {
 // Le commerçant doit l'accepter depuis son espace admin avant que le modérateur
 // puisse impersonifier le compte et intervenir sur le logiciel.
 model ControlRequest {
-  id           String               @id @default(cuid())
-  proAccountId String
-  proAccount   ProAccount           @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
-  status       ControlRequestStatus @default(PENDING)
-  reason       String?
-  requestedAt  DateTime             @default(now())
-  respondedAt  DateTime?
-  expiresAt    DateTime
-  endedAt      DateTime?
-  signals      ControlSignal[]
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  id                     String               @id @default(cuid())
+  proAccountId           String
+  proAccount             ProAccount           @relation(fields: [proAccountId], references: [id], onDelete: Cascade)
+  status                 ControlRequestStatus @default(PENDING)
+  reason                 String?
+  requestedAt            DateTime             @default(now())
+  respondedAt            DateTime?
+  expiresAt              DateTime
+  endedAt                DateTime?
+  screenShareStatus      String               @default("NOT_REQUESTED")
+  screenShareRequestedAt DateTime?
+  screenShareRespondedAt DateTime?
+  screenShareExpiresAt   DateTime?
+  signals                ControlSignal[]
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
   @@index([proAccountId])
   @@index([status])

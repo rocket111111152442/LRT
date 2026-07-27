@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import {
+  endScreenShare,
   findActiveControlRequest,
+  findActiveScreenShareRequest,
   readControlSignals,
   saveControlSignal,
   validateControlSignal,
@@ -24,14 +26,28 @@ export async function GET(_request: Request, context: Context) {
     return NextResponse.json({ active: false });
   }
 
+  const screenShareStatus =
+    controlRequest.screenShareStatus === "PENDING" &&
+    controlRequest.screenShareExpiresAt &&
+    controlRequest.screenShareExpiresAt.getTime() <= Date.now()
+      ? "EXPIRED"
+      : (controlRequest.screenShareStatus ?? "NOT_REQUESTED");
+
   return NextResponse.json({
     active: true,
     requestId: controlRequest.id,
     expiresAt: controlRequest.expiresAt,
-    signals: await readControlSignals({
-      controlRequestId: controlRequest.id,
-      sender: "CLIENT",
-    }),
+    screenShareStatus,
+    screenShareExpiresAt: controlRequest.screenShareExpiresAt ?? null,
+    signals:
+      screenShareStatus === "ACCEPTED" &&
+      controlRequest.screenShareExpiresAt &&
+      controlRequest.screenShareExpiresAt.getTime() > Date.now()
+        ? await readControlSignals({
+            controlRequestId: controlRequest.id,
+            sender: "CLIENT",
+          })
+        : [],
   });
 }
 
@@ -59,7 +75,7 @@ export async function POST(request: Request, context: Context) {
     );
   }
 
-  const controlRequest = await findActiveControlRequest(id);
+  const controlRequest = await findActiveScreenShareRequest(id);
 
   if (!controlRequest) {
     return NextResponse.json(
@@ -84,6 +100,10 @@ export async function POST(request: Request, context: Context) {
     kind: signal.kind,
     payload: signal.payload,
   });
+
+  if (signal.kind === "END") {
+    await endScreenShare(controlRequest.id);
+  }
 
   return NextResponse.json({ ok: true, signalId: saved.id });
 }

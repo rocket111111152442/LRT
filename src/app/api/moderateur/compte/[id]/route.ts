@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 // Durée pendant laquelle une demande de prise en main reste valable (le
 // commerçant doit accepter, et le modérateur entrer, dans ce délai).
 const CONTROL_REQUEST_TTL_MS = 30 * 60 * 1000; // 30 min
+const SCREEN_SHARE_REQUEST_TTL_MS = 5 * 60 * 1000; // 5 min
 const SENSITIVE_ACTIONS = new Set([
   "extend_trial",
   "set_paid",
@@ -276,12 +277,78 @@ export async function POST(request: Request, ctx: Context) {
         status: "PENDING",
         reason: reason || null,
         expiresAt: new Date(Date.now() + CONTROL_REQUEST_TTL_MS),
+        screenShareStatus: "NOT_REQUESTED",
       },
     });
     return NextResponse.json({
       ok: true,
       message: "Demande envoyée. En attente de l'accord du commerçant.",
       request: { id: request.id, status: request.status, expiresAt: request.expiresAt },
+    });
+  }
+
+  if (action === "request_screen_share") {
+    const controlRequest = await prisma.controlRequest.findFirst({
+      where: {
+        proAccountId: id,
+        status: "ACCEPTED",
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!controlRequest) {
+      return NextResponse.json(
+        { error: "La prise en main doit d abord etre acceptee." },
+        { status: 409 },
+      );
+    }
+
+    await prisma.controlSignal.deleteMany({
+      where: { controlRequestId: controlRequest.id },
+    });
+    await prisma.controlRequest.update({
+      where: { id: controlRequest.id },
+      data: {
+        screenShareStatus: "PENDING",
+        screenShareRequestedAt: new Date(),
+        screenShareRespondedAt: null,
+        screenShareExpiresAt: new Date(
+          Date.now() + SCREEN_SHARE_REQUEST_TTL_MS,
+        ),
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      message:
+        "Demande d affichage en direct envoyee. Le commercant doit l autoriser.",
+      screenShareStatus: "PENDING",
+    });
+  }
+
+  if (action === "cancel_screen_share") {
+    const controlRequest = await prisma.controlRequest.findFirst({
+      where: { proAccountId: id, status: "ACCEPTED" },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (controlRequest) {
+      await prisma.controlRequest.update({
+        where: { id: controlRequest.id },
+        data: {
+          screenShareStatus: "CANCELED",
+          screenShareRespondedAt: new Date(),
+        },
+      });
+      await prisma.controlSignal.deleteMany({
+        where: { controlRequestId: controlRequest.id },
+      });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      message: "Demande d affichage en direct annulee.",
     });
   }
 
@@ -295,12 +362,21 @@ export async function POST(request: Request, ctx: Context) {
     // Une demande PENDING expirée est considérée comme telle.
     const expired =
       request.status === "PENDING" && request.expiresAt.getTime() < Date.now();
+    const screenShareExpired =
+      request.screenShareStatus === "PENDING" &&
+      request.screenShareExpiresAt &&
+      request.screenShareExpiresAt.getTime() < Date.now();
     return NextResponse.json({
       request: {
         id: request.id,
         status: expired ? "EXPIRED" : request.status,
         expiresAt: request.expiresAt,
         respondedAt: request.respondedAt,
+        screenShareStatus:
+          screenShareExpired
+            ? "EXPIRED"
+            : (request.screenShareStatus ?? "NOT_REQUESTED"),
+        screenShareExpiresAt: request.screenShareExpiresAt,
       },
     });
   }
@@ -308,7 +384,12 @@ export async function POST(request: Request, ctx: Context) {
   if (action === "cancel_control") {
     await prisma.controlRequest.updateMany({
       where: { proAccountId: id, status: { in: ["PENDING", "ACCEPTED"] } },
-      data: { status: "CANCELED", endedAt: new Date() },
+      data: {
+        status: "CANCELED",
+        endedAt: new Date(),
+        screenShareStatus: "CANCELED",
+        screenShareRespondedAt: new Date(),
+      },
     });
     return NextResponse.json({ ok: true, message: "Demande annulée." });
   }

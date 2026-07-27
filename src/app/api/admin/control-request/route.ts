@@ -29,6 +29,7 @@ export async function GET() {
       requestId: pendingRequest.id,
       reason: pendingRequest.reason,
       requestedAt: pendingRequest.requestedAt,
+      screenSharePending: false,
     });
   }
 
@@ -51,6 +52,14 @@ export async function GET() {
     requestId: acceptedRequest.id,
     reason: acceptedRequest.reason,
     expiresAt: acceptedRequest.expiresAt,
+    screenSharePending:
+      acceptedRequest.screenShareStatus === "PENDING" &&
+      Boolean(
+        acceptedRequest.screenShareExpiresAt &&
+          acceptedRequest.screenShareExpiresAt.getTime() > Date.now(),
+      ),
+    screenShareStatus:
+      acceptedRequest.screenShareStatus ?? "NOT_REQUESTED",
   });
 }
 
@@ -61,10 +70,11 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => null)) as
-    | { requestId?: string; decision?: string }
+    | { requestId?: string; decision?: string; scope?: string }
     | null;
   const requestId = typeof body?.requestId === "string" ? body.requestId : "";
   const decision = body?.decision === "accept" ? "accept" : body?.decision === "refuse" ? "refuse" : "";
+  const scope = body?.scope === "screen" ? "screen" : "control";
   if (!requestId || !decision) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
@@ -73,6 +83,39 @@ export async function POST(req: Request) {
   if (!request || request.proAccountId !== admin.proAccountId) {
     return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
   }
+  if (scope === "screen") {
+    if (
+      request.status !== "ACCEPTED" ||
+      request.expiresAt.getTime() <= Date.now()
+    ) {
+      return NextResponse.json(
+        { error: "La prise en main n est plus autorisee." },
+        { status: 409 },
+      );
+    }
+    if (
+      request.screenShareStatus !== "PENDING" ||
+      !request.screenShareExpiresAt ||
+      request.screenShareExpiresAt.getTime() <= Date.now()
+    ) {
+      return NextResponse.json(
+        { error: "La demande de partage d ecran a expire." },
+        { status: 409 },
+      );
+    }
+
+    await prisma.controlRequest.update({
+      where: { id: requestId },
+      data: {
+        screenShareStatus:
+          decision === "accept" ? "ACCEPTED" : "REFUSED",
+        screenShareRespondedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({ ok: true, decision, scope });
+  }
+
   if (request.status !== "PENDING") {
     return NextResponse.json({ error: "Demande déjà traitée." }, { status: 409 });
   }

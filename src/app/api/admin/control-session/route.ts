@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import {
-  findActiveControlRequest,
+  endScreenShare,
+  findActiveScreenShareRequest,
   readControlSignals,
   saveControlSignal,
   validateControlSignal,
@@ -15,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ active: false }, { status: 401 });
   }
 
-  const request = await findActiveControlRequest(admin.proAccountId);
+  const request = await findActiveScreenShareRequest(admin.proAccountId);
 
   if (!request) {
     return NextResponse.json({ active: false });
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const controlRequest = await findActiveControlRequest(admin.proAccountId);
+  const controlRequest = await findActiveScreenShareRequest(admin.proAccountId);
 
   if (!controlRequest) {
     return NextResponse.json(
@@ -80,6 +81,10 @@ export async function POST(request: Request) {
     kind: signal.kind,
     payload: signal.payload,
   });
+
+  if (signal.kind === "END") {
+    await endScreenShare(controlRequest.id);
+  }
 
   return NextResponse.json({ ok: true, signalId: saved.id });
 }

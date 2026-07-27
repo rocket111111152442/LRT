@@ -1268,6 +1268,10 @@ function createFirestorePrisma() {
       reason: null,
       respondedAt: null,
       endedAt: null,
+      screenShareStatus: "NOT_REQUESTED",
+      screenShareRequestedAt: null,
+      screenShareRespondedAt: null,
+      screenShareExpiresAt: null,
     }),
 
     controlSignal: createGenericFirestoreModel("controlSignals"),

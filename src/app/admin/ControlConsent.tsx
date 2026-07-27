@@ -48,6 +48,7 @@ async function postSignal(kind: "OFFER" | "ICE" | "END", payload = "{}") {
 export function ControlConsent() {
   const [pending, setPending] = useState<ControlRequestState | null>(null);
   const [accepted, setAccepted] = useState<ControlRequestState | null>(null);
+  const [screenSharePending, setScreenSharePending] = useState(false);
   const [working, setWorking] = useState(false);
   const [decisionMessage, setDecisionMessage] = useState("");
   const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
@@ -254,6 +255,7 @@ export function ControlConsent() {
             reason: data.reason ?? null,
           });
           setAccepted(null);
+          setScreenSharePending(false);
         } else {
           setPending(null);
 
@@ -262,8 +264,10 @@ export function ControlConsent() {
               requestId: data.requestId,
               reason: data.reason ?? null,
             });
+            setScreenSharePending(Boolean(data.screenSharePending));
           } else if (!streamRef.current) {
             setAccepted(null);
+            setScreenSharePending(false);
           }
         }
       } catch {
@@ -272,7 +276,7 @@ export function ControlConsent() {
     }
 
     void pollRequest();
-    const pollId = window.setInterval(pollRequest, 5_000);
+    const pollId = window.setInterval(pollRequest, 2_000);
 
     return () => {
       active = false;
@@ -281,10 +285,7 @@ export function ControlConsent() {
     };
   }, [closePeer]);
 
-  async function respond(
-    decision: "accept" | "refuse",
-    shareAfterAccept = false,
-  ) {
+  async function respond(decision: "accept" | "refuse") {
     if (!pending) {
       return;
     }
@@ -292,22 +293,7 @@ export function ControlConsent() {
     setWorking(true);
     setDecisionMessage("");
     setShareError("");
-    let preparedStream: MediaStream | null = null;
-
     try {
-      if (decision === "accept" && shareAfterAccept) {
-        if (!navigator.mediaDevices?.getDisplayMedia) {
-          throw new Error("Ce navigateur ne permet pas le partage d ecran.");
-        }
-
-        // L'appel est déclenché directement par le clic : le navigateur garde
-        // ainsi la confirmation de partage sous le contrôle du commerçant.
-        preparedStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: false,
-        });
-      }
-
       const response = await fetch("/api/admin/control-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -318,7 +304,6 @@ export function ControlConsent() {
       });
 
       if (!response.ok) {
-        preparedStream?.getTracks().forEach((track) => track.stop());
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error ?? "Reponse impossible.");
       }
@@ -333,15 +318,67 @@ export function ControlConsent() {
       }
 
       setPending(null);
+    } catch (error) {
+      setDecisionMessage(
+        error instanceof Error ? error.message : "Reponse impossible.",
+      );
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function respondToScreenShare(decision: "accept" | "refuse") {
+    if (!accepted || working) {
+      return;
+    }
+
+    setWorking(true);
+    setShareError("");
+    let preparedStream: MediaStream | null = null;
+
+    try {
+      if (decision === "accept") {
+        if (!navigator.mediaDevices?.getDisplayMedia) {
+          throw new Error("Ce navigateur ne permet pas le partage d ecran.");
+        }
+
+        preparedStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+      }
+
+      const response = await fetch("/api/admin/control-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: accepted.requestId,
+          decision,
+          scope: "screen",
+        }),
+      });
+
+      if (!response.ok) {
+        preparedStream?.getTracks().forEach((track) => track.stop());
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? "Reponse impossible.");
+      }
+
+      setScreenSharePending(false);
 
       if (decision === "accept" && preparedStream) {
+        setDecisionMessage(
+          "Affichage en direct autorise. Vous pouvez l arreter a tout moment.",
+        );
         await startSharing(preparedStream, true);
+      } else {
+        setDecisionMessage("Demande d affichage en direct refusee.");
       }
     } catch (error) {
       preparedStream?.getTracks().forEach((track) => track.stop());
-      setDecisionMessage(
+      setShareError(
         error instanceof DOMException && error.name === "NotAllowedError"
-          ? "Partage refuse. La demande n a pas ete acceptee."
+          ? "Le partage a ete annule dans le navigateur."
           : error instanceof Error
             ? error.message
             : "Reponse impossible.",
@@ -353,7 +390,12 @@ export function ControlConsent() {
 
   if (pending) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="control-consent-title"
+      >
         <div className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-2xl">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-sky-100">
             <ShieldQuestion
@@ -361,24 +403,31 @@ export function ControlConsent() {
               aria-hidden="true"
             />
           </div>
-          <h2 className="text-center text-lg font-extrabold text-slate-900">
-            Le support souhaite intervenir
+          <h2
+            id="control-consent-title"
+            className="text-center text-2xl font-extrabold text-slate-900"
+          >
+            Demande de prise en main
           </h2>
           <p className="mt-2 text-center text-sm leading-6 text-slate-600">
-            Vous pouvez autoriser l&apos;acces au compte et, si vous le
-            souhaitez, partager l&apos;onglet Qoravo. Le navigateur vous
-            demandera de choisir ce qui est visible. Aucun enregistrement ni
-            journal de frappe n&apos;est realise.
+            Le support Qoravo souhaite intervenir dans votre espace pour vous
+            aider. Il ne pourra acceder a votre compte que si vous
+            l&apos;autorisez.
           </p>
           {pending.reason ? (
             <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center text-xs text-slate-600">
               Motif : {pending.reason}
             </p>
           ) : null}
-          <p className="mt-3 text-center text-xs font-semibold text-amber-700">
-            Fermez les informations sensibles avant de partager votre ecran.
+          <p className="mt-3 text-center text-xs font-semibold text-slate-700">
+            Choisissez obligatoirement Autoriser ou Ne pas autoriser.
           </p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {decisionMessage ? (
+            <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm font-semibold text-red-700">
+              {decisionMessage}
+            </p>
+          ) : null}
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => respond("refuse")}
@@ -386,29 +435,81 @@ export function ControlConsent() {
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
             >
               <X className="h-4 w-4" aria-hidden="true" />
-              Refuser
+              Ne pas autoriser
             </button>
             <button
               type="button"
               onClick={() => respond("accept")}
-              disabled={working}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-sky-300 bg-sky-50 px-4 py-2.5 text-sm font-bold text-sky-800 transition hover:bg-sky-100 disabled:opacity-50"
-            >
-              <Check className="h-4 w-4" aria-hidden="true" />
-              Sans ecran
-            </button>
-            <button
-              type="button"
-              onClick={() => respond("accept", true)}
               disabled={working}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-sky-700 disabled:opacity-50"
             >
               {working ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              )}
+              Autoriser
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (accepted && screenSharePending) {
+    return (
+      <div
+        className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-md"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="screen-consent-title"
+      >
+        <div className="w-full max-w-lg rounded-xl border border-sky-200 bg-white p-7 shadow-2xl">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100">
+            <MonitorUp className="h-8 w-8 text-sky-700" aria-hidden="true" />
+          </div>
+          <h2
+            id="screen-consent-title"
+            className="text-center text-2xl font-extrabold text-slate-950"
+          >
+            Autoriser l&apos;affichage en direct ?
+          </h2>
+          <p className="mt-3 text-center text-sm leading-6 text-slate-600">
+            Le support demande maintenant a voir votre ecran en direct. Si vous
+            acceptez, votre navigateur vous laissera choisir exactement
+            l&apos;ecran, la fenetre ou l&apos;onglet visible.
+          </p>
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-center text-xs font-semibold leading-5 text-amber-900">
+            Le partage n&apos;est pas enregistre. Vous pouvez l&apos;arreter a
+            tout moment depuis Qoravo ou depuis votre navigateur.
+          </div>
+          {shareError ? (
+            <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm font-semibold text-red-700">
+              {shareError}
+            </p>
+          ) : null}
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => void respondToScreenShare("refuse")}
+              disabled={working}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+              Ne pas autoriser
+            </button>
+            <button
+              type="button"
+              onClick={() => void respondToScreenShare("accept")}
+              disabled={working}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-700 disabled:opacity-50"
+            >
+              {working ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
                 <MonitorUp className="h-4 w-4" aria-hidden="true" />
               )}
-              Avec ecran
+              Autoriser l&apos;ecran
             </button>
           </div>
         </div>
@@ -450,22 +551,7 @@ export function ControlConsent() {
               >
                 Arreter le partage
               </button>
-            ) : (
-              <button
-                type="button"
-                data-start-screen-share
-                onClick={() => void startSharing()}
-                disabled={shareStatus === "starting"}
-                className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white hover:bg-sky-700 disabled:opacity-50"
-              >
-                {shareStatus === "starting" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <MonitorUp className="h-4 w-4" aria-hidden="true" />
-                )}
-                Partager mon ecran
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

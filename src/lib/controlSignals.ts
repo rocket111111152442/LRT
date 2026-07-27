@@ -19,6 +19,29 @@ export async function findActiveControlRequest(proAccountId: string) {
   });
 }
 
+export async function findActiveScreenShareRequest(proAccountId: string) {
+  return prisma.controlRequest.findFirst({
+    where: {
+      proAccountId,
+      status: "ACCEPTED",
+      expiresAt: { gt: new Date() },
+      screenShareStatus: "ACCEPTED",
+      screenShareExpiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function endScreenShare(controlRequestId: string) {
+  await prisma.controlRequest.update({
+    where: { id: controlRequestId },
+    data: {
+      screenShareStatus: "ENDED",
+      screenShareRespondedAt: new Date(),
+    },
+  });
+}
+
 export async function saveControlSignal(input: {
   controlRequestId: string;
   sender: ControlSignalSender;
