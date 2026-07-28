@@ -68,10 +68,12 @@ test("un lien client est lie a la fiche et a son email", () => {
   assert.equal(verifyRepairEmail(repair, "autre@example.com"), false);
 });
 
-test("le code gratuit est desactive sans secret serveur", () => {
+test("REP2026 active l acces gratuit et le code serveur reste compatible", () => {
   const previousCode = process.env.FREE_ACCESS_CODE;
   delete process.env.FREE_ACCESS_CODE;
-  assert.equal(isFreeAccessCode("REP2026"), false);
+  assert.equal(isFreeAccessCode("REP2026"), true);
+  assert.equal(isFreeAccessCode(" rep2026 "), true);
+  assert.equal(isFreeAccessCode("CODE-INCONNU"), false);
   process.env.FREE_ACCESS_CODE = "CODE-SERVEUR-UNIQUE";
   assert.equal(isFreeAccessCode("code-serveur-unique"), true);
 
