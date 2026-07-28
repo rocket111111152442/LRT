@@ -158,13 +158,12 @@ export function ProSignupForm() {
       return;
     }
 
-    if (!usesFreeAccessCode && !codeSent) {
+    if (!codeSent) {
       await sendSignupCode(validation.data);
       return;
     }
 
     if (
-      !usesFreeAccessCode &&
       (!validation.data.emailCode || validation.data.emailCode.length < 6)
     ) {
       setErrors((current) => ({
@@ -224,7 +223,7 @@ export function ProSignupForm() {
       return;
     }
 
-    if (!usesFreeAccessCode && !codeSent) {
+    if (!codeSent) {
       const sent = await sendSignupCode(validation.data);
 
       if (sent) {
@@ -237,7 +236,6 @@ export function ProSignupForm() {
     }
 
     if (
-      !usesFreeAccessCode &&
       (!validation.data.emailCode || validation.data.emailCode.length < 6)
     ) {
       setErrors((current) => ({
@@ -470,7 +468,7 @@ export function ProSignupForm() {
         </p>
       ) : null}
 
-      {codeSent && !usesFreeAccessCode ? (
+      {codeSent ? (
         <div className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-4">
           <label
             htmlFor="pro-emailCode"
@@ -588,7 +586,13 @@ export function ProSignupForm() {
             disabled={isSubmitting || isSendingCode}
             className="q-btn q-btn-primary w-full text-base disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Activation..." : "Activer gratuitement"}
+            {isSendingCode
+              ? "Envoi du code..."
+              : isSubmitting
+                ? "Activation..."
+                : codeSent
+                  ? "Valider le code et activer gratuitement"
+                  : "Continuer gratuitement"}
           </button>
         )}
       </div>
