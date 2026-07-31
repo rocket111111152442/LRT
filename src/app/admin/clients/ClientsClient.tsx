@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Mail, Phone, Search, Wrench } from "lucide-react";
+import { isLocalBackupEnabled, loadActiveLocalBackup } from "@/lib/localBackup";
 
 type Client = {
   key: string;
@@ -31,24 +32,99 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleDateString("fr-FR");
 }
 
+type LocalRepair = {
+  id: string;
+  ticketNumber?: string | null;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  deviceType?: string;
+  brand?: string;
+  model?: string;
+  status?: string;
+  paidAmountCents?: number;
+  createdAt?: string | null;
+};
+
+function buildClientsFromRepairs(records: unknown[]): Client[] {
+  const clients = new Map<string, Client>();
+
+  for (const record of records as LocalRepair[]) {
+    const email = record.email?.trim().toLowerCase() ?? "";
+    const phone = record.phone?.replace(/\D/g, "") ?? "";
+    const key = email
+      ? `e:${email}`
+      : phone
+        ? `p:${phone}`
+        : `n:${record.firstName ?? ""}-${record.lastName ?? ""}`.toLowerCase();
+    const createdAt = record.createdAt ?? null;
+    const existing = clients.get(key);
+    const repair = {
+      id: record.id,
+      ticketNumber: record.ticketNumber ?? null,
+      device: `${record.deviceType ?? ""} ${record.brand ?? ""} ${record.model ?? ""}`.trim(),
+      status: record.status ?? "",
+      paidAmountCents: record.paidAmountCents ?? 0,
+      createdAt,
+    };
+
+    if (existing) {
+      existing.repairCount += 1;
+      existing.totalSpentCents += repair.paidAmountCents;
+      existing.repairs.push(repair);
+      if (createdAt && (!existing.lastRepairAt || createdAt > existing.lastRepairAt)) {
+        existing.lastRepairAt = createdAt;
+      }
+    } else {
+      clients.set(key, {
+        key,
+        name: `${record.firstName ?? ""} ${record.lastName ?? ""}`.trim(),
+        phone: record.phone ?? "",
+        email: record.email ?? "",
+        repairCount: 1,
+        totalSpentCents: repair.paidAmountCents,
+        lastRepairAt: createdAt,
+        repairs: [repair],
+      });
+    }
+  }
+
+  return [...clients.values()].sort((a, b) =>
+    (b.lastRepairAt ?? "").localeCompare(a.lastRepairAt ?? ""),
+  );
+}
+
 export function ClientsClient() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [offlineNotice, setOfflineNotice] = useState("");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
+      async function restoreLocalClients() {
+        if (!isLocalBackupEnabled()) return false;
+        const backup = await loadActiveLocalBackup().catch(() => null);
+        if (!backup || !active) return false;
+        setClients(buildClientsFromRepairs(backup.payload.data.repairs));
+        setOfflineNotice(
+          `Mode hors ligne : clients sauvegardes le ${new Date(backup.savedAt).toLocaleString("fr-FR")} affiches en lecture seule.`,
+        );
+        return true;
+      }
+
       try {
         const res = await fetch("/api/admin/clients");
         if (res.status === 401) { window.location.href = "/admin/login"; return; }
         const data = await res.json();
         if (active && res.ok) setClients(data.clients ?? []);
-        else if (active) setError(data.error ?? "Chargement impossible.");
+        else if (active && !(await restoreLocalClients())) setError(data.error ?? "Chargement impossible.");
       } catch {
-        if (active) setError("Chargement impossible.");
+        if (active && !(await restoreLocalClients())) setError("Chargement impossible.");
       } finally {
         if (active) setLoading(false);
       }
@@ -76,6 +152,11 @@ export function ClientsClient() {
 
   return (
     <section className="grid gap-5">
+      {offlineNotice ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {offlineNotice}
+        </p>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Clients" value={String(clients.length)} />
         <Stat label="Clients fidèles (2+)" value={String(loyal)} />

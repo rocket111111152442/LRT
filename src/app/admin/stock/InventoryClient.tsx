@@ -14,6 +14,11 @@ import {
   INVENTORY_CATEGORIES,
   inventoryCategoryLabel,
 } from "@/lib/inventory";
+import {
+  isLocalBackupEnabled,
+  loadActiveLocalBackup,
+  requestLocalBackupSynchronization,
+} from "@/lib/localBackup";
 
 type InventoryItem = {
   id: string;
@@ -83,6 +88,7 @@ export function InventoryClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [offlineNotice, setOfflineNotice] = useState("");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -91,6 +97,18 @@ export function InventoryClient() {
   const loadItems = useCallback(async () => {
     setIsLoading(true);
     setError("");
+    setOfflineNotice("");
+
+    async function restoreLocalItems() {
+      if (!isLocalBackupEnabled()) return false;
+      const backup = await loadActiveLocalBackup().catch(() => null);
+      if (!backup) return false;
+      setItems(backup.payload.data.inventoryItems as InventoryItem[]);
+      setOfflineNotice(
+        `Mode hors ligne : stock sauvegarde le ${new Date(backup.savedAt).toLocaleString("fr-FR")} affiche en lecture seule.`,
+      );
+      return true;
+    }
 
     try {
       const response = await fetch("/api/admin/inventory");
@@ -103,13 +121,17 @@ export function InventoryClient() {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Chargement impossible.");
+        if (!(await restoreLocalItems())) {
+          setError(payload.error ?? "Chargement impossible.");
+        }
         return;
       }
 
       setItems(payload.items ?? []);
     } catch {
-      setError("Chargement impossible.");
+      if (!(await restoreLocalItems())) {
+        setError("Chargement impossible.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -248,6 +270,7 @@ export function InventoryClient() {
             : "Article ajouté.",
       );
       await loadItems();
+      requestLocalBackupSynchronization();
     } catch {
       setError("Enregistrement impossible.");
     } finally {
@@ -280,6 +303,7 @@ export function InventoryClient() {
       }
 
       await loadItems();
+      requestLocalBackupSynchronization();
       setMessage("Article supprimé.");
     } catch {
       setError("Suppression impossible.");
@@ -330,6 +354,7 @@ export function InventoryClient() {
       }
 
       await loadItems();
+      requestLocalBackupSynchronization();
       setMessage(change > 0 ? "Article ajouté au stock." : "Article retiré du stock.");
     } catch {
       setError("Mise à jour impossible.");
@@ -536,6 +561,11 @@ export function InventoryClient() {
         </form>
 
         <div className="grid content-start gap-4">
+          {offlineNotice ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              {offlineNotice}
+            </p>
+          ) : null}
           {error ? (
             <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
               {error}

@@ -3,6 +3,7 @@
 export const LOCAL_BACKUP_ENABLED_KEY = "qoravo-local-backup-enabled";
 export const LOCAL_BACKUP_ACCOUNT_KEY = "qoravo-local-backup-account";
 export const LOCAL_BACKUP_CHANGED_EVENT = "qoravo-local-backup-changed";
+export const LOCAL_BACKUP_SYNC_REQUEST_EVENT = "qoravo-local-backup-sync-request";
 
 const DATABASE_NAME = "qoravo-local-backups";
 const DATABASE_VERSION = 1;
@@ -78,6 +79,11 @@ export function isLocalBackupEnabled() {
 export function setLocalBackupEnabled(enabled: boolean) {
   window.localStorage.setItem(LOCAL_BACKUP_ENABLED_KEY, enabled ? "1" : "0");
   window.dispatchEvent(new Event(LOCAL_BACKUP_CHANGED_EVENT));
+}
+
+export function requestLocalBackupSynchronization() {
+  if (typeof window === "undefined" || !isLocalBackupEnabled()) return;
+  window.dispatchEvent(new Event(LOCAL_BACKUP_SYNC_REQUEST_EVENT));
 }
 
 export async function saveLocalBackup(payload: LocalBackupPayload) {

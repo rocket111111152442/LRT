@@ -12,6 +12,8 @@ import {
   Users,
 } from "lucide-react";
 import { bpsToPercent } from "@/lib/accounting";
+import { isLocalBackupEnabled, loadActiveLocalBackup, requestLocalBackupSynchronization } from "@/lib/localBackup";
+import { buildLocalAccountingView } from "@/lib/localBackupData";
 
 type Settings = {
   country: string;
@@ -159,6 +161,7 @@ export function AccountingClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [offlineNotice, setOfflineNotice] = useState("");
 
   const [settingsForm, setSettingsForm] = useState({
     country: "FR",
@@ -217,6 +220,34 @@ export function AccountingClient() {
   async function loadAccounting(selectedYear = year, selectedMonth = month) {
     setIsLoading(true);
     setError("");
+    setOfflineNotice("");
+
+    async function restoreLocalAccounting() {
+      if (!isLocalBackupEnabled()) return false;
+      const backup = await loadActiveLocalBackup().catch(() => null);
+      if (!backup) return false;
+      const localData = buildLocalAccountingView(
+        backup,
+        selectedYear,
+        selectedMonth,
+      ) as unknown as Payload;
+      setPayload(localData);
+      setSettingsForm({
+        country: localData.settings.country ?? "FR",
+        currency: localData.settings.currency ?? "EUR",
+        vatEnabled: localData.settings.vatEnabled !== false,
+        defaultVatRatePercent: bpsToPercent(localData.settings.defaultVatRateBps),
+        incomeTaxRatePercent: bpsToPercent(localData.settings.incomeTaxRateBps),
+        socialContributionRatePercent: bpsToPercent(localData.settings.socialContributionRateBps),
+        employerContributionRatePercent: bpsToPercent(localData.settings.employerContributionRateBps),
+        fiscalYearStartMonth: String(localData.settings.fiscalYearStartMonth ?? 1),
+        notes: localData.settings.notes ?? "",
+      });
+      setOfflineNotice(
+        `Mode hors ligne : comptabilite sauvegardee le ${new Date(backup.savedAt).toLocaleString("fr-FR")} affichee en lecture seule.`,
+      );
+      return true;
+    }
 
     try {
       const response = await fetch(
@@ -225,7 +256,9 @@ export function AccountingClient() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error ?? "Chargement impossible.");
+        if (!(await restoreLocalAccounting())) {
+          setError(data.error ?? "Chargement impossible.");
+        }
         return;
       }
 
@@ -246,7 +279,9 @@ export function AccountingClient() {
         notes: data.settings.notes ?? "",
       });
     } catch {
-      setError("Chargement impossible.");
+      if (!(await restoreLocalAccounting())) {
+        setError("Chargement impossible.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -278,6 +313,7 @@ export function AccountingClient() {
 
       setMessage("Compta mise a jour.");
       await loadAccounting(year, month);
+      requestLocalBackupSynchronization();
       return true;
     } catch {
       setError("Enregistrement impossible.");
@@ -305,6 +341,7 @@ export function AccountingClient() {
 
       setMessage("Ligne retiree.");
       await loadAccounting(year, month);
+      requestLocalBackupSynchronization();
     } catch {
       setError("Suppression impossible.");
     } finally {
@@ -442,6 +479,11 @@ export function AccountingClient() {
         </a>
       </div>
 
+      {offlineNotice ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {offlineNotice}
+        </p>
+      ) : null}
       {message ? (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {message}

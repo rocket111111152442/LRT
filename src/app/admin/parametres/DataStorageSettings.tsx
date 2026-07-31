@@ -189,9 +189,10 @@ export function DataStorageSettings() {
               Cloud + copie locale automatique
             </strong>
             <span className="mt-2 block text-sm leading-6 text-slate-600">
-              Une copie gratuite est gardee dans ce navigateur et actualisee
-              toutes les deux minutes. Elle aide a continuer la consultation si
-              la connexion tombe pendant que Qoravo est ouvert.
+              Le maximum est conserve gratuitement sur cet ordinateur :
+              reparations, clients, historique, stock, ventes et comptabilite.
+              La copie est actualisee automatiquement et apres chaque
+              enregistrement important.
             </span>
           </span>
         </button>

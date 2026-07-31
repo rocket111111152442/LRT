@@ -9,6 +9,7 @@ import {
   validateRepairInput,
 } from "@/lib/repairValidation";
 import { compressImages } from "@/lib/imageCompress";
+import { requestLocalBackupSynchronization } from "@/lib/localBackup";
 
 type TextFieldName = Exclude<
   keyof RepairInput,
@@ -162,6 +163,7 @@ export function AdminRepairCreateForm() {
         return;
       }
 
+      requestLocalBackupSynchronization();
       router.push(`/admin/repairs/${payload.repair.id}`);
     } catch {
       setSubmitError("Creation impossible.");

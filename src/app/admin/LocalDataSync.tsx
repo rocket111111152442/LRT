@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import {
   isLocalBackupEnabled,
   LOCAL_BACKUP_CHANGED_EVENT,
+  LOCAL_BACKUP_SYNC_REQUEST_EVENT,
   synchronizeLocalBackup,
 } from "@/lib/localBackup";
 
@@ -30,11 +31,13 @@ export function LocalDataSync() {
     const interval = window.setInterval(sync, SYNC_INTERVAL_MS);
     window.addEventListener("online", handleChange);
     window.addEventListener(LOCAL_BACKUP_CHANGED_EVENT, handleChange);
+    window.addEventListener(LOCAL_BACKUP_SYNC_REQUEST_EVENT, handleChange);
 
     return () => {
       window.clearInterval(interval);
       window.removeEventListener("online", handleChange);
       window.removeEventListener(LOCAL_BACKUP_CHANGED_EVENT, handleChange);
+      window.removeEventListener(LOCAL_BACKUP_SYNC_REQUEST_EVENT, handleChange);
     };
   }, []);
 

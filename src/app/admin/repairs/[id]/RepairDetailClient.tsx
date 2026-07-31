@@ -20,6 +20,11 @@ import {
   type RepairStatus,
 } from "@/lib/repairValidation";
 import { compressImages as readFiles } from "@/lib/imageCompress";
+import {
+  isLocalBackupEnabled,
+  loadActiveLocalBackup,
+  requestLocalBackupSynchronization,
+} from "@/lib/localBackup";
 
 type RepairEvent = {
   id: string;
@@ -224,6 +229,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [offlineNotice, setOfflineNotice] = useState("");
   const [showDelayForm, setShowDelayForm] = useState(false);
   const [delayUntil, setDelayUntil] = useState("");
 
@@ -280,6 +286,43 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const loadRepair = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError("");
+    setOfflineNotice("");
+
+    async function restoreLocalRepair() {
+      if (!isLocalBackupEnabled()) return false;
+      const backup = await loadActiveLocalBackup().catch(() => null);
+      if (!backup) return false;
+      const repairs = backup.payload.data.repairs as RepairDetail[];
+      const localRepair = repairs.find((item) => item.id === repairId);
+      if (!localRepair) return false;
+      const localEvents = (
+        backup.payload.data.repairEvents as Array<RepairEvent & { repairId?: string }>
+      ).filter((event) => event.repairId === repairId);
+      const localInventory = backup.payload.data.inventoryItems as InventoryItem[];
+      const email = localRepair.email.trim().toLowerCase();
+      const phone = localRepair.phone.replace(/\D/g, "");
+      const history = repairs
+        .filter((item) => {
+          if (item.id === repairId) return false;
+          if (email && item.email.trim().toLowerCase() === email) return true;
+          return Boolean(phone && item.phone.replace(/\D/g, "") === phone);
+        })
+        .map((item) => ({
+          id: item.id,
+          ticketNumber: item.ticketNumber,
+          deviceType: item.deviceType,
+          brand: item.brand,
+          model: item.model,
+          status: item.status,
+          createdAt: item.createdAt,
+        }));
+
+      syncRepair(localRepair, localEvents, localInventory, history);
+      setOfflineNotice(
+        `Mode hors ligne : fiche sauvegardee le ${new Date(backup.savedAt).toLocaleString("fr-FR")} affichee en lecture seule.`,
+      );
+      return true;
+    }
 
     try {
       const response = await fetch(`/api/admin/repairs/${repairId}`, { signal });
@@ -292,7 +335,9 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Chargement impossible.");
+        if (!(await restoreLocalRepair())) {
+          setError(payload.error ?? "Chargement impossible.");
+        }
         return;
       }
 
@@ -304,7 +349,9 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
       );
     } catch {
       if (!signal?.aborted) {
-        setError("Chargement impossible.");
+        if (!(await restoreLocalRepair())) {
+          setError("Chargement impossible.");
+        }
       }
     } finally {
       if (!signal?.aborted) {
@@ -356,6 +403,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         payload.inventoryItems ?? [],
         payload.customerHistory ?? [],
       );
+      requestLocalBackupSynchronization();
 
       if (payload.mail?.delayAttempted && payload.mail?.delaySent) {
         setMessage(
@@ -537,6 +585,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         return;
       }
 
+      requestLocalBackupSynchronization();
       window.location.href = "/admin";
     } catch {
       setError("Suppression impossible.");
@@ -693,6 +742,11 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
         </form>
       ) : null}
 
+      {offlineNotice ? (
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {offlineNotice}
+        </p>
+      ) : null}
       {error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}

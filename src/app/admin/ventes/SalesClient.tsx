@@ -2,6 +2,12 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { Download, Package, ShoppingCart, Trash2, TrendingUp } from "lucide-react";
+import {
+  isLocalBackupEnabled,
+  loadActiveLocalBackup,
+  requestLocalBackupSynchronization,
+} from "@/lib/localBackup";
+import { buildLocalAccountingView } from "@/lib/localBackupData";
 
 type InventoryItem = {
   id: string;
@@ -48,6 +54,7 @@ export function SalesClient() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [offlineNotice, setOfflineNotice] = useState("");
 
   const now = new Date();
   const year = now.getFullYear();
@@ -67,6 +74,24 @@ export function SalesClient() {
 
   async function loadAll() {
     setLoading(true); setError("");
+    setOfflineNotice("");
+
+    async function restoreLocalData() {
+      if (!isLocalBackupEnabled()) return false;
+      const backup = await loadActiveLocalBackup().catch(() => null);
+      if (!backup) return false;
+      const localAccounting = buildLocalAccountingView(backup, year, month);
+      setItems(backup.payload.data.inventoryItems as InventoryItem[]);
+      setSales(localAccounting.sales as Sale[]);
+      setSummary({
+        retailRevenueCents: localAccounting.summary.retailRevenueCents,
+        retailCostCents: localAccounting.summary.retailCostCents,
+      });
+      setOfflineNotice(
+        `Mode hors ligne : ventes et stock sauvegardes le ${new Date(backup.savedAt).toLocaleString("fr-FR")} affiches en lecture seule.`,
+      );
+      return true;
+    }
     try {
       const [invRes, accRes] = await Promise.all([
         fetch("/api/admin/inventory"),
@@ -78,6 +103,10 @@ export function SalesClient() {
       }
       const inv = await invRes.json().catch(() => ({}));
       const acc = await accRes.json().catch(() => ({}));
+      if (!invRes.ok || !accRes.ok) {
+        if (!(await restoreLocalData())) setError("Chargement impossible.");
+        return;
+      }
       setItems(Array.isArray(inv.items) ? inv.items : []);
       setSales(Array.isArray(acc.sales) ? acc.sales : []);
       if (acc.summary) {
@@ -87,7 +116,7 @@ export function SalesClient() {
         });
       }
     } catch {
-      setError("Chargement impossible.");
+      if (!(await restoreLocalData())) setError("Chargement impossible.");
     } finally {
       setLoading(false);
     }
@@ -163,6 +192,7 @@ export function SalesClient() {
       );
       resetForm();
       await loadAll();
+      requestLocalBackupSynchronization();
     } catch {
       setError("Vente impossible.");
     } finally {
@@ -176,7 +206,10 @@ export function SalesClient() {
       const res = await fetch(`/api/admin/accounting?kind=sale&id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
-      if (res.ok) await loadAll();
+      if (res.ok) {
+        await loadAll();
+        requestLocalBackupSynchronization();
+      }
     } catch { /* ignore */ }
   }
 
@@ -188,6 +221,11 @@ export function SalesClient() {
 
   return (
     <div className="grid gap-6">
+      {offlineNotice ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {offlineNotice}
+        </p>
+      ) : null}
       {/* KPIs */}
       <div className="grid gap-3 sm:grid-cols-3">
         {[
