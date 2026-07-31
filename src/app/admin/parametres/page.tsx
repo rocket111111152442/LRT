@@ -4,6 +4,7 @@ import { AdminHeader } from "../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { ProfileSettingsForm } from "./ProfileSettingsForm";
 import { QualireparSettings } from "./QualireparSettings";
+import { DataStorageSettings } from "./DataStorageSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function AdminSettingsPage() {
             </p>
           </header>
           <ProfileSettingsForm />
+          <DataStorageSettings />
           <QualireparSettings />
         </div>
       </main>

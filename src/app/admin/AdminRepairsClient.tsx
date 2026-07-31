@@ -7,6 +7,10 @@ import {
   repairStatusLabel,
 } from "@/lib/repairValidation";
 import type { RepairStatus } from "@/lib/repairValidation";
+import {
+  isLocalBackupEnabled,
+  loadActiveLocalBackup,
+} from "@/lib/localBackup";
 
 type RepairListItem = {
   id: string;
@@ -137,6 +141,33 @@ function normalizeRepairs(value: unknown): RepairListItem[] {
   }));
 }
 
+function filterLocalRepairs(
+  repairs: RepairListItem[],
+  search: string,
+  status: string,
+) {
+  const normalizedSearch = search.trim().toLocaleLowerCase("fr-FR");
+
+  return repairs.filter((repair) => {
+    if (status && repair.status !== status) return false;
+    if (!normalizedSearch) return true;
+
+    return [
+      repair.ticketNumber,
+      repair.firstName,
+      repair.lastName,
+      repair.phone,
+      repair.email,
+      repair.deviceType,
+      repair.brand,
+      repair.model,
+      repair.technicianName,
+    ].some((value) =>
+      String(value ?? "").toLocaleLowerCase("fr-FR").includes(normalizedSearch),
+    );
+  });
+}
+
 export function AdminRepairsClient() {
   const [repairs, setRepairs] = useState<RepairListItem[]>([]);
   const [search, setSearch] = useState("");
@@ -247,6 +278,23 @@ export function AdminRepairsClient() {
       setIsLoading(true);
       setError("");
 
+      async function restoreLocalCopy() {
+        if (!isLocalBackupEnabled()) return false;
+        const localBackup = await loadActiveLocalBackup().catch(() => null);
+        if (!localBackup) return false;
+
+        const localRepairs = filterLocalRepairs(
+          normalizeRepairs(localBackup.payload.data.repairs),
+          search,
+          status,
+        );
+        setRepairs(localRepairs);
+        setError(
+          `Mode hors ligne : copie locale du ${formatDate(localBackup.savedAt)} affichee. Les modifications restent indisponibles sans connexion.`,
+        );
+        return true;
+      }
+
       try {
         const response = await fetch(apiUrl, {
           signal: controller.signal,
@@ -260,14 +308,18 @@ export function AdminRepairsClient() {
         const payload = await response.json();
 
         if (!response.ok) {
-          setError(payload.error ?? "Chargement impossible.");
+          if (!(await restoreLocalCopy())) {
+            setError(payload.error ?? "Chargement impossible.");
+          }
           return;
         }
 
         setRepairs(normalizeRepairs(payload.repairs));
       } catch {
         if (!controller.signal.aborted) {
-          setError("Chargement impossible.");
+          if (!(await restoreLocalCopy())) {
+            setError("Chargement impossible.");
+          }
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -280,7 +332,7 @@ export function AdminRepairsClient() {
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [apiUrl]);
+  }, [apiUrl, search, status]);
 
   async function downloadCsv() {
     setIsExporting(true);
