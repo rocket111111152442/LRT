@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -24,6 +25,13 @@ import { PageViews } from "@/components/PageViews";
 import { PublicReviews } from "./PublicReviews";
 import { TrialCountdown } from "./TrialCountdown";
 import { TrialExpiryFlag } from "./TrialExpiryFlag";
+
+export const metadata: Metadata = {
+  title: { absolute: "Qoravo — Logiciel de gestion pour réparateurs" },
+  description:
+    "Qoravo aide les réparateurs de téléphone, PC, console et électronique à gérer réparations, clients, devis, stock, agenda, comptabilité et emails automatiques.",
+  alternates: { canonical: "/" },
+};
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1581993192008-63e896f4f744?auto=format&fit=crop&w=1200&q=80";
@@ -188,8 +196,62 @@ const faqs = [
 ];
 
 export default function HomePage() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://www.qoravo.fr/#organization",
+        name: "Qoravo",
+        url: "https://www.qoravo.fr",
+        logo: "https://www.qoravo.fr/qoravo-logo.svg",
+        email: "lrt.service.client@gmail.com",
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://www.qoravo.fr/#website",
+        url: "https://www.qoravo.fr",
+        name: "Qoravo",
+        publisher: { "@id": "https://www.qoravo.fr/#organization" },
+        inLanguage: "fr-FR",
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://www.qoravo.fr/#software",
+        name: "Qoravo",
+        url: "https://www.qoravo.fr/pro",
+        applicationCategory: "BusinessApplication",
+        applicationSubCategory: "Logiciel de gestion d'atelier de réparation",
+        operatingSystem: "Web",
+        description:
+          "Logiciel de gestion pour réparateurs de téléphone, informatique, console et électronique avec suivi client, devis, stock, agenda et comptabilité.",
+        offers: {
+          "@type": "Offer",
+          price: "89.99",
+          priceCurrency: "EUR",
+          url: "https://www.qoravo.fr/pro/inscription",
+        },
+        publisher: { "@id": "https://www.qoravo.fr/#organization" },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
+      },
+    ],
+  };
+
   return (
     <main className="bg-slate-50 text-slate-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <TrialExpiryFlag />
       <TrialCountdown />
 
@@ -242,7 +304,7 @@ export default function HomePage() {
               Nouveau · Essai gratuit 72h
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.07] tracking-tight sm:text-5xl lg:text-6xl">
-              Le logiciel tout-en-un des{" "}
+              Qoravo, le logiciel tout-en-un des{" "}
               <span className="q-gradient-text">réparateurs</span>.
             </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-slate-200 sm:text-lg">

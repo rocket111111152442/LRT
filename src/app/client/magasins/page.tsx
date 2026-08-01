@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ShopLocator } from "../../ShopLocator";
+
+export const metadata: Metadata = {
+  title: "Réparateurs de téléphone ouverts près de chez vous",
+  description:
+    "Recherchez les ateliers de réparation téléphone et informatique ouverts et disponibles autour de vous avec Qoravo.",
+  alternates: { canonical: "/client/magasins" },
+};
 
 export default function ClientShopsPage() {
   return (

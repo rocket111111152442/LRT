@@ -12,15 +12,57 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.qoravo.fr"),
-  title: "Qoravo — Le logiciel tout-en-un des réparateurs",
+  applicationName: "Qoravo",
+  title: {
+    default: "Qoravo — Logiciel de gestion pour réparateurs",
+    template: "%s | Qoravo",
+  },
   description:
-    "Qoravo centralise vos réparations : QR code client, suivi, devis, stock, agenda, compta et emails automatiques. Essai gratuit 72h.",
+    "Qoravo est le logiciel de gestion tout-en-un pour réparateurs de téléphone, informatique et électronique : suivi client, devis, stock, agenda, comptabilité et emails automatiques.",
+  keywords: [
+    "Qoravo",
+    "logiciel gestion réparation téléphone",
+    "logiciel réparateur smartphone",
+    "gestion atelier réparation",
+    "suivi réparation client",
+    "logiciel stock pièces détachées",
+  ],
+  authors: [{ name: "Qoravo", url: "https://www.qoravo.fr" }],
+  creator: "Qoravo",
+  publisher: "Qoravo",
+  category: "Business software",
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
-  alternates: {
-    canonical: "https://www.qoravo.fr",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "https://www.qoravo.fr",
+    siteName: "Qoravo",
+    title: "Qoravo — Logiciel de gestion pour réparateurs",
+    description:
+      "Gérez réparations, clients, devis, stock, agenda, comptabilité et emails automatiques depuis un seul logiciel.",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Qoravo — Logiciel de gestion pour réparateurs",
+    description:
+      "Le logiciel tout-en-un des ateliers de réparation téléphone, informatique et électronique.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export default function RootLayout({

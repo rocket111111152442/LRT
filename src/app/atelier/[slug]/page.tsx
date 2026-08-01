@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { isProAccountActive } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
@@ -7,9 +9,8 @@ type AtelierPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export default async function AtelierPage({ params }: AtelierPageProps) {
-  const { slug } = await params;
-  const account = await prisma.proAccount.findUnique({
+async function getAtelier(slug: string) {
+  return prisma.proAccount.findUnique({
     where: { slug },
     select: {
       companyName: true,
@@ -17,23 +18,76 @@ export default async function AtelierPage({ params }: AtelierPageProps) {
       publicDescription: true,
       publicPhone: true,
       publicAddress: true,
+      shopAddress: true,
+      shopPostalCode: true,
+      shopCity: true,
+      shopCountry: true,
+      shopPhone: true,
+      shopEmail: true,
       paymentStatus: true,
       trialEndsAt: true,
+      publicListed: true,
     },
   });
+}
 
-  if (!account || !isProAccountActive(account)) {
-    return (
-      <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-xl rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-800">
-          Atelier introuvable ou non actif.
-        </div>
-      </main>
-    );
+export async function generateMetadata({ params }: AtelierPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const account = await getAtelier(slug);
+  if (!account || !isProAccountActive(account) || account.publicListed === false) {
+    return { title: "Atelier introuvable", robots: { index: false, follow: false } };
   }
+  const location = [account.shopCity, account.shopCountry].filter(Boolean).join(", ");
+  return {
+    title: `${account.companyName} — Réparateur${location ? ` à ${location}` : ""}`,
+    description:
+      account.publicDescription ||
+      `Découvrez ${account.companyName}, atelier de réparation référencé sur Qoravo. Envoyez une demande et suivez votre appareil en ligne.`,
+    alternates: { canonical: `/atelier/${account.slug}` },
+  };
+}
+
+export default async function AtelierPage({ params }: AtelierPageProps) {
+  const { slug } = await params;
+  const account = await getAtelier(slug);
+
+  if (!account || !isProAccountActive(account) || account.publicListed === false) {
+    notFound();
+  }
+
+  const address = [
+    account.shopAddress ?? account.publicAddress,
+    account.shopPostalCode,
+    account.shopCity,
+    account.shopCountry,
+  ].filter(Boolean).join(", ");
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: account.companyName,
+    description: account.publicDescription ?? undefined,
+    url: `https://www.qoravo.fr/atelier/${account.slug}`,
+    telephone: account.shopPhone ?? account.publicPhone ?? undefined,
+    email: account.shopEmail ?? undefined,
+    address: address
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: account.shopAddress ?? account.publicAddress ?? undefined,
+          postalCode: account.shopPostalCode ?? undefined,
+          addressLocality: account.shopCity ?? undefined,
+          addressCountry: account.shopCountry ?? undefined,
+        }
+      : undefined,
+  };
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <section className="border-b border-slate-200 bg-slate-950 px-4 py-12 text-white sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-4xl gap-6">
           <QoravoLogo textClassName="text-white" />
@@ -67,8 +121,8 @@ export default async function AtelierPage({ params }: AtelierPageProps) {
       <section className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-3">
           <InfoCard label="Atelier" value={account.companyName} />
-          <InfoCard label="Telephone" value={account.publicPhone || "Voir en magasin"} />
-          <InfoCard label="Adresse" value={account.publicAddress || "Voir en magasin"} />
+          <InfoCard label="Telephone" value={account.shopPhone || account.publicPhone || "Voir en magasin"} />
+          <InfoCard label="Adresse" value={address || "Voir en magasin"} />
         </div>
       </section>
     </main>

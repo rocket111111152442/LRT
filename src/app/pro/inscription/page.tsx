@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "Creer un compte — Qoravo" };
+export const metadata: Metadata = {
+  title: "Créer un compte professionnel",
+  robots: { index: false, follow: true },
+};
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ProSignupForm } from "./ProSignupForm";

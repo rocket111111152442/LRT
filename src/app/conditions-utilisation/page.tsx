@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
+
+export const metadata: Metadata = {
+  title: "Conditions d'utilisation",
+  description: "Consultez les conditions d'utilisation du logiciel professionnel Qoravo.",
+  alternates: { canonical: "/conditions-utilisation" },
+};
 
 const sections = [
   {

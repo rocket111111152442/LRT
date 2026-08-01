@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
+
+export const metadata: Metadata = {
+  title: "Activation du compte professionnel",
+  robots: { index: false, follow: false },
+};
 
 type PremiumPageProps = {
   searchParams: Promise<{ compte?: string }>;

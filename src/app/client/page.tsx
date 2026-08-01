@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPin, Search, TicketCheck } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
+
+export const metadata: Metadata = {
+  title: "Trouver un réparateur de téléphone proche",
+  description:
+    "Trouvez avec Qoravo un réparateur de téléphone ou d'ordinateur ouvert et disponible, envoyez votre demande puis suivez votre réparation en ligne.",
+  alternates: { canonical: "/client" },
+};
 
 export default function ClientHomePage() {
   return (

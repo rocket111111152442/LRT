@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 import { RepairForm } from "./RepairForm";
+
+export const metadata: Metadata = {
+  title: "Déposer un appareil en réparation",
+  robots: { index: false, follow: false },
+};
 
 type NewRepairPageProps = {
   searchParams: Promise<{ compte?: string; creneau?: string; mode?: string }>;

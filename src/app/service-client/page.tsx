@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Stripe from "stripe";
 import { SupportSubscribeButton } from "@/app/admin/SupportSubscribeButton";
@@ -7,6 +8,13 @@ import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
 import { SupportForm } from "./SupportForm";
 import { SupportCenter } from "./SupportCenter";
 import { SupportFaq } from "./SupportFaq";
+
+export const metadata: Metadata = {
+  title: "Service client",
+  description:
+    "Contactez le service client Qoravo pour obtenir de l'aide sur votre compte, les emails, le paiement ou le QR code de votre atelier.",
+  alternates: { canonical: "/service-client" },
+};
 
 const supportPhoneDisplay = "07 53 30 54 52";
 const supportPhoneHref = "tel:+33753305452";

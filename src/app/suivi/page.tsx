@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { TrackingClient } from "./TrackingClient";
+
+export const metadata: Metadata = {
+  title: "Suivre une réparation",
+  description:
+    "Suivez l'avancement de votre réparation Qoravo en toute sécurité avec votre numéro de ticket et votre adresse email.",
+  alternates: { canonical: "/suivi" },
+};
 
 export default function TrackingPage() {
   return (

@@ -17,7 +17,7 @@ import {
 import { QoravoLogo } from "@/components/QoravoLogo";
 
 export const metadata: Metadata = {
-  title: "Logiciel de gestion pour atelier de réparation — Qoravo Pro",
+  title: "Logiciel de gestion pour atelier de réparation",
   description:
     "Qoravo est le logiciel tout-en-un des réparateurs (smartphone, PC, console) : QR code de suivi client, devis, statuts, agenda, stock, comptabilité et emails automatiques. Essai gratuit 72h, 89,99 €/an, sans engagement.",
   keywords: [
