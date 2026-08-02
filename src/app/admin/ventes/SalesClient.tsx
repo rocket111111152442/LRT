@@ -278,22 +278,22 @@ export function SalesClient() {
               className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="grid gap-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(7rem,0.65fr)]">
+            <div className="grid min-w-0 gap-2">
               <label htmlFor="v-price" className="text-sm font-medium text-slate-800">Prix de vente (€)</label>
               <input id="v-price" type="number" step="0.01" min="0" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)}
-                className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
+                className="min-h-11 min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
             </div>
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <label htmlFor="v-cost" className="text-sm font-medium text-slate-800">Coût d&apos;achat (€)</label>
               <input id="v-cost" type="number" step="0.01" min="0" value={unitCost} onChange={(e) => setUnitCost(e.target.value)}
-                className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
+                className="min-h-11 min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
             </div>
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2 sm:col-span-2 xl:col-span-1">
               <label htmlFor="v-qty" className="text-sm font-medium text-slate-800">Quantité</label>
               <input id="v-qty" type="number" step="1" min="1" max={selectedItem ? selectedItem.quantity : undefined}
                 value={quantity} onChange={(e) => setQuantity(e.target.value)}
-                className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
+                className="min-h-11 min-w-0 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20" />
             </div>
           </div>
 
