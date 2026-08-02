@@ -20,6 +20,7 @@ import { ProductDemo } from "@/components/ProductDemo";
 import { ConversionLink } from "@/components/ConversionLink";
 import { seoResourceLinks } from "@/lib/seoResources";
 import { PublicReviews } from "./PublicReviews";
+import { TrialOfferCountdown } from "@/components/TrialOfferCountdown";
 
 export const metadata: Metadata = {
   title: { absolute: "Qoravo — Logiciel de gestion pour réparateurs" },
@@ -36,7 +37,7 @@ const COUNTER_IMAGE =
   "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1100&q=80";
 
 const stats = [
-  { value: "14 jours", label: "d'essai gratuit" },
+  { value: "7 jours", label: "d'essai gratuit" },
   { value: "89,99 €", label: "par an, tout compris" },
   { value: "Sans carte", label: "pour commencer" },
   { value: "1 QR", label: "pour le comptoir" },
@@ -116,7 +117,7 @@ const faqs = [
   {
     question: "Comment fonctionne l'essai gratuit ?",
     answer:
-      "Vous créez votre compte avec trois informations et profitez de 14 jours gratuits avec toutes les fonctionnalités. Aucune carte bancaire n'est demandée. À la fin, vous reprenez où vous vous étiez arrêté si vous vous abonnez.",
+      "Vous disposez de 72 heures pour démarrer l'offre, puis de 7 jours gratuits avec toutes les fonctionnalités. Aucune carte bancaire n'est demandée. Si le compteur expire avant la création du compte, l'essai gratuit est annulé sur ce navigateur.",
   },
   {
     question: "Le client a-t-il besoin d'un compte ?",
@@ -192,6 +193,7 @@ export default function HomePage() {
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
+      <TrialOfferCountdown />
       {/* Barre de navigation */}
       <header className="sticky top-0 z-40 border-b border-white/40 bg-white/55 backdrop-blur-xl [-webkit-backdrop-filter:blur(20px)_saturate(180%)] [backdrop-filter:blur(20px)_saturate(180%)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -237,7 +239,7 @@ export default function HomePage() {
           <div className="q-animate-up max-w-xl">
             <span className="q-chip border border-white/15 bg-white/10 text-sky-200">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              14 jours gratuits · sans carte bancaire
+              7 jours gratuits · sans carte bancaire
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.07] tracking-tight sm:text-5xl lg:text-6xl">
               Qoravo, le logiciel tout-en-un des{" "}
@@ -421,7 +423,7 @@ export default function HomePage() {
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
               Un seul abonnement, aucune fonctionnalité bloquée. Commencez par
-              14 jours d&apos;essai gratuit, puis abonnez-vous quand vous êtes prêt.
+              7 jours d&apos;essai gratuit, puis abonnez-vous quand vous êtes prêt.
             </p>
             <ul className="mt-8 grid gap-3">
               {includedInPlan.map((item) => (
@@ -437,7 +439,7 @@ export default function HomePage() {
             <div className="bg-brand-ink p-7 text-white">
               <span className="q-chip border border-white/15 bg-white/10 text-emerald-200">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                Essai gratuit de 14 jours
+                Essai gratuit de 7 jours
               </span>
               <div className="mt-5 flex items-end gap-2">
                 <span className="text-5xl font-extrabold">89,99 €</span>
@@ -608,7 +610,7 @@ export default function HomePage() {
               Prêt à professionnaliser votre atelier ?
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-200">
-              Lancez votre essai gratuit de 14 jours avec seulement trois
+              Lancez votre essai gratuit de 7 jours avec seulement trois
               informations. Aucun engagement, aucune carte bancaire.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">

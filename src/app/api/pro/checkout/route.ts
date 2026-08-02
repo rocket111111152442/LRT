@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyEmailCode } from "@/lib/emailVerification";
 import {
@@ -16,8 +17,11 @@ import {
 } from "@/lib/pro/promoCodes";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
-
-const TRIAL_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+import {
+  readTrialOfferToken,
+  TRIAL_DURATION_MS,
+  TRIAL_OFFER_COOKIE,
+} from "@/lib/pro/trialOffer";
 
 function createPrivateSignupSlug(baseSlug: string) {
   const suffix = randomBytes(3).toString("hex");
@@ -267,6 +271,21 @@ export async function POST(request: Request) {
     }
 
     if (startTrial) {
+      const cookieStore = await cookies();
+      const offer = readTrialOfferToken(
+        cookieStore.get(TRIAL_OFFER_COOKIE)?.value,
+      );
+
+      if (!offer?.available) {
+        return NextResponse.json(
+          {
+            error:
+              "Le délai de 72 heures est terminé. L'essai gratuit de 7 jours n'est plus disponible sur ce navigateur.",
+          },
+          { status: 410 },
+        );
+      }
+
       const trialEndsAt = new Date(Date.now() + TRIAL_DURATION_MS);
       const proAccount = await createTrialProAccount(accountData, trialEndsAt);
 

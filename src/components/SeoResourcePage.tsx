@@ -263,7 +263,7 @@ export function SeoResourcePage({ resource }: SeoResourcePageProps) {
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">Tester sur votre propre atelier</p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Essayez Qoravo pendant 14 jours, sans carte bancaire.
+              Essayez Qoravo pendant 7 jours, sans carte bancaire.
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
               Créez une fiche test, configurez votre email magasin et vérifiez le parcours complet avant de décider.

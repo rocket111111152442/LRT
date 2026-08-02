@@ -29,6 +29,11 @@ import {
   isModeratorPasswordConfigured,
 } from "../src/lib/modAuth";
 import { isFreeAccessCode } from "../src/lib/pro/promoCodes";
+import {
+  createTrialOfferToken,
+  readTrialOfferToken,
+  TRIAL_OFFER_WINDOW_MS,
+} from "../src/lib/pro/trialOffer";
 import { clientIp } from "../src/lib/rateLimit";
 import {
   decryptSecret,
@@ -95,6 +100,22 @@ test("REP2026 active l acces gratuit et le code serveur reste compatible", () =>
   } else {
     process.env.FREE_ACCESS_CODE = previousCode;
   }
+});
+
+test("l offre d essai expire apres 72 heures et son jeton ne peut pas etre modifie", () => {
+  const startedAt = Date.UTC(2026, 7, 2, 10, 0, 0);
+  const token = createTrialOfferToken(startedAt);
+
+  assert.equal(readTrialOfferToken(token, startedAt)?.available, true);
+  assert.equal(
+    readTrialOfferToken(token, startedAt)?.expiresAt,
+    startedAt + TRIAL_OFFER_WINDOW_MS,
+  );
+  assert.equal(
+    readTrialOfferToken(token, startedAt + TRIAL_OFFER_WINDOW_MS)?.available,
+    false,
+  );
+  assert.equal(readTrialOfferToken(`${token.slice(0, -1)}x`, startedAt), null);
 });
 
 test("l adresse IP de limitation ignore les prefixes falsifies", () => {

@@ -20,7 +20,7 @@ export default function ProSignupPage() {
           </Link>
           <QoravoLogo />
           <span className="q-chip w-fit bg-brand-green-soft text-brand-green">
-            Essai gratuit de 14 jours
+            Essai gratuit de 7 jours
           </span>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
             Créez votre atelier et testez Qoravo gratuitement
@@ -32,10 +32,14 @@ export default function ProSignupPage() {
             ensuite tranquillement depuis votre espace admin.
           </p>
           <div className="grid gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900 sm:grid-cols-3">
-            <p className="font-semibold">✓ 14 jours gratuits, sans carte</p>
+            <p className="font-semibold">✓ 7 jours gratuits, sans carte</p>
             <p className="font-semibold">✓ Abonnement possible à tout moment</p>
             <p className="font-semibold">✓ Vous reprenez où vous en étiez</p>
           </div>
+          <p className="text-xs leading-5 text-amber-800">
+            L&apos;offre doit être démarrée dans les 72 heures affichées sur la
+            page d&apos;accueil. Après ce délai, l&apos;essai gratuit est annulé.
+          </p>
         </header>
 
         <ProSignupForm />

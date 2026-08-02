@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
 
@@ -48,9 +48,34 @@ export function ProSignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [trialOfferStatus, setTrialOfferStatus] = useState<
+    "loading" | "available" | "expired"
+  >("loading");
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
-  const trialAvailable = true;
+  const trialAvailable = trialOfferStatus === "available";
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/pro/trial-offer", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Trial offer unavailable");
+        return (await response.json()) as { available?: boolean };
+      })
+      .then((payload) => {
+        if (active) {
+          setTrialOfferStatus(payload.available ? "available" : "expired");
+        }
+      })
+      .catch(() => {
+        if (active) setTrialOfferStatus("expired");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function updateField(name: keyof ProSignupInput, value: string) {
     setValues((current) => {
@@ -207,7 +232,7 @@ export function ProSignupForm() {
 
       if (sent) {
         setMessage(
-          "Code envoye. Entrez-le ci-dessous pour démarrer vos 14 jours d'essai.",
+          "Code envoye. Entrez-le ci-dessous pour démarrer vos 7 jours d'essai.",
         );
       }
 
@@ -402,7 +427,11 @@ export function ProSignupForm() {
 
         {!usesFreeAccessCode ? (
           <div className="grid gap-3">
-            {trialAvailable ? (
+            {trialOfferStatus === "loading" ? (
+              <p className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-center text-sm text-sky-900">
+                Vérification de la disponibilité de l&apos;essai gratuit...
+              </p>
+            ) : trialAvailable ? (
               <>
                 <button
                   type="button"
@@ -415,25 +444,26 @@ export function ProSignupForm() {
                     : isSubmitting
                       ? "Démarrage de l'essai..."
                       : codeSent
-                        ? "Valider le code et démarrer l'essai de 14 jours"
-                        : "Continuer avec l'essai gratuit de 14 jours"}
+                        ? "Valider le code et démarrer l'essai de 7 jours"
+                        : "Continuer avec l'essai gratuit de 7 jours"}
                 </button>
                 <p className="text-center text-xs text-slate-500">
-                  14 jours gratuits, sans carte bancaire. Vous pourrez vous
-                  abonner à tout moment et reprendre où vous en étiez.
+                  Vous devez démarrer l&apos;essai avant la fin du délai de 72
+                  heures. Ensuite, vous disposez de 7 jours gratuits complets.
                 </p>
               </>
             ) : (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-                L&apos;offre d&apos;essai gratuit est terminée. Abonnez-vous
-                directement pour accéder à Qoravo.
+                Le délai de 72 heures est terminé. Comme l&apos;essai n&apos;a
+                pas été démarré à temps, les 7 jours gratuits sont annulés sur
+                ce navigateur. Vous pouvez toujours vous abonner directement.
               </p>
             )}
             <button
               type="submit"
               disabled={isSubmitting || isSendingCode}
               className={`min-h-11 rounded-lg px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed ${
-                trialAvailable
+                trialAvailable || trialOfferStatus === "loading"
                   ? "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 disabled:text-slate-400"
                   : "q-btn q-btn-primary text-base disabled:opacity-60"
               }`}
