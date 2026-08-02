@@ -38,7 +38,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: "Comment prolonger ou gérer mon essai gratuit ?",
-    a: "L'essai gratuit dure 72h. Pour continuer, abonnez-vous depuis le bandeau ou la page Paiement. Une question sur votre essai ? Envoyez une demande au service client.",
+    a: "L'essai gratuit dure 14 jours. Pour continuer, abonnez-vous depuis le bandeau ou la page Paiement. Une question sur votre essai ? Envoyez une demande au service client.",
     tags: ["essai", "abonnement", "paiement"],
   },
   {

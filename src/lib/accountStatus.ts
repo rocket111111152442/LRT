@@ -1,7 +1,7 @@
 // Un compte pro est "actif" (accès complet, pages publiques visibles, réception
 // de réparations...) s'il est PAYÉ ou en essai gratuit non expiré.
 //
-// Pendant les 72h d'essai, tout doit fonctionner exactement comme un compte
+// Pendant les 14 jours d'essai, tout doit fonctionner exactement comme un compte
 // payé. Le blocage n'intervient qu'à l'expiration de l'essai.
 export function isProAccountActive(
   account:

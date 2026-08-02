@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/suivi",
     "/client/magasins",
     "/service-client",
+    "/demonstration",
     "/conditions-utilisation",
     ...seoResourceLinks.map((resource) => resource.href),
   ];

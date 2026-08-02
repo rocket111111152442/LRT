@@ -13,7 +13,7 @@ function stars(rating: number) {
   return `${rating}/5`;
 }
 
-export function PublicReviews() {
+export function PublicReviews({ displayOnly = false }: { displayOnly?: boolean }) {
   const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [name, setName] = useState("");
   const [rating, setRating] = useState("5");
@@ -78,6 +78,10 @@ export function PublicReviews() {
     }
   }
 
+  if (displayOnly && reviews.length === 0) {
+    return null;
+  }
+
   return (
     <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -117,7 +121,7 @@ export function PublicReviews() {
         ) : null}
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-3 border-t border-slate-200 pt-4">
+      {!displayOnly ? <form onSubmit={handleSubmit} className="grid gap-3 border-t border-slate-200 pt-4">
         <h3 className="text-base font-semibold text-slate-950">
           Laisser un avis public
         </h3>
@@ -156,7 +160,7 @@ export function PublicReviews() {
         >
           {isSaving ? "Envoi..." : "Publier l'avis"}
         </button>
-      </form>
+      </form> : null}
     </section>
   );
 }

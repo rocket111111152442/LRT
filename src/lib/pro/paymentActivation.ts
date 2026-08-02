@@ -29,6 +29,7 @@ export type PaidProAccountData = {
   shopSlotDurationMinutes?: number | null;
   shopMaxAppointmentsPerSlot?: number | null;
   premiumDiscountCode?: string | null;
+  publicListed?: boolean;
   supportIncluded?: boolean;
   stripeSessionId?: string | null;
 };
@@ -125,6 +126,7 @@ export async function createPaidProAccount(data: PaidProAccountData) {
       firebaseAppId: data.firebaseAppId,
       referralCode: `${data.slug.toUpperCase()}-Qoravo`,
       supportIncluded: data.supportIncluded ?? false,
+      publicListed: data.publicListed ?? false,
       shopAddress: data.shopAddress,
       shopPostalCode: data.shopPostalCode,
       shopCity: data.shopCity,
@@ -167,6 +169,7 @@ export async function createTrialProAccount(
       firebaseAppId: data.firebaseAppId,
       referralCode: `${data.slug.toUpperCase()}-Qoravo`,
       supportIncluded: false,
+      publicListed: data.publicListed ?? false,
       shopAddress: data.shopAddress,
       shopPostalCode: data.shopPostalCode,
       shopCity: data.shopCity,

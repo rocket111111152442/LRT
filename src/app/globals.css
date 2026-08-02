@@ -234,21 +234,6 @@ select {
   animation: q-gradient-shift 12s ease infinite;
 }
 
-/* Masque les mentions de l'offre gratuite une fois le minuteur ecoule
-   (ou apres qu'un compte a ete cree avec l'essai gratuit). */
-html[data-trial-over] .trial-promo {
-  display: none !important;
-}
-
-/* Libelle de repli : masque tant que l'essai est dispo, affiche une fois
-   l'essai termine/utilise (pour ne pas laisser un bouton vide). */
-.trial-over-only {
-  display: none;
-}
-html[data-trial-over] .trial-over-only {
-  display: inline;
-}
-
 .q-animate-up {
   animation: q-fade-up 0.7s ease both;
 }

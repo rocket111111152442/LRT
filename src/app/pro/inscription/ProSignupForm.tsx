@@ -1,15 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 
-// Fenêtre promotionnelle de l'essai gratuit (même minuteur que la page d'accueil).
-const TRIAL_PROMO_KEY = "qoravo_trial_countdown_started_at";
-// Drapeau posé une fois qu'un compte a été créé avec l'essai gratuit : l'offre
-// d'essai n'est alors plus reproposée depuis ce navigateur.
-const TRIAL_USED_KEY = "qoravo_trial_used";
-const TRIAL_PROMO_MS = 72 * 60 * 60 * 1000;
-const TRIAL_UNLOCK_CODE = "ESS26";
 import {
   normalizeSlug,
   ProSignupErrors,
@@ -20,11 +14,6 @@ import {
   isFreeAccessCode,
   isPremiumDiscountCode,
 } from "@/lib/pro/promoCodes";
-import {
-  parseShopOpeningHours,
-  stringifyShopOpeningHours,
-} from "@/lib/shopHours";
-import { OpeningHoursEditor } from "@/components/OpeningHoursEditor";
 
 const initialValues: ProSignupInput = {
   companyName: "",
@@ -40,7 +29,7 @@ const initialValues: ProSignupInput = {
   shopCountry: "",
   shopPhone: "",
   shopEmail: "",
-  shopOpeningHours: stringifyShopOpeningHours(parseShopOpeningHours(null)),
+  shopOpeningHours: "",
   shopLatitude: "",
   shopLongitude: "",
   shopCapacityPerDay: "8",
@@ -59,39 +48,27 @@ export function ProSignupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
-  const [showQrHelp, setShowQrHelp] = useState(false);
-  const [promoWindowExpired, setPromoWindowExpired] = useState(false);
-  const [trialAlreadyUsed, setTrialAlreadyUsed] = useState(false);
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
-  // L'essai gratuit n'est proposé que pendant la fenêtre promo (72h par
-  // visiteur) ET tant qu'aucun compte n'a déjà été créé avec l'essai depuis ce
-  // navigateur. Passé cela, il faut le code ESS26 pour le débloquer.
-  const trialUnlockedByCode =
-    (values.promoCode ?? "").trim().toUpperCase() === TRIAL_UNLOCK_CODE;
-  const trialAvailable =
-    (!promoWindowExpired && !trialAlreadyUsed) || trialUnlockedByCode;
-
-  useEffect(() => {
-    if (window.localStorage.getItem(TRIAL_USED_KEY) === "1") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTrialAlreadyUsed(true);
-    }
-
-    const stored = window.localStorage.getItem(TRIAL_PROMO_KEY);
-    if (!stored) return;
-    const startedAt = Number(stored);
-    if (Number.isNaN(startedAt)) return;
-    if (Date.now() - startedAt >= TRIAL_PROMO_MS) {
-      setPromoWindowExpired(true);
-    }
-  }, []);
+  const trialAvailable = true;
 
   function updateField(name: keyof ProSignupInput, value: string) {
-    setValues((current) => ({
-      ...current,
-      [name]: name === "slug" ? normalizeSlug(value) : value,
-    }));
+    setValues((current) => {
+      const next = {
+        ...current,
+        [name]: name === "slug" ? normalizeSlug(value) : value,
+      };
+
+      if (name === "companyName") {
+        next.slug = normalizeSlug(value);
+      }
+
+      if (name === "ownerEmail" && !current.shopEmail) {
+        next.shopEmail = value;
+      }
+
+      return next;
+    });
     setErrors((current) => ({ ...current, [name]: undefined }));
     setSubmitError("");
     setMessage("");
@@ -130,6 +107,7 @@ export function ProSignupForm() {
       }
 
       setCodeSent(true);
+      track("signup_code_sent");
       if (typeof payload.verificationId === "string") {
         setValues((current) => ({
           ...current,
@@ -199,6 +177,7 @@ export function ProSignupForm() {
         return;
       }
 
+      track("paid_checkout_started");
       window.location.href = payload.redirectUrl;
     } catch {
       setSubmitError("Inscription impossible.");
@@ -228,7 +207,7 @@ export function ProSignupForm() {
 
       if (sent) {
         setMessage(
-          "Code envoye. Entrez le code recu par email puis cliquez sur Continuer avec l'essai gratuit 72h.",
+          "Code envoye. Entrez-le ci-dessous pour démarrer vos 14 jours d'essai.",
         );
       }
 
@@ -271,9 +250,7 @@ export function ProSignupForm() {
         return;
       }
 
-      // Le compte a été créé avec l'essai gratuit : on ne reproposera plus
-      // l'offre d'essai depuis ce navigateur.
-      window.localStorage.setItem(TRIAL_USED_KEY, "1");
+      track("trial_started");
       window.location.href = payload.redirectUrl;
     } catch {
       setSubmitError("Essai gratuit impossible.");
@@ -301,7 +278,7 @@ export function ProSignupForm() {
             Se connecter
           </Link>
         </p>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4">
           <TextField
             name="companyName"
             label="Nom de l'atelier"
@@ -309,44 +286,6 @@ export function ProSignupForm() {
             error={errors.companyName}
             onChange={updateField}
           />
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="pro-slug"
-                className="text-sm font-medium text-slate-800"
-              >
-                Identifiant du QR code
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowQrHelp((current) => !current)}
-                aria-expanded={showQrHelp}
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
-              >
-                ?
-              </button>
-            </div>
-            <input
-              id="pro-slug"
-              type="text"
-              value={values.slug}
-              onChange={(event) => updateField("slug", event.target.value)}
-              className="min-h-11 w-full min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-              aria-invalid={Boolean(errors.slug)}
-            />
-            {showQrHelp ? (
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-700">
-                C est le nom court de votre atelier dans le lien du QR code.
-                Exemple : si vous mettez <strong>atelier-centre</strong>, votre
-                QR code enverra les clients vers le formulaire de cet atelier.
-                Utilisez un nom simple, sans espace, sans accent, facile a
-                reconnaitre.
-              </div>
-            ) : null}
-            {errors.slug ? (
-              <p className="text-sm text-red-700">{errors.slug}</p>
-            ) : null}
-          </div>
           <TextField
             name="ownerEmail"
             label="Email admin"
@@ -364,81 +303,10 @@ export function ProSignupForm() {
             onChange={updateField}
           />
         </div>
-      </fieldset>
-
-      <fieldset className="grid gap-4">
-        <legend className="mb-2 text-base font-semibold text-slate-950">
-          Informations du magasin
-        </legend>
-        <p className="text-sm leading-6 text-slate-600">
-          Ces informations serviront a afficher votre boutique aux clients qui
-          cherchent un reparateur proche d&apos;eux. Vous pourrez les modifier
-          plus tard dans les parametres admin.
+        <p className="rounded-md border border-sky-100 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900">
+          C&apos;est tout pour commencer. L&apos;adresse, les horaires, le QR code et
+          les réglages email seront configurés depuis votre espace admin.
         </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextField
-            name="shopAddress"
-            label="Adresse"
-            value={values.shopAddress ?? ""}
-            error={errors.shopAddress}
-            onChange={updateField}
-          />
-          <TextField
-            name="shopPostalCode"
-            label="Code postal"
-            value={values.shopPostalCode ?? ""}
-            error={errors.shopPostalCode}
-            onChange={updateField}
-          />
-          <TextField
-            name="shopCity"
-            label="Ville"
-            value={values.shopCity ?? ""}
-            error={errors.shopCity}
-            onChange={updateField}
-          />
-          <TextField
-            name="shopCountry"
-            label="Pays"
-            value={values.shopCountry ?? ""}
-            error={errors.shopCountry}
-            onChange={updateField}
-            placeholder="France, Belgique, Suisse..."
-          />
-          <TextField
-            name="shopPhone"
-            label="Telephone du magasin"
-            type="tel"
-            value={values.shopPhone ?? ""}
-            error={errors.shopPhone}
-            onChange={updateField}
-          />
-          <TextField
-            name="shopEmail"
-            label="Email public du magasin"
-            type="email"
-            value={values.shopEmail ?? ""}
-            error={errors.shopEmail}
-            onChange={updateField}
-          />
-        </div>
-        <div className="grid gap-3 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
-          <div className="grid gap-1">
-            <h2 className="text-base font-semibold text-slate-950">
-              Horaires d&apos;ouverture
-            </h2>
-            <p className="text-sm leading-6 text-slate-600">
-              Ajoutez plusieurs plages si la boutique ferme en journee. Aucun
-              rendez-vous ne sera propose pendant ces coupures.
-            </p>
-          </div>
-          <OpeningHoursEditor
-            value={values.shopOpeningHours}
-            onChange={(nextValue) =>
-              updateField("shopOpeningHours", nextValue)
-            }
-          />
-        </div>
       </fieldset>
 
       {submitError ? (
@@ -547,13 +415,12 @@ export function ProSignupForm() {
                     : isSubmitting
                       ? "Démarrage de l'essai..."
                       : codeSent
-                        ? "Valider le code et démarrer l'essai gratuit 72h"
-                        : "Continuer avec l'essai gratuit 72h"}
+                        ? "Valider le code et démarrer l'essai de 14 jours"
+                        : "Continuer avec l'essai gratuit de 14 jours"}
                 </button>
                 <p className="text-center text-xs text-slate-500">
-                  {trialUnlockedByCode
-                    ? "Essai gratuit 72h débloqué."
-                    : "72h gratuites · vous pourrez vous abonner à tout moment et reprendre où vous en étiez."}
+                  14 jours gratuits, sans carte bancaire. Vous pourrez vous
+                  abonner à tout moment et reprendre où vous en étiez.
                 </p>
               </>
             ) : (

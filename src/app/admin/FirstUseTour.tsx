@@ -14,14 +14,14 @@ type TourStep = {
 
 const steps: TourStep[] = [
   {
-    title: "Bienvenue dans votre espace admin",
-    text: "Ce tour montre quoi regler en premier pour que Qoravo soit pret pour votre atelier.",
+    title: "Bienvenue, votre compte est prêt",
+    text: "Commencez par renseigner votre boutique. Vous pourrez ensuite tester Qoravo avec une première réparation.",
     details: [
-      "Vous allez voir les reparations, la creation manuelle, le QR code, les emails et les fiches client.",
-      "A la fin, vous saurez quoi tester avant de donner le QR code aux clients.",
+      "Ajoutez l'adresse, le téléphone et les horaires depuis Paramètres.",
+      "Votre boutique restera masquée dans la recherche publique tant que vous ne l'activez pas.",
     ],
-    path: "/admin",
-    action: "Voir le tableau de bord",
+    path: "/admin/parametres",
+    action: "Configurer ma boutique",
   },
   {
     title: "Tableau des reparations",

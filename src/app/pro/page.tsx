@@ -19,7 +19,7 @@ import { QoravoLogo } from "@/components/QoravoLogo";
 export const metadata: Metadata = {
   title: "Logiciel de gestion pour atelier de réparation",
   description:
-    "Qoravo est le logiciel tout-en-un des réparateurs (smartphone, PC, console) : QR code de suivi client, devis, statuts, agenda, stock, comptabilité et emails automatiques. Essai gratuit 72h, 89,99 €/an, sans engagement.",
+    "Qoravo est le logiciel tout-en-un des réparateurs (smartphone, PC, console) : QR code de suivi client, devis, statuts, agenda, stock, comptabilité et emails automatiques. Essai gratuit de 14 jours, 89,99 €/an, sans engagement.",
   keywords: [
     "logiciel gestion atelier réparation",
     "logiciel réparateur smartphone",
@@ -89,7 +89,7 @@ const painPoints = [
 ];
 
 const steps = [
-  { n: "1", title: "Créez votre compte", text: "Inscription en quelques minutes. Essai gratuit 72h, sans carte bancaire pour démarrer." },
+  { n: "1", title: "Créez votre compte", text: "Trois informations suffisent. Essai gratuit de 14 jours, sans carte bancaire pour démarrer." },
   { n: "2", title: "Imprimez votre QR code", text: "Affichez-le au comptoir. Vos clients déposent et suivent leurs réparations en autonomie." },
   { n: "3", title: "Gérez tout depuis l'admin", text: "Fiches, devis, agenda, stock, compta, emails : votre atelier tourne au même endroit." },
 ];
@@ -140,7 +140,7 @@ export default function ProLandingPage() {
                 href="/pro/inscription"
                 className="inline-flex items-center gap-2 rounded-lg bg-sky-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-sky-300"
               >
-                Démarrer l&apos;essai gratuit 72h
+                Démarrer l&apos;essai gratuit de 14 jours
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
@@ -276,7 +276,7 @@ export default function ProLandingPage() {
       <section className="px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl rounded-3xl bg-slate-950 px-6 py-12 text-center text-white">
           <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Testez Qoravo gratuitement pendant 72h.
+            Testez Qoravo gratuitement pendant 14 jours.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-200">
             Sans carte bancaire pour démarrer, sans engagement. Vous reprenez où

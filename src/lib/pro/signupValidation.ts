@@ -54,7 +54,9 @@ export function validateProSignupInput(input: unknown):
 
   const data: ProSignupInput = {
     companyName: readText(input, "companyName"),
-    slug: normalizeSlug(readText(input, "slug")),
+    slug:
+      normalizeSlug(readText(input, "slug")) ||
+      normalizeSlug(readText(input, "companyName")),
     ownerEmail: readText(input, "ownerEmail").toLowerCase(),
     password: readText(input, "password"),
     firebaseApiKey: readText(input, "firebaseApiKey") || "managed-by-Qoravo",

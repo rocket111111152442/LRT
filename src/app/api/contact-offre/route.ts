@@ -11,6 +11,7 @@ const OFFRE_LABELS: Record<string, string> = {
   big_workshop_pack:  "Pack Gros Atelier",
   multi_shop_pack:    "Pack Multi-Boutiques",
   enterprise:         "Offre Entreprise / Sur mesure",
+  demo:               "Démonstration Qoravo de 15 minutes",
 };
 
 function read(body: Record<string, unknown>, key: string) {

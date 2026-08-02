@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyEmailCode } from "@/lib/emailVerification";
@@ -16,7 +17,12 @@ import {
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
-const TRIAL_DURATION_MS = 72 * 60 * 60 * 1000;
+const TRIAL_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+
+function createPrivateSignupSlug(baseSlug: string) {
+  const suffix = randomBytes(3).toString("hex");
+  return `${baseSlug.slice(0, 41)}-${suffix}`;
+}
 
 async function deleteUnpaidProAccount(id: string | null | undefined) {
   if (!id) {
@@ -186,9 +192,10 @@ export async function POST(request: Request) {
   try {
     const usesFreeAccessCode = isFreeAccessCode(validation.data.promoCode);
     const usesPremiumDiscountCode = isPremiumDiscountCode(validation.data.promoCode);
+    const accountSlug = createPrivateSignupSlug(validation.data.slug);
     const conflict = await removeOldUnpaidAccounts(
       validation.data.ownerEmail,
-      validation.data.slug,
+      accountSlug,
       startTrial,
     );
 
@@ -216,7 +223,7 @@ export async function POST(request: Request) {
     const passwordHash = await bcrypt.hash(validation.data.password, 12);
     const accountData: PaidProAccountData = {
       companyName: validation.data.companyName,
-      slug: validation.data.slug,
+      slug: accountSlug,
       ownerEmail: validation.data.ownerEmail,
       passwordHash,
       firebaseApiKey: validation.data.firebaseApiKey,
@@ -248,6 +255,7 @@ export async function POST(request: Request) {
       premiumDiscountCode: usesPremiumDiscountCode
         ? PREMIUM_DISCOUNT_CODE
         : null,
+      publicListed: false,
     };
 
     if (usesFreeAccessCode) {

@@ -57,7 +57,7 @@ export function TrialStartedNotice({
             Votre essai Qoravo vient de commencer.
           </h2>
           <p className="text-sm leading-6 text-slate-200">
-            Vous avez 72h pour utiliser le panel admin gratuitement avec le
+            Vous avez 14 jours pour utiliser le panel admin gratuitement avec le
             compte <strong>{companyName}</strong>. Quand l&apos;essai arrive a
             la fin, vous pourrez souscrire a l&apos;abonnement et retrouver vos
             fiches, vos reglages et votre avancee exactement la ou vous vous

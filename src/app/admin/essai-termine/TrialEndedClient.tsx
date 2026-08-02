@@ -60,7 +60,7 @@ export function TrialEndedClient({ slug }: { slug: string | null }) {
             Essai gratuit terminé
           </span>
           <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
-            Vos 72h gratuites sont écoulées.
+            Vos 14 jours gratuits sont écoulés.
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             Votre espace est mis en pause pour le moment. Bonne nouvelle :{" "}

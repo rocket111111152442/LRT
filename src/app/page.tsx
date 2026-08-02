@@ -3,12 +3,9 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
-  Building2,
   Calculator,
   Clock,
   FileText,
-  HardDrive,
-  Leaf,
   Mail,
   MapPinned,
   Package,
@@ -16,16 +13,13 @@ import {
   ShieldCheck,
   Smartphone,
   Sparkles,
-  Star,
-  TrendingUp,
   Wrench,
 } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
-import { PageViews } from "@/components/PageViews";
+import { ProductDemo } from "@/components/ProductDemo";
+import { ConversionLink } from "@/components/ConversionLink";
 import { seoResourceLinks } from "@/lib/seoResources";
 import { PublicReviews } from "./PublicReviews";
-import { TrialCountdown } from "./TrialCountdown";
-import { TrialExpiryFlag } from "./TrialExpiryFlag";
 
 export const metadata: Metadata = {
   title: { absolute: "Qoravo — Logiciel de gestion pour réparateurs" },
@@ -42,10 +36,10 @@ const COUNTER_IMAGE =
   "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1100&q=80";
 
 const stats = [
-  { value: "72h", label: "d'essai gratuit" },
+  { value: "14 jours", label: "d'essai gratuit" },
   { value: "89,99 €", label: "par an, tout compris" },
-  { value: "+60", label: "outils pour l'atelier" },
-  { value: "0", label: "papier à trier" },
+  { value: "Sans carte", label: "pour commencer" },
+  { value: "1 QR", label: "pour le comptoir" },
 ];
 
 const features = [
@@ -105,7 +99,7 @@ const workflow = [
   {
     step: "03",
     title: "Le client est prévenu",
-    text: "Dès que l'appareil est prêt, l'email part tout seul. Vous gagnez du temps et des avis 5 étoiles.",
+    text: "Dès que l'appareil est prêt, l'email part tout seul et le client sait quand revenir.",
   },
 ];
 
@@ -118,66 +112,11 @@ const includedInPlan = [
   "Mises à jour et nouvelles fonctionnalités chaque mois",
 ];
 
-const volumePlans = [
-  {
-    name: "Essentiel",
-    price: "89,99 €/an",
-    highlight: false,
-    storage: "5 Go",
-    repairs: "300 réparations/mois",
-    photos: "~3 photos/réparation",
-    technicians: "1 technicien",
-    clients: "~3 600 fiches clients/an",
-    example: "Idéal pour démarrer : un technicien solo, 10 réparations/jour, tout l'historique conservé.",
-    tone: "border-slate-200 bg-white",
-    badge: null,
-  },
-  {
-    name: "Boutique Active",
-    price: "+49,99 €/an",
-    highlight: false,
-    storage: "50 Go",
-    repairs: "1 000 réparations/mois",
-    photos: "~8 photos/réparation",
-    technicians: "2–3 techniciens",
-    clients: "~12 000 fiches clients/an",
-    example: "Pour une boutique qui tourne à plein régime : 30–40 réparations/jour avec beaucoup de photos.",
-    tone: "border-sky-200 bg-sky-50/40",
-    badge: null,
-  },
-  {
-    name: "Gros Atelier",
-    price: "+149,99 €/an",
-    highlight: true,
-    storage: "100 Go",
-    repairs: "3 000 réparations/mois",
-    photos: "~15 photos/réparation",
-    technicians: "4–6 techniciens",
-    clients: "~36 000 fiches clients/an",
-    example: "Pour les ateliers multi-techniciens avec des appareils complexes et des photos haute résolution.",
-    tone: "border-brand-blue bg-brand-blue-soft/30",
-    badge: "Le plus populaire",
-  },
-  {
-    name: "Multi-Boutiques",
-    price: "+299,99 €/an",
-    highlight: false,
-    storage: "250 Go",
-    repairs: "10 000 réparations/mois",
-    photos: "Illimitées en pratique",
-    technicians: "Plusieurs points de vente",
-    clients: "~120 000 fiches clients/an",
-    example: "Pour les enseignes avec plusieurs magasins : tableau de bord centralisé, statistiques par boutique.",
-    tone: "border-fuchsia-200 bg-fuchsia-50/40",
-    badge: null,
-  },
-];
-
 const faqs = [
   {
     question: "Comment fonctionne l'essai gratuit ?",
     answer:
-      "Vous créez votre compte et profitez de 72h gratuites avec toutes les fonctionnalités. À la fin, vous vous abonnez quand vous voulez et vous reprenez exactement là où vous vous étiez arrêté.",
+      "Vous créez votre compte avec trois informations et profitez de 14 jours gratuits avec toutes les fonctionnalités. Aucune carte bancaire n'est demandée. À la fin, vous reprenez où vous vous étiez arrêté si vous vous abonnez.",
   },
   {
     question: "Le client a-t-il besoin d'un compte ?",
@@ -192,7 +131,7 @@ const faqs = [
   {
     question: "Mon magasin sera-t-il visible par les clients ?",
     answer:
-      "Oui. Vous renseignez adresse, téléphone, email et horaires, et votre boutique apparaît dans la recherche des clients proches de vous.",
+      "Oui, lorsque vous le décidez. Après l'inscription, vous renseignez adresse, téléphone, email et horaires dans les paramètres, puis vous activez la visibilité publique.",
   },
 ];
 
@@ -253,9 +192,6 @@ export default function HomePage() {
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
-      <TrialExpiryFlag />
-      <TrialCountdown />
-
       {/* Barre de navigation */}
       <header className="sticky top-0 z-40 border-b border-white/40 bg-white/55 backdrop-blur-xl [-webkit-backdrop-filter:blur(20px)_saturate(180%)] [backdrop-filter:blur(20px)_saturate(180%)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -270,9 +206,9 @@ export default function HomePage() {
             <a href="#tarif" className="transition hover:text-slate-950">
               Tarif
             </a>
-            <a href="#volume" className="transition hover:text-slate-950">
-              Offres volume
-            </a>
+            <Link href="/demonstration" className="transition hover:text-slate-950">
+              Démonstration
+            </Link>
             <a href="#faq" className="transition hover:text-slate-950">
               FAQ
             </a>
@@ -284,10 +220,9 @@ export default function HomePage() {
             >
               Connexion
             </Link>
-            <Link href="/pro/inscription" className="q-btn q-btn-primary text-sm">
-              <span className="trial-promo">Essai gratuit</span>
-              <span className="trial-over-only">Créer mon compte</span>
-            </Link>
+            <ConversionLink href="/pro/inscription" eventName="signup_cta_clicked" location="header" className="q-btn q-btn-primary text-sm">
+              Essai gratuit
+            </ConversionLink>
           </div>
         </div>
       </header>
@@ -300,35 +235,31 @@ export default function HomePage() {
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="q-animate-up max-w-xl">
-            <span className="trial-promo q-chip border border-white/15 bg-white/10 text-sky-200">
+            <span className="q-chip border border-white/15 bg-white/10 text-sky-200">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              Nouveau · Essai gratuit 72h
+              14 jours gratuits · sans carte bancaire
             </span>
             <h1 className="mt-5 text-4xl font-extrabold leading-[1.07] tracking-tight sm:text-5xl lg:text-6xl">
               Qoravo, le logiciel tout-en-un des{" "}
               <span className="q-gradient-text">réparateurs</span>.
             </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-slate-200 sm:text-lg">
-              QR code client, suivi des réparations, devis, stock, agenda, compta
-              et emails automatiques. Centralisez tout votre atelier et offrez une
-              expérience client impeccable.
+              Centralisez les dossiers, prévenez les clients et retrouvez chaque
+              réparation sans chercher dans des cahiers ou des messages dispersés.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/pro/inscription" className="q-btn q-btn-primary">
-                <span className="trial-promo">Démarrer l&apos;essai gratuit</span>
-                <span className="trial-over-only">Créer mon compte</span>
+              <ConversionLink href="/pro/inscription" eventName="signup_cta_clicked" location="hero" className="q-btn q-btn-primary">
+                Démarrer l&apos;essai gratuit
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link href="#etapes" className="q-btn q-btn-ghost">
-                Voir comment ça marche
-              </Link>
+              </ConversionLink>
+              <ConversionLink href="/demonstration" eventName="demo_opened" location="hero" className="q-btn q-btn-ghost">
+                Explorer la démonstration
+              </ConversionLink>
             </div>
             <p className="mt-4 flex items-center gap-2 text-sm text-slate-300">
               <BadgeCheck className="h-4 w-4 text-emerald-300" aria-hidden="true" />
               Sans engagement · Reprenez où vous vous étiez arrêté après l&apos;essai
             </p>
-            <PageViews className="mt-4 w-fit rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm font-semibold text-emerald-200" />
-
             <dl className="mt-10 grid max-w-lg grid-cols-2 gap-5 sm:grid-cols-4">
               {stats.map((stat) => (
                 <div key={stat.label} className="border-l border-white/20 pl-3">
@@ -347,15 +278,6 @@ export default function HomePage() {
                 alt="Technicien réparant un smartphone dans son atelier"
                 className="h-[26rem] w-full object-cover"
               />
-            </div>
-            <div className="absolute -left-4 bottom-8 hidden rounded-2xl border border-white/15 bg-white/95 p-4 text-slate-900 shadow-xl sm:block">
-              <div className="flex items-center gap-1 text-amber-500">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star key={index} className="h-4 w-4 fill-amber-500" aria-hidden="true" />
-                ))}
-              </div>
-              <p className="mt-1 text-sm font-bold">« Mes clients adorent le suivi »</p>
-              <p className="text-xs text-slate-500">Un atelier qui utilise Qoravo</p>
             </div>
             <div className="absolute -right-3 top-6 hidden rounded-2xl border border-white/15 bg-brand-ink/90 p-4 text-white shadow-xl sm:block">
               <Smartphone className="h-5 w-5 text-sky-300" aria-hidden="true" />
@@ -381,6 +303,32 @@ export default function HomePage() {
           <span className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-brand-blue" aria-hidden="true" /> Données séparées par compte
           </span>
+        </div>
+      </section>
+
+      {/* DÉMONSTRATION PRODUIT */}
+      <section className="border-b border-slate-200 bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-6xl gap-10">
+          <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
+                Une preuve avant une promesse
+              </p>
+              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+                Regardez comment Qoravo s&apos;utilise réellement.
+              </h2>
+              <p className="mt-4 text-base leading-7 text-slate-600">
+                Passez du tableau de bord à une fiche, au stock, à l&apos;agenda et
+                au suivi client. Les exemples sont clairement identifiés comme
+                données de démonstration.
+              </p>
+            </div>
+            <ConversionLink href="/demonstration" eventName="demo_opened" location="product_preview" className="q-btn q-btn-dark w-fit">
+              Ouvrir la démonstration complète
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </ConversionLink>
+          </div>
+          <ProductDemo compact />
         </div>
       </section>
 
@@ -473,7 +421,7 @@ export default function HomePage() {
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
               Un seul abonnement, aucune fonctionnalité bloquée. Commencez par
-              72h d&apos;essai gratuit, puis abonnez-vous quand vous êtes prêt.
+              14 jours d&apos;essai gratuit, puis abonnez-vous quand vous êtes prêt.
             </p>
             <ul className="mt-8 grid gap-3">
               {includedInPlan.map((item) => (
@@ -487,9 +435,9 @@ export default function HomePage() {
 
           <div className="q-glass overflow-hidden">
             <div className="bg-brand-ink p-7 text-white">
-              <span className="trial-promo q-chip border border-white/15 bg-white/10 text-emerald-200">
+              <span className="q-chip border border-white/15 bg-white/10 text-emerald-200">
                 <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                Essai gratuit 72h
+                Essai gratuit de 14 jours
               </span>
               <div className="mt-5 flex items-end gap-2">
                 <span className="text-5xl font-extrabold">89,99 €</span>
@@ -498,12 +446,11 @@ export default function HomePage() {
               <p className="mt-2 text-sm text-slate-300">
                 Espace admin complet · QR code · vitrine publique
               </p>
-              <Link href="/pro/inscription" className="q-btn q-btn-light mt-6 w-full">
-                <span className="trial-promo">Démarrer gratuitement</span>
-                <span className="trial-over-only">Créer mon compte</span>
+              <ConversionLink href="/pro/inscription" eventName="signup_cta_clicked" location="pricing" className="q-btn q-btn-light mt-6 w-full">
+                Démarrer gratuitement
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <p className="trial-promo mt-3 text-center text-xs text-slate-400">
+              </ConversionLink>
+              <p className="mt-3 text-center text-xs text-slate-400">
                 Sans carte requise pour démarrer l&apos;essai
               </p>
             </div>
@@ -515,155 +462,6 @@ export default function HomePage() {
               <span className="text-lg font-extrabold text-brand-blue">+29,99 €/an</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* QUALIREPAR */}
-      <section id="qualirepar" className="bg-emerald-50 px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_1fr]">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">
-              <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              Bonus QualiRépar intégré
-            </span>
-            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
-              Gestion QualiRépar incluse
-            </h2>
-            <p className="mt-4 text-base leading-7 text-slate-700">
-              Qoravo détecte automatiquement les réparations éligibles, déduit le
-              bonus sur la facture, et transmet le dossier à Ecologic ou Ecosystem
-              en quelques secondes.{" "}
-              <strong className="text-emerald-800">
-                Zéro portail à ouvrir, zéro ressaisie.
-              </strong>
-            </p>
-            <ul className="mt-8 grid gap-2.5">
-              {[
-                "Détection d'éligibilité en temps réel",
-                "Bonus déduit automatiquement du devis et de la facture",
-                "Dossier envoyé à l'éco-organisme compétent, sans quitter Qoravo",
-                "Suivi des remboursements dans votre tableau de bord",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
-                  <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="q-glass overflow-hidden bg-white">
-            <div className="flex items-center gap-3 border-b border-emerald-100 bg-emerald-600 p-5 text-white">
-              <Leaf className="h-6 w-6" aria-hidden="true" />
-              <div>
-                <p className="text-sm font-bold">Bonus Réparation par appareil</p>
-                <p className="text-xs text-emerald-100">Financé par l&apos;éco-organisme</p>
-              </div>
-            </div>
-            <ul className="divide-y divide-slate-100">
-              {[
-                { label: "Smartphone", amount: "25 €" },
-                { label: "Tablette", amount: "25 €" },
-                { label: "PC portable", amount: "50 €" },
-                { label: "Téléviseur", amount: "60 €" },
-                { label: "Électroménager", amount: "15 – 50 €" },
-              ].map((row) => (
-                <li key={row.label} className="flex items-center justify-between px-5 py-3">
-                  <span className="text-sm font-semibold text-slate-800">{row.label}</span>
-                  <span className="text-base font-extrabold text-emerald-700">{row.amount}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="px-5 py-3 text-xs text-slate-500">
-              Montants indicatifs. Le bonus exact est calculé automatiquement selon
-              l&apos;appareil, la panne et le barème en vigueur.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* OFFRES VOLUME */}
-      <section id="volume" className="bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
-              Votre boutique grandit ?
-            </p>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
-              Augmentez vos limites quand vous en avez besoin.
-            </h2>
-            <p className="mt-4 text-base leading-7 text-slate-600">
-              L&apos;abonnement de base couvre largement un atelier solo. Quand votre
-              volume augmente, vous ajoutez simplement l&apos;option adaptée — sans
-              perdre une seule donnée, sans recommencer.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {volumePlans.map((plan) => (
-              <article
-                key={plan.name}
-                className={`q-glass relative flex flex-col gap-4 overflow-hidden p-6 transition hover:-translate-y-1 ${plan.highlight ? "ring-2 ring-brand-blue" : ""}`}
-              >
-                {plan.badge ? (
-                  <span className="q-chip absolute right-4 top-4 bg-brand-blue text-white">
-                    {plan.badge}
-                  </span>
-                ) : null}
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                    {plan.name}
-                  </p>
-                  <p className={`mt-1 text-2xl font-extrabold ${plan.highlight ? "text-brand-blue" : "text-slate-950"}`}>
-                    {plan.price}
-                  </p>
-                </div>
-                <ul className="grid gap-2">
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
-                    <HardDrive className="h-4 w-4 shrink-0 text-brand-blue" aria-hidden="true" />
-                    <strong>{plan.storage}</strong> de stockage
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
-                    <Wrench className="h-4 w-4 shrink-0 text-brand-green" aria-hidden="true" />
-                    {plan.repairs}
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
-                    <Smartphone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-                    {plan.photos}
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
-                    <TrendingUp className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-                    {plan.clients}
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
-                    <Building2 className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-                    {plan.technicians}
-                  </li>
-                </ul>
-                <p className="mt-auto text-xs leading-5 text-slate-500 italic">
-                  {plan.example}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-fuchsia-100 bg-gradient-to-r from-fuchsia-50 to-sky-50 p-7 sm:flex-row sm:justify-between">
-            <div>
-              <p className="font-extrabold text-slate-950">Offre Entreprise / Sur mesure</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Volume illimité, stockage personnalisé, accompagnement prioritaire et configuration spéciale.
-              </p>
-            </div>
-            <Link href="/service-client?offre=enterprise" className="q-btn q-btn-dark shrink-0">
-              Demander un devis
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
-
-          <p className="mt-6 text-center text-xs text-slate-400">
-            Toutes les options s&apos;ajoutent à l&apos;abonnement annuel de base (89,99 €/an).
-            Les limites s&apos;appliquent par compte pro. Vos données restent intactes lors d&apos;un changement d&apos;offre.
-          </p>
         </div>
       </section>
 
@@ -720,10 +518,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AVIS */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      {/* AVIS RÉELS UNIQUEMENT */}
+      <section className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <PublicReviews />
+          <PublicReviews displayOnly />
         </div>
       </section>
 
@@ -789,9 +587,7 @@ export default function HomePage() {
             {faqs.map((faq) => (
               <details
                 key={faq.question}
-                className={`group q-glass p-5 transition hover:-translate-y-0.5${
-                  faq.question.toLowerCase().includes("essai gratuit") ? " trial-promo" : ""
-                }`}
+                className="group q-glass p-5 transition hover:-translate-y-0.5"
               >
                 <summary className="cursor-pointer list-none text-base font-bold text-slate-950 marker:hidden">
                   {faq.question}
@@ -812,15 +608,14 @@ export default function HomePage() {
               Prêt à professionnaliser votre atelier ?
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-200">
-              Lancez votre essai gratuit de 72h. Configuration en quelques minutes,
-              aucun engagement.
+              Lancez votre essai gratuit de 14 jours avec seulement trois
+              informations. Aucun engagement, aucune carte bancaire.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link href="/pro/inscription" className="q-btn q-btn-primary">
-                <span className="trial-promo">Démarrer l&apos;essai gratuit</span>
-                <span className="trial-over-only">Créer mon compte</span>
+              <ConversionLink href="/pro/inscription" eventName="signup_cta_clicked" location="final_cta" className="q-btn q-btn-primary">
+                Démarrer l&apos;essai gratuit
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              </ConversionLink>
               <Link href="/pro" className="q-btn q-btn-ghost">
                 Découvrir l&apos;espace pro
               </Link>
