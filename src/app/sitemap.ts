@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getPublicAppUrl } from "@/lib/appUrl";
 import { isProAccountActive } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
+import { seoResourceLinks } from "@/lib/seoResources";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getPublicAppUrl();
@@ -15,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/client/magasins",
     "/service-client",
     "/conditions-utilisation",
+    ...seoResourceLinks.map((resource) => resource.href),
   ];
 
   const staticPages: MetadataRoute.Sitemap = paths.map((path) => ({

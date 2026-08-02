@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { PageViews } from "@/components/PageViews";
+import { seoResourceLinks } from "@/lib/seoResources";
 import { PublicReviews } from "./PublicReviews";
 import { TrialCountdown } from "./TrialCountdown";
 import { TrialExpiryFlag } from "./TrialExpiryFlag";
@@ -723,6 +724,45 @@ export default function HomePage() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <PublicReviews />
+        </div>
+      </section>
+
+      {/* GUIDES SEO */}
+      <section id="guides-reparateurs" className="border-y border-slate-200 bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
+            <p className="text-sm font-bold uppercase tracking-wide text-brand-blue">
+              Guides pratiques
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Mieux organiser un atelier de réparation.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              Des méthodes concrètes pour structurer les dossiers, informer les clients,
+              suivre les pièces et remplacer progressivement les outils dispersés.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {seoResourceLinks.map((resource) => (
+              <Link
+                key={resource.href}
+                href={resource.href}
+                className="group rounded-lg border border-slate-200 bg-slate-50 p-5 transition hover:border-sky-300 hover:bg-sky-50"
+              >
+                <FileText className="h-6 w-6 text-brand-blue" aria-hidden="true" />
+                <h3 className="mt-4 font-bold text-slate-950 group-hover:text-brand-blue">
+                  {resource.label}
+                </h3>
+                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+                  {resource.description}
+                </p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand-blue">
+                  Lire le guide
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
