@@ -901,6 +901,29 @@ function createFirestorePrisma() {
 
         return repairs.map((repair) => applySelect(repair, args.select));
       },
+      async findFirst(args: { where?: Dict; select?: Dict } = {}) {
+        let query: Query = collection("repairs");
+        const where = args.where ?? {};
+
+        if (typeof where.proAccountId === "string") {
+          query = query.where("proAccountId", "==", where.proAccountId);
+        }
+
+        if (typeof where.status === "string") {
+          query = query.where("status", "==", where.status);
+        }
+
+        const snapshot = await query.limit(1).get();
+        const document = snapshot.docs[0];
+        if (!document) {
+          return null;
+        }
+
+        const repair = normalizeDoc(document.id, document.data()) as Dict;
+        return matchesWhereObject(repair, where)
+          ? applySelect(repair, args.select)
+          : null;
+      },
       async findUnique(args: { where: Dict; select?: Dict }) {
         let repair: Dict | null = null;
 
