@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type OfferState = {
-  status: "loading" | "available" | "expired" | "error";
+  status: "loading" | "available" | "expired" | "used" | "error";
   expiresAt: number | null;
 };
 
@@ -33,6 +33,7 @@ export function TrialOfferCountdown() {
         return (await response.json()) as {
           available?: boolean;
           expiresAt?: number;
+          used?: boolean;
         };
       })
       .then((payload) => {
@@ -40,8 +41,9 @@ export function TrialOfferCountdown() {
         const expiresAt = Number(payload.expiresAt);
         setNow(Date.now());
         setOffer({
-          status:
-            payload.available && Number.isFinite(expiresAt)
+          status: payload.used
+            ? "used"
+            : payload.available && Number.isFinite(expiresAt)
               ? "available"
               : "expired",
           expiresAt: Number.isFinite(expiresAt) ? expiresAt : null,
@@ -66,7 +68,7 @@ export function TrialOfferCountdown() {
   const remaining = useMemo(() => formatRemaining(remainingMs), [remainingMs]);
   const expired = offer.status === "expired" || (offer.status === "available" && remainingMs <= 0);
 
-  if (offer.status === "error") return null;
+  if (offer.status === "error" || offer.status === "used") return null;
 
   return (
     <section className="bg-slate-950 px-4 py-3 text-white sm:px-6 lg:px-8">

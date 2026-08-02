@@ -49,7 +49,7 @@ export function ProSignupForm() {
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [trialOfferStatus, setTrialOfferStatus] = useState<
-    "loading" | "available" | "expired"
+    "loading" | "available" | "expired" | "used"
   >("loading");
   const usesFreeAccessCode = isFreeAccessCode(values.promoCode);
   const usesDiscountCode = isPremiumDiscountCode(values.promoCode);
@@ -61,11 +61,13 @@ export function ProSignupForm() {
     fetch("/api/pro/trial-offer", { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error("Trial offer unavailable");
-        return (await response.json()) as { available?: boolean };
+        return (await response.json()) as { available?: boolean; used?: boolean };
       })
       .then((payload) => {
         if (active) {
-          setTrialOfferStatus(payload.available ? "available" : "expired");
+          setTrialOfferStatus(
+            payload.used ? "used" : payload.available ? "available" : "expired",
+          );
         }
       })
       .catch(() => {
@@ -452,6 +454,12 @@ export function ProSignupForm() {
                   heures. Ensuite, vous disposez de 7 jours gratuits complets.
                 </p>
               </>
+            ) : trialOfferStatus === "used" ? (
+              <p className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-center text-sm text-sky-900">
+                Vous avez déjà utilisé l&apos;essai gratuit sur ce navigateur.
+                Vous pouvez vous connecter à votre compte existant ou souscrire
+                directement à l&apos;abonnement.
+              </p>
             ) : (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
                 Le délai de 72 heures est terminé. Comme l&apos;essai n&apos;a

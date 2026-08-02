@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const TRIAL_OFFER_COOKIE = "qoravo_trial_offer";
+export const TRIAL_USED_COOKIE = "qoravo_trial_used";
 export const TRIAL_OFFER_WINDOW_MS = 72 * 60 * 60 * 1000;
 export const TRIAL_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -77,4 +78,35 @@ export function readTrialOfferToken(
     expiresAt,
     available: expiresAt > now,
   };
+}
+
+export function createTrialUsedToken(now = Date.now()) {
+  const payload = `used.${now}`;
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readTrialUsedToken(
+  token: string | null | undefined,
+  now = Date.now(),
+): { usedAt: number } | null {
+  if (!token) {
+    return null;
+  }
+
+  const [state, usedAtText, signature, ...extra] = token.split(".");
+  if (state !== "used" || !usedAtText || !signature || extra.length > 0) {
+    return null;
+  }
+
+  const payload = `${state}.${usedAtText}`;
+  if (!signaturesMatch(signature, sign(payload))) {
+    return null;
+  }
+
+  const usedAt = Number(usedAtText);
+  if (!Number.isSafeInteger(usedAt) || usedAt > now + 60_000) {
+    return null;
+  }
+
+  return { usedAt };
 }

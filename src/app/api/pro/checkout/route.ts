@@ -18,10 +18,15 @@ import {
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import {
+  createTrialUsedToken,
   readTrialOfferToken,
+  readTrialUsedToken,
   TRIAL_DURATION_MS,
   TRIAL_OFFER_COOKIE,
+  TRIAL_USED_COOKIE,
 } from "@/lib/pro/trialOffer";
+
+const TRIAL_USED_COOKIE_MAX_AGE_SECONDS = 365 * 24 * 60 * 60;
 
 function createPrivateSignupSlug(baseSlug: string) {
   const suffix = randomBytes(3).toString("hex");
@@ -272,6 +277,20 @@ export async function POST(request: Request) {
 
     if (startTrial) {
       const cookieStore = await cookies();
+      const trialAlreadyUsed = readTrialUsedToken(
+        cookieStore.get(TRIAL_USED_COOKIE)?.value,
+      );
+
+      if (trialAlreadyUsed) {
+        return NextResponse.json(
+          {
+            error:
+              "L'essai gratuit a deja ete utilise sur ce navigateur. Vous pouvez vous abonner pour creer un nouveau compte.",
+          },
+          { status: 403 },
+        );
+      }
+
       const offer = readTrialOfferToken(
         cookieStore.get(TRIAL_OFFER_COOKIE)?.value,
       );
@@ -289,9 +308,24 @@ export async function POST(request: Request) {
       const trialEndsAt = new Date(Date.now() + TRIAL_DURATION_MS);
       const proAccount = await createTrialProAccount(accountData, trialEndsAt);
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         redirectUrl: `/admin/login?trial=1&compte=${proAccount.slug}`,
       });
+      response.cookies.set(TRIAL_USED_COOKIE, createTrialUsedToken(), {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: TRIAL_USED_COOKIE_MAX_AGE_SECONDS,
+      });
+      response.cookies.set(TRIAL_OFFER_COOKIE, "", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 0,
+      });
+      return response;
     }
 
     const pendingSignup = await createPendingProSignup(accountData);

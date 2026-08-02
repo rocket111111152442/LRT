@@ -31,8 +31,10 @@ import {
 } from "../src/lib/modAuth";
 import { isFreeAccessCode } from "../src/lib/pro/promoCodes";
 import {
+  createTrialUsedToken,
   createTrialOfferToken,
   readTrialOfferToken,
+  readTrialUsedToken,
   TRIAL_OFFER_WINDOW_MS,
 } from "../src/lib/pro/trialOffer";
 import { clientIp } from "../src/lib/rateLimit";
@@ -117,6 +119,21 @@ test("l offre d essai expire apres 72 heures et son jeton ne peut pas etre modif
     false,
   );
   assert.equal(readTrialOfferToken(`${token.slice(0, -1)}x`, startedAt), null);
+});
+
+test("un essai deja lance est marque par un jeton signe non reutilisable", () => {
+  const usedAt = Date.UTC(2026, 7, 2, 11, 0, 0);
+  const token = createTrialUsedToken(usedAt);
+
+  assert.equal(readTrialUsedToken(token, usedAt)?.usedAt, usedAt);
+  assert.equal(readTrialUsedToken(`${token.slice(0, -1)}x`, usedAt), null);
+
+  const checkoutRoute = readFileSync(
+    "src/app/api/pro/checkout/route.ts",
+    "utf8",
+  );
+  assert.match(checkoutRoute, /readTrialUsedToken/);
+  assert.match(checkoutRoute, /L'essai gratuit a deja ete utilise/);
 });
 
 test("l adresse IP de limitation ignore les prefixes falsifies", () => {

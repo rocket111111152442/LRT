@@ -11,6 +11,10 @@ import {
 } from "@/lib/emailVerification";
 import { prisma } from "@/lib/prisma";
 import { clientIp, rateLimit, resetRateLimit } from "@/lib/rateLimit";
+import {
+  createTrialUsedToken,
+  TRIAL_USED_COOKIE,
+} from "@/lib/pro/trialOffer";
 
 const DUMMY_PASSWORD_HASH =
   "$2b$12$r7imavEnwxuYuegUwFtUGuZKk24P/0KRh65pyE/7GjKK/aREYTNcW";
@@ -196,6 +200,15 @@ export async function POST(request: Request) {
       });
       if (markTrusted) {
         setTrustedDeviceCookie(response, user.email, user.passwordHash);
+      }
+      if (proAccount.paymentStatus === "TRIAL") {
+        response.cookies.set(TRIAL_USED_COOKIE, createTrialUsedToken(), {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+          maxAge: 365 * 24 * 60 * 60,
+        });
       }
       return response;
     };
