@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { AdminHeader } from "../../../AdminHeader";
-import { PrintButton } from "@/components/PrintButton";
 import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -202,15 +201,16 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
               >
                 Retour a la fiche
               </Link>
-              <PrintButton
-                label="Télécharger en PDF"
-                documentTitle={`Facture ${repair.ticketNumber ?? repair.id}`}
-              />
+              <a
+                href={`/api/admin/repairs/${repair.id}/invoice`}
+                download
+                className="rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Télécharger le PDF
+              </a>
             </div>
             <p className="text-xs text-slate-500">
-              Dans la fenêtre qui s&apos;ouvre, choisissez « Enregistrer au format PDF »
-              (ou « PDF » / « Destination : Enregistrer en PDF ») pour sauvegarder la
-              facture sur votre ordinateur.
+              Le fichier PDF sera enregistré directement dans vos téléchargements.
             </p>
           </div>
 

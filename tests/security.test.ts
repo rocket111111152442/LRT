@@ -291,3 +291,15 @@ test("les anciens horaires restent compatibles", () => {
     { opensAt: "08:30", closesAt: "17:30" },
   ]);
 });
+
+test("le telechargement des factures PDF reste protege par atelier", () => {
+  const source = readFileSync(
+    "src/app/api/admin/repairs/[id]/invoice/route.ts",
+    "utf8",
+  );
+
+  assert.match(source, /requireAdminApi\(\)/);
+  assert.match(source, /repair\.proAccountId !== admin\.user\.proAccountId/);
+  assert.match(source, /Content-Disposition/);
+  assert.match(source, /attachment; filename=/);
+});
