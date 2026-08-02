@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { escapeCsvCell } from "../src/lib/csvSecurity";
 import { validateControlSignal } from "../src/lib/controlSignalValidation";
@@ -38,6 +39,18 @@ import { validateRepairInput } from "../src/lib/repairValidation";
 
 process.env.AUTH_SECRET =
   "security-tests-only-secret-0123456789abcdef0123456789abcdef";
+
+test("les emails de reparation ne retombent jamais sur le SMTP Qoravo", () => {
+  const source = readFileSync(new URL("../src/lib/mail.ts", import.meta.url), "utf8");
+  const start = source.indexOf("async function getShopSmtpConfig");
+  const end = source.indexOf("function formatPrice", start);
+  const shopConfigSource = source.slice(start, end);
+
+  assert.ok(start >= 0 && end > start);
+  assert.doesNotMatch(shopConfigSource, /getEnvSmtpConfig/);
+  assert.match(shopConfigSource, /return null;/);
+  assert.doesNotMatch(shopConfigSource, /process\.env\.SMTP_/);
+});
 
 test("les secrets sont chiffres et authentifies", () => {
   const encrypted = encryptSecret("mot-de-passe-application");

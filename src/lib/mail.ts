@@ -405,13 +405,12 @@ export async function sendSetupAppointmentEmail(input: {
   });
 }
 
-async function getSmtpConfig(
+async function getShopSmtpConfig(
   proAccountId?: string | null,
 ): Promise<SmtpConfig | null> {
-  // Réglages e-mail cloisonnés par atelier : on ne lit QUE l'enregistrement de
-  // l'atelier concerné. Si l'atelier n'a rien configuré, on retombe sur le
-  // compte de service neutre (variables d'environnement), jamais sur les
-  // réglages d'un autre atelier.
+  // Les messages de réparation doivent toujours partir du compte du magasin.
+  // Le SMTP Qoravo défini dans l'environnement est réservé aux codes de
+  // validation des comptes administrateurs et ne sert jamais de secours ici.
   const settingsId = proAccountId && proAccountId.trim() ? proAccountId.trim() : null;
 
   if (settingsId) {
@@ -426,60 +425,60 @@ async function getSmtpConfig(
         settings.smtpHost &&
         settings.smtpPort
       ) {
-      const password = decryptSecret(settings.smtpAppPassword);
-      const endpoint = await resolvePublicSmtpHost(
-        settings.smtpHost,
-        settings.smtpPort,
-      );
+        const password = decryptSecret(settings.smtpAppPassword);
+        const endpoint = await resolvePublicSmtpHost(
+          settings.smtpHost,
+          settings.smtpPort,
+        );
 
-      if (!password || !endpoint) {
-        return getEnvSmtpConfig();
+        if (!password || !endpoint) {
+          return null;
+        }
+
+        if (!isEncryptedSecret(settings.smtpAppPassword)) {
+          await prisma.emailSettings
+            .update({
+              where: { id: settingsId },
+              data: {
+                smtpAppPassword: encryptSecret(settings.smtpAppPassword),
+              },
+            })
+            .catch(() => null);
+        }
+
+        const shopLines = [
+          settings.shopName,
+          settings.shopAddress,
+          settings.shopOpeningHours,
+          settings.shopPhone,
+        ].filter(Boolean) as string[];
+
+        return {
+          host: endpoint.address,
+          servername: endpoint.servername,
+          port: settings.smtpPort,
+          secure: settings.smtpSecure,
+          auth: {
+            user: settings.smtpEmail,
+            pass: password,
+          },
+          from: settings.smtpFromName
+            ? `${settings.smtpFromName} <${settings.smtpEmail}>`
+            : settings.smtpEmail,
+          shopLines,
+          googleReviewUrl: settings.googleReviewUrl ?? null,
+          createdEmailTemplate: settings.createdEmailTemplate,
+          statusEmailTemplate: settings.statusEmailTemplate,
+          quoteEmailTemplate: settings.quoteEmailTemplate,
+          reviewEmailTemplate: settings.reviewEmailTemplate,
+        };
       }
-
-      if (!isEncryptedSecret(settings.smtpAppPassword)) {
-        await prisma.emailSettings
-          .update({
-            where: { id: settingsId },
-            data: {
-              smtpAppPassword: encryptSecret(settings.smtpAppPassword),
-            },
-          })
-          .catch(() => null);
-      }
-
-      const shopLines = [
-        settings.shopName || process.env.SHOP_NAME,
-        settings.shopAddress || process.env.SHOP_ADDRESS,
-        settings.shopOpeningHours || process.env.SHOP_OPENING_HOURS,
-        settings.shopPhone || process.env.SHOP_PHONE,
-      ].filter(Boolean) as string[];
-
-      return {
-        host: endpoint.address,
-        servername: endpoint.servername,
-        port: settings.smtpPort,
-        secure: settings.smtpSecure,
-        auth: {
-          user: settings.smtpEmail,
-          pass: password,
-        },
-        from: settings.smtpFromName
-          ? `${settings.smtpFromName} <${settings.smtpEmail}>`
-          : settings.smtpEmail,
-        shopLines,
-        googleReviewUrl: settings.googleReviewUrl ?? process.env.GOOGLE_REVIEW_URL ?? null,
-        createdEmailTemplate: settings.createdEmailTemplate,
-        statusEmailTemplate: settings.statusEmailTemplate,
-        quoteEmailTemplate: settings.quoteEmailTemplate,
-        reviewEmailTemplate: settings.reviewEmailTemplate,
-      };
-    }
     } catch (error) {
       console.error("Email settings lookup failed", error);
     }
   }
 
-  return getEnvSmtpConfig();
+  return null;
 }
 
 function formatPrice(cents: number) {
@@ -521,7 +520,7 @@ async function sendWithRepairSmtp(input: {
   html?: string;
   proAccountId?: string | null;
 }): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(input.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(input.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };
@@ -554,7 +553,7 @@ async function sendWithRepairSmtp(input: {
 export async function sendQuoteEmail(
   repair: QuoteEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
   const quoteUrl = `${getPublicAppUrl()}/devis/${repair.quoteToken}`;
   const acceptUrl = `${quoteUrl}?decision=ACCEPTED`;
   const refuseUrl = `${quoteUrl}?decision=REFUSED`;
@@ -605,7 +604,7 @@ export async function sendQuoteEmail(
   return sendWithRepairSmtp({
     to: repair.email,
     proAccountId: repair.proAccountId,
-    subject: `Votre devis Qoravo ${repair.ticketNumber ?? ""}`.trim(),
+    subject: `Votre devis ${repair.ticketNumber ?? ""}`.trim(),
     text,
     html,
   });
@@ -615,7 +614,7 @@ export async function sendRepairCreatedEmail(
   repair: CreatedRepairEmailInput,
   options: { alreadyDeposited?: boolean } = {},
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
   const ticket = repair.ticketNumber ?? "non attribue";
   const accessToken = createRepairAccessToken(repair);
   const trackingUrl = `${getPublicAppUrl()}/suivi?${new URLSearchParams({
@@ -666,7 +665,7 @@ export async function sendRepairCreatedEmail(
   return sendWithRepairSmtp({
     to: repair.email,
     proAccountId: repair.proAccountId,
-    subject: `Votre ticket Qoravo ${ticket}`.trim(),
+    subject: `Votre ticket ${ticket}`.trim(),
     text,
     html,
   });
@@ -715,7 +714,7 @@ export async function sendShopRepairRequestEmail(
 export async function sendReviewRequestEmail(
   repair: ReviewEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
   const reviewUrl = repair.reviewToken
     ? `${getPublicAppUrl()}/avis/${repair.reviewToken}`
     : smtpConfig?.googleReviewUrl;
@@ -791,7 +790,7 @@ export async function sendReadyReminderEmail(
 export async function sendReadyRepairEmail(
   repair: ReadyRepairEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };
@@ -911,7 +910,7 @@ function buildRepairStatusEmail(repair: RepairStatusEmailInput) {
 export async function sendRepairStatusEmail(
   repair: RepairStatusEmailInput,
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };
@@ -964,7 +963,7 @@ export async function sendRepairDelayEmail(
     expectedPickupAt: Date | string;
   },
 ): Promise<SendMailResult> {
-  const smtpConfig = await getSmtpConfig(repair.proAccountId);
+  const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
     return { sent: false, skipped: true };

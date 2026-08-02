@@ -178,6 +178,14 @@ export function EmailSettingsForm() {
         <legend className="mb-2 text-base font-semibold text-slate-950">
           Envoi email
         </legend>
+        <div className="rounded-md border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
+          <p className="font-semibold">Les emails clients partent de l&apos;adresse du magasin.</p>
+          <p>
+            Cette configuration est utilisée pour les tickets, devis, changements de
+            statut, retards, rappels et demandes d&apos;avis. Si elle est absente ou
+            incorrecte, aucun de ces messages ne sera envoyé depuis la boîte Qoravo.
+          </p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField
             id="smtp-email"
