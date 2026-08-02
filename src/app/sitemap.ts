@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublicAppUrl } from "@/lib/appUrl";
-import { isProAccountActive } from "@/lib/accountStatus";
+import { canPublishShop } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
 import { seoResourceLinks } from "@/lib/seoResources";
 
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     });
     const shopPages: MetadataRoute.Sitemap = accounts
-      .filter((account) => account.publicListed !== false && isProAccountActive(account))
+      .filter((account) => account.publicListed !== false && canPublishShop(account))
       .map((account) => ({
         url: `${base}/atelier/${account.slug}`,
         lastModified: account.updatedAt,

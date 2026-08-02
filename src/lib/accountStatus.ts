@@ -1,8 +1,8 @@
-// Un compte pro est "actif" (accès complet, pages publiques visibles, réception
-// de réparations...) s'il est PAYÉ ou en essai gratuit non expiré.
+// Un compte pro est "actif" (accès admin et réception de réparations) s'il est
+// PAYÉ ou en essai gratuit non expiré.
 //
-// Pendant les 7 jours d'essai, tout doit fonctionner exactement comme un compte
-// payé. Le blocage n'intervient qu'à l'expiration de l'essai.
+// Le référencement public est volontairement traité séparément par
+// canPublishShop : il reste réservé aux comptes payants.
 export function isProAccountActive(
   account:
     | { paymentStatus?: string | null; trialEndsAt?: Date | string | null }
@@ -23,4 +23,13 @@ export function isProAccountActive(
   }
 
   return false;
+}
+
+export function canPublishShop(
+  account:
+    | { paymentStatus?: string | null }
+    | null
+    | undefined,
+): boolean {
+  return account?.paymentStatus === "PAID";
 }

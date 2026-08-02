@@ -11,6 +11,7 @@ type PaymentPageProps = {
     compte?: string;
     inscription?: string;
     inscriptionToken?: string;
+    raison?: string;
   }>;
 };
 
@@ -74,20 +75,21 @@ function getSignupTokenSummary(token?: string): PendingSignupSummary {
 }
 
 export default async function PaymentPage({ searchParams }: PaymentPageProps) {
-  const { compte, inscription, inscriptionToken } = await searchParams;
+  const { compte, inscription, inscriptionToken, raison } = await searchParams;
   const pendingSignup =
     getSignupTokenSummary(inscriptionToken) ??
     (await getPendingSignupSummary(inscription));
   const accountName = pendingSignup?.slug ?? compte ?? "";
+  const isShopListingUpgrade = raison === "boutique" && Boolean(compte);
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-2xl gap-6">
         <Link
-          href="/pro/inscription"
+          href={isShopListingUpgrade ? "/admin/parametres" : "/pro/inscription"}
           className="text-sm font-semibold text-slate-700 underline-offset-4 hover:underline"
         >
-          Retour a l inscription
+          {isShopListingUpgrade ? "Retour aux paramètres" : "Retour a l inscription"}
         </Link>
         <section className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <header className="grid gap-2">
@@ -96,15 +98,44 @@ export default async function PaymentPage({ searchParams }: PaymentPageProps) {
               Activation premium
             </p>
             <h1 className="text-3xl font-semibold text-slate-950">
-              Votre compte est pret, il reste l activation.
+              {isShopListingUpgrade
+                ? "Rendez votre boutique visible aux clients."
+                : "Votre compte est pret, il reste l activation."}
             </h1>
             <p className="text-sm leading-6 text-slate-700">
-              L&apos;abonnement annuel de 89,99 EUR sert a activer le compte pro et
-              a eviter la creation massive de comptes inutiles. A ce stade,
-              aucun compte admin n est encore cree. Il sera cree automatiquement
-              apres le paiement reussi.
+              {isShopListingUpgrade ? (
+                <>
+                  Votre essai et toutes vos données restent disponibles.
+                  L&apos;abonnement annuel de 89,99 EUR débloque le référencement
+                  public de votre atelier et conserve votre accès à Qoravo.
+                </>
+              ) : (
+                <>
+                  L&apos;abonnement annuel de 89,99 EUR sert a activer le compte pro et
+                  a eviter la creation massive de comptes inutiles. A ce stade,
+                  aucun compte admin n est encore cree. Il sera cree automatiquement
+                  apres le paiement reussi.
+                </>
+              )}
             </p>
           </header>
+
+          {isShopListingUpgrade ? (
+            <section className="grid gap-2 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sky-950">
+              <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
+                Visibilité de votre boutique
+              </p>
+              <h2 className="text-xl font-semibold">
+                Passez à l&apos;abonnement pour afficher votre boutique aux clients.
+              </h2>
+              <p className="text-sm leading-6 text-sky-900">
+                L&apos;abonnement permet de publier votre atelier dans la recherche
+                Qoravo afin que les clients puissent le trouver, consulter ses
+                informations et envoyer une demande. Vos paramètres actuels sont
+                conservés et vous pourrez activer l&apos;affichage après le paiement.
+              </p>
+            </section>
+          ) : null}
 
           <ul className="grid gap-3">
             {reasons.map((reason) => (

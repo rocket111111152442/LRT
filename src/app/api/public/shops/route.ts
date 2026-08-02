@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isProAccountActive } from "@/lib/accountStatus";
+import { canPublishShop } from "@/lib/accountStatus";
 import { getAvailableSlots } from "@/lib/shopAvailability";
 import { isShopOpenAt } from "@/lib/shopHours";
 
@@ -9,7 +9,8 @@ function readNumber(value: unknown, fallback = 0) {
 }
 
 export async function GET() {
-  // On récupère tous les comptes puis on filtre en JS (PAYÉS + essais actifs).
+  // On récupère tous les comptes puis on filtre en JS. Le référencement public
+  // est un avantage de l'abonnement et reste désactivé pendant l'essai gratuit.
   // Le filtrage en JS reste compatible avec la couche Firebase (pas de OR natif).
   const allAccounts = await prisma.proAccount.findMany({
     orderBy: { companyName: "asc" },
@@ -38,8 +39,7 @@ export async function GET() {
     },
   });
   const accounts = allAccounts.filter(
-    // Boutique active ET non masquée (publicListed absent = visible par défaut).
-    (account) => isProAccountActive(account) && account.publicListed !== false,
+    (account) => canPublishShop(account) && account.publicListed !== false,
   );
 
   const shops = await Promise.all(

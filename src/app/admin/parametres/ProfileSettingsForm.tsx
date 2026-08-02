@@ -65,7 +65,11 @@ function valuesFromProfile(profile: Profile): FormValues {
   };
 }
 
-export function ProfileSettingsForm() {
+export function ProfileSettingsForm({
+  paymentStatus,
+}: {
+  paymentStatus?: string | null;
+}) {
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [publicSlug, setPublicSlug] = useState("");
   const [publicListed, setPublicListed] = useState(true);
@@ -73,6 +77,8 @@ export function ProfileSettingsForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const canPublish = paymentStatus === "PAID";
+  const isPubliclyVisible = canPublish && publicListed;
 
   useEffect(() => {
     let ignore = false;
@@ -151,7 +157,10 @@ export function ProfileSettingsForm() {
       const response = await fetch("/api/admin/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, publicListed }),
+        body: JSON.stringify({
+          ...values,
+          publicListed: canPublish ? publicListed : false,
+        }),
       });
       const payload = await response.json();
 
@@ -190,7 +199,7 @@ export function ProfileSettingsForm() {
       ) : null}
 
       <section className={`grid gap-2 rounded-xl border p-4 transition ${
-        publicListed ? "border-emerald-200 bg-emerald-50/60" : "border-amber-200 bg-amber-50/60"
+        isPubliclyVisible ? "border-emerald-200 bg-emerald-50/60" : "border-amber-200 bg-amber-50/60"
       }`}>
         <div className="flex items-start justify-between gap-4">
           <div className="grid gap-1">
@@ -198,27 +207,50 @@ export function ProfileSettingsForm() {
               Afficher ma boutique aux clients
             </h2>
             <p className="text-sm leading-6 text-slate-600">
-              {publicListed
+              {isPubliclyVisible
                 ? "Votre boutique apparaît dans la recherche publique des réparateurs."
-                : "Votre boutique est masquée : elle n'apparaît plus dans la recherche publique. Votre lien direct reste fonctionnel."}
+                : canPublish
+                  ? "Votre boutique est masquée : elle n'apparaît plus dans la recherche publique. Votre lien direct reste fonctionnel."
+                  : "Le référencement public de votre boutique est réservé aux abonnés Qoravo."}
             </p>
           </div>
           <button
             type="button"
             role="switch"
-            aria-checked={publicListed}
-            onClick={() => { setPublicListed((v) => !v); setMessage(""); setError(""); }}
+            aria-checked={isPubliclyVisible}
+            aria-label={
+              canPublish
+                ? "Afficher ou masquer ma boutique"
+                : "S'abonner pour afficher ma boutique"
+            }
+            onClick={() => {
+              if (!canPublish) {
+                window.location.href = `/pro/paiement?${new URLSearchParams({
+                  compte: publicSlug,
+                  raison: "boutique",
+                }).toString()}`;
+                return;
+              }
+
+              setPublicListed((value) => !value);
+              setMessage("");
+              setError("");
+            }}
             className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${
-              publicListed ? "bg-emerald-500" : "bg-slate-300"
+              isPubliclyVisible ? "bg-emerald-500" : "bg-slate-300"
             }`}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-              publicListed ? "translate-x-6" : "translate-x-1"
+              isPubliclyVisible ? "translate-x-6" : "translate-x-1"
             }`} />
           </button>
         </div>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          {publicListed ? "Visible" : "Masquée"}
+          {isPubliclyVisible
+            ? "Visible"
+            : canPublish
+              ? "Masquée"
+              : "Abonnement requis - cliquez pour vous abonner"}
         </p>
       </section>
 

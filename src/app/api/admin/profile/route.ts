@@ -104,6 +104,29 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Requete invalide." }, { status: 400 });
   }
 
+  const account = await prisma.proAccount.findUnique({
+    where: { id: admin.user.proAccountId },
+    select: { paymentStatus: true },
+  });
+
+  if (!account) {
+    return NextResponse.json({ error: "Compte pro introuvable." }, { status: 404 });
+  }
+
+  if (body.publicListed === true && account.paymentStatus !== "PAID") {
+    return NextResponse.json(
+      {
+        error:
+          "Un abonnement Qoravo est requis pour afficher votre boutique aux clients.",
+        upgradeUrl: `/pro/paiement?${new URLSearchParams({
+          compte: admin.user.proAccountSlug ?? "",
+          raison: "boutique",
+        }).toString()}`,
+      },
+      { status: 403 },
+    );
+  }
+
   const shopCapacityPerDay = readOptionalNumber(body, "shopCapacityPerDay");
   const shopSlotDurationMinutes = readOptionalNumber(
     body,
@@ -166,7 +189,8 @@ export async function PATCH(request: Request) {
     shopSlotDurationMinutes: shopSlotDurationMinutes ?? 60,
     shopMaxAppointmentsPerSlot: shopMaxAppointmentsPerSlot ?? 1,
     // Visibilité publique : true par défaut, false seulement si explicitement désactivé.
-    publicListed: body.publicListed !== false,
+    publicListed:
+      account.paymentStatus === "PAID" && body.publicListed !== false,
   };
 
   if (!data.companyName) {

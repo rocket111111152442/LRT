@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { canPublishShop } from "../src/lib/accountStatus";
 import { escapeCsvCell } from "../src/lib/csvSecurity";
 import { validateControlSignal } from "../src/lib/controlSignalValidation";
 import {
@@ -302,4 +303,17 @@ test("le telechargement des factures PDF reste protege par atelier", () => {
   assert.match(source, /repair\.proAccountId !== admin\.user\.proAccountId/);
   assert.match(source, /Content-Disposition/);
   assert.match(source, /attachment; filename=/);
+});
+
+test("le referencement public des boutiques est reserve aux comptes payants", () => {
+  assert.equal(canPublishShop({ paymentStatus: "PAID" }), true);
+  assert.equal(canPublishShop({ paymentStatus: "TRIAL" }), false);
+  assert.equal(canPublishShop({ paymentStatus: "PENDING" }), false);
+
+  const profileRoute = readFileSync(
+    "src/app/api/admin/profile/route.ts",
+    "utf8",
+  );
+  assert.match(profileRoute, /body\.publicListed === true/);
+  assert.match(profileRoute, /account\.paymentStatus !== "PAID"/);
 });

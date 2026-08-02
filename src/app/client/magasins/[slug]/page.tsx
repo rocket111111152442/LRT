@@ -4,7 +4,7 @@ import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { getAvailableSlots } from "@/lib/shopAvailability";
 import { formatOpeningHours, isShopOpenAt, todayOpeningLabel } from "@/lib/shopHours";
-import { isProAccountActive } from "@/lib/accountStatus";
+import { canPublishShop } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
 
 type ShopPageProps = {
@@ -58,10 +58,11 @@ export default async function ClientShopDetailPage({ params }: ShopPageProps) {
       shopMaxAppointmentsPerSlot: true,
       paymentStatus: true,
       trialEndsAt: true,
+      publicListed: true,
     },
   });
 
-  if (!shop || !isProAccountActive(shop)) {
+  if (!shop || !canPublishShop(shop) || shop.publicListed === false) {
     notFound();
   }
 

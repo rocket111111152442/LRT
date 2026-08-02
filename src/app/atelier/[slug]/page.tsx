@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QoravoLogo } from "@/components/QoravoLogo";
-import { isProAccountActive } from "@/lib/accountStatus";
+import { canPublishShop } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
 
 type AtelierPageProps = {
@@ -34,7 +34,7 @@ async function getAtelier(slug: string) {
 export async function generateMetadata({ params }: AtelierPageProps): Promise<Metadata> {
   const { slug } = await params;
   const account = await getAtelier(slug);
-  if (!account || !isProAccountActive(account) || account.publicListed === false) {
+  if (!account || !canPublishShop(account) || account.publicListed === false) {
     return { title: "Atelier introuvable", robots: { index: false, follow: false } };
   }
   const location = [account.shopCity, account.shopCountry].filter(Boolean).join(", ");
@@ -51,7 +51,7 @@ export default async function AtelierPage({ params }: AtelierPageProps) {
   const { slug } = await params;
   const account = await getAtelier(slug);
 
-  if (!account || !isProAccountActive(account) || account.publicListed === false) {
+  if (!account || !canPublishShop(account) || account.publicListed === false) {
     notFound();
   }
 

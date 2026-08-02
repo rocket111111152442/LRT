@@ -34,7 +34,7 @@ export default async function AdminSettingsPage() {
               publique et dans les informations client.
             </p>
           </header>
-          <ProfileSettingsForm />
+          <ProfileSettingsForm paymentStatus={admin.paymentStatus} />
           <DataStorageSettings />
           <QualireparSettings />
         </div>
