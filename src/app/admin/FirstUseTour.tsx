@@ -219,14 +219,14 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[120] overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm sm:p-6">
+    <div className="fixed inset-0 z-[120] bg-white">
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="first-use-tour-title"
-        className="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-700 bg-white shadow-2xl"
+        className="flex h-dvh w-full flex-col overflow-hidden bg-white"
       >
-        <header className="flex items-start gap-4 bg-slate-950 px-5 py-5 text-white sm:px-6">
+        <header className="flex shrink-0 items-start gap-4 bg-slate-950 px-5 py-5 text-white sm:px-8 lg:px-12">
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-400 text-slate-950">
             <Rocket aria-hidden="true" className="size-5" />
           </span>
@@ -249,8 +249,8 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
           </button>
         </header>
 
-        <div className="grid md:grid-cols-[220px_minmax(0,1fr)]">
-          <aside className="border-b border-slate-200 bg-slate-50 p-4 md:border-b-0 md:border-r md:p-5">
+        <div className="grid min-h-0 flex-1 overflow-y-auto md:grid-cols-[260px_minmax(0,1fr)] md:overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
+          <aside className="border-b border-slate-200 bg-slate-50 p-4 md:overflow-y-auto md:border-b-0 md:border-r md:p-6 lg:p-8">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Progression
             </p>
@@ -285,18 +285,18 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
             </ol>
           </aside>
 
-          <div className="grid content-start gap-5 p-5 sm:p-6">
+          <div className="grid content-start gap-6 p-5 sm:p-8 md:overflow-y-auto lg:p-12">
             <div>
               <p className="text-sm font-semibold text-sky-700">
                 Étape {stepIndex + 1} sur {steps.length}
               </p>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700">{step.text}</p>
+              <p className="mt-3 max-w-3xl text-base leading-7 text-slate-700">{step.text}</p>
             </div>
 
             <ul className="grid gap-3">
               {step.details.map((detail) => (
-                <li key={detail} className="flex items-start gap-3 text-sm leading-6 text-slate-700">
-                  <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                <li key={detail} className="flex items-start gap-3 text-base leading-7 text-slate-700">
+                  <CheckCircle2 aria-hidden="true" className="mt-1 size-5 shrink-0 text-emerald-600" />
                   <span>{detail}</span>
                 </li>
               ))}
@@ -322,7 +322,7 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
           </div>
         </div>
 
-        <footer className="flex flex-col gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <footer className="flex shrink-0 flex-col gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 sm:max-w-64">
             <div
               className="h-full rounded-full bg-sky-600 transition-all"

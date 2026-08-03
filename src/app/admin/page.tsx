@@ -7,48 +7,11 @@ import { AdminStatsClient } from "./AdminStatsClient";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { requireAdminPage } from "@/lib/auth";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { AdminSetupChecklist } from "./AdminSetupChecklist";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const admin = await requireAdminPage();
-  const account = admin.proAccountId
-    ? await prisma.proAccount.findUnique({
-        where: { id: admin.proAccountId },
-        select: {
-          shopAddress: true,
-          shopCity: true,
-          shopCountry: true,
-          shopPhone: true,
-          shopOpeningHours: true,
-        },
-      })
-    : null;
-  const firstRepair = admin.proAccountId
-    ? await prisma.repair.findFirst({
-        where: { proAccountId: admin.proAccountId },
-        select: { id: true },
-      })
-    : null;
-  const emailSettings = admin.proAccountId
-    ? await prisma.emailSettings.findUnique({
-        where: { id: admin.proAccountId },
-        select: { smtpEmail: true, smtpAppPassword: true },
-      })
-    : null;
-  const profileComplete = Boolean(
-    account?.shopAddress &&
-      account.shopCity &&
-      account.shopCountry &&
-      account.shopPhone &&
-      account.shopOpeningHours,
-  );
-  const emailConfigured = Boolean(
-    emailSettings?.smtpEmail && emailSettings.smtpAppPassword,
-  );
-  const hasRepair = Boolean(firstRepair);
 
   return (
     <>
@@ -79,11 +42,6 @@ export default async function AdminPage() {
               </Link>
             </div>
           </header>
-          <AdminSetupChecklist
-            profileComplete={profileComplete}
-            emailConfigured={emailConfigured}
-            hasRepair={hasRepair}
-          />
           <ClientErrorBoundary
             name="Admin stats"
             fallback={

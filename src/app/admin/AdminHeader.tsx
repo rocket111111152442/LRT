@@ -237,10 +237,10 @@ export function AdminHeader({
           </div>
         </nav>
         </div>
-        <ClientErrorBoundary name="First use tour" fallback={null}>
-          <FirstUseTour accountKey={proAccountSlug ?? email} />
-        </ClientErrorBoundary>
       </header>
+      <ClientErrorBoundary name="First use tour" fallback={null}>
+        <FirstUseTour accountKey={proAccountSlug ?? email} />
+      </ClientErrorBoundary>
     </>
   );
 }
