@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   BookOpen,
@@ -11,6 +12,7 @@ import {
   LifeBuoy,
   LogOut,
   Mail,
+  Menu,
   Package,
   PlusCircle,
   QrCode,
@@ -19,6 +21,7 @@ import {
   ShoppingCart,
   UsersRound,
   Wrench,
+  X,
 } from "lucide-react";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
@@ -39,35 +42,100 @@ const navGroups = [
   {
     label: "Travail",
     items: [
-      { href: "/admin", label: "Reparations", icon: Wrench, tone: "text-sky-600" },
-      { href: "/admin/repairs/new", label: "Nouvelle", icon: PlusCircle, tone: "text-emerald-600" },
-      { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, tone: "text-amber-600" },
-      { href: "/admin/compta", label: "Compta", icon: Calculator, tone: "text-violet-600" },
-      { href: "/admin/ventes", label: "Ventes", icon: ShoppingCart, tone: "text-emerald-600" },
-      { href: "/admin/stock", label: "Stock", icon: Package, tone: "text-lime-600" },
-      { href: "/admin/clients", label: "Clients", icon: UsersRound, tone: "text-rose-600" },
+      {
+        href: "/admin",
+        label: "Reparations",
+        icon: Wrench,
+        tone: "text-sky-600",
+      },
+      {
+        href: "/admin/repairs/new",
+        label: "Nouvelle",
+        icon: PlusCircle,
+        tone: "text-emerald-600",
+      },
+      {
+        href: "/admin/agenda",
+        label: "Agenda",
+        icon: CalendarDays,
+        tone: "text-amber-600",
+      },
+      {
+        href: "/admin/compta",
+        label: "Compta",
+        icon: Calculator,
+        tone: "text-violet-600",
+      },
+      {
+        href: "/admin/ventes",
+        label: "Ventes",
+        icon: ShoppingCart,
+        tone: "text-emerald-600",
+      },
+      {
+        href: "/admin/stock",
+        label: "Stock",
+        icon: Package,
+        tone: "text-lime-600",
+      },
+      {
+        href: "/admin/clients",
+        label: "Clients",
+        icon: UsersRound,
+        tone: "text-rose-600",
+      },
     ],
   },
   {
     label: "Configuration",
     items: [
-      { href: "/admin/qr-code", label: "QR code", icon: QrCode, tone: "text-cyan-600" },
-      { href: "/admin/email", label: "Email", icon: Mail, tone: "text-blue-600" },
-      { href: "/admin/parametres", label: "Parametres", icon: Settings, tone: "text-slate-700" },
-      { href: "/admin/offres", label: "Offres", icon: Rocket, tone: "text-fuchsia-600" },
-      { href: "/admin/offre-entreprise", label: "Offre entreprise", icon: Building2, tone: "text-fuchsia-700" },
+      {
+        href: "/admin/qr-code",
+        label: "QR code",
+        icon: QrCode,
+        tone: "text-cyan-600",
+      },
+      {
+        href: "/admin/email",
+        label: "Email",
+        icon: Mail,
+        tone: "text-blue-600",
+      },
+      {
+        href: "/admin/parametres",
+        label: "Parametres",
+        icon: Settings,
+        tone: "text-slate-700",
+      },
+      {
+        href: "/admin/offres",
+        label: "Offres",
+        icon: Rocket,
+        tone: "text-fuchsia-600",
+      },
+      {
+        href: "/admin/offre-entreprise",
+        label: "Offre entreprise",
+        icon: Building2,
+        tone: "text-fuchsia-700",
+      },
     ],
   },
   {
     label: "Aide",
     items: [
-      { href: "/admin/guide", label: "Guide d'utilisation", icon: BookOpen, tone: "text-violet-600" },
+      {
+        href: "/admin/guide",
+        label: "Guide d'utilisation",
+        icon: BookOpen,
+        tone: "text-violet-600",
+      },
     ],
   },
 ];
 
 const navLinkClassName =
-  "inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-900";
+  "flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition";
 
 function useTrialCountdown(trialEndsAt?: string | null) {
   const [remainingMs, setRemainingMs] = useState<number>(() => {
@@ -90,7 +158,7 @@ function useTrialCountdown(trialEndsAt?: string | null) {
   }, [trialEndsAt]);
 
   const totalSeconds = Math.floor(remainingMs / 1000);
-  const hours   = Math.floor(totalSeconds / 3600);
+  const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
@@ -109,6 +177,8 @@ export function AdminHeader({
   trialEndsAt,
   proAccountSlug,
 }: AdminHeaderProps) {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
   const trial = useTrialCountdown(
     paymentStatus === "TRIAL" ? trialEndsAt : null,
   );
@@ -118,13 +188,31 @@ export function AdminHeader({
     if (!supportIncluded) return;
     fetch("/api/admin/unread-messages")
       .then((r) => r.json())
-      .then((d) => { if (typeof d?.count === "number") setUnreadCount(d.count); })
+      .then((d) => {
+        if (typeof d?.count === "number") setUnreadCount(d.count);
+      })
       .catch(() => {});
   }, [supportIncluded]);
 
   const paymentHref = proAccountSlug
     ? `/pro/paiement?compte=${encodeURIComponent(proAccountSlug)}`
     : "/pro/paiement";
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -140,10 +228,19 @@ export function AdminHeader({
         proAccountSlug={proAccountSlug}
       />
       <header className="no-print border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Ouvrir le menu d'administration"
+            aria-expanded={menuOpen}
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-sky-300 hover:bg-sky-50"
+          >
+            <Menu aria-hidden="true" className="h-5 w-5 text-sky-700" />
+            <span className="hidden sm:inline">Menu</span>
+          </button>
           <QoravoLogo showText={false} markClassName="h-12 w-12" />
-          <div className="grid gap-1">
+          <div className="hidden gap-1 sm:grid">
             <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
               Administration Qoravo
             </p>
@@ -166,7 +263,9 @@ export function AdminHeader({
                   className={`h-3.5 w-3.5 ${trial.urgent ? "text-red-500" : "text-amber-500"}`}
                   aria-hidden="true"
                 />
-                <span className="font-mono tracking-wider">{trial.display}</span>
+                <span className="font-mono tracking-wider">
+                  {trial.display}
+                </span>
                 <span className="hidden sm:inline">restant</span>
               </Link>
             ) : paymentStatus === "TRIAL" && !trial.active ? (
@@ -184,22 +283,69 @@ export function AdminHeader({
             )}
           </div>
         </div>
-        <nav className="grid gap-3">
-          <div className="flex flex-wrap items-start gap-3">
+      </header>
+
+      {menuOpen ? (
+        <button
+          type="button"
+          aria-label="Fermer le menu"
+          onClick={() => setMenuOpen(false)}
+          className="no-print fixed inset-0 z-[70] bg-slate-950/45 backdrop-blur-[2px]"
+        />
+      ) : null}
+
+      <aside
+        aria-hidden={!menuOpen}
+        className={`no-print fixed inset-y-0 left-0 z-[80] flex w-[min(88vw,320px)] flex-col border-r border-slate-200 bg-white shadow-2xl transition-transform duration-200 ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-4">
+          <QoravoLogo href="/admin" showText markClassName="h-10 w-10" />
+          <button
+            type="button"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Fermer le menu"
+            className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+          >
+            <X aria-hidden="true" className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="border-b border-slate-100 px-4 py-3">
+          <p className="truncate text-sm font-medium text-slate-600">{email}</p>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          <div className="grid gap-5">
             {navGroups.map((group) => (
-              <div
-                key={group.label}
-                className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2"
-              >
-                <span className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div key={group.label} className="grid gap-1">
+                <p className="px-3 pb-1 text-xs font-bold uppercase tracking-wide text-slate-400">
                   {group.label}
-                </span>
+                </p>
                 {group.items.map((item) => {
                   const Icon = item.icon;
+                  const active =
+                    item.href === "/admin"
+                      ? pathname === item.href
+                      : pathname.startsWith(item.href);
 
                   return (
-                    <Link key={item.href} href={item.href} className={navLinkClassName}>
-                      <Icon aria-hidden="true" className={`h-4 w-4 ${item.tone}`} />
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`${navLinkClassName} ${
+                        active
+                          ? "bg-sky-100 text-sky-950"
+                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                      }`}
+                    >
+                      <span
+                        className={`inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm ${item.tone}`}
+                      >
+                        <Icon aria-hidden="true" className="h-4 w-4" />
+                      </span>
                       {item.label}
                     </Link>
                   );
@@ -207,35 +353,36 @@ export function AdminHeader({
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {supportIncluded ? (
-              <Link
-                href="/service-client"
-                className="relative inline-flex min-h-10 items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100"
-              >
-                <LifeBuoy aria-hidden="true" className="h-4 w-4" />
-                Support
-                {unreadCount > 0 ? (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white ring-2 ring-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                ) : null}
-              </Link>
-            ) : (
-              <SupportSubscribeButton />
-            )}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
-            >
-              <LogOut aria-hidden="true" className="h-4 w-4" />
-              Deconnexion
-            </button>
-          </div>
         </nav>
+
+        <div className="grid gap-2 border-t border-slate-200 bg-slate-50 p-3">
+          {supportIncluded ? (
+            <Link
+              href="/service-client"
+              onClick={() => setMenuOpen(false)}
+              className="relative flex min-h-11 w-full items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+            >
+              <LifeBuoy aria-hidden="true" className="h-5 w-5" />
+              Support
+              {unreadCount > 0 ? (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-extrabold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              ) : null}
+            </Link>
+          ) : (
+            <SupportSubscribeButton className="flex min-h-11 w-full items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-900 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60" />
+          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex min-h-11 w-full items-center gap-3 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          >
+            <LogOut aria-hidden="true" className="h-5 w-5" />
+            Deconnexion
+          </button>
         </div>
-      </header>
+      </aside>
       <ClientErrorBoundary name="First use tour" fallback={null}>
         <FirstUseTour accountKey={proAccountSlug ?? email} />
       </ClientErrorBoundary>
