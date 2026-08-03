@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { repairStatusLabel } from "@/lib/repairValidation";
+import { GuideTaskHint, useGuideTask } from "../GuideTaskHint";
 
 export type AgendaRepair = {
   id: string;
@@ -180,6 +181,7 @@ function StatusDot({ repair }: { repair: AgendaRepair }) {
 }
 
 export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
+  const guideTask = useGuideTask(3);
   const initialInput = dateTimeToInput(new Date());
   const [items, setItems] = useState(repairs);
   const [currentMonth, setCurrentMonth] = useState(() => monthStart(new Date()));
@@ -361,6 +363,10 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
           ? "Rendez-vous replanifie."
           : "Reparation placee dans l'agenda.",
       );
+      if (guideTask.active) {
+        guideTask.complete();
+        return;
+      }
     } catch {
       setError("Placement impossible.");
     } finally {
@@ -738,22 +744,27 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
               </Link>
             ) : null}
 
-            <button
-              type="submit"
-              disabled={isSaving || planningOptions.length === 0}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none"
-            >
-              {editingRepairId ? (
-                <RotateCcw aria-hidden="true" className="size-4" />
-              ) : (
-                <CalendarPlus aria-hidden="true" className="size-4" />
-              )}
-              {isSaving
-                ? "Enregistrement..."
-                : editingRepairId
-                  ? "Enregistrer le nouveau creneau"
-                  : "Placer dans l'agenda"}
-            </button>
+            <div className="grid">
+              <GuideTaskHint active={guideTask.active}>
+                Choisissez une fiche, un jour et une heure, puis placez-la dans l&apos;agenda. Le guide reprendra après l&apos;enregistrement.
+              </GuideTaskHint>
+              <button
+                type="submit"
+                disabled={isSaving || planningOptions.length === 0}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none"
+              >
+                {editingRepairId ? (
+                  <RotateCcw aria-hidden="true" className="size-4" />
+                ) : (
+                  <CalendarPlus aria-hidden="true" className="size-4" />
+                )}
+                {isSaving
+                  ? "Enregistrement..."
+                  : editingRepairId
+                    ? "Enregistrer le nouveau creneau"
+                    : "Placer dans l'agenda"}
+              </button>
+            </div>
           </form>
 
           <div className="grid gap-3 border-t border-slate-200 bg-slate-50 p-5">

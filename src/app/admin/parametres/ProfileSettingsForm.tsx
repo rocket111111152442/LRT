@@ -6,6 +6,7 @@ import {
   stringifyShopOpeningHours,
 } from "@/lib/shopHours";
 import { OpeningHoursEditor } from "@/components/OpeningHoursEditor";
+import { GuideTaskHint, useGuideTask } from "../GuideTaskHint";
 
 type Profile = {
   companyName: string;
@@ -70,6 +71,7 @@ export function ProfileSettingsForm({
 }: {
   paymentStatus?: string | null;
 }) {
+  const guideTask = useGuideTask(0);
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [publicSlug, setPublicSlug] = useState("");
   const [publicListed, setPublicListed] = useState(true);
@@ -172,6 +174,10 @@ export function ProfileSettingsForm({
       setValues(valuesFromProfile(payload.profile));
       setPublicListed(payload.profile.publicListed !== false);
       setMessage("Parametres enregistres.");
+      if (guideTask.active) {
+        guideTask.complete();
+        return;
+      }
     } catch {
       setError("Enregistrement impossible.");
     } finally {
@@ -349,13 +355,18 @@ export function ProfileSettingsForm({
       ) : null}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="min-h-11 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-        >
-          {isSaving ? "Enregistrement..." : "Enregistrer"}
-        </button>
+        <div className="grid justify-items-end">
+          <GuideTaskHint active={guideTask.active}>
+            Renseignez les informations de votre boutique, puis cliquez sur Enregistrer. Le guide reprendra automatiquement après la sauvegarde.
+          </GuideTaskHint>
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="min-h-11 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {isSaving ? "Enregistrement..." : "Enregistrer"}
+          </button>
+        </div>
       </div>
     </form>
   );

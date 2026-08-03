@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -102,8 +102,6 @@ const steps: GuideStep[] = [
       "Découvrez ensuite le stock, les ventes et la comptabilité à votre rythme.",
       "Le guide d'utilisation reste disponible depuis le menu Aide.",
     ],
-    path: "/admin/guide",
-    action: "Ouvrir le guide complet",
   },
 ];
 
@@ -145,6 +143,10 @@ function removeStorage(key: string) {
 
 export function FirstUseTour({ accountKey }: { accountKey: string }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const guideTask = searchParams.get("guideTask");
+  const guideResume = searchParams.get("guideResume");
   const [isOpen, setIsOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const keys = useMemo(
@@ -166,15 +168,26 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
 
     window.addEventListener("Qoravo-admin-tour-open", openTour);
 
+    const resumeStep = guideResume === null ? null : Number(guideResume);
     const savedStep = Number(readStorage(keys.step) ?? "0");
     const hasActiveTour = readStorage(keys.active) === "1";
     const hasSeenTour = readStorage(keys.done) === "1";
 
     let cancelled = false;
 
-    if (hasActiveTour || !hasSeenTour) {
-      const initialStep = Number.isFinite(savedStep)
-        ? Math.min(Math.max(savedStep, 0), steps.length - 1)
+    if (guideTask !== null) {
+      return () => {
+        window.removeEventListener("Qoravo-admin-tour-open", openTour);
+      };
+    }
+
+    if (hasActiveTour || !hasSeenTour || resumeStep !== null) {
+      const requestedStep =
+        resumeStep !== null && Number.isFinite(resumeStep)
+          ? resumeStep
+          : savedStep;
+      const initialStep = Number.isFinite(requestedStep)
+        ? Math.min(Math.max(requestedStep, 0), steps.length - 1)
         : 0;
 
       queueMicrotask(() => {
@@ -192,7 +205,7 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
       cancelled = true;
       window.removeEventListener("Qoravo-admin-tour-open", openTour);
     };
-  }, [keys]);
+  }, [guideResume, guideTask, keys]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -226,6 +239,14 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
     removeStorage(keys.active);
     removeStorage(keys.step);
     setIsOpen(false);
+    if (guideResume !== null) {
+      router.replace(pathname);
+    }
+  }
+
+  function taskHref(path: string) {
+    const separator = path.includes("?") ? "&" : "?";
+    return `${path}${separator}guideTask=${stepIndex}`;
   }
 
   return (
@@ -311,7 +332,11 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
                 </p>
               ) : (
                 <Link
-                  href={step.path}
+                  href={taskHref(step.path)}
+                  onClick={() => {
+                    writeStorage(keys.active, "1");
+                    writeStorage(keys.step, String(stepIndex));
+                  }}
                   className="inline-flex w-fit items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-900 transition hover:border-sky-300 hover:bg-sky-100"
                 >
                   {step.action}

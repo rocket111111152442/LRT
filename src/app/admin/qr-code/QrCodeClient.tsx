@@ -1,6 +1,7 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
+import { GuideTaskHint, useGuideTask } from "../GuideTaskHint";
 
 type QrCodeClientProps = {
   newRepairUrl: string;
@@ -8,6 +9,8 @@ type QrCodeClientProps = {
 };
 
 export function QrCodeClient({ newRepairUrl, depositUrl }: QrCodeClientProps) {
+  const guideTask = useGuideTask(4);
+
   return (
     <section className="print-page grid gap-6">
       <header className="no-print grid gap-2">
@@ -38,13 +41,29 @@ export function QrCodeClient({ newRepairUrl, depositUrl }: QrCodeClientProps) {
       </div>
 
       <div className="no-print flex justify-end">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
-          Imprimer
-        </button>
+        <div className="grid justify-items-end gap-2">
+          <GuideTaskHint active={guideTask.active}>
+            Vérifiez les deux QR codes. Vous pourrez les imprimer maintenant ou plus tard.
+          </GuideTaskHint>
+          <div className="flex flex-wrap justify-end gap-2">
+            {guideTask.active ? (
+              <button
+                type="button"
+                onClick={guideTask.complete}
+                className="rounded-md bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+              >
+                J&apos;ai vérifié mes QR codes
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Imprimer
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );

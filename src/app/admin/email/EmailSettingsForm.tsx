@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { GuideTaskHint, useGuideTask } from "../GuideTaskHint";
 
 type EmailSettingsFormState = {
   smtpEmail: string;
@@ -45,6 +46,7 @@ const emptySettings: EmailSettingsFormState = {
 };
 
 export function EmailSettingsForm() {
+  const guideTask = useGuideTask(5);
   const [values, setValues] = useState<EmailSettingsFormState>(emptySettings);
   const [hasAppPassword, setHasAppPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,6 +156,10 @@ export function EmailSettingsForm() {
       }));
       setHasAppPassword(Boolean(payload.settings.hasAppPassword));
       setMessage("Configuration email enregistree.");
+      if (guideTask.active) {
+        guideTask.complete();
+        return;
+      }
     } catch {
       setError("Enregistrement impossible.");
     } finally {
@@ -360,13 +366,18 @@ export function EmailSettingsForm() {
       ) : null}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-        >
-          {isSaving ? "Enregistrement..." : "Enregistrer"}
-        </button>
+        <div className="grid justify-items-end">
+          <GuideTaskHint active={guideTask.active}>
+            Configurez l&apos;adresse d&apos;envoi du magasin, puis enregistrez. Le guide ne validera cette étape qu&apos;après une sauvegarde réussie.
+          </GuideTaskHint>
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {isSaving ? "Enregistrement..." : "Enregistrer"}
+          </button>
+        </div>
       </div>
     </form>
   );

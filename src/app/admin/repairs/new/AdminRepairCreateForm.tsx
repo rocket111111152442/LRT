@@ -10,6 +10,7 @@ import {
 } from "@/lib/repairValidation";
 import { compressImages } from "@/lib/imageCompress";
 import { requestLocalBackupSynchronization } from "@/lib/localBackup";
+import { GuideTaskHint, useGuideTask } from "../../GuideTaskHint";
 
 type TextFieldName = Exclude<
   keyof RepairInput,
@@ -104,6 +105,7 @@ const quickTemplates: {
 
 export function AdminRepairCreateForm() {
   const router = useRouter();
+  const guideTask = useGuideTask(1);
   const [values, setValues] = useState<RepairInput>(() => emptyRepairInput());
   const [expressMode, setExpressMode] = useState(false);
   const [urgent, setUrgent] = useState(false);
@@ -164,6 +166,10 @@ export function AdminRepairCreateForm() {
       }
 
       requestLocalBackupSynchronization();
+      if (guideTask.active) {
+        guideTask.complete();
+        return;
+      }
       router.push(`/admin/repairs/${payload.repair.id}`);
     } catch {
       setSubmitError("Creation impossible.");
@@ -315,13 +321,18 @@ export function AdminRepairCreateForm() {
       ) : null}
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-        >
-          {isSubmitting ? "Creation..." : "Creer la reparation"}
-        </button>
+        <div className="grid justify-items-end">
+          <GuideTaskHint active={guideTask.active}>
+            Remplissez une fiche test, puis créez la réparation. L&apos;étape sera validée seulement si la création réussit.
+          </GuideTaskHint>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="min-h-11 rounded-md bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {isSubmitting ? "Creation..." : "Creer la reparation"}
+          </button>
+        </div>
       </div>
     </form>
   );
