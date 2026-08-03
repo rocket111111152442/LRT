@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
+import { CalendarPlus, ClipboardList } from "lucide-react";
 import { repairStatusLabel } from "@/lib/repairValidation";
 
 export type AgendaRepair = {
@@ -229,7 +230,7 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
 
   return (
     <section className="grid gap-5">
-      <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(350px,400px)]">
         <div className="grid gap-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -327,26 +328,33 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
           </div>
         </div>
 
-        <aside className="grid content-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-              A placer
-            </p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-950">
-              Devis et reparations sans creneau
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Choisissez une fiche, puis donnez-lui un jour et une heure precise.
-            </p>
+        <aside className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-800 bg-slate-950 px-5 py-5 text-white">
+            <div className="flex items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-400 text-slate-950">
+                <CalendarPlus aria-hidden="true" className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                  Nouveau creneau
+                </p>
+                <h2 className="mt-1 text-lg font-semibold text-white">
+                  Planifier un rendez-vous
+                </h2>
+                <p className="mt-1 text-sm leading-5 text-slate-300">
+                  Selectionnez une fiche, une date et une heure.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={scheduleRepair} className="grid gap-3">
-            <label className="grid gap-2 text-sm font-medium text-slate-800">
+          <form onSubmit={scheduleRepair} className="grid gap-4 p-5">
+            <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
               Fiche
               <select
                 value={selectedRepairId}
                 onChange={(event) => setSelectedRepairId(event.target.value)}
-                className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
               >
                 <option value="">Choisir...</option>
                 {unscheduledRepairs.map((repair) => (
@@ -356,31 +364,38 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
                 ))}
               </select>
             </label>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <label className="grid gap-2 text-sm font-medium text-slate-800">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
                 Jour
                 <input
                   type="date"
                   value={appointmentDate}
                   onChange={(event) => setAppointmentDate(event.target.value)}
-                  className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                  className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 />
               </label>
-              <label className="grid gap-2 text-sm font-medium text-slate-800">
+              <label className="grid min-w-0 gap-2 text-sm font-semibold text-slate-800">
                 Heure
                 <input
                   type="time"
                   value={appointmentTime}
                   onChange={(event) => setAppointmentTime(event.target.value)}
-                  className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                  className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
                 />
               </label>
             </div>
             {selectedRepair ? (
-              <p className="rounded-lg border border-white bg-white px-3 py-2 text-xs text-slate-600">
-                {formatRepairDevice(selectedRepair)} -{" "}
-                {repairStatusLabel(selectedRepair.status)}
-              </p>
+              <div className="flex items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-3">
+                <ClipboardList aria-hidden="true" className="size-5 shrink-0 text-sky-700" />
+                <p className="min-w-0 text-sm text-slate-700">
+                  <span className="block truncate font-semibold text-slate-950">
+                    {formatRepairDevice(selectedRepair)}
+                  </span>
+                  <span className="block text-xs text-slate-600">
+                    {repairStatusLabel(selectedRepair.status)}
+                  </span>
+                </p>
+              </div>
             ) : null}
             {error ? (
               <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -410,13 +425,14 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
             <button
               type="submit"
               disabled={isSaving || unscheduledRepairs.length === 0}
-              className="min-h-11 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none"
             >
+              <CalendarPlus aria-hidden="true" className="size-4" />
               {isSaving ? "Placement..." : "Placer dans l'agenda"}
             </button>
           </form>
 
-          <div className="grid gap-3 border-t border-slate-200 pt-4">
+          <div className="grid gap-3 border-t border-slate-200 bg-slate-50 p-5">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">
                 Rendez-vous enregistres
@@ -447,9 +463,12 @@ export function AdminAgendaCalendar({ repairs }: AdminAgendaCalendarProps) {
                 ))}
               </div>
             ) : (
-              <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
-                Aucun rendez-vous place pour le moment.
-              </p>
+              <div className="grid place-items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-5 text-center">
+                <ClipboardList aria-hidden="true" className="size-6 text-slate-400" />
+                <p className="text-sm font-medium text-slate-600">
+                  Aucun rendez-vous ce mois-ci.
+                </p>
+              </div>
             )}
           </div>
         </aside>
