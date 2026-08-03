@@ -9,7 +9,6 @@ import {
   ChevronRight,
   ExternalLink,
   Rocket,
-  X,
 } from "lucide-react";
 
 type GuideStep = {
@@ -109,15 +108,15 @@ const steps: GuideStep[] = [
 ];
 
 function storageKey(email: string) {
-  return `Qoravo-admin-first-tour:${email}`;
+  return `Qoravo-admin-first-tour-v2:${email}`;
 }
 
 function activeStepKey(email: string) {
-  return `Qoravo-admin-first-tour-step:${email}`;
+  return `Qoravo-admin-first-tour-step-v2:${email}`;
 }
 
 function activeTourKey(email: string) {
-  return `Qoravo-admin-first-tour-active:${email}`;
+  return `Qoravo-admin-first-tour-active-v2:${email}`;
 }
 
 function readStorage(key: string) {
@@ -195,6 +194,17 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
     };
   }, [keys]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -226,27 +236,18 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
         aria-labelledby="first-use-tour-title"
         className="flex h-dvh w-full flex-col overflow-hidden bg-white"
       >
-        <header className="flex shrink-0 items-start gap-4 bg-slate-950 px-5 py-5 text-white sm:px-8 lg:px-12">
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-400 text-slate-950">
-            <Rocket aria-hidden="true" className="size-5" />
+        <header className="flex shrink-0 items-start gap-5 bg-slate-950 px-5 py-6 text-white sm:px-10 sm:py-8 lg:px-16">
+          <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-950/30">
+            <Rocket aria-hidden="true" className="size-7" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
               Guide de prise en main
             </p>
-            <h2 id="first-use-tour-title" className="mt-1 text-xl font-semibold sm:text-2xl">
+            <h2 id="first-use-tour-title" className="mt-1 text-2xl font-semibold sm:text-4xl">
               {step.title}
             </h2>
           </div>
-          <button
-            type="button"
-            onClick={closeTour}
-            className="grid size-10 shrink-0 place-items-center rounded-lg border border-slate-700 text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white"
-            aria-label="Fermer le guide"
-            title="Fermer le guide"
-          >
-            <X aria-hidden="true" className="size-5" />
-          </button>
         </header>
 
         <div className="grid min-h-0 flex-1 overflow-y-auto md:grid-cols-[260px_minmax(0,1fr)] md:overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -311,7 +312,6 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
               ) : (
                 <Link
                   href={step.path}
-                  onClick={closeTour}
                   className="inline-flex w-fit items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-900 transition hover:border-sky-300 hover:bg-sky-100"
                 >
                   {step.action}
@@ -330,6 +330,9 @@ export function FirstUseTour({ accountKey }: { accountKey: string }) {
             />
           </div>
           <div className="flex items-center justify-end gap-2">
+            <p className="mr-auto hidden text-sm font-medium text-slate-500 sm:block">
+              Terminez les {steps.length} étapes pour accéder à votre espace.
+            </p>
             <button
               type="button"
               onClick={() => goToStep(stepIndex - 1)}
