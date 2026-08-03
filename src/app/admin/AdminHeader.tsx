@@ -11,7 +11,6 @@ import {
   LifeBuoy,
   LogOut,
   Mail,
-  MapPinned,
   Package,
   PlusCircle,
   QrCode,
@@ -57,7 +56,6 @@ const navGroups = [
       { href: "/admin/parametres", label: "Parametres", icon: Settings, tone: "text-slate-700" },
       { href: "/admin/offres", label: "Offres", icon: Rocket, tone: "text-fuchsia-600" },
       { href: "/admin/offre-entreprise", label: "Offre entreprise", icon: Building2, tone: "text-fuchsia-700" },
-      { href: "/", label: "Site public", icon: MapPinned, tone: "text-emerald-600" },
     ],
   },
   {
