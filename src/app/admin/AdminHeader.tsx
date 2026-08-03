@@ -16,7 +16,6 @@ import {
   PlusCircle,
   QrCode,
   Rocket,
-  Route,
   Settings,
   ShoppingCart,
   UsersRound,
@@ -64,7 +63,7 @@ const navGroups = [
   {
     label: "Aide",
     items: [
-      { href: "/admin/guide", label: "Guide", icon: BookOpen, tone: "text-violet-600" },
+      { href: "/admin/guide", label: "Guide d'utilisation", icon: BookOpen, tone: "text-violet-600" },
     ],
   },
 ];
@@ -128,10 +127,6 @@ export function AdminHeader({
   const paymentHref = proAccountSlug
     ? `/pro/paiement?compte=${encodeURIComponent(proAccountSlug)}`
     : "/pro/paiement";
-
-  function openTour() {
-    window.dispatchEvent(new Event("Qoravo-admin-tour-open"));
-  }
 
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -233,14 +228,6 @@ export function AdminHeader({
             )}
             <button
               type="button"
-              onClick={openTour}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100"
-            >
-              <Route aria-hidden="true" className="h-4 w-4 text-amber-600" />
-              Tour
-            </button>
-            <button
-              type="button"
               onClick={handleLogout}
               className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
             >
@@ -251,7 +238,7 @@ export function AdminHeader({
         </nav>
         </div>
         <ClientErrorBoundary name="First use tour" fallback={null}>
-          <FirstUseTour email={email} />
+          <FirstUseTour accountKey={proAccountSlug ?? email} />
         </ClientErrorBoundary>
       </header>
     </>

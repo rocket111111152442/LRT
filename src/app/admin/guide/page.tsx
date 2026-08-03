@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Guide — Qoravo Admin" };
 import Link from "next/link";
 import { AdminHeader } from "../AdminHeader";
+import { GuideLauncher } from "./GuideLauncher";
 import { requireAdminPage } from "@/lib/auth";
 
 const setupSteps = [
   {
-    title: "1. Faire le tour automatique",
-    text: "A la premiere connexion, Qoravo ouvre un tour guide. Il presente chaque page admin et l ordre conseille pour regler l espace atelier.",
+    title: "1. Suivre le guide automatique",
+    text: "A la premiere connexion, Qoravo ouvre automatiquement un guide interactif. Il presente les reglages essentiels dans le bon ordre.",
     href: "/admin",
     action: "Retour au tableau",
   },
@@ -88,18 +89,20 @@ export default async function AdminGuidePage() {
       />
       <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8">
-          <header className="grid gap-2">
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Premiere connexion
-            </p>
-            <h1 className="text-3xl font-semibold text-slate-950">
-              Guide de demarrage
-            </h1>
-            <p className="max-w-3xl text-sm leading-6 text-slate-600">
-              Suivez ces etapes une seule fois pour regler Qoravo pour votre
-              atelier. Le bouton Tour dans le menu permet de revoir le parcours
-              de premiere utilisation quand vous voulez.
-            </p>
+          <header className="flex flex-col gap-4 rounded-2xl bg-slate-950 p-6 text-white sm:flex-row sm:items-end sm:justify-between">
+            <div className="grid gap-2">
+              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Aide Qoravo
+              </p>
+              <h1 className="text-3xl font-semibold text-white">
+                Guide d&apos;utilisation
+              </h1>
+              <p className="max-w-3xl text-sm leading-6 text-slate-300">
+                Suivez ces etapes une seule fois pour regler Qoravo pour votre
+                atelier. Le guide interactif peut etre relance ici a tout moment.
+              </p>
+            </div>
+            <GuideLauncher />
           </header>
 
           <section className="grid gap-4 lg:grid-cols-2">
@@ -130,7 +133,7 @@ export default async function AdminGuidePage() {
                 A quoi sert chaque page
               </h2>
               <p className="text-sm leading-6 text-slate-600">
-                Le tour automatique montre ces zones dans l ordre. Cette liste
+                Le guide automatique montre ces zones dans l ordre. Cette liste
                 sert de rappel rapide apres la premiere configuration.
               </p>
             </div>

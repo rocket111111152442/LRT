@@ -3,92 +3,108 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Rocket,
+  X,
+} from "lucide-react";
 
-type TourStep = {
+type GuideStep = {
   title: string;
+  shortTitle: string;
   text: string;
   details: string[];
   path?: string;
   action?: string;
 };
 
-const steps: TourStep[] = [
+const steps: GuideStep[] = [
   {
     title: "Bienvenue, votre compte est prêt",
-    text: "Commencez par renseigner votre boutique. Vous pourrez ensuite tester Qoravo avec une première réparation.",
+    shortTitle: "Votre atelier",
+    text: "Commencez par renseigner les informations essentielles de votre boutique.",
     details: [
       "Ajoutez l'adresse, le téléphone et les horaires depuis Paramètres.",
-      "Votre boutique restera masquée dans la recherche publique tant que vous ne l'activez pas.",
+      "Vous pourrez modifier ces informations à tout moment.",
+      "La fiche publique reste masquée tant que vous ne choisissez pas de l'activer.",
     ],
     path: "/admin/parametres",
     action: "Configurer ma boutique",
   },
   {
-    title: "Tableau des reparations",
-    text: "Cette page sert a retrouver les dossiers de l atelier et a suivre leur avancee.",
+    title: "Créez votre première réparation",
+    shortTitle: "Première fiche",
+    text: "Ajoutez une fiche test pour découvrir le fonctionnement sans attendre un client.",
     details: [
-      "Utilisez la recherche pour nom, telephone, email, marque ou modele.",
-      "Filtrez par statut pour voir uniquement les appareils en cours, prets ou recuperes.",
-      "Cliquez sur une reparation pour ouvrir sa fiche detaillee.",
-    ],
-    path: "/admin",
-    action: "Ouvrir les reparations",
-  },
-  {
-    title: "Creation manuelle",
-    text: "Cette page sert quand le client est devant vous ou quand vous voulez creer une fiche sans QR code.",
-    details: [
-      "Remplissez les coordonnees du client.",
-      "Ajoutez le type d appareil, la marque, le modele et la panne.",
-      "La fiche apparait ensuite dans la liste admin.",
+      "Renseignez les coordonnées du client et les informations de l'appareil.",
+      "Décrivez la panne et ajoutez les informations utiles à l'atelier.",
+      "La nouvelle fiche apparaît immédiatement dans vos réparations.",
     ],
     path: "/admin/repairs/new",
-    action: "Ouvrir creation manuelle",
+    action: "Créer une fiche test",
   },
   {
-    title: "QR code client",
-    text: "Le QR code envoie les clients vers votre formulaire public, avec votre identifiant d atelier.",
+    title: "Pilotez vos réparations",
+    shortTitle: "Suivi quotidien",
+    text: "Le tableau principal rassemble les dossiers et leur état d'avancement.",
     details: [
-      "Imprimez-le et mettez-le au comptoir.",
-      "Scannez-le avec votre telephone pour verifier que le formulaire public s ouvre bien.",
-      "Chaque fiche envoyee par ce formulaire arrive dans votre espace admin.",
-    ],
-    path: "/admin/qr-code",
-    action: "Ouvrir le QR code",
-  },
-  {
-    title: "Configuration email",
-    text: "Cette page sert a regler l envoi automatique des mails quand le statut d'une reparation change.",
-    details: [
-      "Renseignez l email du magasin et le mot de passe d application SMTP.",
-      "Ajoutez le nom, l adresse, les horaires et le telephone du magasin.",
-      "Sans SMTP valide, Qoravo enregistre la reparation mais ne peut pas envoyer l email client.",
-    ],
-    path: "/admin/email",
-    action: "Configurer les emails",
-  },
-  {
-    title: "Fiche reparation",
-    text: "La fiche detaillee sert a piloter une reparation precise.",
-    details: [
-      "Changez le statut quand l appareil avance.",
-      "Ajoutez des notes internes visibles seulement par l atelier.",
-      "Quand le statut change, Qoravo tente d envoyer un email au client.",
-      "Pour le statut PRET, Qoravo garde une protection anti double envoi.",
+      "Recherchez par client, téléphone, email, marque, modèle ou ticket.",
+      "Filtrez les appareils par statut.",
+      "Ouvrez une fiche pour ajouter des notes, un devis ou changer le statut.",
     ],
     path: "/admin",
-    action: "Choisir une reparation",
+    action: "Voir mes réparations",
   },
   {
-    title: "Dernier test avant utilisation",
-    text: "Avant de l utiliser avec de vrais clients, faites un test complet.",
+    title: "Organisez les rendez-vous",
+    shortTitle: "Agenda",
+    text: "Placez les réparations à une date précise et retrouvez-les dans le calendrier.",
     details: [
-      "Creez une reparation test depuis l admin ou le QR code.",
-      "Ouvrez la fiche, mettez une note interne, puis testez un changement de statut.",
-      "Verifiez que l email part si SMTP est configure, puis archivez ou supprimez la fiche test.",
+      "Sélectionnez une fiche qui n'a pas encore de créneau.",
+      "Choisissez le jour et l'heure du rendez-vous.",
+      "Cliquez sur un rendez-vous du calendrier pour ouvrir sa fiche.",
+    ],
+    path: "/admin/agenda",
+    action: "Ouvrir l'agenda",
+  },
+  {
+    title: "Installez le QR code au comptoir",
+    shortTitle: "QR code",
+    text: "Le QR code ouvre le formulaire public propre à votre atelier.",
+    details: [
+      "Imprimez-le et placez-le à un endroit visible.",
+      "Scannez-le avec votre téléphone pour vérifier le formulaire.",
+      "Les demandes envoyées arrivent directement dans vos réparations.",
+    ],
+    path: "/admin/qr-code",
+    action: "Afficher mon QR code",
+  },
+  {
+    title: "Configurez les emails clients",
+    shortTitle: "Emails",
+    text: "Utilisez l'adresse du magasin pour prévenir les clients automatiquement.",
+    details: [
+      "Renseignez l'email du magasin et son mot de passe d'application SMTP.",
+      "Envoyez un message de test avant de commencer.",
+      "Sans SMTP valide, les réparations restent enregistrées mais aucun email client ne part.",
+    ],
+    path: "/admin/email",
+    action: "Régler les emails",
+  },
+  {
+    title: "Votre espace est prêt",
+    shortTitle: "C'est parti",
+    text: "Vous connaissez maintenant les actions essentielles pour utiliser Qoravo au quotidien.",
+    details: [
+      "Testez un changement de statut et vérifiez l'email reçu.",
+      "Découvrez ensuite le stock, les ventes et la comptabilité à votre rythme.",
+      "Le guide d'utilisation reste disponible depuis le menu Aide.",
     ],
     path: "/admin/guide",
-    action: "Lire le guide complet",
+    action: "Ouvrir le guide complet",
   },
 ];
 
@@ -128,17 +144,17 @@ function removeStorage(key: string) {
   }
 }
 
-export function FirstUseTour({ email }: { email: string }) {
+export function FirstUseTour({ accountKey }: { accountKey: string }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const keys = useMemo(
     () => ({
-      done: storageKey(email),
-      step: activeStepKey(email),
-      active: activeTourKey(email),
+      done: storageKey(accountKey),
+      step: activeStepKey(accountKey),
+      active: activeTourKey(accountKey),
     }),
-    [email],
+    [accountKey],
   );
 
   useEffect(() => {
@@ -202,103 +218,148 @@ export function FirstUseTour({ email }: { email: string }) {
     setIsOpen(false);
   }
 
-  function rememberCurrentStep() {
-    writeStorage(keys.active, "1");
-    writeStorage(keys.step, String(stepIndex));
-  }
-
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 px-4 py-6">
+    <div className="fixed inset-0 z-[120] overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-sm sm:p-6">
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="first-use-tour-title"
-        className="grid max-h-[92vh] w-full max-w-2xl gap-5 overflow-y-auto rounded-lg border border-slate-200 bg-white p-5 shadow-xl sm:p-6"
+        className="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-700 bg-white shadow-2xl"
       >
-        <header className="grid gap-2">
-          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Tour de premiere utilisation {stepIndex + 1}/{steps.length}
-          </p>
-          <h2
-            id="first-use-tour-title"
-            className="text-2xl font-semibold text-slate-950"
+        <header className="flex items-start gap-4 bg-slate-950 px-5 py-5 text-white sm:px-6">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-400 text-slate-950">
+            <Rocket aria-hidden="true" className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+              Guide de prise en main
+            </p>
+            <h2 id="first-use-tour-title" className="mt-1 text-xl font-semibold sm:text-2xl">
+              {step.title}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={closeTour}
+            className="grid size-10 shrink-0 place-items-center rounded-lg border border-slate-700 text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white"
+            aria-label="Fermer le guide"
+            title="Fermer le guide"
           >
-            {step.title}
-          </h2>
-          <p className="text-sm leading-6 text-slate-700">{step.text}</p>
+            <X aria-hidden="true" className="size-5" />
+          </button>
         </header>
 
-        <ol className="grid gap-3">
-          {step.details.map((detail) => (
-            <li
-              key={detail}
-              className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700"
-            >
-              {detail}
-            </li>
-          ))}
-        </ol>
+        <div className="grid md:grid-cols-[220px_minmax(0,1fr)]">
+          <aside className="border-b border-slate-200 bg-slate-50 p-4 md:border-b-0 md:border-r md:p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Progression
+            </p>
+            <ol className="mt-3 grid grid-cols-4 gap-2 md:grid-cols-1">
+              {steps.map((guideStep, index) => (
+                <li key={guideStep.shortTitle}>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(index)}
+                    className={`flex w-full min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition md:text-sm ${
+                      index === stepIndex
+                        ? "bg-sky-100 text-sky-900"
+                        : index < stepIndex
+                          ? "text-emerald-700 hover:bg-emerald-50"
+                          : "text-slate-500 hover:bg-white hover:text-slate-800"
+                    }`}
+                    aria-current={index === stepIndex ? "step" : undefined}
+                  >
+                    <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] ${
+                      index < stepIndex
+                        ? "bg-emerald-500 text-white"
+                        : index === stepIndex
+                          ? "bg-sky-600 text-white"
+                          : "border border-slate-300 bg-white text-slate-500"
+                    }`}>
+                      {index < stepIndex ? <CheckCircle2 aria-hidden="true" className="size-4" /> : index + 1}
+                    </span>
+                    <span className="hidden min-w-0 truncate md:block">{guideStep.shortTitle}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </aside>
 
-        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-          <div
-            className="h-full bg-slate-950 transition-all"
-            style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
-          />
+          <div className="grid content-start gap-5 p-5 sm:p-6">
+            <div>
+              <p className="text-sm font-semibold text-sky-700">
+                Étape {stepIndex + 1} sur {steps.length}
+              </p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-700">{step.text}</p>
+            </div>
+
+            <ul className="grid gap-3">
+              {step.details.map((detail) => (
+                <li key={detail} className="flex items-start gap-3 text-sm leading-6 text-slate-700">
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
+
+            {step.path ? (
+              isCurrentPage ? (
+                <p className="flex w-fit items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+                  <CheckCircle2 aria-hidden="true" className="size-4" />
+                  Vous êtes sur la bonne page
+                </p>
+              ) : (
+                <Link
+                  href={step.path}
+                  onClick={closeTour}
+                  className="inline-flex w-fit items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-900 transition hover:border-sky-300 hover:bg-sky-100"
+                >
+                  {step.action}
+                  <ExternalLink aria-hidden="true" className="size-4" />
+                </Link>
+              )
+            ) : null}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {step.path && !isCurrentPage ? (
-              <Link
-                href={step.path}
-                onClick={rememberCurrentStep}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100"
-              >
-                {step.action}
-              </Link>
-            ) : null}
-            {step.path && isCurrentPage ? (
-              <span className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
-                Page ouverte
-              </span>
-            ) : null}
-            <button
-              type="button"
-              onClick={closeTour}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              Fermer
-            </button>
+        <footer className="flex flex-col gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 sm:max-w-64">
+            <div
+              className="h-full rounded-full bg-sky-600 transition-all"
+              style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
+            />
           </div>
-
-          <div className="flex flex-wrap gap-2 sm:justify-end">
+          <div className="flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => goToStep(stepIndex - 1)}
               disabled={isFirst}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
+              <ChevronLeft aria-hidden="true" className="size-4" />
               Retour
             </button>
             {isLast ? (
               <button
                 type="button"
                 onClick={closeTour}
-                className="rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
               >
-                Terminer le tour
+                Terminer
+                <CheckCircle2 aria-hidden="true" className="size-4" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => goToStep(stepIndex + 1)}
-                className="rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
                 Suivant
+                <ChevronRight aria-hidden="true" className="size-4" />
               </button>
             )}
           </div>
-        </div>
+        </footer>
       </section>
     </div>
   );
