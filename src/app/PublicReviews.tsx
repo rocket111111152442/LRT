@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+function truncate(text: string, max = 160) {
+  if (text.length <= max) return text;
+  return text.slice(0, max).replace(/\s+\S*$/, "").trimEnd() + " …";
+}
 
 type PublicReview = {
   id: string;
@@ -42,6 +49,17 @@ export function PublicReviews({ displayOnly = false }: { displayOnly?: boolean }
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [expanded, setExpanded] = useState<PublicReview | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  function scrollByCards(direction: -1 | 1) {
+    const element = scrollRef.current;
+    if (!element) return;
+    element.scrollBy({
+      left: direction * Math.min(element.clientWidth * 0.9, 340),
+      behavior: "smooth",
+    });
+  }
 
   useEffect(() => {
     let ignore = false;
@@ -135,24 +153,102 @@ export function PublicReviews({ displayOnly = false }: { displayOnly?: boolean }
         ) : null}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        {reviews.slice(0, 6).map((review) => (
-          <article
-            key={review.id}
-            className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4"
+      {reviews.length > 0 ? (
+        <div className="relative">
+          {reviews.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => scrollByCards(-1)}
+                aria-label="Avis précédents"
+                className="absolute left-0 top-1/2 z-10 hidden -translate-x-1 -translate-y-1/2 rounded-full border border-slate-200 bg-white p-2 shadow-md transition hover:bg-slate-50 sm:block"
+              >
+                <ChevronLeft className="h-5 w-5 text-slate-700" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollByCards(1)}
+                aria-label="Avis suivants"
+                className="absolute right-0 top-1/2 z-10 hidden translate-x-1 -translate-y-1/2 rounded-full border border-slate-200 bg-white p-2 shadow-md transition hover:bg-slate-50 sm:block"
+              >
+                <ChevronRight className="h-5 w-5 text-slate-700" />
+              </button>
+            </>
+          ) : null}
+
+          <div
+            ref={scrollRef}
+            className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-1 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <StarRow rating={review.rating} />
-            <p className="text-sm leading-6 text-slate-700">{review.comment}</p>
-            <p className="text-sm font-semibold text-slate-950">{review.name}</p>
-          </article>
-        ))}
-        {reviews.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-sky-200 bg-sky-50/60 p-4 text-sm text-slate-700 md:col-span-3">
-            Vous utilisez Qoravo ? Partagez votre expérience ci-dessous — soyez le
-            premier à laisser un avis public.
-          </p>
-        ) : null}
-      </div>
+            {reviews.map((review) => {
+              const isLong = review.comment.length > 160;
+              return (
+                <button
+                  key={review.id}
+                  type="button"
+                  onClick={() => setExpanded(review)}
+                  className="flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-sky-300 hover:bg-white"
+                >
+                  <StarRow rating={review.rating} />
+                  <p className="text-sm leading-6 text-slate-700">
+                    {truncate(review.comment)}
+                    {isLong ? (
+                      <span className="font-semibold text-sky-700"> Lire</span>
+                    ) : null}
+                  </p>
+                  <p className="mt-auto text-sm font-semibold text-slate-950">
+                    {review.name}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+
+          {displayOnly ? (
+            <div className="mt-4 text-center">
+              <Link
+                href="/avis"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-sky-700 underline-offset-4 hover:underline"
+              >
+                Voir tous les avis
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-dashed border-sky-200 bg-sky-50/60 p-4 text-sm text-slate-700">
+          Vous utilisez Qoravo ? Partagez votre expérience ci-dessous — soyez le
+          premier à laisser un avis public.
+        </p>
+      )}
+
+      {expanded ? (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/60 p-4"
+          onClick={() => setExpanded(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <StarRow rating={expanded.rating} size="h-5 w-5" />
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+              {expanded.comment}
+            </p>
+            <p className="mt-4 text-sm font-semibold text-slate-950">
+              {expanded.name}
+            </p>
+            <button
+              type="button"
+              onClick={() => setExpanded(null)}
+              className="mt-5 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {!displayOnly ? <form onSubmit={handleSubmit} className="grid gap-3 border-t border-slate-200 pt-4">
         <h3 className="text-base font-semibold text-slate-950">

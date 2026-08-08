@@ -215,6 +215,9 @@ export default function HomePage() {
             <a href="#faq" className="transition hover:text-slate-950">
               FAQ
             </a>
+            <Link href="/avis" className="transition hover:text-slate-950">
+              Avis
+            </Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link
