@@ -21,6 +21,7 @@ import { ConversionLink } from "@/components/ConversionLink";
 import { seoResourceLinks } from "@/lib/seoResources";
 import { PublicReviews } from "./PublicReviews";
 import { TrialOfferCountdown } from "@/components/TrialOfferCountdown";
+import { TrustpilotWidget } from "@/components/TrustpilotWidget";
 
 export const metadata: Metadata = {
   title: { absolute: "Qoravo — Logiciel de gestion pour réparateurs" },
@@ -523,6 +524,10 @@ export default function HomePage() {
       {/* AVIS RÉELS UNIQUEMENT */}
       <section className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
+          {/* Widget Trustpilot officiel (s'affiche une fois l'ID Business Unit configuré) */}
+          <div className="mb-8">
+            <TrustpilotWidget />
+          </div>
           <PublicReviews displayOnly />
         </div>
       </section>
