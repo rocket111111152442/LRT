@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   createTrialUsedToken,
-  createTrialOfferToken,
-  readTrialOfferToken,
   readTrialUsedToken,
   TRIAL_OFFER_COOKIE,
   TRIAL_USED_COOKIE,
@@ -44,28 +42,10 @@ export async function GET(request: NextRequest) {
     return usedResponse();
   }
 
-  const currentToken = request.cookies.get(TRIAL_OFFER_COOKIE)?.value;
-  const currentOffer = readTrialOfferToken(currentToken);
-
-  if (currentOffer) {
-    return NextResponse.json(currentOffer, {
-      headers: { "Cache-Control": "no-store" },
-    });
-  }
-
-  const token = createTrialOfferToken();
-  const offer = readTrialOfferToken(token);
-  const response = NextResponse.json(offer, {
-    headers: { "Cache-Control": "no-store" },
-  });
-
-  response.cookies.set(TRIAL_OFFER_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: COOKIE_LIFETIME_SECONDS,
-  });
-
-  return response;
+  // L'essai gratuit est disponible en permanence pour tout visiteur qui ne l'a
+  // pas encore utilisé (plus de fenêtre de 72 heures qui bloquait les prospects).
+  return NextResponse.json(
+    { available: true, used: false, expiresAt: null },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

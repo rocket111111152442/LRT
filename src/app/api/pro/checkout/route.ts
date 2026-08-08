@@ -19,7 +19,6 @@ import { validateProSignupInput } from "@/lib/pro/signupValidation";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import {
   createTrialUsedToken,
-  readTrialOfferToken,
   readTrialUsedToken,
   TRIAL_DURATION_MS,
   TRIAL_OFFER_COOKIE,
@@ -288,20 +287,6 @@ export async function POST(request: Request) {
               "L'essai gratuit a deja ete utilise sur ce navigateur. Vous pouvez vous abonner pour creer un nouveau compte.",
           },
           { status: 403 },
-        );
-      }
-
-      const offer = readTrialOfferToken(
-        cookieStore.get(TRIAL_OFFER_COOKIE)?.value,
-      );
-
-      if (!offer?.available) {
-        return NextResponse.json(
-          {
-            error:
-              "Le délai de 72 heures est terminé. L'essai gratuit de 7 jours n'est plus disponible sur ce navigateur.",
-          },
-          { status: 410 },
         );
       }
 

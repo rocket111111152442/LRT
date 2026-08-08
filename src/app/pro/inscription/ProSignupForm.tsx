@@ -71,7 +71,10 @@ export function ProSignupForm() {
         }
       })
       .catch(() => {
-        if (active) setTrialOfferStatus("expired");
+        // En cas d'erreur réseau, on n'affiche PAS "essai terminé" : on laisse
+        // l'essai disponible pour ne pas bloquer un visiteur à cause d'un simple
+        // hoquet réseau.
+        if (active) setTrialOfferStatus("available");
       });
 
     return () => {
@@ -450,8 +453,8 @@ export function ProSignupForm() {
                         : "Continuer avec l'essai gratuit de 7 jours"}
                 </button>
                 <p className="text-center text-xs text-slate-500">
-                  Vous devez démarrer l&apos;essai avant la fin du délai de 72
-                  heures. Ensuite, vous disposez de 7 jours gratuits complets.
+                  Aucune carte bancaire requise. Vous disposez de 7 jours
+                  gratuits complets.
                 </p>
               </>
             ) : trialOfferStatus === "used" ? (
