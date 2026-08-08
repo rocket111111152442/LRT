@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ControlConsent } from "./ControlConsent";
 import { LocalDataSync } from "./LocalDataSync";
+import { ReviewPromptDialog } from "./ReviewPromptDialog";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {children}
       <ControlConsent />
       <LocalDataSync />
+      <ReviewPromptDialog />
     </>
   );
 }

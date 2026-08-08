@@ -15,6 +15,7 @@ import {
 import { PageViews } from "@/components/PageViews";
 import { BroadcastEmailTab } from "./BroadcastEmailTab";
 import { ModeratorStoragePanel } from "./ModeratorStoragePanel";
+import { ReviewsTab } from "./ReviewsTab";
 
 type Message = {
   id: string; proAccountId: string | null; name: string; email: string;
@@ -44,7 +45,7 @@ export function ModDashboard() {
   const [data, setData]       = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
-  const [tab, setTab]         = useState<"messages" | "comptes" | "stockage" | "diffusion">("messages");
+  const [tab, setTab]         = useState<"messages" | "comptes" | "stockage" | "diffusion" | "avis">("messages");
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg]   = useState("");
 
@@ -177,7 +178,7 @@ export function ModDashboard() {
 
         {/* Tabs */}
         <div className="mb-4 flex flex-wrap gap-2">
-          {(["messages", "comptes", "stockage", "diffusion"] as const).map(t => (
+          {(["messages", "comptes", "stockage", "diffusion", "avis"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -198,7 +199,9 @@ export function ModDashboard() {
                         Stockage serveur
                       </span>
                     )
-                  : "Envoyer un email"}
+                  : t === "diffusion"
+                    ? "Envoyer un email"
+                    : "Avis"}
             </button>
           ))}
         </div>
@@ -211,8 +214,10 @@ export function ModDashboard() {
           <ComptesTab accounts={data?.accounts ?? []} statusBadge={statusBadge} />
         ) : tab === "stockage" ? (
           <ModeratorStoragePanel />
-        ) : (
+        ) : tab === "diffusion" ? (
           <BroadcastEmailTab accounts={data?.accounts ?? []} />
+        ) : (
+          <ReviewsTab />
         )}
       </div>
     </main>
