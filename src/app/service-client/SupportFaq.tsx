@@ -38,7 +38,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: "Comment prolonger ou gérer mon essai gratuit ?",
-    a: "L'essai gratuit dure 7 jours une fois démarré. L'offre doit être activée avant la fin du compteur de 72 heures affiché sur l'accueil. Pour continuer ensuite, abonnez-vous depuis le bandeau ou la page Paiement.",
+    a: "L'essai gratuit dure 7 jours une fois démarré, sans carte bancaire ni engagement. Vous le démarrez quand vous le souhaitez. Pour continuer ensuite, abonnez-vous depuis le bandeau ou la page Paiement.",
     tags: ["essai", "abonnement", "paiement"],
   },
   {

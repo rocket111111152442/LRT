@@ -117,7 +117,7 @@ const faqs = [
   {
     question: "Comment fonctionne l'essai gratuit ?",
     answer:
-      "Vous disposez de 72 heures pour démarrer l'offre, puis de 7 jours gratuits avec toutes les fonctionnalités. Aucune carte bancaire n'est demandée. Si le compteur expire avant la création du compte, l'essai gratuit est annulé sur ce navigateur.",
+      "Vous disposez de 7 jours gratuits avec toutes les fonctionnalités, sans carte bancaire ni engagement. Vous démarrez l'essai quand vous le souhaitez, et vous pouvez vous abonner à tout moment.",
   },
   {
     question: "Le client a-t-il besoin d'un compte ?",

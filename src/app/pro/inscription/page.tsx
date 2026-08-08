@@ -36,9 +36,9 @@ export default function ProSignupPage() {
             <p className="font-semibold">✓ Abonnement possible à tout moment</p>
             <p className="font-semibold">✓ Vous reprenez où vous en étiez</p>
           </div>
-          <p className="text-xs leading-5 text-amber-800">
-            L&apos;offre doit être démarrée dans les 72 heures affichées sur la
-            page d&apos;accueil. Après ce délai, l&apos;essai gratuit est annulé.
+          <p className="text-xs leading-5 text-slate-500">
+            Essai sans carte bancaire ni engagement. Vous pouvez vous abonner à
+            tout moment depuis votre espace admin.
           </p>
         </header>
 

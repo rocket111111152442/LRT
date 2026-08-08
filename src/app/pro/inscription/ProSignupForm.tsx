@@ -465,9 +465,8 @@ export function ProSignupForm() {
               </p>
             ) : (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-                Le délai de 72 heures est terminé. Comme l&apos;essai n&apos;a
-                pas été démarré à temps, les 7 jours gratuits sont annulés sur
-                ce navigateur. Vous pouvez toujours vous abonner directement.
+                L&apos;essai gratuit n&apos;est pas disponible pour le moment.
+                Vous pouvez vous abonner directement pour créer votre compte.
               </p>
             )}
             <button
