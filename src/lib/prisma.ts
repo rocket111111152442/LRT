@@ -1272,6 +1272,11 @@ function createFirestorePrisma() {
         await collection("publicReviews").doc(id).set(firestoreData(review));
         return applySelect(review, args.select);
       },
+      async delete(args: { where: Dict }) {
+        const id = String(args.where.id);
+        await collection("publicReviews").doc(id).delete();
+        return { id };
+      },
     },
 
     supportMessage: createGenericFirestoreModel("supportMessages", {

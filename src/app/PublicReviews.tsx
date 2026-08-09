@@ -154,7 +154,7 @@ export function PublicReviews({ displayOnly = false }: { displayOnly?: boolean }
       </div>
 
       {reviews.length > 0 ? (
-        <div className="relative">
+        <div className="relative min-w-0">
           {reviews.length > 1 ? (
             <>
               <button
