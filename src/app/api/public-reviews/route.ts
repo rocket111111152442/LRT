@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   }
 
   const name = readText(body, "name").slice(0, 80);
-  const comment = readText(body, "comment").slice(0, 500);
+  const comment = readText(body, "comment").slice(0, 2000);
   const rating = Number(body.rating);
   const website = readText(body, "website");
 
