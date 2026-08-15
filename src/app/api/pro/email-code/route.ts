@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmailVerificationCode } from "@/lib/emailVerification";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
+import {
+  resolveSalesReferralCode,
+  SalesReferralError,
+} from "@/lib/pro/salesReferral";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 async function findPaidAccountConflict(ownerEmail: string, slug: string) {
@@ -99,6 +103,11 @@ export async function POST(request: Request) {
   }
 
   try {
+    await resolveSalesReferralCode({
+      referralCode: validation.data.referralCode,
+      promoCode: validation.data.promoCode,
+    });
+
     const conflict = await findPaidAccountConflict(
       validation.data.ownerEmail,
       validation.data.slug,
@@ -134,7 +143,17 @@ export async function POST(request: Request) {
       message: "Code envoye. Verifiez votre boite email.",
       verificationId: result.verificationId,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof SalesReferralError) {
+      const field = error.kind === "promo" ? "promoCode" : "referralCode";
+      return NextResponse.json(
+        {
+          error: error.message,
+          errors: { [field]: error.message },
+        },
+        { status: error.kind === "unavailable" ? 503 : 400 },
+      );
+    }
     return NextResponse.json(
       { error: "Envoi du code impossible pour le moment." },
       { status: 500 },

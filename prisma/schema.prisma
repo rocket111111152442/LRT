@@ -187,6 +187,8 @@ model ProAccount {
   shopMaxAppointmentsPerSlot Int          @default(1)
   monthlyGoal               Int           @default(100)
   referralCode              String?
+  salesReferralCode         String?
+  salesReferralValidatedAt  DateTime?
   publicListed              Boolean       @default(true)
   enterprisePlanDetails     String?
   qualireparApiKey          String?
@@ -349,6 +351,8 @@ model PendingProSignup {
   shopCapacityPerDay        Int           @default(8)
   shopSlotDurationMinutes   Int           @default(60)
   shopMaxAppointmentsPerSlot Int          @default(1)
+  salesReferralCode         String?
+  salesReferralValidatedAt  DateTime?
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
 

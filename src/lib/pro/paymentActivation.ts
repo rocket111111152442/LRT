@@ -29,6 +29,8 @@ export type PaidProAccountData = {
   shopSlotDurationMinutes?: number | null;
   shopMaxAppointmentsPerSlot?: number | null;
   premiumDiscountCode?: string | null;
+  salesReferralCode?: string | null;
+  salesReferralValidatedAt?: Date | null;
   publicListed?: boolean;
   supportIncluded?: boolean;
   stripeSessionId?: string | null;
@@ -94,6 +96,8 @@ function readPaidProAccountData(
       getStringField(record, "supportIncluded") === "1" ||
       getStringField(record, "setupHelp") === "1",
     stripeSessionId,
+    salesReferralCode: getStringField(record, "salesReferralCode"),
+    salesReferralValidatedAt: null,
   };
 
   if (
@@ -125,6 +129,8 @@ export async function createPaidProAccount(data: PaidProAccountData) {
       firebaseMessagingSenderId: data.firebaseMessagingSenderId,
       firebaseAppId: data.firebaseAppId,
       referralCode: `${data.slug.toUpperCase()}-Qoravo`,
+      salesReferralCode: data.salesReferralCode,
+      salesReferralValidatedAt: data.salesReferralValidatedAt,
       supportIncluded: data.supportIncluded ?? false,
       publicListed: data.publicListed ?? false,
       shopAddress: data.shopAddress,
@@ -168,6 +174,8 @@ export async function createTrialProAccount(
       firebaseMessagingSenderId: data.firebaseMessagingSenderId,
       firebaseAppId: data.firebaseAppId,
       referralCode: `${data.slug.toUpperCase()}-Qoravo`,
+      salesReferralCode: data.salesReferralCode,
+      salesReferralValidatedAt: data.salesReferralValidatedAt,
       supportIncluded: false,
       publicListed: data.publicListed ?? false,
       shopAddress: data.shopAddress,
@@ -220,6 +228,8 @@ export async function createPendingProSignup(data: PaidProAccountData) {
       shopCapacityPerDay: data.shopCapacityPerDay ?? 8,
       shopSlotDurationMinutes: data.shopSlotDurationMinutes ?? 60,
       shopMaxAppointmentsPerSlot: data.shopMaxAppointmentsPerSlot ?? 1,
+      salesReferralCode: data.salesReferralCode,
+      salesReferralValidatedAt: data.salesReferralValidatedAt,
     },
   });
 }

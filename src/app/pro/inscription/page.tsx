@@ -7,7 +7,14 @@ import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { ProSignupForm } from "./ProSignupForm";
 
-export default function ProSignupPage() {
+type ProSignupPageProps = {
+  searchParams: Promise<{ ref?: string }>;
+};
+
+export default async function ProSignupPage({ searchParams }: ProSignupPageProps) {
+  const { ref } = await searchParams;
+  const initialReferralCode = typeof ref === "string" ? ref.slice(0, 40) : "";
+
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-3xl gap-6">
@@ -42,7 +49,7 @@ export default function ProSignupPage() {
           </p>
         </header>
 
-        <ProSignupForm />
+        <ProSignupForm initialReferralCode={initialReferralCode} />
       </div>
     </main>
   );

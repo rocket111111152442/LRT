@@ -19,6 +19,7 @@ export type ProSignupInput = {
   shopSlotDurationMinutes?: string;
   shopMaxAppointmentsPerSlot?: string;
   promoCode?: string;
+  referralCode?: string;
   emailCode?: string;
   emailVerificationId?: string;
 };
@@ -77,6 +78,7 @@ export function validateProSignupInput(input: unknown):
     shopMaxAppointmentsPerSlot:
       readText(input, "shopMaxAppointmentsPerSlot") || undefined,
     promoCode: readText(input, "promoCode").toUpperCase() || undefined,
+    referralCode: readText(input, "referralCode").toUpperCase() || undefined,
     emailCode: readText(input, "emailCode").replace(/\D/g, "").slice(0, 6),
     emailVerificationId: readText(input, "emailVerificationId") || undefined,
   };
@@ -113,6 +115,7 @@ export function validateProSignupInput(input: unknown):
     ["shopEmail", 320],
     ["shopOpeningHours", 10_000],
     ["promoCode", 100],
+    ["referralCode", 40],
     ["emailVerificationId", 2_000],
   ];
 

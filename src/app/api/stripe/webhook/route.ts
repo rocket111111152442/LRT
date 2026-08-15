@@ -6,6 +6,7 @@ import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
 import { activateEnterpriseCheckoutSession } from "@/lib/pro/enterpriseActivation";
 import { restoreFullPremiumPriceForRenewals } from "@/lib/stripeDiscounts";
 import { GB, getPlanOption } from "@/lib/plans";
+import { reportSalesReferralEvent } from "@/lib/pro/salesReferral";
 
 async function activatePlanUpgrade(session: Stripe.Checkout.Session) {
   const { optionId, proAccountId } = session.metadata ?? {};
@@ -95,6 +96,29 @@ export async function POST(request: Request) {
       await activatePlanUpgrade(session);
     } else {
       await activatePaidCheckoutSession(session);
+
+      const salesReferralCode = session.metadata?.salesReferralCode;
+      const externalSaleId = session.metadata?.referralExternalSaleId;
+
+      if (salesReferralCode && externalSaleId) {
+        await reportSalesReferralEvent({
+          employeeCode: salesReferralCode,
+          externalSaleId,
+          event: "paid",
+          customerName:
+            session.metadata?.referralCustomerName ||
+            session.customer_details?.name ||
+            "Client Qoravo",
+          customerEmail:
+            session.metadata?.referralCustomerEmail ||
+            session.customer_details?.email ||
+            session.customer_email ||
+            "",
+          amountCents: Number(session.metadata?.referralAmountCents || 8999),
+          planLabel: "Qoravo annuel",
+        });
+      }
+
       await restoreFullPremiumPriceForRenewals(stripe, session);
     }
   }

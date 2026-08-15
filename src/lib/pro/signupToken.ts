@@ -104,6 +104,8 @@ function readAccountData(payload: unknown): PaidProAccountData | null {
     shopMaxAppointmentsPerSlot:
       readOptionalNumber(payload, "shopMaxAppointmentsPerSlot") ?? 1,
     premiumDiscountCode: readOptionalString(payload, "premiumDiscountCode"),
+    salesReferralCode: readOptionalString(payload, "salesReferralCode"),
+    salesReferralValidatedAt: null,
   };
 
   if (

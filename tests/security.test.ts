@@ -31,6 +31,10 @@ import {
 } from "../src/lib/modAuth";
 import { isFreeAccessCode } from "../src/lib/pro/promoCodes";
 import {
+  createReferralEventToken,
+  readReferralEventToken,
+} from "../src/lib/pro/referralEventToken";
+import {
   createTrialUsedToken,
   createTrialOfferToken,
   readTrialOfferToken,
@@ -103,6 +107,22 @@ test("REP2026 active l acces gratuit et le code serveur reste compatible", () =>
   } else {
     process.env.FREE_ACCESS_CODE = previousCode;
   }
+});
+
+test("une attribution commerciale est chiffree, signee et non falsifiable", () => {
+  const token = createReferralEventToken({
+    employeeCode: "QO-TIM-12345",
+    externalSaleId: "compte-qoravo-1",
+    event: "paid",
+    customerName: "Atelier Exemple",
+    customerEmail: "atelier@example.com",
+    amountCents: 8999,
+  });
+
+  assert.equal(readReferralEventToken(token)?.employeeCode, "QO-TIM-12345");
+  assert.equal(readReferralEventToken(token)?.amountCents, 8999);
+  assert.equal(readReferralEventToken(`${token.slice(0, -1)}x`), null);
+  assert.doesNotMatch(token, /atelier@example\.com/);
 });
 
 test("l offre d essai expire apres 72 heures et son jeton ne peut pas etre modifie", () => {

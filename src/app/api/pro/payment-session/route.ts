@@ -206,6 +206,19 @@ export async function POST(request: Request) {
         metadata: {
           pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
+          ...(signup.salesReferralCode
+            ? {
+                salesReferralCode: signup.salesReferralCode,
+                referralExternalSaleId: pendingSignup.id,
+                referralCustomerName: signup.companyName,
+                referralCustomerEmail: signup.ownerEmail,
+                referralAmountCents: String(
+                  discountApplied
+                    ? PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS
+                    : PREMIUM_FULL_PRICE_CENTS,
+                ),
+              }
+            : {}),
           premiumDiscountApplied: discountApplied ? "1" : "0",
           premiumDiscountFirstYearOnly: discountApplied ? "1" : "0",
           premiumFullPriceCents: String(PREMIUM_FULL_PRICE_CENTS),
@@ -252,6 +265,7 @@ export async function POST(request: Request) {
         slug: true,
         ownerEmail: true,
         createdAt: true,
+        salesReferralCode: true,
       },
     });
 
@@ -296,6 +310,19 @@ export async function POST(request: Request) {
         metadata: {
           pendingProSignupId: pendingSignup.id,
           setupHelp: setupHelp ? "1" : "0",
+          ...(pendingSignup.salesReferralCode
+            ? {
+                salesReferralCode: pendingSignup.salesReferralCode,
+                referralExternalSaleId: pendingSignup.id,
+                referralCustomerName: pendingSignup.companyName,
+                referralCustomerEmail: pendingSignup.ownerEmail,
+                referralAmountCents: String(
+                  isPremiumDiscountCode(promoCode)
+                    ? PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS
+                    : PREMIUM_FULL_PRICE_CENTS,
+                ),
+              }
+            : {}),
           premiumDiscountApplied: isPremiumDiscountCode(promoCode) ? "1" : "0",
           premiumDiscountFirstYearOnly: isPremiumDiscountCode(promoCode)
             ? "1"
@@ -343,6 +370,7 @@ export async function POST(request: Request) {
       companyName: true,
       ownerEmail: true,
       paymentStatus: true,
+      salesReferralCode: true,
     },
   });
 
@@ -370,6 +398,19 @@ export async function POST(request: Request) {
       metadata: {
         proAccountId: proAccount.id,
         setupHelp: setupHelp ? "1" : "0",
+        ...(proAccount.salesReferralCode
+          ? {
+              salesReferralCode: proAccount.salesReferralCode,
+              referralExternalSaleId: proAccount.id,
+              referralCustomerName: proAccount.companyName,
+              referralCustomerEmail: proAccount.ownerEmail,
+              referralAmountCents: String(
+                isPremiumDiscountCode(promoCode)
+                  ? PREMIUM_FIRST_YEAR_DISCOUNT_PRICE_CENTS
+                  : PREMIUM_FULL_PRICE_CENTS,
+              ),
+            }
+          : {}),
         premiumDiscountApplied: isPremiumDiscountCode(promoCode) ? "1" : "0",
         premiumDiscountFirstYearOnly: isPremiumDiscountCode(promoCode)
           ? "1"

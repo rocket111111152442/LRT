@@ -36,12 +36,16 @@ const initialValues: ProSignupInput = {
   shopSlotDurationMinutes: "60",
   shopMaxAppointmentsPerSlot: "1",
   promoCode: "",
+  referralCode: "",
   emailCode: "",
   emailVerificationId: "",
 };
 
-export function ProSignupForm() {
-  const [values, setValues] = useState<ProSignupInput>(initialValues);
+export function ProSignupForm({ initialReferralCode = "" }: { initialReferralCode?: string }) {
+  const [values, setValues] = useState<ProSignupInput>(() => ({
+    ...initialValues,
+    referralCode: initialReferralCode.toUpperCase(),
+  }));
   const [errors, setErrors] = useState<ProSignupErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [message, setMessage] = useState("");
@@ -413,6 +417,28 @@ export function ProSignupForm() {
       ) : null}
 
       <div className="grid gap-4 border-t border-slate-200 pt-5">
+        <div className="grid max-w-sm gap-1">
+          <label htmlFor="pro-referralCode" className="text-xs font-medium text-slate-600">
+            Code de votre conseiller Qoravo (optionnel)
+          </label>
+          <input
+            id="pro-referralCode"
+            type="text"
+            value={values.referralCode ?? ""}
+            onChange={(event) => updateField("referralCode", event.target.value.toUpperCase())}
+            placeholder="Ex. QO-TIM-12345"
+            className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm uppercase outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
+            aria-invalid={Boolean(errors.referralCode)}
+          />
+          {values.referralCode ? (
+            <p className="text-xs font-medium text-emerald-700">
+              Ce code attribuera votre essai et votre abonnement au conseiller qui vous a accompagné.
+            </p>
+          ) : null}
+          {errors.referralCode ? (
+            <p className="text-xs text-red-700">{errors.referralCode}</p>
+          ) : null}
+        </div>
         <div className="grid max-w-[200px] gap-1">
           <label htmlFor="pro-promoCode" className="text-xs font-medium text-slate-600">
             Code promo (optionnel)

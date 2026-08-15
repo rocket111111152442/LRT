@@ -16,6 +16,11 @@ import {
   PREMIUM_DISCOUNT_CODE,
 } from "@/lib/pro/promoCodes";
 import { validateProSignupInput } from "@/lib/pro/signupValidation";
+import {
+  reportSalesReferralEvent,
+  resolveSalesReferralCode,
+  SalesReferralError,
+} from "@/lib/pro/salesReferral";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import {
   createTrialUsedToken,
@@ -200,6 +205,10 @@ export async function POST(request: Request) {
   try {
     const usesFreeAccessCode = isFreeAccessCode(validation.data.promoCode);
     const usesPremiumDiscountCode = isPremiumDiscountCode(validation.data.promoCode);
+    const salesReferralCode = await resolveSalesReferralCode({
+      referralCode: validation.data.referralCode,
+      promoCode: validation.data.promoCode,
+    });
     const accountSlug = createPrivateSignupSlug(validation.data.slug);
     const conflict = await removeOldUnpaidAccounts(
       validation.data.ownerEmail,
@@ -263,6 +272,8 @@ export async function POST(request: Request) {
       premiumDiscountCode: usesPremiumDiscountCode
         ? PREMIUM_DISCOUNT_CODE
         : null,
+      salesReferralCode,
+      salesReferralValidatedAt: salesReferralCode ? new Date() : null,
       publicListed: false,
     };
 
@@ -293,6 +304,19 @@ export async function POST(request: Request) {
       const trialEndsAt = new Date(Date.now() + TRIAL_DURATION_MS);
       const proAccount = await createTrialProAccount(accountData, trialEndsAt);
 
+      if (salesReferralCode) {
+        await reportSalesReferralEvent({
+          employeeCode: salesReferralCode,
+          externalSaleId: proAccount.id,
+          event: "trial_started",
+          customerName: validation.data.companyName,
+          customerEmail: validation.data.ownerEmail,
+          planLabel: "Essai Qoravo 7 jours",
+        }).catch((error) => {
+          console.error("Qoravo CRM trial attribution failed", error);
+        });
+      }
+
       const response = NextResponse.json({
         redirectUrl: `/admin/login?trial=1&compte=${proAccount.slug}`,
       });
@@ -322,6 +346,13 @@ export async function POST(request: Request) {
       redirectUrl: `/pro/paiement?${paymentParams.toString()}`,
     });
   } catch (error) {
+    if (error instanceof SalesReferralError) {
+      const field = error.kind === "promo" ? "promoCode" : "referralCode";
+      return NextResponse.json(
+        { error: error.message, errors: { [field]: error.message } },
+        { status: error.kind === "unavailable" ? 503 : 400 },
+      );
+    }
     console.error("Pro signup checkout failed", error);
     return NextResponse.json(
       {
