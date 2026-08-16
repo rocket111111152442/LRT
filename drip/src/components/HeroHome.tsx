@@ -100,11 +100,14 @@ export function HeroHome({
       <div ref={shellRef} className="shell relative will-change-transform">
         <h1 className="display-hero flex items-end justify-center">
           {"DRIP".split("").map((letter, index) => (
-            <span key={index} className="block overflow-hidden">
+            <span
+              key={index}
+              className="block overflow-hidden pt-[0.14em] -mt-[0.14em]"
+            >
               <span
                 className="block transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                 style={{
-                  transform: mounted ? "none" : "translateY(102%)",
+                  transform: mounted ? "none" : "translateY(135%)",
                   transitionDelay: `${index * 85}ms`,
                 }}
               >
@@ -114,7 +117,7 @@ export function HeroHome({
           ))}
 
           {/* La goutte, qui tombe une fois à l'arrivée du titre. */}
-          <span className="block overflow-hidden pb-[0.06em] pl-[0.04em]">
+          <span className="block overflow-hidden pb-[0.06em] pl-[0.04em] pt-[0.14em] -mt-[0.14em]">
             <svg
               viewBox="0 0 12 20"
               className="h-[0.28em] w-auto transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"

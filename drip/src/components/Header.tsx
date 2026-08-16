@@ -165,7 +165,7 @@ export function Header({ user }: { user: SessionUser | null }) {
               <span
                 className="display-lg block transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 style={{
-                  transform: menuOpen ? "none" : "translateY(105%)",
+                  transform: menuOpen ? "none" : "translateY(130%)",
                   transitionDelay: `${120 + index * 60}ms`,
                 }}
               >

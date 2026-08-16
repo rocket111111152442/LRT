@@ -21,26 +21,31 @@ export function AuthShell({
 }) {
   return (
     <div className="grid min-h-[calc(100vh-108px)] lg:grid-cols-2">
-      <aside className="invert-block relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
-        <Link href="/" aria-label="DRIP — accueil">
+      <aside className="invert-block relative hidden flex-col overflow-hidden p-12 lg:flex xl:p-16">
+        {/* Filigrane posé en fond plutôt que dans le flux : il ne pousse plus le
+            texte et ne crée plus de bloc compact en bas de colonne. */}
+        <p
+          className="display pointer-events-none absolute -bottom-[0.34em] left-0 select-none text-[clamp(6rem,11vw,9.5rem)] leading-none opacity-[0.05]"
+          aria-hidden="true"
+        >
+          DRIP
+        </p>
+
+        <Link href="/" aria-label="DRIP — accueil" className="relative">
           <Logo size="md" />
         </Link>
 
-        <div>
+        <div className="relative mt-auto max-w-[34ch] pb-4">
           {aside ?? (
             <>
-              <p className="display-xl max-w-[11ch]">Un compte, un panier, zéro friction.</p>
-              <p className="mt-8 max-w-[42ch] text-sm leading-relaxed text-[color:var(--color-ash)]">
+              <p className="display-lg">Un compte, un panier, zéro friction.</p>
+              <p className="mt-7 text-sm leading-relaxed text-[color:var(--color-ash)]">
                 Retrouvez vos commandes, suivez vos colis et laissez un avis sur
                 les pièces reçues.
               </p>
             </>
           )}
         </div>
-
-        <p className="display select-none text-[13rem] leading-[0.75] opacity-[0.07]">
-          DRIP
-        </p>
       </aside>
 
       <div className="flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-16">

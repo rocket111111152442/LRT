@@ -14,7 +14,7 @@ export default function MotDePasseOubliePage() {
       title="Mot de passe oublié"
       intro="Indiquez l'adresse de votre compte : nous vous envoyons un lien pour en définir un nouveau."
       aside={
-        <p className="display-xl max-w-[12ch]">Ça arrive à tout le monde.</p>
+        <p className="display-lg">Ça arrive à tout le monde.</p>
       }
       footer={
         <p className="text-sm text-[color:var(--color-smoke)]">
