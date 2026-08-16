@@ -24,7 +24,7 @@ const CHAPTERS = [
   {
     number: "03",
     title: "Fabriqué à la commande",
-    body: "Rien n'est produit d'avance. La fabrication démarre quand la commande tombe : comptez deux à cinq jours avant l'expédition.",
+    body: "Rien n'est produit d'avance. La fabrication démarre quand la commande tombe : comptez deux à cinq jours avant l'expédition. C'est plus long, mais rien n'est fabriqué pour rien — pas de stock qui dort, pas d'invendus détruits, pas de pollution pour des pièces que personne n'achètera.",
   },
 ];
 

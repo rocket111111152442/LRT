@@ -82,7 +82,7 @@ export function Header({ user }: { user: SessionUser | null }) {
       >
         <div className="shell flex h-[68px] items-center justify-between gap-6">
           <Link href="/" className="shrink-0" aria-label="NATURAL BRUTAL — accueil">
-            <Logo size="sm" />
+            <Logo size="sm" variant="wordmark" />
           </Link>
 
           <nav className="hidden items-center gap-9 lg:flex" aria-label="Navigation principale">

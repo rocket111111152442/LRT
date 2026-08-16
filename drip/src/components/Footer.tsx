@@ -74,11 +74,10 @@ export function Footer() {
         </div>
 
         {/* Grand mot de pied de page : signature graphique de la marque.
-            L'interligne reste au-dessus de 0.95 et une reserve compense le
-            debord d'Anton, sinon `overflow-hidden` tranche le haut des
-            capitales. */}
+            Mot sans accent sur une seule ligne : a 0.95 d'interligne l'encre
+            d'Anton tient dans sa boite, rien n'est rogne. */}
         <div className="hairline overflow-hidden pt-10">
-          <p className="display select-none pt-[0.12em] text-center text-[clamp(4rem,19vw,16rem)] leading-[0.95] opacity-[0.13]">
+          <p className="display select-none text-center text-[clamp(4rem,19vw,16rem)] leading-[0.95] opacity-[0.13]">
             BRUTAL
           </p>
         </div>

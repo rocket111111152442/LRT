@@ -110,8 +110,21 @@
 }
 
 @layer components {
-  /* --- Typographie d'affichage ------------------------------------ */
+  /* --- Typographie d'affichage ------------------------------------
+     Anton, mesuré : capitale 0,859em au-dessus de la ligne de base,
+     capitale accentuée (À É Î Ô Ù) 1,109em, cédille 0,313em en dessous.
+     Le navigateur pose la ligne de base à 0,5 × interligne + 0,42em du haut
+     de la boîte de ligne.
 
+     Conséquence : sous 1,11 d'interligne, l'accent d'une ligne remonte plus
+     haut que la ligne de base de la ligne précédente et vient se poser sur
+     ses lettres — c'est ce qui transformait « NOUVELLES » en « NQUVELLES ».
+     Les classes qui portent des phrases sont donc à 1,14 ; celles qui ne
+     servent qu'à des mots isolés et sans accent peuvent rester serrées.
+     ---------------------------------------------------------------- */
+
+  /* Mot isolé, ligne unique : logotype, numéros de chapitre, mot de pied de
+     page. À ne pas utiliser pour un texte qui passe à la ligne. */
   .display {
     font-family: var(--font-display);
     text-transform: uppercase;
@@ -125,7 +138,7 @@
   .display-hero {
     font-family: var(--font-display);
     text-transform: uppercase;
-    line-height: 0.9;
+    line-height: 1.14;
     letter-spacing: -0.03em;
     font-size: clamp(3.5rem, 15vw, 15rem);
   }
@@ -133,7 +146,7 @@
   .display-xl {
     font-family: var(--font-display);
     text-transform: uppercase;
-    line-height: 0.95;
+    line-height: 1.14;
     letter-spacing: -0.025em;
     font-size: clamp(2.5rem, 7vw, 6rem);
   }
@@ -141,7 +154,7 @@
   .display-lg {
     font-family: var(--font-display);
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.14;
     letter-spacing: -0.02em;
     font-size: clamp(1.9rem, 4.2vw, 3.5rem);
   }
@@ -374,9 +387,11 @@
 
   /* --- Défilé (marquee) ------------------------------------------- */
 
+  /* Le rognage est confié au conteneur extérieur (`overflow-hidden py-*`) :
+     il coupe aussi net sur les côtés, mais laisse respirer en hauteur pour
+     que les accents des grandes capitales ne soient pas tranchés. */
   .marquee {
     display: flex;
-    overflow: hidden;
     user-select: none;
     gap: 0;
   }
@@ -438,15 +453,21 @@
   .reveal-mask {
     display: block;
     overflow: hidden;
-    /* Anton dépasse de sa boîte de ligne : sans cette réserve, `overflow:
-       hidden` tranche le haut des capitales. La marge négative annule le
-       décalage, la mise en page ne bouge pas. */
-    padding-top: 0.16em;
-    margin-top: -0.16em;
+    /* À 1,14 d'interligne l'encre d'Anton déborde encore de sa boîte : 0,12em
+       au-dessus pour les capitales accentuées, 0,16em en dessous pour la
+       cédille. Sans cette réserve, `overflow: hidden` les tranche. Les marges
+       négatives compensent exactement les retraits : la hauteur extérieure
+       reste égale à l'interligne, la mise en page ne bouge pas d'un pixel. */
+    padding-top: 0.2em;
+    padding-bottom: 0.22em;
+    margin-top: -0.2em;
+    margin-bottom: -0.22em;
   }
 
+  /* 145 % et non 130 % : la ligne doit sortir sous la réserve basse, accents
+     compris, sinon un liseré de texte reste visible avant l'animation. */
   .js .reveal-mask > * {
-    transform: translateY(130%);
+    transform: translateY(145%);
   }
 
   .reveal-mask > * {

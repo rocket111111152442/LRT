@@ -69,7 +69,14 @@ export default async function RootLayout({
   const [user, cart] = await Promise.all([getCurrentUser(), readCart()]);
 
   return (
-    <html lang="fr" className={`${anton.variable} ${interTight.variable} ${mono.variable}`}>
+    // `suppressHydrationWarning` : le script ci-dessous ajoute la classe « js »
+    // sur <html> avant l'hydratation, donc l'attribut class diffère forcément
+    // entre le HTML du serveur et celui du client. C'est voulu.
+    <html
+      lang="fr"
+      className={`${anton.variable} ${interTight.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Marque la page comme « JavaScript actif » avant le premier rendu.
             Les états masqués des animations d'apparition sont conditionnés à

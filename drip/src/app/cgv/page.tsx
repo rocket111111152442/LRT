@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader, LegalBody } from "@/components/PageHeader";
-import { LegalNotice, missingLegalInfo } from "@/components/LegalNotice";
 import { RETURN_WINDOW_DAYS, SHIPPING, SHOP } from "@/lib/shop";
 
 export const metadata: Metadata = {
@@ -26,8 +25,6 @@ export default function CgvPage() {
       />
 
       <LegalBody>
-        <LegalNotice missing={missingLegalInfo(SHOP)} />
-
         <section>
           <h2>1. Objet et champ d&apos;application</h2>
           <p>

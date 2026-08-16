@@ -7,13 +7,15 @@ import Image from "next/image";
  * feuillage et le nom. Son fond (7,8,8) est à un cheveu de l'encre du site,
  * donc il se fond sans bord visible dans les sections noires.
  *
- * Deux usages, dictés par la lisibilité :
+ * Trois usages, dictés par la lisibilité :
  *
  *  - `variant="lockup"` — le dessin complet, texte compris. Réservé aux fonds
  *    noirs et aux grandes tailles, sinon le nom à l'intérieur devient illisible.
  *  - `variant="mark"` (défaut) — la tête de panthère seule, accolée au nom
- *    composé en typographie. C'est ce qui tient dans une barre de navigation :
- *    le dessin reste reconnaissable à 34 px, le nom reste net.
+ *    composé en typographie.
+ *  - `variant="wordmark"` — le nom seul. C'est ce que porte la barre de
+ *    navigation : à 30 px le dessin se referme en tache noire, le nom composé
+ *    reste net et le blanc autour respire.
  *
  * Le fichier source ne fait que 165 px : au-delà d'environ 150 px d'affichage
  * il commencera à manquer de définition. Un export plus grand règlera ça sans
@@ -33,7 +35,7 @@ export function Logo({
 }: {
   className?: string;
   size?: "sm" | "md" | "lg";
-  variant?: "mark" | "lockup";
+  variant?: "mark" | "wordmark" | "lockup";
 }) {
   const scale = SIZES[size];
 
@@ -55,14 +57,16 @@ export function Logo({
       className={`inline-flex items-center gap-2.5 leading-none ${className}`}
       aria-label="NATURAL BRUTAL"
     >
-      <Image
-        src="/icone-natural-brutal.png"
-        alt=""
-        width={scale.mark}
-        height={scale.mark}
-        className="shrink-0"
-        priority
-      />
+      {variant === "mark" && (
+        <Image
+          src="/icone-natural-brutal.png"
+          alt=""
+          width={scale.mark}
+          height={scale.mark}
+          className="shrink-0"
+          priority
+        />
+      )}
 
       <span className="flex flex-col" aria-hidden="true">
         <span className={`display ${scale.natural} tracking-[0.36em] indent-[0.36em]`}>

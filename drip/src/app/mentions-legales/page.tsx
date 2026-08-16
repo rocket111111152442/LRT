@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PageHeader, LegalBody } from "@/components/PageHeader";
-import { LegalNotice, missingLegalInfo } from "@/components/LegalNotice";
 import { SHOP } from "@/lib/shop";
 
 export const metadata: Metadata = {
@@ -19,8 +18,6 @@ export default function MentionsLegalesPage() {
       />
 
       <LegalBody>
-        <LegalNotice missing={missingLegalInfo(SHOP)} />
-
         <section>
           <h2>Éditeur du site</h2>
           <p>

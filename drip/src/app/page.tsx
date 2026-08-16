@@ -37,7 +37,7 @@ const PILLARS = [
   {
     index: "02",
     title: "Fabriqué à la commande",
-    body: "Rien n'est produit d'avance. La fabrication démarre quand la commande tombe : deux à cinq jours avant l'expédition.",
+    body: "Rien n'est produit d'avance : deux à cinq jours entre la commande et l'expédition. Aucun invendu à détruire, rien de fabriqué ni de pollué pour rien.",
   },
   {
     index: "03",
