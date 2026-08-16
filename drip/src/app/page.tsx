@@ -7,13 +7,13 @@ import { ReviewsMarquee } from "@/components/ReviewsMarquee";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { Stars } from "@/components/Stars";
 import {
+  countActiveProducts,
   getFeaturedProducts,
   getGlobalRating,
   getLatestReviews,
   getRatingsFor,
   listCategories,
 } from "@/lib/catalog";
-import { prisma } from "@/lib/prisma";
 import { SHIPPING, RETURN_WINDOW_DAYS } from "@/lib/shop";
 import { formatPriceSmart } from "@/lib/money";
 
@@ -53,7 +53,7 @@ export default async function HomePage() {
       getLatestReviews(10),
       getGlobalRating(),
       listCategories(),
-      prisma.product.count({ where: { active: true } }),
+      countActiveProducts(),
     ]);
 
   const ratings = await getRatingsFor(featured.map((product) => product.id));

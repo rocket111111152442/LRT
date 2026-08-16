@@ -289,3 +289,12 @@ export async function getGlobalRating() {
     "note globale",
   );
 }
+
+/** Nombre de pièces actuellement en vente. */
+export async function countActiveProducts() {
+  return safeQuery(
+    () => prisma.product.count({ where: { active: true } }),
+    0,
+    "comptage des produits",
+  );
+}
