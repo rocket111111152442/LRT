@@ -22,17 +22,8 @@ export function AuthShell({
   return (
     <div className="grid min-h-[calc(100vh-108px)] lg:grid-cols-2">
       <aside className="invert-block relative hidden flex-col overflow-hidden p-12 lg:flex xl:p-16">
-        {/* Filigrane posé en fond plutôt que dans le flux : il ne pousse plus le
-            texte et ne crée plus de bloc compact en bas de colonne. */}
-        <p
-          className="display pointer-events-none absolute -bottom-[0.34em] left-0 select-none text-[clamp(6rem,11vw,9.5rem)] leading-none opacity-[0.05]"
-          aria-hidden="true"
-        >
-          BRUTAL
-        </p>
-
         <Link href="/" aria-label="NATURAL BRUTAL — accueil" className="relative">
-          <Logo size="md" />
+          <Logo size="md" variant="lockup" />
         </Link>
 
         <div className="relative mt-auto max-w-[34ch] pb-4">

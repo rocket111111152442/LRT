@@ -14,17 +14,17 @@ const CHAPTERS = [
   {
     number: "01",
     title: "Du matériel, pas du style",
-    body: "On habille l'entraînement. Le sol, le sac, les séries, les rounds. Une pièce qui gêne le mouvement ou qui remonte quand on lève les bras ne sert à rien, même si elle rend bien en photo.",
+    body: "On habille l'entraînement. Le sol, le sac, les séries. Une pièce qui gêne le mouvement ne sert à rien.",
   },
   {
     number: "02",
     title: "Le nom",
-    body: "Naturel : des matières franches, des coupes simples, rien d'ajouté pour faire joli. Brutal : ce que le sport fait subir aux vêtements. Les deux tiennent ensemble, sinon la pièce ne sort pas.",
+    body: "Naturel : des matières franches et des coupes simples. Brutal : ce que le sport fait subir aux vêtements.",
   },
   {
     number: "03",
     title: "Fabriqué à la commande",
-    body: "Rien n'est produit d'avance. Votre pièce est confectionnée après l'achat, ce qui ajoute quelques jours avant l'expédition. En échange, aucun stock à écouler et aucune démarque de fin de saison.",
+    body: "Rien n'est produit d'avance. La fabrication démarre quand la commande tombe : comptez deux à cinq jours avant l'expédition.",
   },
 ];
 

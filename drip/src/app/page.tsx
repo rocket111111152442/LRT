@@ -32,12 +32,12 @@ const PILLARS = [
   {
     index: "01",
     title: "Pour s'entraîner",
-    body: "Du matériel de sport, pas du streetwear déguisé. Ça se porte au sol, au sac, à la salle. Si une pièce n'a pas sa place dans un sac de sport, elle n'a pas sa place ici.",
+    body: "Du matériel de sport, pas du streetwear déguisé. Ça se porte au sol, au sac, à la salle.",
   },
   {
     index: "02",
     title: "Fabriqué à la commande",
-    body: "Rien n'est produit d'avance. Votre pièce est confectionnée après l'achat. Ça prend quelques jours de plus, et ça évite les cartons d'invendus qu'on brade en fin de saison.",
+    body: "Rien n'est produit d'avance. La fabrication démarre quand la commande tombe : deux à cinq jours avant l'expédition.",
   },
   {
     index: "03",

@@ -44,6 +44,7 @@ export const metadata: Metadata = {
     siteName: SHOP.name,
     title: `${SHOP.name} — ${SHOP.tagline}`,
     description: SHOP.description,
+    images: [{ url: "/logo-natural-brutal.png", width: 165, height: 162 }],
   },
   twitter: {
     card: "summary_large_image",
@@ -52,8 +53,8 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    apple: "/favicon.svg",
+    icon: [{ url: "/icone-natural-brutal.png", type: "image/png" }],
+    apple: "/icone-natural-brutal.png",
   },
 };
 

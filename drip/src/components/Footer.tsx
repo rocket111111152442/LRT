@@ -41,7 +41,7 @@ export function Footer() {
       <div className="shell">
         <div className="grid gap-14 py-16 lg:grid-cols-[1.2fr_2fr] lg:py-24">
           <div className="reveal">
-            <Logo size="lg" />
+            <Logo size="lg" variant="lockup" />
             <p className="mt-6 max-w-[34ch] text-sm leading-relaxed text-[color:var(--color-ash)]">
               {SHOP.description}
             </p>

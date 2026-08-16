@@ -1,48 +1,50 @@
 import Image from "next/image";
 
 /**
- * Logotype NATURAL BRUTAL.
+ * Identité NATURAL BRUTAL.
  *
- * Par défaut, la marque est composée en typographie : deux lignes empilées,
- * « BRUTAL » nettement plus large que « NATURAL », comme sur le lockup dessiné.
- * Le tout hérite de `currentColor`, donc il fonctionne sur fond clair comme sur
- * fond noir sans second fichier.
+ * Le fichier fourni est un carré noir de 165 px de côté : la panthère, le
+ * feuillage et le nom. Son fond (7,8,8) est à un cheveu de l'encre du site,
+ * donc il se fond sans bord visible dans les sections noires.
  *
- * POUR UTILISER LE LOGO DESSINÉ (panthère + feuillage) :
- * déposer les fichiers dans `public/` sous les noms ci-dessous, puis passer
- * `USE_IMAGE` à `true`. Deux versions sont nécessaires car le dessin ne
- * s'inverse pas tout seul :
- *   public/logo-sombre.png  → version claire, posée sur les fonds noirs
- *   public/logo-clair.png   → version foncée, posée sur les fonds papier
+ * Deux usages, dictés par la lisibilité :
+ *
+ *  - `variant="lockup"` — le dessin complet, texte compris. Réservé aux fonds
+ *    noirs et aux grandes tailles, sinon le nom à l'intérieur devient illisible.
+ *  - `variant="mark"` (défaut) — la tête de panthère seule, accolée au nom
+ *    composé en typographie. C'est ce qui tient dans une barre de navigation :
+ *    le dessin reste reconnaissable à 34 px, le nom reste net.
+ *
+ * Le fichier source ne fait que 165 px : au-delà d'environ 150 px d'affichage
+ * il commencera à manquer de définition. Un export plus grand règlera ça sans
+ * toucher au code.
  */
-const USE_IMAGE = false;
 
 const SIZES = {
-  sm: { natural: "text-[0.62rem]", brutal: "text-[1.15rem]", image: 30 },
-  md: { natural: "text-[0.8rem]", brutal: "text-[1.5rem]", image: 40 },
-  lg: { natural: "text-[1.3rem]", brutal: "text-[2.45rem]", image: 66 },
+  sm: { mark: 30, natural: "text-[0.54rem]", brutal: "text-[1rem]", lockup: 74 },
+  md: { mark: 40, natural: "text-[0.7rem]", brutal: "text-[1.3rem]", lockup: 104 },
+  lg: { mark: 56, natural: "text-[1rem]", brutal: "text-[1.9rem]", lockup: 150 },
 } as const;
 
 export function Logo({
   className = "",
   size = "md",
-  onDark = false,
+  variant = "mark",
 }: {
   className?: string;
   size?: "sm" | "md" | "lg";
-  /** Fond noir : sélectionne la déclinaison claire du logo dessiné. */
-  onDark?: boolean;
+  variant?: "mark" | "lockup";
 }) {
   const scale = SIZES[size];
 
-  if (USE_IMAGE) {
+  if (variant === "lockup") {
     return (
       <Image
-        src={onDark ? "/logo-sombre.png" : "/logo-clair.png"}
+        src="/logo-natural-brutal.png"
         alt="NATURAL BRUTAL"
-        width={scale.image * 3}
-        height={scale.image}
-        className={`h-auto w-auto ${className}`}
+        width={scale.lockup}
+        height={Math.round(scale.lockup * (162 / 165))}
+        className={`h-auto ${className}`}
         priority
       />
     );
@@ -50,22 +52,23 @@ export function Logo({
 
   return (
     <span
-      className={`inline-flex flex-col items-center leading-none ${className}`}
+      className={`inline-flex items-center gap-2.5 leading-none ${className}`}
       aria-label="NATURAL BRUTAL"
     >
-      {/* « NATURAL » est lettré large et fin, « BRUTAL » massif : c'est ce
-          contraste qui porte le nom, pas un ornement. */}
-      <span
-        className={`display ${scale.natural} tracking-[0.42em] indent-[0.42em]`}
-        aria-hidden="true"
-      >
-        NATURAL
-      </span>
-      <span
-        className={`display ${scale.brutal} tracking-[0.02em]`}
-        aria-hidden="true"
-      >
-        BRUTAL
+      <Image
+        src="/icone-natural-brutal.png"
+        alt=""
+        width={scale.mark}
+        height={scale.mark}
+        className="shrink-0"
+        priority
+      />
+
+      <span className="flex flex-col" aria-hidden="true">
+        <span className={`display ${scale.natural} tracking-[0.36em] indent-[0.36em]`}>
+          NATURAL
+        </span>
+        <span className={`display ${scale.brutal} tracking-[0.02em]`}>BRUTAL</span>
       </span>
     </span>
   );
