@@ -112,7 +112,7 @@ export function ContactForm() {
           name="subject"
           required
           className={`field ${errors.subject ? "field-error" : ""}`}
-          placeholder="Commande DRIP-000123"
+          placeholder="Commande NB-000123"
         />
         {errors.subject && (
           <p className="label-sm mt-2" role="alert">

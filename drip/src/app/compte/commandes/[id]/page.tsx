@@ -124,7 +124,7 @@ export default async function CommandeDetailPage({ params }: { params: Params })
                   <Image src={item.imageUrl} alt="" fill sizes="80px" className="object-cover" />
                 ) : (
                   <span className="grid h-full w-full place-items-center bg-[color:var(--color-ash)]">
-                    <span className="display text-lg opacity-30">D</span>
+                    <span className="display text-lg opacity-30">NB</span>
                   </span>
                 )}
               </div>

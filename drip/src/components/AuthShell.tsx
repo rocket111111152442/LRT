@@ -28,10 +28,10 @@ export function AuthShell({
           className="display pointer-events-none absolute -bottom-[0.34em] left-0 select-none text-[clamp(6rem,11vw,9.5rem)] leading-none opacity-[0.05]"
           aria-hidden="true"
         >
-          DRIP
+          BRUTAL
         </p>
 
-        <Link href="/" aria-label="DRIP — accueil" className="relative">
+        <Link href="/" aria-label="NATURAL BRUTAL — accueil" className="relative">
           <Logo size="md" />
         </Link>
 
@@ -40,8 +40,8 @@ export function AuthShell({
             <>
               <p className="display-lg">Un compte, un panier, zéro friction.</p>
               <p className="mt-7 text-sm leading-relaxed text-[color:var(--color-ash)]">
-                Retrouvez vos commandes, suivez vos colis et laissez un avis sur
-                les pièces reçues.
+                Retrouvez vos commandes, suivez vos colis et laissez un avis sur les
+                pièces reçues.
               </p>
             </>
           )}

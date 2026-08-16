@@ -7,7 +7,7 @@ import { RETURN_WINDOW_DAYS, SHIPPING, SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Questions fréquentes",
   description:
-    "Délais de fabrication, livraison, tailles, retours, paiement : toutes les réponses sur les commandes DRIP.",
+    "Délais de fabrication, livraison, tailles, retours, paiement : toutes les réponses sur les commandes NATURAL BRUTAL.",
 };
 
 const SECTIONS = [
@@ -17,7 +17,7 @@ const SECTIONS = [
       {
         title: "Pourquoi un délai avant l'expédition ?",
         content:
-          "Chaque casquette est fabriquée après votre commande, pas prélevée sur un stock. Comptez 2 à 5 jours ouvrés de confection, puis le délai de livraison du transporteur. C'est ce fonctionnement qui nous évite de produire des pièces qui finiraient invendues.",
+          "Chaque pièce est confectionnée après votre commande, pas prélevée sur un stock. Comptez 2 à 5 jours ouvrés de confection, puis le délai de livraison du transporteur. C'est ce fonctionnement qui nous évite de produire des pièces qui finiraient invendues.",
       },
       {
         title: "Puis-je modifier ou annuler ma commande ?",
@@ -58,12 +58,12 @@ const SECTIONS = [
       {
         title: "Quelle taille choisir ?",
         content:
-          "La majorité de nos modèles sont en taille unique avec fermeture ajustable, adaptée à un tour de tête de 55 à 61 cm. Lorsqu'un modèle existe en plusieurs tailles, le détail figure sur sa fiche produit.",
+          "Nos hauts et bas d'entraînement taillent près du corps, sans comprimer : si vous hésitez entre deux tailles et que vous cherchez de l'aisance, prenez au-dessus. Le tableau des mesures figure sur chaque fiche produit, et les casquettes sont en taille unique ajustable.",
       },
       {
-        title: "Comment entretenir ma casquette ?",
+        title: "Comment entretenir mes pièces ?",
         content:
-          "Lavage à la main, à l'eau froide, avec un savon doux. Ne pas mettre en machine ni au sèche-linge : la structure de la visière et la tenue de la broderie ne s'en remettraient pas. Séchage à l'air libre, à plat.",
+          "Lavage à 30 °C sur l'envers, sans adoucissant : l'adoucissant bouche les fibres techniques et tue la respirabilité. Jamais de sèche-linge ni de repassage sur les impressions. Séchage à l'air libre. Les casquettes se lavent à la main, à l'eau froide.",
       },
     ],
   },
@@ -92,7 +92,7 @@ const SECTIONS = [
       {
         title: "Quels moyens de paiement acceptez-vous ?",
         content:
-          "Carte bancaire (Visa, Mastercard, American Express), Apple Pay et Google Pay, via Stripe. Le paiement se déroule sur une page sécurisée hébergée par Stripe : vos coordonnées bancaires ne transitent jamais par nos serveurs et ne sont jamais stockées par DRIP.",
+          "Carte bancaire (Visa, Mastercard, American Express), Apple Pay et Google Pay, via Stripe. Le paiement se déroule sur une page sécurisée hébergée par Stripe : vos coordonnées bancaires ne transitent jamais par nos serveurs et ne sont jamais stockées par NATURAL BRUTAL.",
       },
       {
         title: "Dois-je créer un compte pour commander ?",

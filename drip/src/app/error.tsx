@@ -13,7 +13,7 @@ export default function GlobalError({
   useEffect(() => {
     // Le détail technique reste côté serveur : on n'expose jamais la pile
     // d'appels au visiteur.
-    console.error("[drip] erreur d'affichage :", error);
+    console.error("[natural-brutal] erreur d'affichage :", error);
   }, [error]);
 
   return (

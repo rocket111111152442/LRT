@@ -6,7 +6,7 @@ import { SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
   description:
-    "Comment DRIP collecte, utilise et protège vos données personnelles, conformément au RGPD.",
+    "Comment NATURAL BRUTAL collecte, utilise et protège vos données personnelles, conformément au RGPD.",
 };
 
 export default function ConfidentialitePage() {
@@ -85,7 +85,7 @@ export default function ConfidentialitePage() {
         <section>
           <h2>4. Destinataires</h2>
           <p>
-            Vos données sont accessibles à l&apos;équipe DRIP et aux
+            Vos données sont accessibles à l&apos;équipe NATURAL BRUTAL et aux
             sous-traitants strictement nécessaires au service :
           </p>
           <ul>

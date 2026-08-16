@@ -223,7 +223,7 @@ export default async function ProductPage({ params }: { params: Params }) {
                 {
                   title: "Paiement sécurisé",
                   content:
-                    "Carte bancaire, Apple Pay et Google Pay via Stripe. Vos coordonnées bancaires ne transitent jamais par nos serveurs et ne sont jamais stockées par DRIP.",
+                    "Carte bancaire, Apple Pay et Google Pay via Stripe. Vos coordonnées bancaires ne transitent jamais par nos serveurs et ne sont jamais stockées par NATURAL BRUTAL.",
                 },
               ]}
             />
@@ -318,7 +318,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
                 {review.reply && (
                   <div className="mt-4 border-l border-[color:var(--color-ink)] pl-4">
-                    <p className="label-sm mb-1">Réponse de DRIP</p>
+                    <p className="label-sm mb-1">Réponse de l&apos;atelier</p>
                     <p className="text-sm text-[color:var(--color-ink-soft)]">{review.reply}</p>
                   </div>
                 )}

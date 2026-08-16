@@ -5,49 +5,54 @@ import { Marquee } from "@/components/Marquee";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
 export const metadata: Metadata = {
-  title: "Le studio",
+  title: "L'atelier",
   description:
-    "DRIP : un studio qui dessine des casquettes en noir et blanc, produites en petites séries et fabriquées à la commande en Europe.",
+    "NATURAL BRUTAL : une marque de vêtements de combat et de sport lancée par un père et son fils, testée à l'entraînement avant d'être vendue.",
 };
 
 const CHAPTERS = [
   {
     number: "01",
-    title: "Une contrainte, pas une palette",
-    body: "Le noir et le blanc ne sont pas une économie de moyens : c'est une contrainte qu'on s'impose. Sans couleur pour rattraper une forme bancale, tout se joue sur la coupe, la hauteur de la calotte, la courbe de la visière et la densité du fil. C'est plus dur à réussir, et ça se voit quand c'est réussi.",
+    title: "Deux paires de mains",
+    body: "NATURAL BRUTAL, c'est un père et un fils. Pas d'équipe marketing, pas de bureau de style, pas d'investisseur à rassurer. On dessine ensemble, on tranche ensemble, et quand on se plante, on n'a personne d'autre à blâmer. C'est plus lent qu'une grosse structure, mais chaque pièce qui sort a été validée par les deux.",
   },
   {
     number: "02",
-    title: "Fabriqué après l'achat",
-    body: "Chaque pièce est confectionnée une fois la commande passée, dans des ateliers partenaires en Europe. Conséquence directe : aucun stock à écouler, aucune promotion de fin de saison pour liquider des invendus, et un délai de deux à cinq jours ouvrés avant expédition. On préfère être honnêtes sur le délai plutôt que rapides sur du stock mort.",
+    title: "Naturel, et brutal quand même",
+    body: "Le nom dit exactement ce qu'on cherche. Naturel : des matières franches, des coupes qui suivent le corps au lieu de le contraindre, rien d'inutile. Brutal : ça doit encaisser les prises, les chutes, les séries et les lavages qui s'enchaînent. Les deux ne s'opposent pas, ils se tiennent — c'est même tout l'enjeu.",
   },
   {
     number: "03",
-    title: "Des séries qui finissent",
-    body: "Une série sort, elle vit, elle s'arrête. Certaines reviennent, la plupart non. Ce n'est pas une tactique de rareté artificielle : c'est ce qui nous permet de continuer à dessiner au lieu de gérer un catalogue de quarante références qui se ressemblent.",
+    title: "Éprouvé avant d'être vendu",
+    body: "Une pièce ne passe pas en ligne parce que le rendu est joli sur un écran. Elle y passe après avoir été portée à l'entraînement, lavée, reportée, tirée dessus. Si une couture cède, si un tissu gratte au troisième round, si une coupe remonte pendant l'effort, elle retourne au dessin. C'est long, et c'est la seule méthode qu'on connaisse.",
+  },
+  {
+    number: "04",
+    title: "Fabriqué à la commande",
+    body: "Rien n'est produit d'avance. Votre pièce est confectionnée après votre achat : pas d'invendus à brader en fin de saison, pas de cartons qui dorment. En contrepartie, il y a un délai avant l'expédition. On préfère l'annoncer clairement plutôt que promettre du 24 heures qu'on ne tiendrait pas.",
   },
 ];
 
 const FACTS = [
-  { label: "Fondé en", value: "2026" },
-  { label: "Production", value: "Europe" },
-  { label: "Couleurs", value: "02" },
+  { label: "Fondateurs", value: "02" },
+  { label: "Générations", value: "02" },
   { label: "Stock dormant", value: "00" },
+  { label: "Intermédiaires", value: "00" },
 ];
 
-export default function HistoirePage() {
+export default function AtelierPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Le studio"
-        title="Deux couleurs, une obsession."
-        intro="DRIP est un petit studio. On dessine des casquettes, on les fait produire à l'unité, et on les envoie. Il n'y a pas d'histoire de garage à raconter — juste une manière de travailler qu'on assume."
+        eyebrow="L'atelier"
+        title="Une marque montée à deux."
+        intro="Un père, un fils, et l'envie de faire des vêtements d'entraînement qui tiennent vraiment. Il n'y a pas d'histoire de start-up derrière NATURAL BRUTAL — juste une méthode de travail qu'on assume."
       />
 
       <Marquee
         invert
         size="lg"
-        items={["Noir", "Blanc", "Rien d'autre"]}
+        items={["Naturel", "Brutal", "Rien entre les deux"]}
         separator="—"
       />
 
@@ -88,7 +93,9 @@ export default function HistoirePage() {
                 style={{ ["--reveal-delay" as string]: `${index * 90}ms` }}
               >
                 <p className="label-sm mb-4 text-[color:var(--color-smoke)]">{fact.label}</p>
-                <p className="display text-[clamp(2.5rem,5vw,4rem)] leading-none">{fact.value}</p>
+                <p className="display text-[clamp(2.5rem,5vw,4rem)] leading-none">
+                  {fact.value}
+                </p>
               </div>
             ))}
           </div>
@@ -103,13 +110,14 @@ export default function HistoirePage() {
                 <span>Une question ?</span>
               </span>
               <span className="reveal-mask" style={{ ["--reveal-delay" as string]: "90ms" }}>
-                <span>On répond vite.</span>
+                <span>C&apos;est nous au bout.</span>
               </span>
             </h2>
 
             <p className="reveal mt-8 max-w-[46ch] text-sm leading-relaxed text-[color:var(--color-smoke)]">
-              Taille, délai, retour, commande en cours : écrivez-nous, c&apos;est
-              une vraie personne qui lit.
+              Taille, matière, délai, commande en cours : écrivez-nous. Il n&apos;y
+              a pas de plateforme de support, c&apos;est l&apos;un de nous deux qui
+              répond.
             </p>
 
             <div className="reveal mt-8 flex flex-wrap gap-3">
@@ -126,7 +134,7 @@ export default function HistoirePage() {
             <p className="label mb-4 text-[color:var(--color-smoke)]">
               Être prévenu des sorties
             </p>
-            <NewsletterForm source="histoire" />
+            <NewsletterForm source="atelier" />
           </div>
         </div>
       </section>

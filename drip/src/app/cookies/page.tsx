@@ -6,18 +6,18 @@ import { SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Cookies",
   description:
-    "Liste des cookies déposés par la boutique DRIP : finalité, durée de vie et caractère obligatoire.",
+    "Liste des cookies déposés par la boutique NATURAL BRUTAL : finalité, durée de vie et caractère obligatoire.",
 };
 
 const COOKIES = [
   {
-    name: "drip_session",
+    name: "nb_session",
     purpose: "Maintient votre connexion au compte client.",
     duration: "30 jours",
     required: true,
   },
   {
-    name: "drip_cart",
+    name: "nb_cart",
     purpose:
       "Rattache votre panier à votre navigateur pour le retrouver d'une visite à l'autre, même sans compte.",
     duration: "60 jours",

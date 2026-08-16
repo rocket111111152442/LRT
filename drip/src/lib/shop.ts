@@ -5,12 +5,13 @@
  */
 
 export const SHOP = {
-  name: "DRIP",
-  legalName: "DRIP",
-  tagline: "Casquettes en édition limitée",
+  name: "NATURAL BRUTAL",
+  shortName: "NATURAL BRUTAL",
+  legalName: process.env.NEXT_PUBLIC_SHOP_LEGAL_NAME ?? "NATURAL BRUTAL",
+  tagline: "Vêtements de combat et de sport",
   description:
-    "DRIP dessine des casquettes en noir et blanc, produites en petites séries et expédiées depuis l'Europe.",
-  email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "contact@drip-store.fr",
+    "NATURAL BRUTAL équipe celles et ceux qui s'entraînent dur : vêtements de combat et de sport, coupés pour encaisser, fabriqués à la commande.",
+  email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "contact@naturalbrutal.fr",
   phone: process.env.NEXT_PUBLIC_SHOP_PHONE ?? "",
   address: process.env.NEXT_PUBLIC_SHOP_ADDRESS ?? "",
   siret: process.env.NEXT_PUBLIC_SHOP_SIRET ?? "",
@@ -22,9 +23,12 @@ export const SHOP = {
   },
 } as const;
 
+/** Préfixe des numéros de commande : NB-000042. */
+export const ORDER_PREFIX = "NB";
+
 /** Frais de port en centimes, par zone. */
 export const SHIPPING = {
-  freeThreshold: 6000,
+  freeThreshold: 8000,
   standard: 490,
   express: 990,
   zones: [

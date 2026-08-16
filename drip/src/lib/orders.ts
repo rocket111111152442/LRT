@@ -3,13 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { getStripe, appUrl } from "@/lib/stripe";
 import { readCart, clearCart } from "@/lib/cart";
 import { getCurrentUser } from "@/lib/auth";
-import { shippingFor, SHIPPING_COUNTRIES, SHOP } from "@/lib/shop";
+import { ORDER_PREFIX, shippingFor, SHIPPING_COUNTRIES, SHOP } from "@/lib/shop";
 import { createPrintfulOrder, printfulEnabled } from "@/lib/printful";
 
-/** Numéro lisible et séquentiel : DRIP-000042. */
+/** Numéro lisible et séquentiel : NB-000042. */
 async function nextOrderNumber() {
   const count = await prisma.order.count();
-  return `DRIP-${String(count + 1).padStart(6, "0")}`;
+  return `${ORDER_PREFIX}-${String(count + 1).padStart(6, "0")}`;
 }
 
 export type CouponResult =
@@ -194,7 +194,7 @@ export async function createCheckoutSession(couponCode?: string) {
     locale: "fr",
     custom_text: {
       submit: {
-        message: `Vos casquettes ${SHOP.name} sont fabriquées à la commande puis expédiées sous 2 à 5 jours ouvrés.`,
+        message: `Votre équipement ${SHOP.name} est fabriqué à la commande, puis expédié sous 2 à 5 jours ouvrés.`,
       },
     },
   });

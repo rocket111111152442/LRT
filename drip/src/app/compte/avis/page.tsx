@@ -164,7 +164,7 @@ export default async function MesAvisPage({
 
                 {review.reply && (
                   <div className="mt-4 border-l border-[color:var(--color-ink)] pl-4">
-                    <p className="label-sm mb-1">Réponse de DRIP</p>
+                    <p className="label-sm mb-1">Réponse de l&apos;atelier</p>
                     <p className="text-sm">{review.reply}</p>
                   </div>
                 )}

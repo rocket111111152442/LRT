@@ -14,7 +14,7 @@ import { SHIPPING } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Boutique",
   description:
-    "Toutes les casquettes DRIP : séries limitées en noir et blanc, fabriquées à la commande et expédiées depuis l'Europe.",
+    "Tout l'équipement NATURAL BRUTAL : vêtements de combat et de sport, coupés pour encaisser et fabriqués à la commande.",
 };
 
 type SearchParams = Promise<{
@@ -64,7 +64,7 @@ export default async function BoutiquePage({
 
         <div className="flex flex-wrap items-end justify-between gap-8">
           <h1 className="display-xl reveal-mask max-w-[16ch]">
-            <span>{activeCategory ? activeCategory.name : "La collection"}</span>
+            <span>{activeCategory ? activeCategory.name : "L'équipement"}</span>
           </h1>
 
           <p className="label reveal text-[color:var(--color-smoke)]">
@@ -146,7 +146,7 @@ export default async function BoutiquePage({
         invert
         items={[
           `Livraison offerte dès ${SHIPPING.freeThreshold / 100} €`,
-          "Séries limitées",
+          "Coupes testées à l'entraînement",
           "Fabriqué à la commande",
           "Paiement sécurisé Stripe",
         ]}
@@ -164,10 +164,10 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
       <p className="max-w-[46ch] text-sm text-[color:var(--color-smoke)]">
         {hasFilters
           ? "Rien ne correspond à cette recherche pour le moment. Essayez un autre rayon."
-          : "Les premières pièces arrivent très bientôt. Laissez votre adresse pour être prévenu du lancement."}
+          : "Les premières pièces arrivent. Laissez votre adresse pour être prévenu du lancement."}
       </p>
       <Link href={hasFilters ? "/boutique" : "/"} className="btn btn-outline btn-sm">
-        {hasFilters ? "Voir toute la collection" : "Retour à l'accueil"}
+        {hasFilters ? "Voir tout l'équipement" : "Retour à l'accueil"}
       </Link>
     </div>
   );

@@ -84,7 +84,7 @@ export default async function CommandesPage() {
                       <Image src={item.imageUrl} alt="" fill sizes="62px" className="object-cover" />
                     ) : (
                       <span className="grid h-full w-full place-items-center bg-[color:var(--color-ash)]">
-                        <span className="display text-base opacity-30">D</span>
+                        <span className="display text-base opacity-30">NB</span>
                       </span>
                     )}
                   </div>

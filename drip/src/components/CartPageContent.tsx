@@ -109,7 +109,7 @@ export function CartPageContent() {
                   />
                 ) : (
                   <span className="grid h-full w-full place-items-center bg-[color:var(--color-ash)]">
-                    <span className="display text-2xl opacity-30">D</span>
+                    <span className="display text-2xl opacity-30">NB</span>
                   </span>
                 )}
               </Link>
@@ -225,7 +225,7 @@ export function CartPageContent() {
                 value={coupon}
                 onChange={(event) => setCoupon(event.target.value.toUpperCase())}
                 className="field"
-                placeholder="DRIP10"
+                placeholder="NB10"
                 autoComplete="off"
               />
               <button
@@ -274,7 +274,7 @@ export function CartPageContent() {
           <ul className="mt-7 space-y-2 text-xs text-[color:var(--color-smoke)]">
             <li>— Paiement sécurisé par Stripe</li>
             <li>— Retours sous {RETURN_WINDOW_DAYS} jours</li>
-            <li>— Fabriqué à la commande, expédié d&apos;Europe</li>
+            <li>— Fabriqué à la commande</li>
           </ul>
         </div>
       </aside>

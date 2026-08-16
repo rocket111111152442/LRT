@@ -39,7 +39,7 @@ export function missingLegalInfo(shop: {
 
   if (!shop.address) missing.push("NEXT_PUBLIC_SHOP_ADDRESS — adresse du siège");
   if (!shop.siret) missing.push("NEXT_PUBLIC_SHOP_SIRET — numéro SIRET / RCS");
-  if (!shop.email || shop.email.includes("drip-store.fr")) {
+  if (!shop.email || shop.email.includes("naturalbrutal.fr")) {
     missing.push("NEXT_PUBLIC_SHOP_EMAIL — adresse de contact réelle");
   }
 

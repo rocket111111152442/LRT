@@ -8,7 +8,7 @@ import { getGlobalRating } from "@/lib/catalog";
 export const metadata: Metadata = {
   title: "Avis clients",
   description:
-    "Tous les avis vérifiés des clients DRIP : notes, retours sur la coupe, la matière et la livraison.",
+    "Tous les avis vérifiés des clients NATURAL BRUTAL : notes, retours sur la coupe, la matière et la tenue à l'entraînement.",
 };
 
 export const revalidate = 600;
@@ -146,7 +146,7 @@ export default async function AvisPage() {
 
                 {review.reply && (
                   <div className="mt-5 border-l border-[color:var(--color-ink)] pl-4">
-                    <p className="label-sm mb-1">Réponse de DRIP</p>
+                    <p className="label-sm mb-1">Réponse de l&apos;atelier</p>
                     <p className="text-sm text-[color:var(--color-ink-soft)]">{review.reply}</p>
                   </div>
                 )}

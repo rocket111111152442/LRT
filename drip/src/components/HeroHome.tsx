@@ -6,9 +6,10 @@ import Link from "next/link";
 /**
  * Ouverture de la page d'accueil.
  *
- * Le parti pris est typographique : le mot occupe tout l'écran et le reste se
- * met en orbite autour. La composition tient donc debout sans photographie,
- * puis accueillera les visuels sans être redessinée.
+ * Le parti pris est typographique : le nom occupe tout l'écran, repris du
+ * lockup de la marque — « NATURAL » lettré large et fin, « BRUTAL » massif
+ * dessous. La composition tient debout sans photographie, puis accueillera les
+ * visuels sans être redessinée.
  */
 export function HeroHome({
   season,
@@ -19,7 +20,7 @@ export function HeroHome({
 }) {
   const [mounted, setMounted] = useState(false);
   const shellRef = useRef<HTMLDivElement>(null);
-  const dropRef = useRef<HTMLDivElement>(null);
+  const cueRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Un tick avant de lancer l'animation d'entrée : les fontes sont chargées,
@@ -42,12 +43,12 @@ export function HeroHome({
       frame = requestAnimationFrame(() => {
         const y = window.scrollY;
         if (shellRef.current) {
-          // Parallaxe légère : le titre monte deux fois moins vite que la page.
+          // Parallaxe légère : le titre monte moins vite que la page.
           shellRef.current.style.transform = `translate3d(0, ${y * 0.18}px, 0)`;
           shellRef.current.style.opacity = String(Math.max(0, 1 - y / 700));
         }
-        if (dropRef.current) {
-          dropRef.current.style.transform = `translate3d(0, ${y * 0.42}px, 0)`;
+        if (cueRef.current) {
+          cueRef.current.style.transform = `translate3d(0, ${y * 0.42}px, 0)`;
         }
       });
     };
@@ -63,16 +64,22 @@ export function HeroHome({
     <section className="relative flex min-h-[calc(100svh-108px)] flex-col justify-between overflow-hidden pt-10">
       {/* Colonnes de la grille, très discrètes : elles donnent la sensation
           d'une maquette imprimée plutôt que d'un fond vide. */}
-      <div className="pointer-events-none absolute inset-0 flex justify-between px-[clamp(1rem,4vw,3.5rem)]" aria-hidden="true">
+      <div
+        className="pointer-events-none absolute inset-0 flex justify-between px-[clamp(1rem,4vw,3.5rem)]"
+        aria-hidden="true"
+      >
         {Array.from({ length: 5 }).map((_, index) => (
-          <span key={index} className="h-full w-px bg-[color:var(--color-hairline)] opacity-40" />
+          <span
+            key={index}
+            className="h-full w-px bg-[color:var(--color-hairline)] opacity-40"
+          />
         ))}
       </div>
 
       <div className="shell relative">
         <div className="flex items-start justify-between gap-6">
           <p
-            className="label max-w-[16ch] text-[color:var(--color-smoke)] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            className="label max-w-[18ch] text-[color:var(--color-smoke)] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
             style={{
               opacity: mounted ? 1 : 0,
               transform: mounted ? "none" : "translateY(14px)",
@@ -98,38 +105,31 @@ export function HeroHome({
       </div>
 
       <div ref={shellRef} className="shell relative will-change-transform">
-        <h1 className="display-hero flex items-end justify-center">
-          {"DRIP".split("").map((letter, index) => (
+        <h1 className="flex flex-col items-center">
+          {/* Ligne 1 : lettrée large, elle pose le « naturel ». */}
+          <span className="block overflow-hidden pt-[0.14em] -mt-[0.14em]">
             <span
-              key={index}
-              className="block overflow-hidden pt-[0.14em] -mt-[0.14em]"
-            >
-              <span
-                className="block transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-                style={{
-                  transform: mounted ? "none" : "translateY(135%)",
-                  transitionDelay: `${index * 85}ms`,
-                }}
-              >
-                {letter}
-              </span>
-            </span>
-          ))}
-
-          {/* La goutte, qui tombe une fois à l'arrivée du titre. */}
-          <span className="block overflow-hidden pb-[0.06em] pl-[0.04em] pt-[0.14em] -mt-[0.14em]">
-            <svg
-              viewBox="0 0 12 20"
-              className="h-[0.28em] w-auto transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+              className="display block text-[clamp(1.1rem,4.4vw,4rem)] tracking-[0.42em] indent-[0.42em] transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
-                transform: mounted ? "none" : "translateY(-260%)",
-                transitionDelay: "480ms",
+                transform: mounted ? "none" : "translateY(135%)",
+                transitionDelay: "80ms",
               }}
-              fill="currentColor"
-              aria-hidden="true"
             >
-              <path d="M6 0c0 4.2 6 7.6 6 13.1A6 6 0 0 1 0 13.1C0 7.6 6 4.2 6 0Z" />
-            </svg>
+              NATURAL
+            </span>
+          </span>
+
+          {/* Ligne 2 : le bloc massif, c'est lui qui frappe. */}
+          <span className="block overflow-hidden pt-[0.14em] -mt-[0.06em]">
+            <span
+              className="display block text-[clamp(3.4rem,16.5vw,15rem)] tracking-[-0.01em] transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{
+                transform: mounted ? "none" : "translateY(125%)",
+                transitionDelay: "220ms",
+              }}
+            >
+              BRUTAL
+            </span>
           </span>
         </h1>
       </div>
@@ -137,15 +137,15 @@ export function HeroHome({
       <div className="shell relative pb-10">
         <div className="hairline grid gap-8 pt-8 md:grid-cols-[1fr_auto_1fr] md:items-end">
           <p
-            className="max-w-[38ch] text-pretty text-sm leading-relaxed text-[color:var(--color-smoke)] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            className="max-w-[40ch] text-pretty text-sm leading-relaxed text-[color:var(--color-smoke)] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
             style={{
               opacity: mounted ? 1 : 0,
               transform: mounted ? "none" : "translateY(20px)",
               transitionDelay: "760ms",
             }}
           >
-            Des casquettes dessinées en noir et blanc, produites en petites
-            séries et fabriquées à la commande. Rien de plus, rien en trop.
+            Des vêtements de combat et de sport taillés pour encaisser. Coupés
+            près du corps, cousus pour durer, fabriqués à la commande.
           </p>
 
           <div
@@ -157,15 +157,15 @@ export function HeroHome({
             }}
           >
             <Link href="/boutique" className="btn">
-              Voir la collection
+              Voir l&apos;équipement
             </Link>
             <Link href="/histoire" className="btn btn-outline">
-              Le studio
+              L&apos;atelier
             </Link>
           </div>
 
           <div
-            ref={dropRef}
+            ref={cueRef}
             className="flex items-center justify-start gap-3 will-change-transform md:justify-end"
             style={{
               opacity: mounted ? 1 : 0,
@@ -174,14 +174,14 @@ export function HeroHome({
           >
             <span className="label-sm text-[color:var(--color-smoke)]">Défiler</span>
             <span className="block h-10 w-px overflow-hidden bg-[color:var(--color-ash)]">
-              <span className="block h-4 w-px animate-[drop_2.2s_ease-in-out_infinite] bg-[color:var(--color-ink)]" />
+              <span className="block h-4 w-px animate-[hero-cue_2.2s_ease-in-out_infinite] bg-[color:var(--color-ink)]" />
             </span>
           </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes drop {
+        @keyframes hero-cue {
           0% { transform: translateY(-100%); }
           60%, 100% { transform: translateY(250%); }
         }

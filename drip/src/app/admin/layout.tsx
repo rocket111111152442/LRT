@@ -6,7 +6,7 @@ import { AdminNav } from "@/components/AdminNav";
 import { Logo } from "@/components/Logo";
 
 export const metadata: Metadata = {
-  title: { default: "Administration", template: "%s — Admin DRIP" },
+  title: { default: "Administration", template: "%s — Admin NATURAL BRUTAL" },
   robots: { index: false, follow: false },
 };
 

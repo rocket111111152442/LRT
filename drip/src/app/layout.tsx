@@ -26,7 +26,7 @@ const interTight = Inter_Tight({
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-mono-drip",
+  variable: "--font-mono-nb",
   display: "swap",
 });
 

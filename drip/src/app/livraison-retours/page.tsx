@@ -6,7 +6,7 @@ import { RETURN_WINDOW_DAYS, SHIPPING, SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Livraison & retours",
   description:
-    "Délais de fabrication et de livraison, frais de port, procédure de retour et de remboursement chez DRIP.",
+    "Délais de fabrication et de livraison, frais de port, procédure de retour et de remboursement chez NATURAL BRUTAL.",
 };
 
 export default function LivraisonRetoursPage() {
@@ -79,7 +79,7 @@ export default function LivraisonRetoursPage() {
           <ul>
             <li>
               Écrivez à <a href={`mailto:${SHOP.email}`}>{SHOP.email}</a> avec
-              votre numéro de commande (DRIP-000000).
+              votre numéro de commande (NB-000000).
             </li>
             <li>Nous vous répondons sous 48 heures ouvrées avec l&apos;adresse de retour.</li>
             <li>

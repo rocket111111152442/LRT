@@ -7,7 +7,7 @@ import { RETURN_WINDOW_DAYS, SHIPPING, SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Conditions générales de vente",
   description:
-    "Conditions générales de vente de la boutique DRIP : commande, prix, livraison, droit de rétractation, garanties légales.",
+    "Conditions générales de vente de la boutique NATURAL BRUTAL : commande, prix, livraison, droit de rétractation, garanties légales.",
 };
 
 export default function CgvPage() {

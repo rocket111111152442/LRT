@@ -7,16 +7,16 @@ const COLUMNS = [
   {
     title: "Boutique",
     links: [
-      { href: "/boutique", label: "Toutes les casquettes" },
+      { href: "/boutique", label: "Tout l'équipement" },
       { href: "/boutique?tri=nouveautes", label: "Nouveautés" },
       { href: "/boutique?tri=populaires", label: "Les plus aimées" },
       { href: "/avis", label: "Avis clients" },
     ],
   },
   {
-    title: "Maison",
+    title: "La marque",
     links: [
-      { href: "/histoire", label: "Le studio" },
+      { href: "/histoire", label: "L'atelier" },
       { href: "/contact", label: "Contact" },
       { href: "/faq", label: "Questions fréquentes" },
       { href: "/livraison-retours", label: "Livraison & retours" },
@@ -49,7 +49,7 @@ export function Footer() {
             <div className="mt-10 max-w-sm">
               <p className="label mb-3">Rejoindre la liste</p>
               <p className="mb-4 text-xs text-[color:var(--color-smoke)]">
-                Les sorties, les restocks, rien d&apos;autre.
+                Les sorties et les restocks. Rien d&apos;autre.
               </p>
               <NewsletterForm source="footer" />
             </div>
@@ -76,7 +76,7 @@ export function Footer() {
         {/* Grand mot de pied de page : signature graphique de la marque. */}
         <div className="hairline overflow-hidden pt-10">
           <p className="display select-none text-center text-[clamp(4rem,19vw,17rem)] leading-[0.8] opacity-[0.13]">
-            DRIP
+            BRUTAL
           </p>
         </div>
 

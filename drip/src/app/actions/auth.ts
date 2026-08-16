@@ -185,7 +185,7 @@ export async function forgotPasswordAction(
     // L'envoi d'e-mail n'est pas branché : le lien est journalisé côté serveur
     // en attendant la configuration SMTP (voir README).
     console.info(
-      `[drip] lien de réinitialisation pour ${parsed.data.email} : /reinitialiser-mot-de-passe?token=${token}`,
+      `[natural-brutal] lien de réinitialisation pour ${parsed.data.email} : /reinitialiser-mot-de-passe?token=${token}`,
     );
   }
 

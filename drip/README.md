@@ -1,12 +1,12 @@
-# DRIP
+# NATURAL BRUTAL
 
-Boutique en ligne complète pour la marque de casquettes **DRIP** : catalogue,
-panier, comptes clients, avis vérifiés, paiement Stripe, fabrication Printful et
-back-office d'administration.
+Boutique en ligne complète pour **NATURAL BRUTAL**, marque de vêtements de
+combat et de sport : catalogue, panier, comptes clients, avis vérifiés,
+paiement Stripe, fabrication Printful et back-office d'administration.
 
 Application Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Prisma /
-PostgreSQL. Elle vit dans le dossier `drip/` du dépôt, indépendamment de
-l'application Qoravo présente à la racine.
+PostgreSQL. Elle vit dans le dossier `drip/` du dépôt (nom historique du
+dossier), indépendamment de l'application Qoravo présente à la racine.
 
 ---
 
@@ -121,22 +121,32 @@ production à la main pendant le lancement.
 
 ## Visuels
 
-Tant qu'un produit n'a pas d'image, une silhouette de casquette dessinée en SVG
+Tant qu'un produit n'a pas d'image, une silhouette de maillot dessinée en SVG
 occupe la place : la grille garde son rythme, rien ne paraît cassé.
 
 Pour ajouter des visuels : `/admin/produits/[id]` > **Visuels** > coller une URL
 `https` (Printful, Vercel Blob, Cloudinary…). Les mockups Printful sont importés
 automatiquement à la synchronisation.
 
-Le logo est composé en typographie dans `src/components/Logo.tsx`. Pour utiliser
-un fichier dessiné à la main, le déposer dans `public/logo.svg` et remplacer le
-contenu de ce composant par une balise `<Image>`.
+**Le logo** est pour l'instant composé en typographie dans
+`src/components/Logo.tsx` : « NATURAL » lettré large au-dessus de « BRUTAL »
+massif, comme le lockup dessiné. Pour passer au logo illustré (panthère et
+feuillage), déposer les deux déclinaisons dans `public/` puis basculer la
+constante `USE_IMAGE` du fichier à `true` :
+
+```text
+public/logo-clair.png    version foncée, pour les fonds papier
+public/logo-sombre.png   version claire, pour les fonds noirs
+```
+
+Deux fichiers sont nécessaires : un dessin ne s'inverse pas tout seul comme le
+fait une composition typographique.
 
 ---
 
 ## Direction artistique
 
-Monochrome strict, défini dans `src/app/globals.css` :
+Monochrome, défini dans `src/app/globals.css` :
 
 - Encre `#0b0b0b`, papier `#f4f2ed` — jamais de noir ni de blanc purs, ce qui
   donne un rendu imprimé plutôt qu'un aplat d'écran

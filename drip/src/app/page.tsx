@@ -19,30 +19,30 @@ import { formatPriceSmart } from "@/lib/money";
 
 export const metadata: Metadata = {
   description:
-    "DRIP — casquettes en édition limitée, dessinées en noir et blanc et fabriquées à la commande. Livraison offerte dès 60 €.",
+    "NATURAL BRUTAL — vêtements de combat et de sport, coupés pour encaisser et fabriqués à la commande. Livraison offerte dès 80 €.",
 };
 
 // La page se régénère toutes les 5 minutes : le catalogue reste frais sans
 // solliciter la base à chaque visite.
 export const revalidate = 300;
 
-const SEASON = "Série 01 — Studio DRIP";
+const SEASON = "Collection 01";
 
 const PILLARS = [
   {
     index: "01",
-    title: "Fabriqué à la commande",
-    body: "Aucun stock dormant, aucune surproduction. Votre pièce est confectionnée après votre achat, puis expédiée depuis l'Europe.",
+    title: "Une marque à deux",
+    body: "Un père, un fils, aucun intermédiaire. On dessine, on teste, on répond aux messages. Vous n'aurez jamais un service client au bout du fil, vous nous aurez nous.",
   },
   {
     index: "02",
-    title: "Deux couleurs, zéro compromis",
-    body: "Noir et blanc. La contrainte oblige à travailler la coupe, la broderie et la matière plutôt que l'effet de surface.",
+    title: "Testé avant d'être vendu",
+    body: "Une pièce ne part en ligne qu'après être passée sur le tatami et à la salle. Si une couture lâche ou si une coupe gêne le mouvement, elle repart au dessin.",
   },
   {
     index: "03",
-    title: "Séries courtes",
-    body: "Chaque modèle est produit en quantité limitée. Ce qui part ne revient pas systématiquement.",
+    title: "Fabriqué à la commande",
+    body: "Rien n'est produit à l'avance. Pas de stock à liquider, pas de soldes pour écouler l'invendu, et un délai qu'on annonce honnêtement plutôt que de le cacher.",
   },
 ];
 
@@ -83,7 +83,7 @@ export default async function HomePage() {
             </p>
 
             <h2 className="display-xl max-w-[13ch]">
-              {["Une", "casquette", "n'a pas", "besoin", "de crier."].map(
+              {["Le corps", "encaisse.", "Le tissu", "doit", "suivre."].map(
                 (line, index) => (
                   <span
                     key={line}
@@ -99,21 +99,20 @@ export default async function HomePage() {
 
           <div className="flex flex-col justify-end gap-8">
             <p className="reveal max-w-[46ch] text-pretty text-base leading-relaxed text-[color:var(--color-ink-soft)]">
-              DRIP est né d&apos;une idée simple : sortir des pièces qu&apos;on
-              porte tous les jours sans y penser, et qui tiennent la route au
-              bout de deux ans. Pas de logo hurlant, pas de collection de
-              quarante références. Une forme, deux couleurs, une exécution
-              propre.
+              NATURAL BRUTAL est né dans un garage, entre un père et son fils
+              qui s&apos;entraînent depuis toujours et qui en avaient assez des
+              vêtements qui craquent à la première prise. Naturel dans la
+              matière, brutal à l&apos;usage : c&apos;est tout le programme.
             </p>
 
             <p
               className="reveal max-w-[46ch] text-pretty text-base leading-relaxed text-[color:var(--color-smoke)]"
               style={{ ["--reveal-delay" as string]: "120ms" }}
             >
-              Chaque modèle est produit à l&apos;unité après commande, dans des
-              ateliers partenaires en Europe. Ce fonctionnement supprime les
-              invendus et nous laisse le temps de soigner ce qui compte : la
-              coupe, la densité de la broderie, la tenue de la visière.
+              On ne vend pas un style de vie. On vend des pièces qu&apos;on met
+              pour transpirer, qu&apos;on lave trois fois par semaine et
+              qu&apos;on retrouve intactes la saison suivante. Le reste, c&apos;est
+              de la communication.
             </p>
 
             <Link
@@ -133,10 +132,10 @@ export default async function HomePage() {
           <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
             <div>
               <p className="label reveal mb-4 text-[color:var(--color-smoke)]">
-                (La sélection)
+                (L&apos;équipement)
               </p>
               <h2 className="display-lg reveal-mask">
-                <span>Pièces en ligne</span>
+                <span>L&apos;équipement</span>
               </h2>
             </div>
 
@@ -232,10 +231,10 @@ export default async function HomePage() {
           <div className="shell mb-12 flex flex-wrap items-end justify-between gap-6">
             <div>
               <p className="label reveal mb-4 text-[color:var(--color-smoke)]">
-                (Ils portent DRIP)
+                (Ils s&apos;entraînent avec)
               </p>
               <h2 className="display-lg reveal-mask">
-                <span>Ce qu&apos;on nous dit</span>
+                <span>Le retour du terrain</span>
               </h2>
             </div>
 
@@ -265,19 +264,20 @@ export default async function HomePage() {
           <div>
             <h2 className="display-xl max-w-[14ch]">
               <span className="reveal-mask">
-                <span>Sois prévenu</span>
+                <span>Les sorties</span>
               </span>
               <span
                 className="reveal-mask"
                 style={{ ["--reveal-delay" as string]: "90ms" }}
               >
-                <span>avant tout le monde.</span>
+                <span>partent vite.</span>
               </span>
             </h2>
 
             <p className="reveal mt-8 max-w-[44ch] text-sm leading-relaxed text-[color:var(--color-ash)]">
-              Les sorties partent vite. Laisse ton adresse : tu reçois un
-              message le jour du drop, et rien entre deux.
+              Une pièce sort, on prévient la liste en premier. Pas de
+              newsletter hebdomadaire, pas de remplissage : un message quand il
+              y a quelque chose à dire.
             </p>
           </div>
 
@@ -298,9 +298,9 @@ function EmptyCatalog() {
     <div className="hairline hairline-b flex flex-col items-center gap-5 py-24 text-center">
       <p className="display-lg">Collection en préparation</p>
       <p className="max-w-[44ch] text-sm text-[color:var(--color-smoke)]">
-        Les pièces arrivent. Synchronisez votre boutique Printful depuis
-        l&apos;administration, ou ajoutez un produit à la main pour la voir
-        apparaître ici.
+        Les premières pièces arrivent. Synchronisez votre boutique Printful
+        depuis l&apos;administration, ou ajoutez un produit à la main pour le
+        voir apparaître ici.
       </p>
       <p className="label-sm text-[color:var(--color-smoke)]">
         Prix indicatif de lancement : {formatPriceSmart(3900)}

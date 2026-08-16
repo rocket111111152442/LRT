@@ -9,8 +9,8 @@ const IS_PROD = process.env.NODE_ENV === "production";
 
 // Le préfixe __Host- impose au navigateur : cookie sécurisé, sur le domaine
 // exact, avec Path=/. Il rend impossible l'injection depuis un sous-domaine.
-export const SESSION_COOKIE = IS_PROD ? "__Host-drip_session" : "drip_session";
-export const CART_COOKIE = IS_PROD ? "__Host-drip_cart" : "drip_cart";
+export const SESSION_COOKIE = IS_PROD ? "__Host-nb_session" : "nb_session";
+export const CART_COOKIE = IS_PROD ? "__Host-nb_cart" : "nb_cart";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 jours
 const BCRYPT_ROUNDS = 12;
@@ -44,7 +44,7 @@ function getSecret() {
     );
   }
 
-  return "drip-dev-secret-change-me-in-production-please";
+  return "natural-brutal-dev-secret-change-me-in-production";
 }
 
 function sign(value: string) {

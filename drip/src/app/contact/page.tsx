@@ -7,7 +7,7 @@ import { SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Une question sur une commande, une taille ou un retour ? Contactez le studio DRIP, réponse sous 24 à 48 heures ouvrées.",
+    "Une question sur une commande, une taille ou un retour ? Écrivez à NATURAL BRUTAL : c'est l'un des deux fondateurs qui répond, sous 24 à 48 heures ouvrées.",
 };
 
 export default function ContactPage() {
@@ -68,7 +68,7 @@ export default function ContactPage() {
                 <Link href="/faq" className="link-underline text-[color:var(--color-ink)]">
                   FAQ
                 </Link>
-                . Pour une commande en cours, indiquez son numéro (DRIP-000000) :
+                . Pour une commande en cours, indiquez son numéro (NB-000000) :
                 on gagne un aller-retour.
               </p>
             </div>

@@ -10,15 +10,15 @@ import type { SessionUser } from "@/lib/auth";
 const NAV = [
   { href: "/boutique", label: "Boutique" },
   { href: "/boutique?tri=nouveautes", label: "Nouveautés" },
-  { href: "/histoire", label: "Le studio" },
+  { href: "/histoire", label: "L'atelier" },
   { href: "/avis", label: "Avis" },
   { href: "/contact", label: "Contact" },
 ];
 
 const TICKER = [
-  "Livraison offerte dès 60 €",
-  "Séries limitées",
+  "Livraison offerte dès 80 €",
   "Fabriqué à la commande",
+  "Coupes pensées pour l'entraînement",
   "Retours sous 14 jours",
   "Paiement sécurisé",
 ];
@@ -81,7 +81,7 @@ export function Header({ user }: { user: SessionUser | null }) {
         }`}
       >
         <div className="shell flex h-[68px] items-center justify-between gap-6">
-          <Link href="/" className="shrink-0" aria-label="DRIP — accueil">
+          <Link href="/" className="shrink-0" aria-label="NATURAL BRUTAL — accueil">
             <Logo size="sm" />
           </Link>
 

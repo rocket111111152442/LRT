@@ -28,11 +28,11 @@ export default async function InscriptionPage({
       intro="Un panier qui vous suit, l'historique de vos commandes, et la possibilité de laisser un avis sur ce que vous portez."
       aside={
         <>
-          <p className="display-lg">Bienvenue dans la série.</p>
+          <p className="display-lg">Bienvenue dans l&apos;équipe.</p>
           <ul className="mt-7 space-y-2.5 text-sm text-[color:var(--color-ash)]">
             <li>— Panier conservé d&apos;un appareil à l&apos;autre</li>
             <li>— Suivi de commande en temps réel</li>
-            <li>— Accès anticipé aux nouvelles séries</li>
+            <li>— Prévenu en premier des nouvelles pièces</li>
           </ul>
         </>
       }

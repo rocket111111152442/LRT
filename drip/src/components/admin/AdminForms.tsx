@@ -220,7 +220,7 @@ export function ProductImageForm({ productId }: { productId: string }) {
         hint="Collez l'URL https d'une image déjà hébergée (Printful, Vercel Blob, Cloudinary…)."
       />
 
-      <Field label="Texte alternatif" name="alt" placeholder="Casquette DRIP noire de profil" />
+      <Field label="Texte alternatif" name="alt" placeholder="Rashguard noir, vue de dos" />
 
       <SubmitButton className="btn btn-sm">Ajouter le visuel</SubmitButton>
     </form>
@@ -376,7 +376,7 @@ export function CouponForm() {
       {state.success && <FormSuccess message={state.message} />}
       <FormError message={state.errors?.form} />
 
-      <Field label="Code" name="code" required error={state.errors?.code} placeholder="DRIP10" />
+      <Field label="Code" name="code" required error={state.errors?.code} placeholder="NB10" />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>

@@ -144,7 +144,7 @@ function colorToHex(color: string | null) {
 
 /**
  * Printful ne renvoie pas la couleur et la taille dans des champs séparés :
- * elles sont concaténées dans le nom (« Casquette DRIP - Black / One size »).
+ * elles sont concaténées dans le nom (« Rashguard NB - Black / M »).
  * On extrait ce qui suit le dernier tiret, puis on coupe sur « / ».
  */
 export function parseVariantName(variantName: string, productName: string) {
@@ -279,7 +279,7 @@ export async function syncPrintfulCatalog(): Promise<SyncReport> {
             slug,
             name: detail.sync_product.name,
             description:
-              "Description à compléter depuis l'administration DRIP.",
+              "Description à compléter depuis l'administration NATURAL BRUTAL.",
             basePrice,
             printfulProductId,
             active: false, // un nouveau produit reste hors ligne tant qu'il n'est pas rédigé

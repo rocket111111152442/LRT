@@ -146,7 +146,7 @@ export async function submitReviewAction(
       productId: parsed.data.productId,
       userId: user.id,
       orderId: purchase.orderId,
-      authorName: authorName || "Client DRIP",
+      authorName: authorName || "Client vérifié",
       rating: parsed.data.rating,
       title: parsed.data.title || null,
       body: parsed.data.body,

@@ -6,7 +6,7 @@ import { SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Mentions légales",
   description:
-    "Informations légales relatives à l'éditeur et à l'hébergeur du site DRIP.",
+    "Informations légales relatives à l'éditeur et à l'hébergeur du site NATURAL BRUTAL.",
 };
 
 export default function MentionsLegalesPage() {
@@ -81,7 +81,7 @@ export default function MentionsLegalesPage() {
         <section>
           <h2>Propriété intellectuelle</h2>
           <p>
-            La marque DRIP, les visuels, les dessins et modèles, ainsi que
+            La marque NATURAL BRUTAL, les visuels, les dessins et modèles, ainsi que
             l&apos;ensemble des contenus du site sont protégés par le droit de la
             propriété intellectuelle. Toute reproduction, représentation ou
             adaptation, totale ou partielle, sans autorisation écrite préalable

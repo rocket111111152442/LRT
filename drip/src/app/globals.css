@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   DRIP — système visuel
+   NATURAL BRUTAL — système visuel
    Monochrome strict. Le noir n'est jamais #000 pur et le blanc jamais
    #FFF pur : un encrage légèrement chaud donne l'impression d'un imprimé
    plutôt que d'un écran. Les angles restent droits, la structure est
@@ -20,7 +20,7 @@
 
   --font-display: var(--font-anton), "Haettenschweiler", "Arial Narrow", sans-serif;
   --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-drip), ui-monospace, "SFMono-Regular", monospace;
+  --font-mono: var(--font-mono-nb), ui-monospace, "SFMono-Regular", monospace;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);

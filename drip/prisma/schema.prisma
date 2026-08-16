@@ -1,4 +1,4 @@
-// DRIP — schéma de la boutique.
+// NATURAL BRUTAL — schéma de la boutique.
 // Tous les montants sont stockés en centimes (Int) pour éviter les erreurs de
 // flottants sur les prix. La devise par défaut est l'euro.
 
@@ -204,7 +204,7 @@ model CartItem {
 
 model Order {
   id       String      @id @default(cuid())
-  number   String      @unique // DRIP-000123
+  number   String      @unique // NB-000123
   userId   String?
   email    String
   status   OrderStatus @default(PENDING)
