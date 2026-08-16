@@ -1,8 +1,7 @@
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { prisma, safeQuery } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
-import { CART_COOKIE } from "@/lib/auth";
+import { CART_COOKIE, expireCookie, getCurrentUser } from "@/lib/auth";
 import { shippingFor } from "@/lib/shop";
 
 const CART_MAX_AGE = 60 * 60 * 24 * 60; // 60 jours
@@ -289,5 +288,8 @@ export async function mergeGuestCartInto(userId: string) {
   }
 
   await prisma.cart.delete({ where: { id: guestCart.id } });
-  store.delete(CART_COOKIE);
+
+  // Mêmes attributs qu'à la pose, sinon le préfixe `__Host-` fait rejeter la
+  // suppression par le navigateur et le panier invité resterait accroché.
+  await expireCookie(CART_COOKIE);
 }

@@ -23,12 +23,14 @@ export function RegisterForm({ next }: { next?: string }) {
           required
           autoComplete="given-name"
           error={state.errors?.firstName}
+          defaultValue={state.values?.firstName}
         />
         <Field
           label="Nom"
           name="lastName"
           autoComplete="family-name"
           error={state.errors?.lastName}
+          defaultValue={state.values?.lastName}
         />
       </div>
 
@@ -39,6 +41,7 @@ export function RegisterForm({ next }: { next?: string }) {
         required
         autoComplete="email"
         error={state.errors?.email}
+        defaultValue={state.values?.email}
         placeholder="vous@exemple.com"
       />
 
@@ -56,6 +59,7 @@ export function RegisterForm({ next }: { next?: string }) {
         <Checkbox
           name="acceptsTerms"
           error={state.errors?.acceptsTerms}
+          defaultChecked={state.values?.acceptsTerms === "on"}
           label={
             <>
               J&apos;accepte les{" "}
@@ -73,6 +77,7 @@ export function RegisterForm({ next }: { next?: string }) {
 
         <Checkbox
           name="acceptsMarketing"
+          defaultChecked={state.values?.acceptsMarketing === "on"}
           label="Je veux être prévenu des sorties et des restocks (désinscription en un clic)."
         />
       </div>

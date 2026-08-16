@@ -25,13 +25,21 @@ export async function POST(request: Request) {
     );
   }
 
-  // Une adresse déjà inscrite renvoie le même message de succès : on ne
-  // divulgue pas qui figure dans la liste.
-  await prisma.newsletterSubscriber.upsert({
-    where: { email: parsed.data.email },
-    create: { email: parsed.data.email, source: parsed.data.source ?? null },
-    update: {},
-  });
+  try {
+    // Une adresse déjà inscrite renvoie le même message de succès : on ne
+    // divulgue pas qui figure dans la liste.
+    await prisma.newsletterSubscriber.upsert({
+      where: { email: parsed.data.email },
+      create: { email: parsed.data.email, source: parsed.data.source ?? null },
+      update: {},
+    });
+  } catch (error) {
+    console.error("[newsletter] inscription impossible :", error);
+    return NextResponse.json(
+      { error: "Inscription impossible pour le moment. Réessayez plus tard." },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }

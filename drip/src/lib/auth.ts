@@ -15,6 +15,27 @@ export const CART_COOKIE = IS_PROD ? "__Host-nb_cart" : "nb_cart";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 jours
 const BCRYPT_ROUNDS = 12;
 
+/**
+ * Attributs partagés par les cookies de la boutique.
+ *
+ * Ils doivent être identiques à la pose et à la suppression : le préfixe
+ * `__Host-` impose au navigateur la présence de `Secure` et de `Path=/`. Un
+ * `Set-Cookie` de suppression qui les oublierait serait purement et simplement
+ * rejeté — le cookie survivrait et la déconnexion n'aurait aucun effet.
+ */
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: IS_PROD,
+  sameSite: "lax",
+  path: "/",
+} as const;
+
+/** Supprime un cookie en réémettant exactement les mêmes attributs. */
+export async function expireCookie(name: string) {
+  const store = await cookies();
+  store.set(name, "", { ...COOKIE_OPTIONS, maxAge: 0, expires: new Date(0) });
+}
+
 export type SessionUser = {
   id: string;
   email: string;
@@ -95,18 +116,11 @@ export async function createSession(userId: string) {
   const token = encodeSession({ uid: userId, iat: now, exp: now + SESSION_MAX_AGE });
   const store = await cookies();
 
-  store.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: IS_PROD,
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
+  store.set(SESSION_COOKIE, token, { ...COOKIE_OPTIONS, maxAge: SESSION_MAX_AGE });
 }
 
 export async function destroySession() {
-  const store = await cookies();
-  store.delete(SESSION_COOKIE);
+  await expireCookie(SESSION_COOKIE);
 }
 
 /**

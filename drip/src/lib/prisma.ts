@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client";
 
@@ -55,6 +56,11 @@ export async function safeQuery<T>(
   try {
     return await run();
   } catch (error) {
+    // Next.js signale par une exception qu'une page doit basculer en rendu
+    // dynamique (lecture de `cookies`, de `headers`…). Sans ce renvoi, ce filet
+    // l'avalerait et la page serait figée au build avec un panier vide.
+    unstable_rethrow(error);
+
     console.error(
       `[db] ${context} impossible :`,
       error instanceof Error ? error.message : error,

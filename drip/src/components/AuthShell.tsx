@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { ServiceNotice } from "@/components/ServiceNotice";
 
 /**
  * Cadre commun aux écrans de compte : un panneau noir éditorial à gauche, le
@@ -48,6 +49,8 @@ export function AuthShell({
               {intro}
             </p>
           )}
+
+          <ServiceNotice />
 
           {children}
 

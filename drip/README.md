@@ -207,8 +207,21 @@ DATABASE_URL="…" npx prisma db push
 DATABASE_URL="…" ADMIN_EMAIL="…" ADMIN_PASSWORD="…" npm run prisma:seed
 ```
 
-Le site s'affiche même sans base connectée : les requêtes échouées se replient
-sur un état vide plutôt que de renvoyer une erreur 500.
+### Les deux variables sans lesquelles rien ne s'enregistre
+
+| Variable | Sans elle |
+| --- | --- |
+| `DATABASE_URL` | aucun compte, aucune commande, aucun avis ne peut être écrit |
+| `AUTH_SECRET` | impossible de signer une session : personne ne reste connecté (48 caractères aléatoires, `openssl rand -base64 48`) |
+
+Tant qu'elles manquent, le site reste **consultable** — le catalogue se replie
+sur un état vide plutôt que de renvoyer une erreur 500 — mais les écrans de
+compte affichent un bandeau « comptes en cours d'ouverture » et les
+formulaires répondent que rien n'a été enregistré, au lieu de tomber sur la
+page d'incident. Le journal du serveur nomme précisément la variable absente.
+
+Dès que les deux variables sont posées et les tables créées, le bandeau
+disparaît de lui-même : aucun code à modifier.
 
 ---
 
