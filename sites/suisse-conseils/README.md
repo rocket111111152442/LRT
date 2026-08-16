@@ -20,23 +20,27 @@ prestations.html        Détail des prestations
 a-propos.html           Le cabinet
 contact.html            Coordonnées + formulaire
 mentions-legales.html   Mentions légales et protection des données
-assets/css/site.css     Design system complet (tokens, composants, responsive)
-assets/js/site.js       Interactions (menu, révélations, onglets, relief animé…)
-assets/img/             Marque, image Open Graph, icône iOS
+assets/css/site.css     Styles (≈250 lignes)
+assets/js/site.js       Menu mobile, année, validation du formulaire
+assets/img/             Image Open Graph, icône iOS
 vercel.json             cleanUrls, en-têtes de sécurité, cache des assets
 ```
 
-## Direction artistique
+## Parti pris
 
-- **Couleurs** — encre `#05070a`, papier `#f4f2ed`, accent menthe `#57e0b4`,
-  sable `#e2c489` en appoint. Les jetons sont dans `:root` (`assets/css/site.css`).
-- **Typographie** — Archivo (texte) + Instrument Serif en italique pour les
-  accents dans les titres, chargées depuis Google Fonts.
-- **Motifs** — grain SVG en surimpression, filets à 1 px, sections « papier »
-  qui inversent le contraste, crêtes de relief animées en canvas dans la bannière.
+Sobre et léger, volontairement. Le site doit rester fluide sur une machine
+modeste :
 
-Toutes les animations respectent `prefers-reduced-motion`. Sans JavaScript, le
-contenu reste entièrement lisible.
+- **Couleurs** — blanc, gris très clair `#f5f5f3`, bleu marine `#12395e`.
+- **Typographie** — polices système, donc aucune requête externe.
+- **Aucune animation permanente** : pas de canvas, pas de `requestAnimationFrame`,
+  pas de `backdrop-filter`, pas de `mix-blend-mode`, pas de filtre `blur`,
+  pas d'`IntersectionObserver`, pas d'écouteur de souris.
+
+Page d'accueil : ~12 Ko au total, 4 requêtes, 176 éléments DOM.
+Le JavaScript (≈60 lignes) ne sert qu'au menu mobile, à l'année du copyright
+et à la validation du formulaire. Sans JavaScript, tout reste lisible et
+navigable.
 
 ## Formulaire de contact
 
