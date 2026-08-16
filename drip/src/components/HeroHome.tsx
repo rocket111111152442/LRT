@@ -144,8 +144,8 @@ export function HeroHome({
               transitionDelay: "760ms",
             }}
           >
-            Des vêtements de combat et de sport taillés pour encaisser. Coupés
-            près du corps, cousus pour durer, fabriqués à la commande.
+            Vêtements pour les sports de combat et la salle. Fabriqués à la
+            commande.
           </p>
 
           <div

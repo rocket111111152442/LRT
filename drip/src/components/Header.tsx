@@ -18,7 +18,7 @@ const NAV = [
 const TICKER = [
   "Livraison offerte dès 80 €",
   "Fabriqué à la commande",
-  "Coupes pensées pour l'entraînement",
+  "Fait pour l'entraînement",
   "Retours sous 14 jours",
   "Paiement sécurisé",
 ];

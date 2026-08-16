@@ -19,7 +19,7 @@ import { formatPriceSmart } from "@/lib/money";
 
 export const metadata: Metadata = {
   description:
-    "NATURAL BRUTAL — vêtements de combat et de sport, coupés pour encaisser et fabriqués à la commande. Livraison offerte dès 80 €.",
+    "NATURAL BRUTAL — vêtements pour les sports de combat et la salle. Fabriqués à la commande, livraison offerte dès 80 €.",
 };
 
 // La page se régénère toutes les 5 minutes : le catalogue reste frais sans
@@ -31,18 +31,18 @@ const SEASON = "Collection 01";
 const PILLARS = [
   {
     index: "01",
-    title: "Une marque à deux",
-    body: "Un père, un fils, aucun intermédiaire. On dessine, on teste, on répond aux messages. Vous n'aurez jamais un service client au bout du fil, vous nous aurez nous.",
+    title: "Pour s'entraîner",
+    body: "Du matériel de sport, pas du streetwear déguisé. Ça se porte au sol, au sac, à la salle. Si une pièce n'a pas sa place dans un sac de sport, elle n'a pas sa place ici.",
   },
   {
     index: "02",
-    title: "Testé avant d'être vendu",
-    body: "Une pièce ne part en ligne qu'après être passée sur le tatami et à la salle. Si une couture lâche ou si une coupe gêne le mouvement, elle repart au dessin.",
+    title: "Fabriqué à la commande",
+    body: "Rien n'est produit d'avance. Votre pièce est confectionnée après l'achat. Ça prend quelques jours de plus, et ça évite les cartons d'invendus qu'on brade en fin de saison.",
   },
   {
     index: "03",
-    title: "Fabriqué à la commande",
-    body: "Rien n'est produit à l'avance. Pas de stock à liquider, pas de soldes pour écouler l'invendu, et un délai qu'on annonce honnêtement plutôt que de le cacher.",
+    title: "Une petite structure",
+    body: "On est deux. Pas de service client externalisé : quand vous écrivez, c'est l'un de nous qui lit et qui répond.",
   },
 ];
 
@@ -83,7 +83,7 @@ export default async function HomePage() {
             </p>
 
             <h2 className="display-xl max-w-[13ch]">
-              {["Le corps", "encaisse.", "Le tissu", "doit", "suivre."].map(
+              {["Tout", "se gagne", "à", "l'entraînement."].map(
                 (line, index) => (
                   <span
                     key={line}
@@ -99,20 +99,18 @@ export default async function HomePage() {
 
           <div className="flex flex-col justify-end gap-8">
             <p className="reveal max-w-[46ch] text-pretty text-base leading-relaxed text-[color:var(--color-ink-soft)]">
-              NATURAL BRUTAL est né dans un garage, entre un père et son fils
-              qui s&apos;entraînent depuis toujours et qui en avaient assez des
-              vêtements qui craquent à la première prise. Naturel dans la
-              matière, brutal à l&apos;usage : c&apos;est tout le programme.
+              On fait des vêtements pour les sports de combat et pour la
+              salle. Des pièces qu&apos;on enfile trois fois par semaine, qui
+              partent à la machine derrière, et qu&apos;on remet le lendemain.
             </p>
 
             <p
               className="reveal max-w-[46ch] text-pretty text-base leading-relaxed text-[color:var(--color-smoke)]"
               style={{ ["--reveal-delay" as string]: "120ms" }}
             >
-              On ne vend pas un style de vie. On vend des pièces qu&apos;on met
-              pour transpirer, qu&apos;on lave trois fois par semaine et
-              qu&apos;on retrouve intactes la saison suivante. Le reste, c&apos;est
-              de la communication.
+              Le nom résume ce qu&apos;on cherche : des matières franches, des
+              coupes qui laissent passer le mouvement, et de quoi encaisser
+              l&apos;entraînement sans y laisser une couture.
             </p>
 
             <Link
@@ -264,20 +262,18 @@ export default async function HomePage() {
           <div>
             <h2 className="display-xl max-w-[14ch]">
               <span className="reveal-mask">
-                <span>Les sorties</span>
+                <span>Nouvelles</span>
               </span>
               <span
                 className="reveal-mask"
                 style={{ ["--reveal-delay" as string]: "90ms" }}
               >
-                <span>partent vite.</span>
+                <span>pièces.</span>
               </span>
             </h2>
 
             <p className="reveal mt-8 max-w-[44ch] text-sm leading-relaxed text-[color:var(--color-ash)]">
-              Une pièce sort, on prévient la liste en premier. Pas de
-              newsletter hebdomadaire, pas de remplissage : un message quand il
-              y a quelque chose à dire.
+              Un message quand une pièce sort. Rien entre deux.
             </p>
           </div>
 

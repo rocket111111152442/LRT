@@ -14,7 +14,7 @@ import { SHIPPING } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Boutique",
   description:
-    "Tout l'équipement NATURAL BRUTAL : vêtements de combat et de sport, coupés pour encaisser et fabriqués à la commande.",
+    "Tout l'équipement NATURAL BRUTAL : vêtements pour les sports de combat et la salle, fabriqués à la commande.",
 };
 
 type SearchParams = Promise<{

@@ -7,37 +7,25 @@ import { NewsletterForm } from "@/components/NewsletterForm";
 export const metadata: Metadata = {
   title: "L'atelier",
   description:
-    "NATURAL BRUTAL : une marque de vêtements de combat et de sport lancée par un père et son fils, testée à l'entraînement avant d'être vendue.",
+    "NATURAL BRUTAL : vêtements pour les sports de combat et la salle, fabriqués à la commande.",
 };
 
 const CHAPTERS = [
   {
     number: "01",
-    title: "Deux paires de mains",
-    body: "NATURAL BRUTAL, c'est un père et un fils. Pas d'équipe marketing, pas de bureau de style, pas d'investisseur à rassurer. On dessine ensemble, on tranche ensemble, et quand on se plante, on n'a personne d'autre à blâmer. C'est plus lent qu'une grosse structure, mais chaque pièce qui sort a été validée par les deux.",
+    title: "Du matériel, pas du style",
+    body: "On habille l'entraînement. Le sol, le sac, les séries, les rounds. Une pièce qui gêne le mouvement ou qui remonte quand on lève les bras ne sert à rien, même si elle rend bien en photo.",
   },
   {
     number: "02",
-    title: "Naturel, et brutal quand même",
-    body: "Le nom dit exactement ce qu'on cherche. Naturel : des matières franches, des coupes qui suivent le corps au lieu de le contraindre, rien d'inutile. Brutal : ça doit encaisser les prises, les chutes, les séries et les lavages qui s'enchaînent. Les deux ne s'opposent pas, ils se tiennent — c'est même tout l'enjeu.",
+    title: "Le nom",
+    body: "Naturel : des matières franches, des coupes simples, rien d'ajouté pour faire joli. Brutal : ce que le sport fait subir aux vêtements. Les deux tiennent ensemble, sinon la pièce ne sort pas.",
   },
   {
     number: "03",
-    title: "Éprouvé avant d'être vendu",
-    body: "Une pièce ne passe pas en ligne parce que le rendu est joli sur un écran. Elle y passe après avoir été portée à l'entraînement, lavée, reportée, tirée dessus. Si une couture cède, si un tissu gratte au troisième round, si une coupe remonte pendant l'effort, elle retourne au dessin. C'est long, et c'est la seule méthode qu'on connaisse.",
-  },
-  {
-    number: "04",
     title: "Fabriqué à la commande",
-    body: "Rien n'est produit d'avance. Votre pièce est confectionnée après votre achat : pas d'invendus à brader en fin de saison, pas de cartons qui dorment. En contrepartie, il y a un délai avant l'expédition. On préfère l'annoncer clairement plutôt que promettre du 24 heures qu'on ne tiendrait pas.",
+    body: "Rien n'est produit d'avance. Votre pièce est confectionnée après l'achat, ce qui ajoute quelques jours avant l'expédition. En échange, aucun stock à écouler et aucune démarque de fin de saison.",
   },
-];
-
-const FACTS = [
-  { label: "Fondateurs", value: "02" },
-  { label: "Générations", value: "02" },
-  { label: "Stock dormant", value: "00" },
-  { label: "Intermédiaires", value: "00" },
 ];
 
 export default function AtelierPage() {
@@ -45,8 +33,8 @@ export default function AtelierPage() {
     <>
       <PageHeader
         eyebrow="L'atelier"
-        title="Une marque montée à deux."
-        intro="Un père, un fils, et l'envie de faire des vêtements d'entraînement qui tiennent vraiment. Il n'y a pas d'histoire de start-up derrière NATURAL BRUTAL — juste une méthode de travail qu'on assume."
+        title="Fait pour l'entraînement."
+        intro="NATURAL BRUTAL, c'est deux personnes et des vêtements pour les sports de combat et la salle. Pas de collection de quarante références, pas de discours."
       />
 
       <Marquee
@@ -83,25 +71,6 @@ export default function AtelierPage() {
         </div>
       </section>
 
-      <section className="invert-block section">
-        <div className="shell">
-          <div className="grid grid-cols-2 gap-px lg:grid-cols-4">
-            {FACTS.map((fact, index) => (
-              <div
-                key={fact.label}
-                className="reveal border-t border-[color:var(--color-hairline-invert)] py-8 lg:border-r lg:pr-8 lg:last:border-r-0"
-                style={{ ["--reveal-delay" as string]: `${index * 90}ms` }}
-              >
-                <p className="label-sm mb-4 text-[color:var(--color-smoke)]">{fact.label}</p>
-                <p className="display text-[clamp(2.5rem,5vw,4rem)] leading-none">
-                  {fact.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="section shell">
         <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-24">
           <div>
@@ -110,14 +79,13 @@ export default function AtelierPage() {
                 <span>Une question ?</span>
               </span>
               <span className="reveal-mask" style={{ ["--reveal-delay" as string]: "90ms" }}>
-                <span>C&apos;est nous au bout.</span>
+                <span>Écrivez-nous.</span>
               </span>
             </h2>
 
             <p className="reveal mt-8 max-w-[46ch] text-sm leading-relaxed text-[color:var(--color-smoke)]">
-              Taille, matière, délai, commande en cours : écrivez-nous. Il n&apos;y
-              a pas de plateforme de support, c&apos;est l&apos;un de nous deux qui
-              répond.
+              Taille, matière, délai, commande en cours. C&apos;est l&apos;un de
+              nous deux qui répond, pas une plateforme de support.
             </p>
 
             <div className="reveal mt-8 flex flex-wrap gap-3">
