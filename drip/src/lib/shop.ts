@@ -10,7 +10,7 @@ export const SHOP = {
   legalName: process.env.NEXT_PUBLIC_SHOP_LEGAL_NAME ?? "NATURAL BRUTAL",
   tagline: "Vêtements de combat et de sport",
   description:
-    "NATURAL BRUTAL équipe celles et ceux qui s'entraînent dur : vêtements de combat et de sport, coupés pour encaisser, fabriqués à la commande.",
+    "Vêtements pour les sports de combat et la salle. Fabriqués à la commande.",
   email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "contact@naturalbrutal.fr",
   phone: process.env.NEXT_PUBLIC_SHOP_PHONE ?? "",
   address: process.env.NEXT_PUBLIC_SHOP_ADDRESS ?? "",

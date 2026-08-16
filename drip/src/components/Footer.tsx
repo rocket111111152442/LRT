@@ -73,9 +73,12 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Grand mot de pied de page : signature graphique de la marque. */}
+        {/* Grand mot de pied de page : signature graphique de la marque.
+            L'interligne reste au-dessus de 0.95 et une reserve compense le
+            debord d'Anton, sinon `overflow-hidden` tranche le haut des
+            capitales. */}
         <div className="hairline overflow-hidden pt-10">
-          <p className="display select-none text-center text-[clamp(4rem,19vw,17rem)] leading-[0.8] opacity-[0.13]">
+          <p className="display select-none pt-[0.12em] text-center text-[clamp(4rem,19vw,16rem)] leading-[0.95] opacity-[0.13]">
             BRUTAL
           </p>
         </div>
