@@ -25,13 +25,13 @@
   <path d="M16 58C32 24 92 7 150 13c42 4 69 17 73 30-39-23-99-31-151-25-25 3-42 8-56 15Z" fill="url(#gloss)"/>
 
   <!-- SUISSE -->
-  <text x="20" y="64" font-family="Archivo, Helvetica, Arial, sans-serif" font-size="47" font-style="italic" font-weight="800" fill="#ffffff" letter-spacing="-1.4">SUISSE</text>
+  <text x="20" y="64" font-family="Archivo, Helvetica, Arial, sans-serif" font-size="47" font-style="italic" font-weight="800" textLength="186" lengthAdjust="spacingAndGlyphs" fill="#ffffff" letter-spacing="-1.4">SUISSE</text>
 
   <!-- CONSEILS -->
-  <text x="126" y="92" font-family="Archivo, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#ffffff" letter-spacing="-0.6">CONSEILS</text>
+  <text x="126" y="92" font-family="Archivo, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" textLength="212" lengthAdjust="spacingAndGlyphs" fill="#ffffff" letter-spacing="-0.6">CONSEILS</text>
 
   <!-- MANAGEMENT -->
-  <text x="132" y="118" font-family="Archivo, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" fill="#b9b9b9" letter-spacing="5.2">MANAGEMENT</text>
+  <text x="132" y="118" font-family="Archivo, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" textLength="196" lengthAdjust="spacingAndGlyphs" fill="#b9b9b9" letter-spacing="5.2">MANAGEMENT</text>
 
   <!-- croix suisse -->
   <g transform="translate(340 44) rotate(-14)">
