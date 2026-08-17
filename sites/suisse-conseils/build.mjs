@@ -2,7 +2,7 @@
    `node build.mjs` réécrit les fichiers .html à la racine.
    Le site livré reste 100 % statique : aucun outil n'est nécessaire pour le servir. */
 
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -35,11 +35,22 @@ const I = {
   horloge: `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.4" stroke="currentColor" stroke-width="1.5"/><path d="M10 5.8V10l2.9 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 };
 
-const marque = (fond = "var(--brand)", croix = "#fff") => `
-<svg class="brand__mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-  <path d="M20 3.2 34.8 9v11.4c0 8.3-6.2 14.3-14.8 17-8.6-2.7-14.8-8.7-14.8-17V9L20 3.2Z" fill="${fond}"/>
-  <path d="M12.6 19.4h5.1V14h4.6v5.4h5.1V24h-5.1v5.4h-4.6V24h-5.1v-4.6Z" fill="${croix}"/>
-</svg>`;
+/* Le logo est inséré en SVG dans la page (et non via <img>) : une image SVG
+   externe n'hérite pas des polices du document, le lettrage serait rendu avec
+   une police de repli. Les identifiants de dégradé sont suffixés pour que les
+   deux versions puissent coexister sur une même page. */
+const lireLogo = (fichier, suffixe) => {
+  let svg = readFileSync(new URL("./assets/img/" + fichier, import.meta.url), "utf8");
+  svg = svg.replace(/<\?xml[^>]*>/, "").trim();
+  for (const id of ["blob", "gloss", "swoosh"]) {
+    svg = svg.split('id="' + id + '"').join('id="' + id + suffixe + '"');
+    svg = svg.split("url(#" + id + ")").join("url(#" + id + suffixe + ")");
+  }
+  return svg;
+};
+
+const marque = () => lireLogo("logo.svg", "-h");
+const marqueBlanche = () => lireLogo("logo-blanc.svg", "-f");
 
 /* ------------------------------------------------------------- mise en page */
 function layout({ slug, titre, description, contenu, actif }) {
@@ -67,7 +78,7 @@ function layout({ slug, titre, description, contenu, actif }) {
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
 <link rel="stylesheet" href="/assets/css/site.css">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"InsuranceAgency","name":"${SITE.nom}","url":"${SITE.url}/","email":"${SITE.mail}","telephone":"${SITE.telHref}","address":{"@type":"PostalAddress","streetAddress":"${SITE.rue}","postalCode":"1228","addressLocality":"Plan-les-Ouates","addressRegion":"Genève","addressCountry":"CH"},"areaServed":"Suisse romande","slogan":"Votre confiance, notre responsabilité"}
@@ -92,13 +103,7 @@ function layout({ slug, titre, description, contenu, actif }) {
 
 <header class="header">
   <div class="wrap header__inner">
-    <a class="brand" href="/">
-      ${marque()}
-      <span>
-        <span class="brand__name">Suisse-Conseils</span>
-        <span class="brand__sub">Management</span>
-      </span>
-    </a>
+    <a class="brand" href="/">${marque()}</a>
 
     <nav class="nav" data-nav data-open="false" aria-label="Navigation principale">
       ${lien("/frontaliers.html", "Frontaliers", "frontaliers")}
@@ -126,13 +131,7 @@ ${contenu}
   <div class="wrap">
     <div class="footer__grid">
       <div>
-        <a class="brand" href="/">
-          ${marque("#fff", "#14171c")}
-          <span>
-            <span class="brand__name">Suisse-Conseils</span>
-            <span class="brand__sub">Management</span>
-          </span>
-        </a>
+        <a class="brand" href="/">${marqueBlanche()}</a>
         <p style="margin-top:1.25rem;font-size:.9375rem;max-width:26rem">
           Courtier en assurances et prévoyance. Nous accompagnons résidents,
           frontaliers et entreprises dans toute la Suisse romande.
@@ -179,6 +178,12 @@ ${contenu}
 }
 
 /* --------------------------------------------------------- blocs réutilisés */
+const motif = `
+<svg viewBox="0 0 600 200" fill="none" aria-hidden="true">
+  <path d="M20 118C48 52 152 16 254 28c76 9 124 33 132 57 9 30-42 63-132 78-114 19-220 7-240-16-11-11-11-20 6-29Z" fill="#fff" fill-opacity=".14"/>
+  <path d="M92 150c72-5 133-24 168-51 12 32-18 68-82 84-56 14-102 6-118-9-7-9 8-20 32-24Z" fill="#fff" fill-opacity=".1"/>
+</svg>`;
+
 const heroArt = `
 <svg viewBox="0 0 640 520" role="img" aria-label="Illustration : relief suisse stylisé">
   <rect width="640" height="520" fill="#14171c"/>
@@ -285,7 +290,7 @@ pages.push({
     <div class="wrap split">
       <div class="rise">
         <span class="eyebrow">Courtier en assurances · Genève</span>
-        <h1 class="d1">Votre confiance,<br>notre responsabilité</h1>
+        <h1 class="d1">Votre confiance,<br><span class="ital">notre responsabilité</span></h1>
         <p class="lead">
           Nos conseillers certifiés FINMA vous accompagnent dans toute la Suisse romande.
           Nous comparons les offres de nos partenaires — établissements bancaires et
@@ -297,13 +302,22 @@ pages.push({
           <a class="btn btn--ghost btn--lg" href="tel:${SITE.telHref}">${SITE.tel}</a>
         </div>
       </div>
-      <div class="hero__art rise">
-        ${heroArt}
-        <div class="hero__chip">
-          ${I.bouclier}
-          <div>
-            <b>Conseillers certifiés FINMA</b>
-            <span>Enregistrés auprès de l’autorité fédérale de surveillance des marchés financiers</span>
+      <div class="rise">
+        <div class="panel">
+          <div class="panel__motif">${motif}</div>
+          <span class="panel__kicker">Analyse gratuite</span>
+          <h2 class="d3" style="margin-top:1.1rem">Trois rendez-vous suffisent<br>à y voir clair</h2>
+          <ul class="panel__list">
+            <li><b>1</b><span>Nous faisons le point sur vos contrats et votre situation.</span></li>
+            <li><b>2</b><span>Nous comparons les offres de nos partenaires, par écrit.</span></li>
+            <li><b>3</b><span>Vous choisissez ; nous prenons les démarches en charge.</span></li>
+          </ul>
+          <div class="panel__card">
+            ${I.bouclier}
+            <div>
+              <b>Conseillers certifiés FINMA</b>
+              <span>Enregistrés auprès de l’autorité fédérale de surveillance des marchés financiers</span>
+            </div>
           </div>
         </div>
       </div>
@@ -325,7 +339,7 @@ pages.push({
     <div class="wrap">
       <div class="head rise">
         <span class="eyebrow">Nos domaines</span>
-        <h2 class="d2">Un interlocuteur unique pour vos assurances et votre prévoyance</h2>
+        <h2 class="d2">Un interlocuteur unique pour vos assurances et votre <span class="ital">prévoyance</span></h2>
         <p class="lead">Chaque dossier commence par la même chose : comprendre votre situation
           et relire ce que vous avez déjà signé.</p>
       </div>
@@ -389,7 +403,7 @@ pages.push({
     <div class="wrap split">
       <div class="rise">
         <span class="eyebrow">Pourquoi nous</span>
-        <h2 class="d2">Le conseil d’abord, le contrat ensuite</h2>
+        <h2 class="d2">Le conseil d’abord,<br>le contrat <span class="ital">ensuite</span></h2>
         <p class="lead" style="margin-top:1rem">
           Nous travaillons avec de nombreux partenaires : établissements bancaires et
           compagnies d’assurance. Cette pluralité est ce qui permet de vous présenter un
@@ -405,11 +419,27 @@ pages.push({
       </div>
 
       <div class="rise">
-        <div class="figures">
-          <div class="figure"><b>3</b><span>Les trois piliers du système suisse, lus ensemble et jamais isolément.</span></div>
-          <div class="figure"><b>1</b><span>Un seul interlocuteur, de la première analyse à la déclaration de sinistre.</span></div>
-          <div class="figure"><b>0 CHF</b><span>Aucun frais de dossier : l’analyse et la comparaison sont offertes.</span></div>
+        <p class="promise">« Votre confiance, notre responsabilité » n’est pas un slogan :
+          c’est ce qui nous interdit de vous vendre un contrat que nous ne prendrions pas
+          nous-mêmes.</p>
+        <div class="panel" style="margin-top:2rem">
+          <div class="panel__motif">${motif}</div>
+          <span class="panel__kicker">Nos partenaires</span>
+          <p style="margin-top:1rem;color:rgba(255,255,255,.92)">
+            Établissements bancaires et compagnies d’assurance actifs en Suisse. C’est cette
+            pluralité qui rend la comparaison possible — et la recommandation crédible.
+          </p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="wrap">
+      <div class="figband rise">
+        <div><b>3</b><span>Les trois piliers du système suisse, lus ensemble et jamais isolément.</span></div>
+        <div><b>1</b><span>Un seul interlocuteur, de la première analyse à la déclaration de sinistre.</span></div>
+        <div><b>0 CHF</b><span>Aucun frais de dossier : l’analyse et la comparaison sont offertes.</span></div>
       </div>
     </div>
   </section>
@@ -418,23 +448,23 @@ pages.push({
     <div class="wrap">
       <div class="head rise">
         <span class="eyebrow">Notre méthode</span>
-        <h2 class="d2">Trois étapes, aucune surprise</h2>
+        <h2 class="d2">Trois étapes, <span class="ital">aucune surprise</span></h2>
       </div>
-      <div class="steps">
-        <div class="step rise">
-          <span class="step__n tnum">ÉTAPE 01</span>
+      <div class="flow">
+        <div class="flow__step rise">
+          <div class="flow__dot">01</div>
           <h3 class="d3">Analyse de votre situation</h3>
           <p>Nous faisons le point sur votre statut, vos contrats en cours et vos projets.
             Rien n’est résilié avant d’avoir été relu.</p>
         </div>
-        <div class="step rise">
-          <span class="step__n tnum">ÉTAPE 02</span>
+        <div class="flow__step rise">
+          <div class="flow__dot">02</div>
           <h3 class="d3">Comparatif écrit</h3>
           <p>Nous mettons les offres de nos partenaires côte à côte : primes, garanties et
             exclusions, sans zone d’ombre.</p>
         </div>
-        <div class="step rise">
-          <span class="step__n tnum">ÉTAPE 03</span>
+        <div class="flow__step rise">
+          <div class="flow__dot">03</div>
           <h3 class="d3">Décision et suivi</h3>
           <p>Vous choisissez en connaissance de cause. Nous restons votre interlocuteur pour
             les années qui suivent.</p>
@@ -548,7 +578,22 @@ pages.push({
         <p style="margin-top:2rem"><a class="btn" href="/prevoyance.html">Voir la page prévoyance ${I.fleche}</a></p>
       </div>
       <div class="rise">
-        <div class="hero__art">${heroArt}</div>
+        <div class="panel">
+          <div class="panel__motif">${motif}</div>
+          <span class="panel__kicker">Bon à savoir</span>
+          <h3 class="d3" style="margin-top:1.1rem">Le droit d’option se choisit une seule fois</h3>
+          <p style="margin-top:.85rem;color:rgba(255,255,255,.9)">
+            C’est la décision la plus lourde de conséquences du statut de frontalier.
+            Nous la préparons avec vous avant qu’elle ne devienne définitive.
+          </p>
+          <div class="panel__card">
+            ${I.tel}
+            <div>
+              <b>Une question rapide ?</b>
+              <span>Appelez-nous au ${SITE.tel}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>

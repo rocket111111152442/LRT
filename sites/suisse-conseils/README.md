@@ -39,17 +39,33 @@ Les huit couleurs du site sont déclarées en tête de `assets/css/site.css`,
 dans `:root`. Les remplacer suffit à rehabiller l'ensemble :
 
 ```css
---brand      #c8102e   rouge : boutons, accents, liens actifs
---brand-dark #a20d25   survol des boutons
---brand-wash #fdf2f3   fond pâle dérivé du rouge
---ink        #14171c   titres et texte fort
---ink-soft   #55606e   texte secondaire
---paper      #ffffff   fond principal
---paper-alt  #f7f6f4   sections alternées
---line       #e4e2de   filets et bordures
+--brand       #b41f24   rouge du logo : boutons, accents
+--brand-dark  #8b1418   rouge profond du galet, survols
+--brand-light #c2222a   rouge clair du dégradé
+--brand-wash  #fbf2f2   fond pâle dérivé du rouge
+--silver      #c9c9c9   argent du reflet du logo
+--ink         #1a1c1f   titres et texte fort
+--ink-soft    #5a6068   texte secondaire
+--paper       #ffffff   fond principal
+--paper-alt   #f6f5f3   sections alternées
+--line        #e6e4e0   filets et bordures
 ```
 
-Typographie : Manrope (Google Fonts), repli sur les polices système.
+Typographie : Archivo (Google Fonts), dont l'italique gras fait écho au
+lettrage du logo. Repli sur les polices système.
+
+## Logo
+
+`assets/img/logo.svg` et sa variante pour fond sombre `logo-blanc.svg` sont
+une reconstitution vectorielle du logo fourni. Le lettrage y est du texte
+composé en Archivo : le SVG est donc **inséré dans la page** plutôt
+qu'appelé via `<img>`, car une image SVG externe n'hérite pas des polices du
+document.
+
+Pour poser le fichier original à la place : remplacer `assets/img/logo.svg`
+(et la variante claire), puis relancer `node build.mjs`. Si le fichier
+original contient déjà son lettrage vectorisé, un simple
+`<img src="/assets/img/logo.svg" alt="…">` suffit dans `build.mjs`.
 
 ## Tenue en performance
 
@@ -61,7 +77,7 @@ Le site doit rester fluide sur une machine modeste :
 - l'`IntersectionObserver` des apparitions se détache dès l'élément affiché ;
 - `prefers-reduced-motion` neutralise tout mouvement.
 
-Page d'accueil : ~48 Ko, 5 requêtes, 365 éléments DOM, DOM interactif en 16 ms.
+Page d'accueil : 5 requêtes, 419 éléments DOM, DOM interactif en 15 ms.
 
 ## Formulaire de contact
 
