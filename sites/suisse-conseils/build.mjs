@@ -2,11 +2,21 @@
    `node build.mjs` réécrit les fichiers .html à la racine.
    Le site livré reste 100 % statique : aucun outil n'est nécessaire pour le servir. */
 
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
+
+/* Empreinte du contenu ajoutée aux URL des ressources. Sans elle, l'en-tête
+   « immutable » de vercel.json fait resservir aux navigateurs une ancienne
+   feuille de style après une mise à jour. */
+const empreinte = (chemin) =>
+  createHash("sha1").update(readFileSync(join(ROOT, chemin))).digest("hex").slice(0, 8);
+
+const V_CSS = empreinte("assets/css/site.css");
+const V_JS = empreinte("assets/js/site.js");
 
 const SITE = {
   nom: "Suisse-Conseils Management",
@@ -79,7 +89,7 @@ function layout({ slug, titre, description, contenu, actif }) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
-<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/site.css?v=${V_CSS}">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"InsuranceAgency","name":"${SITE.nom}","url":"${SITE.url}/","email":"${SITE.mail}","telephone":"${SITE.telHref}","address":{"@type":"PostalAddress","streetAddress":"${SITE.rue}","postalCode":"1228","addressLocality":"Plan-les-Ouates","addressRegion":"Genève","addressCountry":"CH"},"areaServed":"Suisse romande","slogan":"Votre confiance, notre responsabilité"}
 </script>
@@ -171,7 +181,7 @@ ${contenu}
   </div>
 </footer>
 
-<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/site.js?v=${V_JS}" defer></script>
 </body>
 </html>
 `;
