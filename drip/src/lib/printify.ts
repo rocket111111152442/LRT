@@ -18,6 +18,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { PRINTIFY_SHOP_KEY, readSetting } from "@/lib/settings";
 
 // Surchargeable pour les tests ; en production, l'API publique de Printify.
 const PRINTIFY_API = process.env.PRINTIFY_API_URL ?? "https://api.printify.com/v1";
@@ -68,26 +69,29 @@ export async function listPrintifyShops() {
 }
 
 /**
- * Identifiant de la boutique. Mis en cache le temps du processus : l'appel
- * `/shops.json` est inutile à chaque produit importé.
+ * Identifiant de la boutique à utiliser, par ordre de priorité :
+ *
+ *  1. `PRINTIFY_SHOP_ID`, si l'exploitant tient à le figer sur l'hébergeur ;
+ *  2. le choix fait dans l'administration, rangé en base ;
+ *  3. à défaut, la première boutique du compte — un choix arbitraire, signalé
+ *     comme tel dans le rapport de synchronisation.
  */
-let cachedShopId: string | null = null;
-
 export async function resolveShopId() {
   const configured = process.env.PRINTIFY_SHOP_ID;
   if (configured) return configured;
-  if (cachedShopId) return cachedShopId;
+
+  const choisie = await readSetting(PRINTIFY_SHOP_KEY);
+  if (choisie) return choisie;
 
   const shops = await listPrintifyShops();
 
   if (shops.length === 0) {
     throw new Error(
-      "Aucune boutique dans ce compte Printify. Créez-en une, ou renseignez PRINTIFY_SHOP_ID.",
+      "Aucune boutique dans ce compte Printify. Créez-en une depuis Printify.",
     );
   }
 
-  cachedShopId = String(shops[0].id);
-  return cachedShopId;
+  return String(shops[0].id);
 }
 
 type PrintifyOptionValue = { id: number; title: string; colors?: string[] };
@@ -131,8 +135,9 @@ type Paginated<T> = { current_page: number; data: T[]; last_page: number };
 
 export async function listPrintifyProducts() {
   const shops = await listPrintifyShops();
-  const configured = process.env.PRINTIFY_SHOP_ID;
-  const shopId = configured ?? (await resolveShopId());
+  const designee =
+    process.env.PRINTIFY_SHOP_ID ?? (await readSetting(PRINTIFY_SHOP_KEY)) ?? null;
+  const shopId = designee ?? (await resolveShopId());
   const shop = shops.find((candidate) => String(candidate.id) === String(shopId));
 
   const products: PrintifyProduct[] = [];
@@ -155,7 +160,7 @@ export async function listPrintifyProducts() {
     shopId,
     shopName: shop?.title ?? `boutique ${shopId}`,
     shopCount: shops.length,
-    shopChoisieAutomatiquement: !configured && shops.length > 1,
+    shopChoisieAutomatiquement: !designee && shops.length > 1,
   };
 }
 
