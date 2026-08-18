@@ -50,3 +50,21 @@ const entete = `-- NATURAL BRUTAL — création des tables de la boutique.
 
 writeFileSync(CIBLE, entete + sql);
 console.log(`${CIBLE} écrit (${sql.split("\n").length} lignes).`);
+
+// Le meme SQL, embarque comme module : la page d'installation doit pouvoir le
+// jouer depuis le serveur, or un fichier .sql du depot n'est pas inclus dans le
+// paquet deploye sur Vercel.
+const MODULE = "src/lib/schemaSql.ts";
+writeFileSync(
+  MODULE,
+  `/**
+ * Schéma complet de la boutique, en SQL rejouable.
+ *
+ * Généré depuis prisma/schema.prisma — ne pas modifier à la main.
+ * Régénérer avec : npm run sql:generer
+ */
+
+export const SCHEMA_SQL = ${JSON.stringify(sql)};
+`,
+);
+console.log(`${MODULE} écrit.`);
