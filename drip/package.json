@@ -11,7 +11,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "prisma:seed": "prisma db seed",
-    "printful:sync": "tsx scripts/sync-printful.ts"
+    "printify:sync": "tsx scripts/sync-printify.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -1,7 +1,7 @@
 /**
  * Amorce la base : compte administrateur, rayons et quelques pièces de
  * démonstration pour que la boutique ne soit jamais vide avant la première
- * synchronisation Printful.
+ * synchronisation Printify.
  *
  * Le script est idempotent : on peut le relancer sans créer de doublon.
  *

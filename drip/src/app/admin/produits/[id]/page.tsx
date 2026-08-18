@@ -54,8 +54,8 @@ export default async function AdminProduitPage({ params }: { params: Params }) {
             <span className={`tag ${product.active ? "tag-solid" : ""}`}>
               {product.active ? "En ligne" : "Hors ligne"}
             </span>
-            {product.printfulProductId && (
-              <span className="tag">Printful #{product.printfulProductId}</span>
+            {product.podProductId && (
+              <span className="tag">Printify #{product.podProductId}</span>
             )}
             {product.active && (
               <Link href={`/produit/${product.slug}`} className="label-sm link-sweep">
@@ -155,7 +155,7 @@ export default async function AdminProduitPage({ params }: { params: Params }) {
             {product.variants.length === 0 ? (
               <p className="text-sm text-[color:var(--color-smoke)]">
                 Aucune variante. Elles sont créées automatiquement par la
-                synchronisation Printful.
+                synchronisation Printify.
               </p>
             ) : (
               <div className="space-y-px">

@@ -70,7 +70,7 @@ export default function MentionsLegalesPage() {
           <p>
             Le traitement des paiements est assuré par Stripe Payments Europe
             Ltd, 1 Grand Canal Street Lower, Dublin, Irlande. La fabrication et
-            l&apos;expédition des produits sont assurées par Printful Inc. et
+            l&apos;expédition des produits sont assurées par Printify Inc. et
             ses ateliers partenaires.
           </p>
         </section>

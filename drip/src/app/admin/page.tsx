@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { ORDER_STATUS, type OrderStatusKey } from "@/lib/orderStatus";
-import { printfulEnabled } from "@/lib/printful";
+import { printifyEnabled } from "@/lib/printify";
 import { stripeEnabled } from "@/lib/stripe";
 import { daysAgo } from "@/lib/dates";
 
@@ -85,8 +85,8 @@ export default async function AdminDashboard() {
       text: "Stripe n'est pas configuré : la caisse est fermée. Renseignez STRIPE_SECRET_KEY.",
       href: null,
     },
-    !printfulEnabled() && {
-      text: "Printful n'est pas connecté : les commandes ne partent pas en production automatiquement.",
+    !printifyEnabled() && {
+      text: "Printify n'est pas connecté : les commandes ne partent pas en production automatiquement.",
       href: null,
     },
     data.pendingReviews > 0 && {
@@ -98,7 +98,7 @@ export default async function AdminDashboard() {
       href: "/admin/messages",
     },
     data.activeProducts === 0 && {
-      text: "Aucune pièce n'est en ligne. Synchronisez Printful ou publiez un produit.",
+      text: "Aucune pièce n'est en ligne. Synchronisez Printify ou publiez un produit.",
       href: "/admin/produits",
     },
   ].filter(Boolean) as { text: string; href: string | null }[];

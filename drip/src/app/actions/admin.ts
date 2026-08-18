@@ -5,7 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { fieldErrors } from "@/lib/validation";
-import { syncPrintfulCatalog, createPrintfulOrder, printfulEnabled } from "@/lib/printful";
+import { syncPrintifyCatalog, createPrintifyOrder, printifyEnabled } from "@/lib/printify";
 import type { FormState } from "@/app/actions/auth";
 
 /** Toute action d'administration commence par revérifier le rôle côté serveur. */
@@ -258,7 +258,7 @@ export async function updateOrderAction(
   return { success: true, message: "Commande mise à jour." };
 }
 
-export async function pushOrderToPrintfulAction(
+export async function pushOrderToPrintifyAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
@@ -267,14 +267,14 @@ export async function pushOrderToPrintfulAction(
   const orderId = formData.get("orderId");
   if (typeof orderId !== "string") return { errors: { form: "Requête invalide." } };
 
-  if (!printfulEnabled()) {
-    return { errors: { form: "PRINTFUL_API_KEY n'est pas configurée." } };
+  if (!printifyEnabled()) {
+    return { errors: { form: "PRINTIFY_API_KEY n'est pas configurée." } };
   }
 
   try {
-    const printfulOrderId = await createPrintfulOrder(orderId);
+    const podOrderId = await createPrintifyOrder(orderId);
     revalidatePath("/admin/commandes");
-    return { success: true, message: `Commande transmise à Printful (#${printfulOrderId}).` };
+    return { success: true, message: `Commande transmise à Printify (#${podOrderId}).` };
   } catch (error) {
     return {
       errors: {
@@ -327,22 +327,22 @@ export async function replyToReviewAction(
   return { success: true, message: "Réponse enregistrée." };
 }
 
-export async function syncPrintfulAction(
+export async function syncPrintifyAction(
   _prev: FormState,
   _formData: FormData,
 ): Promise<FormState> {
   await guard();
 
-  if (!printfulEnabled()) {
+  if (!printifyEnabled()) {
     return {
       errors: {
-        form: "PRINTFUL_API_KEY n'est pas configurée. Ajoutez-la dans les variables d'environnement.",
+        form: "PRINTIFY_API_KEY n'est pas configurée. Ajoutez-la dans les variables d'environnement.",
       },
     };
   }
 
   try {
-    const report = await syncPrintfulCatalog();
+    const report = await syncPrintifyCatalog();
 
     revalidatePath("/admin/produits");
     revalidatePath("/boutique");

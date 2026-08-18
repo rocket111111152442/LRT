@@ -4,7 +4,7 @@ import { getStripe, appUrl } from "@/lib/stripe";
 import { readCart, clearCart } from "@/lib/cart";
 import { getCurrentUser } from "@/lib/auth";
 import { ORDER_PREFIX, shippingFor, SHIPPING_COUNTRIES, SHOP } from "@/lib/shop";
-import { createPrintfulOrder, printfulEnabled } from "@/lib/printful";
+import { createPrintifyOrder, printifyEnabled } from "@/lib/printify";
 
 /** Numéro lisible et séquentiel : NB-000042. */
 async function nextOrderNumber() {
@@ -89,7 +89,9 @@ export async function createCheckoutSession(couponCode?: string) {
 
   const variants = await prisma.variant.findMany({
     where: { id: { in: lines.map((line) => line.variantId) } },
-    include: { product: { select: { id: true, slug: true, name: true } } },
+    include: {
+      product: { select: { id: true, slug: true, name: true, podProductId: true } },
+    },
   });
   const variantById = new Map(variants.map((variant) => [variant.id, variant]));
 
@@ -116,7 +118,8 @@ export async function createCheckoutSession(couponCode?: string) {
             unitPrice: line.unitPrice,
             quantity: line.quantity,
             imageUrl: line.product.imageUrl,
-            printfulVariantId: variant?.printfulVariantId ?? null,
+            podProductId: variant?.product.podProductId ?? null,
+            podVariantId: variant?.podVariantId ?? null,
           };
         }),
       },
@@ -213,7 +216,7 @@ export async function createCheckoutSession(couponCode?: string) {
 
 /**
  * Appelé par le webhook Stripe quand le paiement est confirmé.
- * Idempotent : rejouer le même événement ne recrée ni la commande Printful ni
+ * Idempotent : rejouer le même événement ne recrée ni la commande Printify ni
  * l'incrément du compteur de coupon.
  */
 export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
@@ -271,15 +274,15 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
     : null;
   if (cart) await clearCart(cart.id);
 
-  if (printfulEnabled()) {
+  if (printifyEnabled()) {
     try {
-      await createPrintfulOrder(order.id);
+      await createPrintifyOrder(order.id);
     } catch (error) {
-      // Un échec Printful ne doit pas faire échouer le webhook : Stripe
+      // Un échec Printify ne doit pas faire échouer le webhook : Stripe
       // rejouerait l'événement et le client resterait sans confirmation.
       // La commande reste en PAID et peut être renvoyée depuis l'admin.
       console.error(
-        `[printful] échec de création pour ${order.number} :`,
+        `[printify] échec de création pour ${order.number} :`,
         error instanceof Error ? error.message : error,
       );
     }

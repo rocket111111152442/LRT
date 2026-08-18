@@ -72,7 +72,7 @@ export default async function AdminCommandePage({ params }: { params: Params }) 
                     <p className="text-sm font-medium">{item.productName}</p>
                     <p className="label-sm mt-1.5 text-[color:var(--color-smoke)]">
                       {item.variantName} — ×{item.quantity}
-                      {item.printfulVariantId && ` — Printful ${item.printfulVariantId}`}
+                      {item.podVariantId && ` — Printify ${item.podVariantId}`}
                     </p>
                   </div>
 
@@ -183,7 +183,7 @@ export default async function AdminCommandePage({ params }: { params: Params }) 
                 status: order.status,
                 trackingNumber: order.trackingNumber,
                 trackingUrl: order.trackingUrl,
-                printfulOrderId: order.printfulOrderId,
+                podOrderId: order.podOrderId,
               }}
             />
           </div>

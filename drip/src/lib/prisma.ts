@@ -1,15 +1,17 @@
 import { unstable_rethrow } from "next/navigation";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client";
+import { databaseUrl } from "@/lib/services";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = databaseUrl();
 
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL manquante. Renseignez la variable d'environnement pour connecter la boutique à sa base.",
+      "Base de données non configurée : renseignez DATABASE_URL (ou laissez " +
+        "l'intégration Supabase poser POSTGRES_PRISMA_URL) sur l'hébergeur.",
     );
   }
 

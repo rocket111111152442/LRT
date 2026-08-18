@@ -27,7 +27,13 @@ export function toStripeAmount(cents: number) {
   return Math.round(cents);
 }
 
-/** Convertit un prix Printful (« 24.50 ») en centimes. */
+/**
+ * Convertit un prix décimal (« 24.50 ») en centimes.
+ *
+ * Printify renvoie déjà des entiers en centimes ; ce convertisseur sert aux
+ * saisies manuelles de l'administration et à tout fournisseur qui exprimerait
+ * ses prix en unités décimales.
+ */
 export function parseDecimalToCents(value: string | number | null | undefined) {
   if (value === null || value === undefined) return 0;
   const parsed = typeof value === "number" ? value : Number.parseFloat(value);

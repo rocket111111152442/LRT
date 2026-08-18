@@ -2,7 +2,7 @@
 
 Boutique en ligne complète pour **NATURAL BRUTAL**, marque de vêtements de
 combat et de sport : catalogue, panier, comptes clients, avis vérifiés,
-paiement Stripe, fabrication Printful et back-office d'administration.
+paiement Stripe, fabrication Printify et back-office d'administration.
 
 Application Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Prisma /
 PostgreSQL. Elle vit dans le dossier `drip/` du dépôt (nom historique du
@@ -60,7 +60,7 @@ openssl rand -base64 48
 
 - Tableau de bord : chiffre d'affaires, commandes à traiter, alertes de
   configuration
-- Commandes : statut, numéro de suivi, renvoi manuel vers Printful
+- Commandes : statut, numéro de suivi, renvoi manuel vers Printify
 - Produits : fiche complète, visuels, variantes, mise en ligne, rayons
 - Avis : modération et réponses
 - Clients, codes promo, messages du formulaire de contact
@@ -97,24 +97,62 @@ configuré.
 
 ---
 
-## Fabrication Printful
+## Où va l'argent
 
-1. Créer un jeton privé dans Printful > Paramètres > Développeurs.
-2. Le renseigner dans `PRINTFUL_API_KEY` (et `PRINTFUL_STORE_ID` si le compte
+C'est la question qui revient toujours, et la réponse n'est pas celle qu'on
+imagine : **il n'y a pas de partage automatique du paiement.** Stripe ne reverse
+rien à Printify. Le circuit réel est le suivant.
+
+1. Le client paie sur Stripe Checkout. **La totalité** arrive sur le compte
+   Stripe de la boutique — prix de l'article, frais de port compris.
+2. Stripe prélève sa commission (environ 1,5 % + 0,25 € sur une carte
+   européenne) et vire le reste sur le compte bancaire relié, selon le rythme
+   de versement configuré dans Stripe.
+3. Le webhook `checkout.session.completed` marque la commande payée et
+   l'envoie aussitôt à Printify, qui la lance en production.
+4. **Printify facture séparément** la fabrication et l'expédition, sur le moyen
+   de paiement enregistré dans le compte Printify. C'est une dépense, pas une
+   retenue sur l'encaissement.
+
+La marge est donc la différence entre ce qui entre et ce qui sort :
+
+```
+marge = prix de vente − commission Stripe − (fabrication + port facturés par Printify)
+```
+
+L'API Printify renvoie les deux nombres pour chaque variante : `price` (le prix
+de vente affiché) et `cost` (ce que Printify facture). Il faut vérifier que le
+premier couvre le second, la commission Stripe et les frais de port réellement
+appliqués — sinon une vente fait perdre de l'argent.
+
+**À faire avant la première vente réelle :** enregistrer un moyen de paiement
+valide dans Printify. Sans lui, la commande est créée mais reste bloquée avant
+production, et le client aura payé sans rien recevoir.
+
+Ce qui est automatique : l'encaissement, la création de la commande chez
+Printify, le lancement en fabrication, le passage du statut à « en production ».
+Ce qui ne l'est pas : le réglage de Printify, qui reste une facture à part.
+
+---
+
+## Fabrication Printify
+
+1. Créer un jeton dans Printify > **My profile > Connections** > *Generate token*.
+2. Le renseigner dans `PRINTIFY_API_KEY` (et `PRINTIFY_SHOP_ID` si le compte
    gère plusieurs boutiques).
-3. Lancer l'import : bouton « Synchroniser Printful » dans `/admin/produits`, ou
+3. Lancer l'import : bouton « Synchroniser Printify » dans `/admin/produits`, ou
 
 ```bash
-npm run printful:sync
+npm run printify:sync
 ```
 
 L'import crée les produits, leurs variantes et leurs mockups. **Les nouvelles
 pièces arrivent hors ligne** : on rédige la fiche dans l'administration, puis on
-publie. Les produits retirés de Printful sont désactivés, jamais supprimés, pour
+publie. Les produits retirés de Printify sont désactivés, jamais supprimés, pour
 préserver l'historique des commandes.
 
-Après un paiement confirmé, la commande est transmise automatiquement à Printful.
-Mettre `PRINTFUL_AUTO_CONFIRM="false"` pour la créer en brouillon et lancer la
+Après un paiement confirmé, la commande est transmise automatiquement à Printify.
+Mettre `PRINTIFY_AUTO_PRODUCTION="false"` pour la créer en brouillon et lancer la
 production à la main pendant le lancement.
 
 ---
@@ -125,7 +163,7 @@ Tant qu'un produit n'a pas d'image, une silhouette de maillot dessinée en SVG
 occupe la place : la grille garde son rythme, rien ne paraît cassé.
 
 Pour ajouter des visuels : `/admin/produits/[id]` > **Visuels** > coller une URL
-`https` (Printful, Vercel Blob, Cloudinary…). Les mockups Printful sont importés
+`https` (Printify, Vercel Blob, Cloudinary…). Les mockups Printify sont importés
 automatiquement à la synchronisation.
 
 **Le logo** est pour l'instant composé en typographie dans
@@ -197,7 +235,9 @@ mettre en place une bannière et mettre à jour `/cookies`.
 ## Déploiement sur Vercel
 
 1. Importer le dépôt et régler **Root Directory** sur `drip`.
-2. Ajouter une base Postgres (Storage > Postgres) : `DATABASE_URL` est injectée.
+2. Ajouter une base Postgres (Storage > Supabase, ou tout autre fournisseur).
+   L'intégration pose `POSTGRES_PRISMA_URL` / `POSTGRES_URL` ; l'application
+   les accepte telles quelles, il n'y a pas de `DATABASE_URL` à recopier.
 3. Renseigner les variables d'environnement (voir `.env.example`).
 4. Après le premier déploiement, créer les tables et le compte admin :
 
@@ -235,4 +275,4 @@ disparaît de lui-même : aucun code à modifier.
 | `npm run prisma:push` | Applique le schéma à la base |
 | `npm run prisma:migrate` | Crée une migration |
 | `npm run prisma:seed` | Admin + rayons + pièces de démonstration |
-| `npm run printful:sync` | Importe le catalogue Printful |
+| `npm run printify:sync` | Importe le catalogue Printify |

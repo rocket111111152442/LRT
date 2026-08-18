@@ -42,7 +42,7 @@ export default function ConfidentialitePage() {
           <h3>Commande et livraison</h3>
           <p>
             Adresse postale, téléphone, contenu de la commande et montant.
-            Transmises à Stripe pour le paiement et à Printful pour la
+            Transmises à Stripe pour le paiement et à Printify pour la
             fabrication et l&apos;expédition. Base légale : exécution du contrat
             et obligation légale de conservation comptable.
           </p>
@@ -94,7 +94,7 @@ export default function ConfidentialitePage() {
               des paiements.
             </li>
             <li>
-              <strong>Printful Inc.</strong> — fabrication et expédition des
+              <strong>Printify Inc.</strong> — fabrication et expédition des
               commandes.
             </li>
             <li>

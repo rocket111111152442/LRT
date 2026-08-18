@@ -8,6 +8,23 @@
  * que l'échec soit annoncé, jamais subi.
  */
 
+/**
+ * URL de la base, quel que soit le nom que lui donne l'hébergeur.
+ *
+ * L'intégration Supabase de Vercel n'injecte pas `DATABASE_URL` : elle pose
+ * `POSTGRES_PRISMA_URL` (connexion mutualisée, celle qu'il faut en serverless)
+ * et `POSTGRES_URL` (connexion directe). On accepte les trois, en donnant la
+ * priorité à une valeur posée à la main.
+ */
+export function databaseUrl() {
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL ||
+    undefined
+  );
+}
+
 export type ServiceGap = {
   variable: string;
   raison: string;
@@ -19,7 +36,7 @@ const AUTH_SECRET_MIN_LENGTH = 32;
 export function missingServices(): ServiceGap[] {
   const gaps: ServiceGap[] = [];
 
-  if (!process.env.DATABASE_URL) {
+  if (!databaseUrl()) {
     gaps.push({
       variable: "DATABASE_URL",
       raison: "aucune base de données n'est reliée à la boutique",

@@ -1,25 +1,25 @@
 /**
- * Synchronisation manuelle du catalogue Printful vers la base.
+ * Synchronisation manuelle du catalogue Printify vers la base.
  *
- *   npm run printful:sync
+ *   npm run printify:sync
  *
  * La même opération est disponible depuis l'administration
- * (/admin/produits > « Synchroniser Printful »).
+ * (/admin/produits > « Synchroniser Printify »).
  */
 
 import "dotenv/config";
-import { syncPrintfulCatalog } from "../src/lib/printful";
+import { syncPrintifyCatalog } from "../src/lib/printify";
 
 async function main() {
-  if (!process.env.PRINTFUL_API_KEY) {
+  if (!process.env.PRINTIFY_API_KEY) {
     throw new Error(
-      "PRINTFUL_API_KEY manquante. Créez un jeton privé dans Printful > Paramètres > Développeurs.",
+      "PRINTIFY_API_KEY manquante. Créez un jeton privé dans Printify > My profile > Connections.",
     );
   }
 
-  console.log("Synchronisation du catalogue Printful…");
+  console.log("Synchronisation du catalogue Printify…");
 
-  const report = await syncPrintfulCatalog();
+  const report = await syncPrintifyCatalog();
 
   console.log(`→ ${report.created} pièce(s) créée(s)`);
   console.log(`→ ${report.updated} pièce(s) mise(s) à jour`);

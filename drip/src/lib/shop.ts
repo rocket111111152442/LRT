@@ -18,8 +18,12 @@ export const SHOP = {
   vatNumber: process.env.NEXT_PUBLIC_SHOP_VAT ?? "",
   hostingProvider: "Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA",
   social: {
-    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "https://instagram.com",
-    tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL ?? "https://tiktok.com",
+    instagram:
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL ??
+      "https://www.instagram.com/natural.brutal",
+    tiktok:
+      process.env.NEXT_PUBLIC_TIKTOK_URL ??
+      "https://www.tiktok.com/@natural.brutal.shop",
   },
 } as const;
 

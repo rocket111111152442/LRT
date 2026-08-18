@@ -113,8 +113,8 @@ model Product {
   // Détails affichés dans l'accordéon fiche produit (matière, entretien…).
   composition String? @db.Text
   categoryId  String?
-  // Identifiant du produit dans la boutique Printful (sync automatique).
-  printfulProductId String? @unique
+  // Identifiant du produit chez le fabricant à la demande (Printify).
+  podProductId String? @unique
   // Prix d'appel affiché sur les listings, en centimes.
   basePrice   Int
   compareAtPrice Int?
@@ -158,8 +158,8 @@ model Variant {
   colorHex  String? // pour la pastille couleur du sélecteur
   size      String?
   sku       String? @unique
-  // Identifiant de variante Printful, utilisé à la création de commande.
-  printfulVariantId String? @unique
+  // Identifiant de variante chez le fabricant, utilisé à la création de commande.
+  podVariantId String? @unique
   price     Int
   available Boolean @default(true)
   position  Int     @default(0)
@@ -220,7 +220,7 @@ model Order {
   stripeSessionId       String? @unique
   stripePaymentIntentId String?
 
-  printfulOrderId String?
+  podOrderId String?
   trackingNumber  String?
   trackingUrl     String?
 
@@ -261,7 +261,10 @@ model OrderItem {
   unitPrice   Int
   quantity    Int
   imageUrl    String?
-  printfulVariantId String?
+  // Printify exige le couple produit + variante pour lancer la fabrication :
+  // les deux sont figes ici, le catalogue pouvant changer apres la vente.
+  podProductId String?
+  podVariantId String?
 
   order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   variant Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)

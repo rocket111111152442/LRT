@@ -294,7 +294,7 @@ function EmptyCatalog() {
     <div className="hairline hairline-b flex flex-col items-center gap-5 py-24 text-center">
       <p className="display-lg">Collection en préparation</p>
       <p className="max-w-[44ch] text-sm text-[color:var(--color-smoke)]">
-        Les premières pièces arrivent. Synchronisez votre boutique Printful
+        Les premières pièces arrivent. Synchronisez votre boutique Printify
         depuis l&apos;administration, ou ajoutez un produit à la main pour le
         voir apparaître ici.
       </p>

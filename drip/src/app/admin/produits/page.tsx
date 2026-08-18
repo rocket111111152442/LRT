@@ -3,8 +3,8 @@ import Image from "next/image";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { toggleProductFlagAction } from "@/app/actions/admin";
-import { PrintfulSyncButton, CategoryForm } from "@/components/admin/AdminForms";
-import { printfulEnabled } from "@/lib/printful";
+import { PrintifySyncButton, CategoryForm } from "@/components/admin/AdminForms";
+import { printifyEnabled } from "@/lib/printify";
 
 export default async function AdminProduitsPage() {
   const data = await safeQuery(
@@ -39,13 +39,13 @@ export default async function AdminProduitsPage() {
           </p>
         </div>
 
-        <PrintfulSyncButton />
+        <PrintifySyncButton />
       </header>
 
-      {!printfulEnabled() && (
+      {!printifyEnabled() && (
         <p className="border border-[color:var(--color-hairline)] p-5 text-sm leading-relaxed">
-          Printful n&apos;est pas connecté. Ajoutez{" "}
-          <code className="font-mono text-xs">PRINTFUL_API_KEY</code> dans les
+          Printify n&apos;est pas connecté. Ajoutez{" "}
+          <code className="font-mono text-xs">PRINTIFY_API_KEY</code> dans les
           variables d&apos;environnement pour importer automatiquement votre
           catalogue, ses variantes et ses mockups.
         </p>
@@ -55,7 +55,7 @@ export default async function AdminProduitsPage() {
         <div className="hairline hairline-b py-16">
           <p className="display-lg mb-4">Catalogue vide</p>
           <p className="max-w-[56ch] text-sm text-[color:var(--color-smoke)]">
-            Lancez la synchronisation Printful pour importer vos produits. Ils
+            Lancez la synchronisation Printify pour importer vos produits. Ils
             arrivent hors ligne : vous rédigez la fiche, puis vous publiez.
           </p>
         </div>
@@ -92,7 +92,7 @@ export default async function AdminProduitsPage() {
                 <p className="label-sm mt-1.5 text-[color:var(--color-smoke)]">
                   {product.category?.name ?? "Sans rayon"} — {product._count.variants} variante(s)
                   {product._count.reviews > 0 && ` — ${product._count.reviews} avis`}
-                  {product.printfulProductId && " — Printful"}
+                  {product.podProductId && " — Printify"}
                 </p>
               </div>
 

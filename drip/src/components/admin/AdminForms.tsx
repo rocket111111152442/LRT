@@ -5,9 +5,9 @@ import {
   addProductImageAction,
   createCategoryAction,
   createCouponAction,
-  pushOrderToPrintfulAction,
+  pushOrderToPrintifyAction,
   replyToReviewAction,
-  syncPrintfulAction,
+  syncPrintifyAction,
   updateOrderAction,
   updateProductAction,
 } from "@/app/actions/admin";
@@ -16,13 +16,13 @@ import { Field, FormError, FormSuccess, SubmitButton } from "@/components/forms"
 
 const initialState: FormState = {};
 
-export function PrintfulSyncButton() {
-  const [state, formAction] = useActionState(syncPrintfulAction, initialState);
+export function PrintifySyncButton() {
+  const [state, formAction] = useActionState(syncPrintifyAction, initialState);
 
   return (
     <form action={formAction} className="space-y-3">
       <SubmitButton className="btn btn-sm" pendingLabel="Synchronisation…">
-        Synchroniser Printful
+        Synchroniser Printify
       </SubmitButton>
 
       {state.success && <FormSuccess message={state.message} />}
@@ -217,7 +217,7 @@ export function ProductImageForm({ productId }: { productId: string }) {
         required
         error={state.errors?.url}
         placeholder="https://…"
-        hint="Collez l'URL https d'une image déjà hébergée (Printful, Vercel Blob, Cloudinary…)."
+        hint="Collez l'URL https d'une image déjà hébergée (Printify, Vercel Blob, Cloudinary…)."
       />
 
       <Field label="Texte alternatif" name="alt" placeholder="Rashguard noir, vue de dos" />
@@ -235,11 +235,11 @@ export function OrderAdminForm({
     status: string;
     trackingNumber: string | null;
     trackingUrl: string | null;
-    printfulOrderId: string | null;
+    podOrderId: string | null;
   };
 }) {
   const [state, formAction] = useActionState(updateOrderAction, initialState);
-  const [pushState, pushAction] = useActionState(pushOrderToPrintfulAction, initialState);
+  const [pushState, pushAction] = useActionState(pushOrderToPrintifyAction, initialState);
 
   const STATUSES = [
     ["PENDING", "En attente de paiement"],
@@ -296,12 +296,12 @@ export function OrderAdminForm({
       </form>
 
       <div className="hairline pt-6">
-        <p className="label mb-3 text-[color:var(--color-smoke)]">Printful</p>
+        <p className="label mb-3 text-[color:var(--color-smoke)]">Printify</p>
 
-        {order.printfulOrderId ? (
+        {order.podOrderId ? (
           <p className="text-sm">
-            Transmise à Printful sous le numéro{" "}
-            <span className="font-mono">#{order.printfulOrderId}</span>.
+            Transmise à Printify sous le numéro{" "}
+            <span className="font-mono">#{order.podOrderId}</span>.
           </p>
         ) : (
           <form action={pushAction} className="space-y-3">
@@ -311,7 +311,7 @@ export function OrderAdminForm({
               si l&apos;envoi automatique a échoué.
             </p>
             <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Envoi…">
-              Envoyer à Printful
+              Envoyer à Printify
             </SubmitButton>
 
             {pushState.success && <FormSuccess message={pushState.message} />}
