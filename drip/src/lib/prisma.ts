@@ -1,41 +1,9 @@
 import { unstable_rethrow } from "next/navigation";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client";
-import { databaseUrl } from "@/lib/services";
+import { databaseUrl, normalizeDatabaseUrl } from "@/lib/services";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
-
-/**
- * Corrige le mode SSL des URL Supabase.
- *
- * Supabase fournit une URL en `sslmode=require`. Depuis pg-connection-string
- * 2.9, `require` n'a plus le sens de libpq (« chiffre, ne vérifie pas le
- * certificat ») mais celui de `verify-full` : la chaîne de certificats de
- * Supabase est alors refusée et toute requête échoue sur
- * « self-signed certificate in certificate chain ».
- *
- * `uselibpqcompat=true` rétablit le sens historique. La connexion reste
- * chiffrée ; seule la vérification du certificat est relâchée, ce qui est la
- * configuration documentée pour le pooler Supabase.
- */
-function normalizeDatabaseUrl(raw: string) {
-  try {
-    const url = new URL(raw);
-    const sslmode = url.searchParams.get("sslmode");
-
-    if (
-      (sslmode === "require" || sslmode === "prefer") &&
-      !url.searchParams.has("uselibpqcompat")
-    ) {
-      url.searchParams.set("uselibpqcompat", "true");
-    }
-
-    return url.toString();
-  } catch {
-    // URL non analysable (format libpq « host=… »): on la laisse telle quelle.
-    return raw;
-  }
-}
 
 function createPrismaClient() {
   const connectionString = databaseUrl();
