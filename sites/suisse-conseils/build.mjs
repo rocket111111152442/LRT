@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ILL } from "./illustrations.mjs";
+import { PARCOURS } from "./parcours.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 
@@ -116,11 +117,11 @@ function layout({ slug, titre, description, contenu, actif }) {
       ${lien("/assurance-maladie.html", "Assurance maladie", "maladie")}
       ${lien("/cabinet.html", "Le cabinet", "cabinet")}
       ${lien("/contact.html", "Contact", "contact")}
-      <a class="btn" href="/contact.html">Être rappelé ${I.fleche}</a>
+      <a class="btn" href="/devis.html">Devis personnalisé ${I.fleche}</a>
     </nav>
 
     <div class="header__side">
-      <a class="btn header__cta" href="/contact.html">Être rappelé ${I.fleche}</a>
+      <a class="btn header__cta" href="/devis.html">Devis personnalisé ${I.fleche}</a>
       <button class="burger" type="button" data-burger aria-expanded="false" aria-label="Ouvrir le menu">
         <i></i><i></i><i></i>
       </button>
@@ -176,6 +177,12 @@ ${contenu}
   </div>
 </footer>
 
+<!-- barre d'action fixe, sur petits écrans uniquement -->
+<div class="barre-mobile">
+  <a class="btn btn--ghost" href="tel:${SITE.telHref}">Appeler</a>
+  <a class="btn" href="/devis.html">Mon devis ${I.fleche}</a>
+</div>
+
 <script src="/assets/js/site.js?v=${V_JS}" defer></script>
 </body>
 </html>
@@ -196,7 +203,7 @@ const bandeCta = (titre, texte) => `
       <h2 class="d2">${titre}</h2>
       <p class="lead">${texte}</p>
       <div class="band__actions">
-        <a class="btn btn--light btn--lg" href="/contact.html">Demander une analyse gratuite ${I.fleche}</a>
+        <a class="btn btn--light btn--lg" href="/devis.html">Demander mon devis personnalisé ${I.fleche}</a>
         <a class="btn btn--outline-light btn--lg" href="tel:${SITE.telHref}">${SITE.tel}</a>
       </div>
     </div>
@@ -284,6 +291,150 @@ const vignette = (illustration, etiquette, titre, texte, lien) => `
       ${lien ? `<a class="arrowlink" href="${lien.href}">${lien.texte} ${I.fleche}</a>` : ""}
     </div>
   </article>`;
+
+/* =========================================================================
+   Demande de devis : on choisit d'abord l'assurance, puis les questions
+   propres à cette assurance s'enchaînent, puis les coordonnées.
+   Les questions sont décrites dans parcours.mjs.
+   ========================================================================= */
+const ICONE_BRANCHE = {
+  maladie: I.sante,
+  vehicule: I.bouclier,
+  menage: I.balance,
+  prevoyance: I.epargne,
+  personnes: I.personnes,
+  entreprise: I.entreprise,
+};
+
+const champHtml = (c, prefixe) => {
+  const id = `${prefixe}-${c.nom}`;
+  const controle =
+    c.type === "select"
+      ? `<select id="${id}" name="${c.nom}">${c.options
+          .map((o) => `<option>${o}</option>`)
+          .join("")}</select>`
+      : `<input id="${id}" name="${c.nom}" type="${c.type}"${
+          c.placeholder ? ` placeholder="${c.placeholder}"` : ""
+        }>`;
+  return `<div class="field"><label for="${id}">${c.label}</label>${controle}</div>`;
+};
+
+const etapeHtml = (etape, branche, prefixe) => {
+  const corps =
+    etape.type === "choix"
+      ? `<div class="options">${etape.options
+          .map(
+            (o) =>
+              `<button class="option" type="button" data-choix="${etape.champ}" data-valeur="${o}" aria-pressed="false">${o}</button>`
+          )
+          .join("")}</div>`
+      : `<div class="duo">${etape.champs
+          .slice(0, 2)
+          .map((c) => champHtml(c, prefixe))
+          .join("")}</div>${etape.champs
+          .slice(2)
+          .map((c) => champHtml(c, prefixe))
+          .join("")}
+         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer ${I.fleche}</button></p>`;
+
+  return `
+    <div class="etape" data-branche="${branche}" hidden>
+      <h3>${etape.titre}</h3>
+      ${etape.texte ? `<p>${etape.texte}</p>` : ""}
+      ${corps}
+      <div class="demande__pied">
+        <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
+        <span class="demande__recap" data-recap></span>
+      </div>
+    </div>`;
+};
+
+const moduleDevis = (id = "devis") => {
+  const cachés = new Set();
+  PARCOURS.forEach((p) =>
+    p.etapes.forEach((e) => {
+      if (e.type === "choix") cachés.add(e.champ);
+    })
+  );
+
+  return `
+<div class="demande" id="${id}" data-parcours>
+  <div class="demande__tete">
+    <span class="eyebrow">Devis personnalisé</span>
+    <h2 class="d3" style="margin-top:.75rem">Quelques questions, et nous revenons vers vous</h2>
+    <div class="demande__fil">
+      <span class="demande__pastille" data-pastille data-actif="true"><b>1</b> Assurance</span>
+      <span class="demande__pastille" data-pastille><b>2</b> Votre situation</span>
+      <span class="demande__pastille" data-pastille><b>3</b> Coordonnées</span>
+    </div>
+    <div class="demande__jauge"><i data-jauge></i></div>
+  </div>
+
+  <form class="demande__corps" data-form data-to="${SITE.mail}" novalidate>
+    <input type="hidden" name="assurance" value="">
+    ${[...cachés].map((c) => `<input type="hidden" name="${c}" value="">`).join("\n    ")}
+
+    <div class="etape" data-etape="type">
+      <h3>Pour quelle assurance souhaitez-vous un devis ?</h3>
+      <p>Les questions suivantes s’adaptent à votre choix.</p>
+      <div class="options">
+        ${PARCOURS.map(
+          (p) => `<button class="option" type="button" data-branche="${p.cle}" data-choix="assurance" data-valeur="${p.nom}" aria-pressed="false">
+          ${ICONE_BRANCHE[p.cle] || I.bouclier}
+          <span><b style="display:block">${p.nom}</b><span style="font-weight:400;font-size:.8125rem;color:var(--ink-soft)">${p.resume}</span></span>
+        </button>`
+        ).join("\n        ")}
+      </div>
+    </div>
+
+    ${PARCOURS.map((p) =>
+      p.etapes.map((e) => etapeHtml(e, p.cle, id)).join("\n")
+    ).join("\n")}
+
+    <div class="etape" data-etape="contact" hidden>
+      <h3>Où pouvons-nous vous joindre ?</h3>
+      <p>Nous revenons vers vous sous 24 h ouvrées avec une proposition chiffrée.</p>
+      <div class="duo">
+        <div class="field" data-required>
+          <label for="${id}-nom">Nom et prénom</label>
+          <input id="${id}-nom" name="nom" type="text" autocomplete="name">
+          <span class="err">Merci d’indiquer votre nom.</span>
+        </div>
+        <div class="field" data-required>
+          <label for="${id}-email">E-mail</label>
+          <input id="${id}-email" name="email" type="email" autocomplete="email">
+          <span class="err">Adresse e-mail incomplète.</span>
+        </div>
+      </div>
+      <div class="duo">
+        <div class="field" data-required>
+          <label for="${id}-tel">Téléphone</label>
+          <input id="${id}-tel" name="telephone" type="tel" autocomplete="tel">
+          <span class="err">Merci d’indiquer un numéro.</span>
+        </div>
+        <div class="field">
+          <label for="${id}-moment">Quand vous rappeler ?</label>
+          <select id="${id}-moment" name="moment">
+            <option>Dès que possible</option>
+            <option>En matinée</option>
+            <option>En après-midi</option>
+            <option>En fin de journée</option>
+            <option>Le samedi</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="${id}-message">Précisions (facultatif)</label>
+        <textarea id="${id}-message" name="message" style="min-height:96px"></textarea>
+      </div>
+      <div class="demande__pied">
+        <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
+        <button class="btn btn--lg pulse" type="submit">Recevoir mon devis ${I.fleche}</button>
+      </div>
+    </div>
+  </form>
+</div>`;
+};
 
 /* ------------------------------- demande de contact guidée, en trois temps */
 const moduleDemande = (id = "demande") => `
@@ -404,7 +555,7 @@ pages.push({
           <span class="rotor" data-rotor="votre assurance maladie|votre 3ᵉ pilier|votre statut de frontalier|votre prévoyance LPP|vos contrats d’entreprise">votre assurance maladie</span>.
         </p>
         <div class="hero__actions">
-          <a class="btn btn--lg pulse" href="#demande">Être rappelé gratuitement ${I.fleche}</a>
+          <a class="btn btn--lg pulse" href="/devis.html">Demander mon devis personnalisé ${I.fleche}</a>
           <a class="btn btn--ghost btn--lg" href="tel:${SITE.telHref}">${SITE.tel}</a>
         </div>
       </div>
@@ -470,7 +621,7 @@ pages.push({
         </div>
       </div>
       <div class="rise-r">
-        ${moduleDemande("demande")}
+        ${moduleDevis("devis-accueil")}
       </div>
     </div>
   </section>
@@ -496,13 +647,13 @@ pages.push({
           { href: "/assurance-maladie.html", texte: "Comparer mes primes" })}
         ${vignette(ILL.famille, "04 · Personnes", "Assurances de personnes",
           "Vie, invalidité, décès et perte de gain : ce qui protège vos revenus et vos proches si la vie ne suit plus le plan prévu.",
-          { href: "#demande", texte: "En parler à un conseiller" })}
+          { href: "/devis.html", texte: "En parler à un conseiller" })}
         ${vignette(ILL.maison, "05 · Quotidien", "Ménage, RC et véhicule",
           "Les contrats du quotidien, revus pour supprimer les doublons et ajuster les sommes d’assurance à la réalité.",
-          { href: "#demande", texte: "Faire relire mes contrats" })}
+          { href: "/devis.html", texte: "Faire relire mes contrats" })}
         ${vignette(ILL.entreprise, "06 · Entreprises", "Entreprises et indépendants",
           "LAA, perte de gain maladie, RC professionnelle et prévoyance du dirigeant, réunies dans un dossier unique.",
-          { href: "#demande", texte: "Demander un audit" })}
+          { href: "/devis.html", texte: "Demander un audit" })}
       </div>
     </div>
   </section>
@@ -628,10 +779,10 @@ pages.push({
           { href: "/assurance-maladie.html", texte: "Comparer mes primes" })}
         ${vignette(ILL.voiture, "Doublons", "Vous êtes assuré deux fois",
           "Ménage, RC, véhicule, protection juridique, cartes de crédit : les garanties se recoupent plus souvent qu’on ne croit. On relit l’ensemble et on supprime ce qui fait double emploi.",
-          { href: "#demande", texte: "Faire relire mes contrats" })}
+          { href: "/devis.html", texte: "Faire relire mes contrats" })}
         ${vignette(ILL.famille, "Imprévu", "Un arrêt de travail se prépare avant",
           "Perte de gain, invalidité, décès : ce sont les couvertures auxquelles on pense en dernier, et celles qui comptent le jour où tout s’arrête.",
-          { href: "#demande", texte: "En parler maintenant" })}
+          { href: "/devis.html", texte: "En parler maintenant" })}
       </div>
     </div>
   </section>
@@ -994,7 +1145,7 @@ pages.push({
           <a class="arrowlink" href="https://www.google.com/maps/search/?api=1&amp;query=Avenue+Rosemont+12,+1208+Gen%C3%A8ve" target="_blank" rel="noopener">Ouvrir l’adresse dans Google Maps ${I.fleche}</a>
         </p>
       </div>
-      <div class="rise-r">${moduleDemande("demande-contact")}</div>
+      <div class="rise-r">${moduleDevis("devis-contact")}</div>
     </div>
   </section>
 `,
@@ -1060,6 +1211,73 @@ pages.push({
       <p style="margin-top:2rem">Dernière mise à jour : <span data-year>2026</span>.</p>
     </div>
   </section>
+`,
+});
+
+/* ============================== DEVIS ============================== */
+pages.push({
+  fichier: "devis.html",
+  slug: "devis.html",
+  actif: "devis",
+  titre: "Devis personnalisé — Suisse-Conseils Management",
+  description:
+    "Obtenez un devis personnalisé en quelques questions : assurance maladie, véhicule, ménage et RC, 3e pilier, revenus, entreprise. Réponse sous 24 h ouvrées.",
+  contenu: `
+  <section class="pagehead deco">
+    <div class="deco__forme deco__forme--a" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="crumb"><a href="/">Accueil</a> · Devis personnalisé</p>
+      <span class="eyebrow">Sans engagement</span>
+      <h1 class="d1" style="margin-top:1rem">Votre devis <span class="ital">personnalisé</span></h1>
+      <p class="lead">
+        Choisissez l’assurance qui vous intéresse : les questions s’adaptent, et un
+        conseiller certifié FINMA revient vers vous sous 24 h ouvrées.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split split--top">
+      <div class="rise-l">
+        ${moduleDevis("devis")}
+      </div>
+      <div class="rise-r">
+        <div class="vignette">
+          <div class="vignette__image">${ILL.comparatif}<span class="vignette__etiquette">Ce que vous recevez</span></div>
+          <div class="vignette__corps">
+            <h3 class="d3">Un comparatif écrit, pas un appel de vente</h3>
+            <ul class="checks" style="margin-top:.5rem">
+              <li>${I.check}<span>Les offres de nos partenaires mises côte à côte</span></li>
+              <li>${I.check}<span>Primes, garanties <strong>et exclusions</strong> détaillées</span></li>
+              <li>${I.check}<span>Nos conseillers sont certifiés et enregistrés FINMA</span></li>
+              <li>${I.check}<span>Gratuit : nous sommes rémunérés par la compagnie retenue</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:1.5rem">
+          <div class="panel__motif">${motif}</div>
+          <span class="panel__kicker">Vous préférez parler ?</span>
+          <p style="margin-top:1rem;color:rgba(255,255,255,.94)">
+            Le téléphone reste souvent le plus rapide : ${SITE.tel},
+            du lundi au vendredi.
+          </p>
+          <div class="panel__card">
+            ${I.tel}
+            <div>
+              <b>${SITE.tel}</b>
+              <span>${SITE.rue}, ${SITE.ville}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  ${ruban([
+    "Assurance maladie", "Véhicule", "Ménage &amp; RC", "3ᵉ pilier", "Perte de gain",
+    "LPP", "RC professionnelle", "Protection juridique", "Hospitalisation",
+  ], "ruban--rouge")}
 `,
 });
 

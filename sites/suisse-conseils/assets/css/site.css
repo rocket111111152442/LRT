@@ -807,7 +807,7 @@ p { text-wrap: pretty; }
 .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem; }
 .option {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: .8rem;
   padding: 1rem 1.1rem;
   border: 1.5px solid var(--line);
@@ -823,7 +823,8 @@ p { text-wrap: pretty; }
 }
 .option:hover { border-color: var(--brand); transform: translateY(-2px); }
 .option[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-wash); }
-.option svg { width: 24px; height: 24px; flex: none; color: var(--brand); }
+.option svg { width: 24px; height: 24px; flex: none; color: var(--brand); margin-top: .1rem; }
+.option > span { min-width: 0; }
 
 .demande__pied {
   display: flex;
@@ -847,6 +848,26 @@ p { text-wrap: pretty; }
   padding: .4rem 0;
 }
 .lien-retour:hover { color: var(--ink); }
+
+/* barre d'action fixe sur petits écrans : le devis et le téléphone
+   restent accessibles où que l'on soit dans la page */
+.barre-mobile { display: none; }
+@media (max-width: 720px) {
+  .barre-mobile {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .6rem;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 60;
+    padding: .7rem .9rem calc(.7rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, .96);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 20px rgba(20, 23, 28, .08);
+  }
+  .barre-mobile .btn { justify-content: center; }
+  body { padding-bottom: 76px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .ruban__piste, .deco__forme, .pulse::after { animation: none !important; }

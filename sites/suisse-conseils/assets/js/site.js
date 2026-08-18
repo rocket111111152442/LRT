@@ -107,6 +107,88 @@
   document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = an; });
 
   /* =====================================================================
+     Parcours de devis : choix de l'assurance, questions de la branche
+     correspondante, puis coordonnées. Le nombre d'étapes dépend donc de
+     l'assurance choisie, et la jauge se recalcule à chaque fois.
+     ===================================================================== */
+  document.querySelectorAll("[data-parcours]").forEach(function (parcours) {
+    var form = parcours.querySelector("form");
+    var toutes = Array.prototype.slice.call(parcours.querySelectorAll(".etape"));
+    var etapeType = parcours.querySelector('.etape[data-etape="type"]');
+    var etapeContact = parcours.querySelector('.etape[data-etape="contact"]');
+    var jauge = parcours.querySelector("[data-jauge]");
+    var pastilles = Array.prototype.slice.call(parcours.querySelectorAll("[data-pastille]"));
+    var branche = "";
+    var position = 0;
+
+    var suite = function () {
+      var propres = toutes.filter(function (e) { return e.dataset.branche === branche; });
+      return [etapeType].concat(propres).concat([etapeContact]);
+    };
+
+    var recapTexte = function () {
+      var valeurs = [];
+      form.querySelectorAll('input[type="hidden"]').forEach(function (i) {
+        if (i.value) valeurs.push(i.value);
+      });
+      return valeurs.join(" · ");
+    };
+
+    var afficher = function (n) {
+      var liste = suite();
+      position = Math.max(0, Math.min(liste.length - 1, n));
+      toutes.forEach(function (e) { e.hidden = true; });
+      liste[position].hidden = false;
+
+      if (jauge) {
+        jauge.style.transform = "scaleX(" + ((position + 1) / liste.length).toFixed(3) + ")";
+      }
+      pastilles.forEach(function (p, i) {
+        var atteint = i === 0 ? true : i === 1 ? position >= 1 : position === liste.length - 1;
+        p.setAttribute("data-actif", String(atteint));
+      });
+      parcours.querySelectorAll("[data-recap]").forEach(function (r) {
+        r.textContent = recapTexte();
+      });
+
+      var titre = liste[position].querySelector("h3");
+      if (titre && position > 0) {
+        titre.setAttribute("tabindex", "-1");
+        titre.focus({ preventScroll: true });
+      }
+    };
+
+    parcours.addEventListener("click", function (e) {
+      var option = e.target.closest("[data-choix]");
+      if (option) {
+        if (option.hasAttribute("data-branche")) branche = option.getAttribute("data-branche");
+        var champ = option.getAttribute("data-choix");
+        var cache = form.querySelector('input[type="hidden"][name="' + champ + '"]');
+        if (cache) cache.value = option.getAttribute("data-valeur");
+        var groupe = option.closest(".options");
+        if (groupe) {
+          groupe.querySelectorAll("[data-choix]").forEach(function (b) {
+            b.setAttribute("aria-pressed", String(b === option));
+          });
+        }
+        setTimeout(function () { afficher(position + 1); }, 170);
+        return;
+      }
+      if (e.target.closest("[data-suivant]")) {
+        e.preventDefault();
+        afficher(position + 1);
+        return;
+      }
+      if (e.target.closest("[data-retour]")) {
+        e.preventDefault();
+        afficher(position - 1);
+      }
+    });
+
+    afficher(0);
+  });
+
+  /* =====================================================================
      Demande de contact en trois étapes
      ===================================================================== */
   var demande = document.querySelector("[data-demande]");
@@ -182,23 +264,27 @@
       });
       if (!ok) return;
 
-      var lire = function (n) { return form.elements[n] ? form.elements[n].value.trim() : ""; };
-      var lignes = [
-        "Profil : " + lire("profil"),
-        "Sujet : " + lire("sujet"),
-        "Rappel souhaité : " + lire("moment"),
-        "",
-        "Nom : " + lire("nom"),
-        "E-mail : " + lire("email"),
-        "Téléphone : " + lire("telephone"),
-        "",
-        lire("message"),
-      ].filter(function (l, i) { return l !== "" || i === 3 || i === 7; });
+      /* On reprend tous les champs remplis, avec l'intitulé affiché à l'écran
+         quand il existe : le message reçu se lit comme le formulaire. */
+      var lignes = [];
+      Array.prototype.forEach.call(form.elements, function (el) {
+        if (!el.name || el.type === "submit" || el.type === "button") return;
+        var valeur = (el.value || "").trim();
+        if (!valeur) return;
+        var etiquette = "";
+        var label = el.id ? form.querySelector('label[for="' + el.id + '"]') : null;
+        if (label) etiquette = label.textContent.trim();
+        else etiquette = el.name.charAt(0).toUpperCase() + el.name.slice(1).replace(/_/g, " ");
+        lignes.push(etiquette + " : " + valeur);
+      });
+
+      var objet = form.elements.assurance && form.elements.assurance.value
+        ? form.elements.assurance.value
+        : (form.elements.sujet && form.elements.sujet.value) || "Contact";
 
       window.location.href =
         "mailto:" + form.getAttribute("data-to") +
-        "?subject=" + encodeURIComponent(
-          "Demande depuis le site — " + (lire("sujet") || lire("profil") || "Contact")) +
+        "?subject=" + encodeURIComponent("Demande depuis le site — " + objet) +
         "&body=" + encodeURIComponent(lignes.join("\n"));
     });
   });
