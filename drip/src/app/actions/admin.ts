@@ -348,19 +348,37 @@ export async function syncPrintifyAction(
     revalidatePath("/boutique");
     revalidatePath("/");
 
-    const details = [
-      `${report.created} pièce(s) créée(s)`,
-      `${report.updated} mise(s) à jour`,
-      `${report.variants} variante(s)`,
-    ].join(", ");
+    // Le rapport dit d'abord ce que Printify a réellement renvoyé : sans ce
+    // chiffre, une boutique qui compte dix produits et n'en voit arriver qu'un
+    // n'a aucun moyen de comprendre pourquoi.
+    const lignes = [
+      `Boutique Printify « ${report.shopName} » : ${report.remoteCount} produit(s) renvoyé(s) par l'API.`,
+      `${report.created} créée(s), ${report.updated} mise(s) à jour, ${report.variants} variante(s).`,
+    ];
 
-    return {
-      success: true,
-      message:
-        report.skipped.length > 0
-          ? `${details}. Ignorées : ${report.skipped.join(" ; ")}`
-          : `${details}. Les nouvelles pièces sont hors ligne : rédigez leur fiche puis publiez-les.`,
-    };
+    if (report.remoteCount === 0) {
+      lignes.push(
+        "Aucun produit renvoyé : dans Printify, un produit reste en brouillon tant qu'il n'est pas publié sur le canal de vente. Ouvrez chaque produit et cliquez sur « Publier ».",
+      );
+    }
+
+    if (report.shopChoisieAutomatiquement) {
+      lignes.push(
+        `Ce compte Printify contient ${report.shopCount} boutiques et aucune n'est désignée : celle-ci a été choisie automatiquement. Si ce n'est pas la bonne, renseignez PRINTIFY_SHOP_ID (identifiant ${report.shopId}).`,
+      );
+    }
+
+    if (report.skipped.length > 0) {
+      lignes.push(`Ignorées : ${report.skipped.join(" ; ")}`);
+    }
+
+    if (report.created > 0) {
+      lignes.push(
+        "Les nouvelles pièces sont hors ligne : rédigez leur fiche puis publiez-les.",
+      );
+    }
+
+    return { success: true, message: lignes.join(" ") };
   } catch (error) {
     return {
       errors: {

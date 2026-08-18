@@ -24,10 +24,13 @@ const nextConfig: NextConfig = {
   turbopack: { root: import.meta.dirname },
   images: {
     formats: ["image/avif", "image/webp"],
+    // Un hôte absent de cette liste n'est pas seulement ignoré : `next/image`
+    // refuse de le servir et le navigateur affiche une image cassée.
     remotePatterns: [
-      // Visuels hébergés par Printful (mockups générés automatiquement).
-      { protocol: "https", hostname: "files.cdn.printful.com" },
-      { protocol: "https", hostname: "printful-upload.s3-accelerate.amazonaws.com" },
+      // Maquettes Printify (images.printify.com, et les sous-domaines voisins
+      // que l'API renvoie selon les gammes).
+      { protocol: "https", hostname: "images.printify.com" },
+      { protocol: "https", hostname: "*.printify.com" },
       // Fichiers uploadés dans l'admin via Vercel Blob (optionnel).
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
