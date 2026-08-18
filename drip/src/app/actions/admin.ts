@@ -15,6 +15,7 @@ import {
 } from "@/lib/printify";
 import { runSchema } from "@/lib/install";
 import { PRINTIFY_SHOP_KEY, writeSetting } from "@/lib/settings";
+import { repairEncodedProducts } from "@/lib/repair";
 import type { FormState } from "@/app/actions/auth";
 
 /** Toute action d'administration commence par revérifier le rôle côté serveur. */
@@ -617,5 +618,35 @@ export async function setPrintifyShopAction(
     unstable_rethrow(error);
     console.error("[admin] choix de la boutique Printify :", error);
     return { errors: { form: "Impossible de contacter Printify." } };
+  }
+}
+
+/**
+ * Répare les textes importés qui portent encore des entités HTML.
+ *
+ * Indépendante de Printify et de la boutique sélectionnée : tout ce qu'il faut
+ * est déjà en base.
+ */
+export async function repairTextsAction(): Promise<FormState> {
+  await guard();
+
+  try {
+    const repares = await repairEncodedProducts();
+
+    revalidatePath("/admin/produits");
+    revalidatePath("/boutique");
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message:
+        repares === 0
+          ? "Aucun texte à réparer."
+          : `${repares} fiche(s) réparée(s).`,
+    };
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("[admin] réparation des textes :", error);
+    return { errors: { form: "La réparation a échoué." } };
   }
 }

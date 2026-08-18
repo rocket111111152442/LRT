@@ -116,3 +116,29 @@ export function htmlToText(html: string | null | undefined) {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
+
+/**
+ * Champs texte d'un produit susceptibles de porter des entités mal décodées.
+ * Un import antérieur à la correction du décodage a pu en laisser dans
+ * n'importe lequel d'entre eux.
+ */
+export const CHAMPS_TEXTE = ["name", "subtitle", "description", "composition"] as const;
+
+export type ChampTexte = (typeof CHAMPS_TEXTE)[number];
+
+/** Renvoie les seuls champs à réécrire, ou `null` si le texte est déjà sain. */
+export function repairFields<T extends Partial<Record<ChampTexte, string | null>>>(
+  produit: T,
+): Partial<Record<ChampTexte, string>> | null {
+  const corrections: Partial<Record<ChampTexte, string>> = {};
+
+  for (const champ of CHAMPS_TEXTE) {
+    const valeur = produit[champ];
+    if (typeof valeur !== "string" || !valeur) continue;
+
+    const decode = decodeHtmlEntities(valeur);
+    if (decode !== valeur) corrections[champ] = decode;
+  }
+
+  return Object.keys(corrections).length > 0 ? corrections : null;
+}
