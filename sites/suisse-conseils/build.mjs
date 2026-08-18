@@ -18,13 +18,17 @@ const empreinte = (chemin) =>
 const V_CSS = empreinte("assets/css/site.css");
 const V_JS = empreinte("assets/js/site.js");
 
+/* Coordonnées relevées sur la signature officielle des courriels du cabinet
+   (info@ et slobozenco@suisse-conseilsm.ch, juin 2026). */
 const SITE = {
   nom: "Suisse-Conseils Management",
-  tel: "+41 76 206 05 91",
-  telHref: "+41762060591",
-  mail: "contact@suisse-conseilsm.ch",
-  rue: "Route de Saint-Julien 129",
-  ville: "1228 Plan-les-Ouates, Genève",
+  tel: "+41 22 518 55 46",
+  telHref: "+41225185546",
+  mail: "contacts@suisse-conseilsm.ch",
+  rue: "Avenue Rosemont 12",
+  ville: "1208 Genève",
+  pole: "Pôle assurances sociales &amp; prévoyance",
+  lsa: "https://suisse-conseilsm.ch/wp-content/uploads/2026/03/3.LSA-45-mise-a-jour.pdf",
   url: "https://suisse-conseilsm.ch",
 };
 
@@ -91,7 +95,7 @@ function layout({ slug, titre, description, contenu, actif }) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
 <link rel="stylesheet" href="/assets/css/site.css?v=${V_CSS}">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"InsuranceAgency","name":"${SITE.nom}","url":"${SITE.url}/","email":"${SITE.mail}","telephone":"${SITE.telHref}","address":{"@type":"PostalAddress","streetAddress":"${SITE.rue}","postalCode":"1228","addressLocality":"Plan-les-Ouates","addressRegion":"Genève","addressCountry":"CH"},"areaServed":"Suisse romande","slogan":"Votre confiance, notre responsabilité"}
+{"@context":"https://schema.org","@type":"InsuranceAgency","name":"${SITE.nom}","url":"${SITE.url}/","email":"${SITE.mail}","telephone":"${SITE.telHref}","address":{"@type":"PostalAddress","streetAddress":"${SITE.rue}","postalCode":"1208","addressLocality":"Genève","addressRegion":"Genève","addressCountry":"CH"},"areaServed":"Suisse romande","slogan":"Votre confiance, notre responsabilité"}
 </script>
 </head>
 <body>
@@ -176,7 +180,7 @@ ${contenu}
     </div>
     <div class="footer__bottom">
       <span>© <span data-year>2026</span> ${SITE.nom}. Tous droits réservés.</span>
-      <span><a href="/mentions-legales.html">Mentions légales</a> · <a href="/mentions-legales.html#donnees">Protection des données</a></span>
+      <span><a href="/mentions-legales.html">Mentions légales</a> · <a href="/mentions-legales.html#donnees">Protection des données</a> · <a href="${SITE.lsa}" target="_blank" rel="noopener">Information LSA art. 45</a></span>
     </div>
   </div>
 </footer>
@@ -276,7 +280,7 @@ pages.push({
   actif: "accueil",
   titre: "Suisse-Conseils Management — Courtier en assurances et prévoyance à Genève",
   description:
-    "Courtier en assurances et prévoyance à Plan-les-Ouates. Conseillers certifiés FINMA pour résidents, frontaliers et entreprises de Suisse romande. Comparatifs, 3e pilier, assurance maladie.",
+    "Courtier en assurances et prévoyance à Genève, avenue Rosemont. Conseillers certifiés FINMA pour résidents, frontaliers et entreprises de Suisse romande. Comparatifs, 3e pilier, assurance maladie.",
   contenu: `
   <section class="hero">
     <div class="wrap split">
@@ -488,7 +492,7 @@ pages.push({
         </div>
         <div class="faq__item">
           <button class="faq__btn" type="button" aria-expanded="false" aria-controls="q4">Où intervenez-vous ?<span class="faq__sign"></span></button>
-          <div class="faq__panel" id="q4" data-open="false"><div><p>Dans toute la Suisse romande. Les rendez-vous se tiennent à notre bureau de Plan-les-Ouates, chez vous, ou à distance en visioconférence.</p></div></div>
+          <div class="faq__panel" id="q4" data-open="false"><div><p>Dans toute la Suisse romande. Les rendez-vous se tiennent à notre bureau de l’avenue Rosemont, chez vous, ou à distance en visioconférence.</p></div></div>
         </div>
         <div class="faq__item">
           <button class="faq__btn" type="button" aria-expanded="false" aria-controls="q5">Que se passe-t-il en cas de sinistre ?<span class="faq__sign"></span></button>
@@ -748,9 +752,9 @@ pages.push({
   fichier: "cabinet.html",
   slug: "cabinet.html",
   actif: "cabinet",
-  titre: "Le cabinet — Suisse-Conseils Management, Plan-les-Ouates",
+  titre: "Le cabinet — Suisse-Conseils Management, Genève",
   description:
-    "Cabinet de courtage en assurances et prévoyance à Plan-les-Ouates, Genève. Conseillers certifiés FINMA, partenaires bancaires et compagnies d’assurance.",
+    "Cabinet de courtage en assurances et prévoyance à Genève, avenue Rosemont. Conseillers certifiés FINMA, partenaires bancaires et compagnies d’assurance.",
   contenu: `
   <section class="pagehead">
     <div class="wrap">
@@ -767,7 +771,7 @@ pages.push({
       <div class="prose rise">
         <p class="lead">
           Suisse-Conseils Management est un cabinet de courtage en assurances et en prévoyance
-          établi à Plan-les-Ouates, aux portes de Genève.
+          établi avenue Rosemont, à Genève.
         </p>
         <p style="margin-top:1.25rem">
           Nos conseillers, certifiés et enregistrés auprès de la FINMA, accompagnent des
@@ -828,9 +832,9 @@ pages.push({
   fichier: "contact.html",
   slug: "contact.html",
   actif: "contact",
-  titre: "Contact — Suisse-Conseils Management, Plan-les-Ouates",
+  titre: "Contact — Suisse-Conseils Management, Genève",
   description:
-    "Route de Saint-Julien 129, 1228 Plan-les-Ouates. Téléphone +41 76 206 05 91, contact@suisse-conseilsm.ch. Rendez-vous en agence, à domicile ou en visioconférence.",
+    "Avenue Rosemont 12, 1208 Genève. Téléphone +41 22 518 55 46, contacts@suisse-conseilsm.ch. Rendez-vous en agence, à domicile ou en visioconférence.",
   contenu: `
   <section class="pagehead">
     <div class="wrap">
@@ -847,7 +851,7 @@ pages.push({
       <div class="rise">
         ${coordonnees}
         <p style="margin-top:1.5rem">
-          <a class="arrowlink" href="https://www.google.com/maps/search/?api=1&amp;query=Route+de+Saint-Julien+129,+1228+Plan-les-Ouates" target="_blank" rel="noopener">Ouvrir l’adresse dans Google Maps ${I.fleche}</a>
+          <a class="arrowlink" href="https://www.google.com/maps/search/?api=1&amp;query=Avenue+Rosemont+12,+1208+Gen%C3%A8ve" target="_blank" rel="noopener">Ouvrir l’adresse dans Google Maps ${I.fleche}</a>
         </p>
       </div>
       <div class="rise">${formulaire}</div>
