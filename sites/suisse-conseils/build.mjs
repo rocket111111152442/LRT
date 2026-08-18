@@ -75,7 +75,7 @@ function layout({ slug, titre, description, contenu, actif }) {
 <title>${titre}</title>
 <meta name="description" content="${description}">
 <link rel="canonical" href="${SITE.url}/${slug}">
-<meta name="theme-color" content="#c8102e">
+<meta name="theme-color" content="#b41f24">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_CH">
 <meta property="og:site_name" content="${SITE.nom}">
@@ -192,24 +192,6 @@ const motif = `
 <svg viewBox="0 0 600 200" fill="none" aria-hidden="true">
   <path d="M20 118C48 52 152 16 254 28c76 9 124 33 132 57 9 30-42 63-132 78-114 19-220 7-240-16-11-11-11-20 6-29Z" fill="#fff" fill-opacity=".14"/>
   <path d="M92 150c72-5 133-24 168-51 12 32-18 68-82 84-56 14-102 6-118-9-7-9 8-20 32-24Z" fill="#fff" fill-opacity=".1"/>
-</svg>`;
-
-const heroArt = `
-<svg viewBox="0 0 640 520" role="img" aria-label="Illustration : relief suisse stylisé">
-  <rect width="640" height="520" fill="#14171c"/>
-  <g opacity=".16" stroke="#fff" stroke-width="1">
-    <path d="M0 90h640M0 180h640M0 270h640M0 360h640M0 450h640"/>
-    <path d="M107 0v520M213 0v520M320 0v520M427 0v520M533 0v520"/>
-  </g>
-  <path d="M0 520V352l104-92 78 66 96-140 92 122 74-58 90 96 106-64v238Z" fill="#1d2229"/>
-  <path d="M286 214 372 330H200l86-116Z" fill="#c8102e"/>
-  <path d="m286 214 37 50-43 66-37-50 43-66Z" fill="#e0264a" opacity=".5"/>
-  <path d="M0 520V404l122-78 96 62 84-96 106 104 88-56 144 84v96Z" fill="#262d36"/>
-  <g fill="none" stroke="#c8102e" stroke-width="1.5" opacity=".5">
-    <path d="M0 448h640M0 470h640M0 492h640"/>
-  </g>
-  <circle cx="516" cy="104" r="46" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.5"/>
-  <circle cx="516" cy="104" r="76" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="1.5"/>
 </svg>`;
 
 const bandeCta = (titre, texte) => `
@@ -932,6 +914,31 @@ pages.push({
         réserve des dispositions impératives contraires.</p>
 
       <p style="margin-top:2rem">Dernière mise à jour : <span data-year>2026</span>.</p>
+    </div>
+  </section>
+`,
+});
+
+/* ============================== 404 ============================== */
+pages.push({
+  fichier: "404.html",
+  slug: "404.html",
+  actif: "",
+  titre: "Page introuvable — Suisse-Conseils Management",
+  description: "Cette page n’existe pas ou plus.",
+  contenu: `
+  <section class="section">
+    <div class="wrap" style="text-align:center;max-width:44rem">
+      <span class="eyebrow" style="justify-content:center">Erreur 404</span>
+      <h1 class="d1" style="margin-top:1.25rem">Cette page n’existe pas</h1>
+      <p class="lead" style="margin:1.25rem auto 0">
+        Le lien est peut-être erroné, ou la page a été déplacée. Reprenons depuis
+        le début — ou appelez-nous, c’est souvent plus rapide.
+      </p>
+      <p style="margin-top:2rem;display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn--lg" href="/">Retour à l’accueil ${I.fleche}</a>
+        <a class="btn btn--ghost btn--lg" href="tel:${SITE.telHref}">${SITE.tel}</a>
+      </p>
     </div>
   </section>
 `,
