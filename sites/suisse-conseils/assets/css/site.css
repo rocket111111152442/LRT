@@ -802,7 +802,10 @@ p { text-wrap: pretty; }
 .demande__corps { padding: clamp(1.4rem, 3vw, 2.25rem); }
 .etape[hidden] { display: none; }
 .etape h3 { font-size: 1.25rem; margin-bottom: .35rem; }
+.etape h3 + .options, .etape p + .options { margin-top: .9rem; }
+.etape .options + h3 { margin-top: 1.75rem; }
 .etape > p { color: var(--ink-soft); font-size: .9375rem; margin-bottom: 1.25rem; }
+.etape .duo + .field, .etape h3 + .duo { margin-top: .9rem; }
 
 .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem; }
 .option {

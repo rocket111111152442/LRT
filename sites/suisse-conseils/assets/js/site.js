@@ -117,13 +117,29 @@
     var etapeType = parcours.querySelector('.etape[data-etape="type"]');
     var etapeContact = parcours.querySelector('.etape[data-etape="contact"]');
     var jauge = parcours.querySelector("[data-jauge]");
-    var pastilles = Array.prototype.slice.call(parcours.querySelectorAll("[data-pastille]"));
+    var fil = parcours.querySelector("[data-fil]");
     var branche = "";
     var position = 0;
 
     var suite = function () {
       var propres = toutes.filter(function (e) { return e.dataset.branche === branche; });
       return [etapeType].concat(propres).concat([etapeContact]);
+    };
+
+    /* le fil d'étapes prend les noms de la branche choisie */
+    var dessinerFil = function (liste) {
+      if (!fil) return;
+      fil.textContent = "";
+      liste.forEach(function (etape, i) {
+        var p = document.createElement("span");
+        p.className = "demande__pastille";
+        p.setAttribute("data-actif", String(i <= position));
+        var n = document.createElement("b");
+        n.textContent = String(i + 1);
+        p.appendChild(n);
+        p.appendChild(document.createTextNode(" " + (etape.dataset.nom || "")));
+        fil.appendChild(p);
+      });
     };
 
     var recapTexte = function () {
@@ -143,10 +159,7 @@
       if (jauge) {
         jauge.style.transform = "scaleX(" + ((position + 1) / liste.length).toFixed(3) + ")";
       }
-      pastilles.forEach(function (p, i) {
-        var atteint = i === 0 ? true : i === 1 ? position >= 1 : position === liste.length - 1;
-        p.setAttribute("data-actif", String(atteint));
-      });
+      dessinerFil(liste);
       parcours.querySelectorAll("[data-recap]").forEach(function (r) {
         r.textContent = recapTexte();
       });
@@ -164,14 +177,37 @@
         if (option.hasAttribute("data-branche")) branche = option.getAttribute("data-branche");
         var champ = option.getAttribute("data-choix");
         var cache = form.querySelector('input[type="hidden"][name="' + champ + '"]');
-        if (cache) cache.value = option.getAttribute("data-valeur");
         var groupe = option.closest(".options");
+
+        if (option.hasAttribute("data-cumul")) {
+          /* choix multiple : on bascule l'option et on recompose la liste */
+          option.setAttribute(
+            "aria-pressed",
+            option.getAttribute("aria-pressed") === "true" ? "false" : "true"
+          );
+          if (cache && groupe) {
+            var retenues = [];
+            groupe.querySelectorAll('[aria-pressed="true"]').forEach(function (b) {
+              retenues.push(b.getAttribute("data-valeur"));
+            });
+            cache.value = retenues.join(", ");
+          }
+          return; /* on n'avance pas : plusieurs réponses sont possibles */
+        }
+
+        if (cache) cache.value = option.getAttribute("data-valeur");
         if (groupe) {
           groupe.querySelectorAll("[data-choix]").forEach(function (b) {
             b.setAttribute("aria-pressed", String(b === option));
           });
         }
-        setTimeout(function () { afficher(position + 1); }, 170);
+
+        /* une étape qui ne contient qu'une question avance toute seule */
+        var etape = option.closest(".etape");
+        if (etape && etape.querySelectorAll(".options").length === 1 &&
+            !etape.querySelector("[data-suivant]")) {
+          setTimeout(function () { afficher(position + 1); }, 170);
+        }
         return;
       }
       if (e.target.closest("[data-suivant]")) {

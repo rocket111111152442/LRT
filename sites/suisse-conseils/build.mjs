@@ -319,29 +319,44 @@ const champHtml = (c, prefixe) => {
   return `<div class="field"><label for="${id}">${c.label}</label>${controle}</div>`;
 };
 
-const etapeHtml = (etape, branche, prefixe) => {
-  const corps =
-    etape.type === "choix"
-      ? `<div class="options">${etape.options
+const questionHtml = (q, prefixe) => {
+  if (q.type === "champs") {
+    return `
+      ${q.titre ? `<h3>${q.titre}</h3>` : ""}
+      ${q.texte ? `<p>${q.texte}</p>` : ""}
+      <div class="duo">${q.champs.slice(0, 2).map((c) => champHtml(c, prefixe)).join("")}</div>
+      ${q.champs.slice(2).map((c) => champHtml(c, prefixe)).join("")}`;
+  }
+
+  const multi = q.type === "multi";
+  return `
+      <h3${multi ? ' class="question--multi"' : ""}>${q.titre}</h3>
+      ${q.texte ? `<p>${q.texte}</p>` : ""}
+      <div class="options"${multi ? ' data-multi="true"' : ""}>
+        ${q.options
           .map(
             (o) =>
-              `<button class="option" type="button" data-choix="${etape.champ}" data-valeur="${o}" aria-pressed="false">${o}</button>`
+              `<button class="option" type="button" data-choix="${q.champ}"${
+                multi ? ' data-cumul="true"' : ""
+              } data-valeur="${o}" aria-pressed="false">${o}</button>`
           )
-          .join("")}</div>`
-      : `<div class="duo">${etape.champs
-          .slice(0, 2)
-          .map((c) => champHtml(c, prefixe))
-          .join("")}</div>${etape.champs
-          .slice(2)
-          .map((c) => champHtml(c, prefixe))
-          .join("")}
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer ${I.fleche}</button></p>`;
+          .join("\n        ")}
+      </div>`;
+};
+
+const etapeHtml = (etape, branche, prefixe) => {
+  /* une étape à question unique de type « choix » avance toute seule ;
+     les autres attendent que l'on clique sur « Continuer ». */
+  const auto = etape.questions.length === 1 && etape.questions[0].type === "choix";
 
   return `
-    <div class="etape" data-branche="${branche}" hidden>
-      <h3>${etape.titre}</h3>
-      ${etape.texte ? `<p>${etape.texte}</p>` : ""}
-      ${corps}
+    <div class="etape" data-branche="${branche}" data-nom="${etape.nom}" hidden>
+      ${etape.questions.map((q) => questionHtml(q, prefixe)).join("\n")}
+      ${
+        auto
+          ? ""
+          : `<p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer ${I.fleche}</button></p>`
+      }
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
@@ -352,9 +367,11 @@ const etapeHtml = (etape, branche, prefixe) => {
 const moduleDevis = (id = "devis") => {
   const cachés = new Set();
   PARCOURS.forEach((p) =>
-    p.etapes.forEach((e) => {
-      if (e.type === "choix") cachés.add(e.champ);
-    })
+    p.etapes.forEach((e) =>
+      e.questions.forEach((q) => {
+        if (q.type === "choix" || q.type === "multi") cachés.add(q.champ);
+      })
+    )
   );
 
   return `
@@ -362,10 +379,8 @@ const moduleDevis = (id = "devis") => {
   <div class="demande__tete">
     <span class="eyebrow">Devis personnalisé</span>
     <h2 class="d3" style="margin-top:.75rem">Quelques questions, et nous revenons vers vous</h2>
-    <div class="demande__fil">
-      <span class="demande__pastille" data-pastille data-actif="true"><b>1</b> Assurance</span>
-      <span class="demande__pastille" data-pastille><b>2</b> Votre situation</span>
-      <span class="demande__pastille" data-pastille><b>3</b> Coordonnées</span>
+    <div class="demande__fil" data-fil>
+      <span class="demande__pastille" data-actif="true"><b>1</b> Assurance</span>
     </div>
     <div class="demande__jauge"><i data-jauge></i></div>
   </div>
@@ -374,7 +389,7 @@ const moduleDevis = (id = "devis") => {
     <input type="hidden" name="assurance" value="">
     ${[...cachés].map((c) => `<input type="hidden" name="${c}" value="">`).join("\n    ")}
 
-    <div class="etape" data-etape="type">
+    <div class="etape" data-etape="type" data-nom="Assurance">
       <h3>Pour quelle assurance souhaitez-vous un devis ?</h3>
       <p>Les questions suivantes s’adaptent à votre choix.</p>
       <div class="options">
@@ -391,24 +406,24 @@ const moduleDevis = (id = "devis") => {
       p.etapes.map((e) => etapeHtml(e, p.cle, id)).join("\n")
     ).join("\n")}
 
-    <div class="etape" data-etape="contact" hidden>
-      <h3>Où pouvons-nous vous joindre ?</h3>
+    <div class="etape" data-etape="contact" data-nom="Contact" hidden>
+      <h3>Vos coordonnées</h3>
       <p>Nous revenons vers vous sous 24 h ouvrées avec une proposition chiffrée.</p>
       <div class="duo">
         <div class="field" data-required>
-          <label for="${id}-nom">Nom et prénom</label>
+          <label for="${id}-nom">Nom complet</label>
           <input id="${id}-nom" name="nom" type="text" autocomplete="name">
           <span class="err">Merci d’indiquer votre nom.</span>
         </div>
         <div class="field" data-required>
-          <label for="${id}-email">E-mail</label>
+          <label for="${id}-email">Adresse e-mail</label>
           <input id="${id}-email" name="email" type="email" autocomplete="email">
           <span class="err">Adresse e-mail incomplète.</span>
         </div>
       </div>
       <div class="duo">
         <div class="field" data-required>
-          <label for="${id}-tel">Téléphone</label>
+          <label for="${id}-tel">Numéro de téléphone</label>
           <input id="${id}-tel" name="telephone" type="tel" autocomplete="tel">
           <span class="err">Merci d’indiquer un numéro.</span>
         </div>

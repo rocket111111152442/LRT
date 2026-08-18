@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
-<link rel="stylesheet" href="/assets/css/site.css?v=38ecd85c">
+<link rel="stylesheet" href="/assets/css/site.css?v=8fe99b08">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"InsuranceAgency","name":"Suisse-Conseils Management","url":"https://suisse-conseilsm.ch/","email":"contacts@suisse-conseilsm.ch","telephone":"+41225185546","address":{"@type":"PostalAddress","streetAddress":"Avenue Rosemont 12","postalCode":"1208","addressLocality":"Genève","addressRegion":"Genève","addressCountry":"CH"},"areaServed":"Suisse romande","slogan":"Votre confiance, notre responsabilité"}
 </script>
@@ -95,38 +95,40 @@
   <div class="demande__tete">
     <span class="eyebrow">Devis personnalisé</span>
     <h2 class="d3" style="margin-top:.75rem">Quelques questions, et nous revenons vers vous</h2>
-    <div class="demande__fil">
-      <span class="demande__pastille" data-pastille data-actif="true"><b>1</b> Assurance</span>
-      <span class="demande__pastille" data-pastille><b>2</b> Votre situation</span>
-      <span class="demande__pastille" data-pastille><b>3</b> Coordonnées</span>
+    <div class="demande__fil" data-fil>
+      <span class="demande__pastille" data-actif="true"><b>1</b> Assurance</span>
     </div>
     <div class="demande__jauge"><i data-jauge></i></div>
   </div>
 
   <form class="demande__corps" data-form data-to="contacts@suisse-conseilsm.ch" novalidate>
     <input type="hidden" name="assurance" value="">
-    <input type="hidden" name="pour_qui" value="">
-    <input type="hidden" name="situation" value="">
-    <input type="hidden" name="objet" value="">
+    <input type="hidden" name="canton" value="">
+    <input type="hidden" name="age" value="">
+    <input type="hidden" name="accident" value="">
+    <input type="hidden" name="franchise" value="">
+    <input type="hidden" name="couverture" value="">
+    <input type="hidden" name="complementaires" value="">
     <input type="hidden" name="vehicule_type" value="">
     <input type="hidden" name="vehicule_couverture" value="">
     <input type="hidden" name="vehicule_sinistres" value="">
     <input type="hidden" name="menage_statut" value="">
-    <input type="hidden" name="menage_juridique" value="">
+    <input type="hidden" name="menage_options" value="">
     <input type="hidden" name="prevoyance_objectif" value="">
     <input type="hidden" name="prevoyance_solution" value="">
+    <input type="hidden" name="prevoyance_statut" value="">
     <input type="hidden" name="personnes_objet" value="">
     <input type="hidden" name="personnes_statut" value="">
     <input type="hidden" name="entreprise_objet" value="">
     <input type="hidden" name="entreprise_existant" value="">
 
-    <div class="etape" data-etape="type">
+    <div class="etape" data-etape="type" data-nom="Assurance">
       <h3>Pour quelle assurance souhaitez-vous un devis ?</h3>
       <p>Les questions suivantes s’adaptent à votre choix.</p>
       <div class="options">
         <button class="option" type="button" data-branche="maladie" data-choix="assurance" data-valeur="Assurance maladie" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="6.2" width="18" height="13" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 10v5.4M9.3 12.7h5.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9 6.2V5a1.6 1.6 0 0 1 1.6-1.6h2.8A1.6 1.6 0 0 1 15 5v1.2" stroke="currentColor" stroke-width="1.6"/></svg>
-          <span><b style="display:block">Assurance maladie</b><span style="font-weight:400;font-size:.8125rem;color:var(--ink-soft)">LAMal, complémentaires, hospitalisation</span></span>
+          <span><b style="display:block">Assurance maladie</b><span style="font-weight:400;font-size:.8125rem;color:var(--ink-soft)">LAMal, franchise, complémentaires</span></span>
         </button>
         <button class="option" type="button" data-branche="vehicule" data-choix="assurance" data-valeur="Véhicule" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.6 20.4 6v6.6c0 4.9-3.6 8.4-8.4 9.8-4.8-1.4-8.4-4.9-8.4-9.8V6L12 2.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.4 12.2 2.4 2.4 4.8-4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -152,241 +154,375 @@
     </div>
 
     
-    <div class="etape" data-branche="maladie" hidden>
-      <h3>Pour qui cherchez-vous une couverture ?</h3>
-      <p>Le calcul diffère selon le nombre de personnes à assurer.</p>
-      <div class="options"><button class="option" type="button" data-choix="pour_qui" data-valeur="Pour moi" aria-pressed="false">Pour moi</button><button class="option" type="button" data-choix="pour_qui" data-valeur="Pour mon couple" aria-pressed="false">Pour mon couple</button><button class="option" type="button" data-choix="pour_qui" data-valeur="Pour ma famille" aria-pressed="false">Pour ma famille</button><button class="option" type="button" data-choix="pour_qui" data-valeur="Pour mon enfant" aria-pressed="false">Pour mon enfant</button></div>
+    <div class="etape" data-branche="maladie" data-nom="Canton" hidden>
+      
+      <h3>Dans quel canton habitez-vous ?</h3>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="canton" data-valeur="Genève" aria-pressed="false">Genève</button>
+        <button class="option" type="button" data-choix="canton" data-valeur="Vaud" aria-pressed="false">Vaud</button>
+        <button class="option" type="button" data-choix="canton" data-valeur="Fribourg" aria-pressed="false">Fribourg</button>
+        <button class="option" type="button" data-choix="canton" data-valeur="Neuchâtel" aria-pressed="false">Neuchâtel</button>
+        <button class="option" type="button" data-choix="canton" data-valeur="Jura" aria-pressed="false">Jura</button>
+        <button class="option" type="button" data-choix="canton" data-valeur="Berne" aria-pressed="false">Berne</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="maladie" hidden>
-      <h3>Quelle est votre situation ?</h3>
-      <p>Résident et frontalier ne relèvent pas du même régime.</p>
-      <div class="options"><button class="option" type="button" data-choix="situation" data-valeur="Résident en Suisse" aria-pressed="false">Résident en Suisse</button><button class="option" type="button" data-choix="situation" data-valeur="Frontalier" aria-pressed="false">Frontalier</button><button class="option" type="button" data-choix="situation" data-valeur="Nouvel arrivant en Suisse" aria-pressed="false">Nouvel arrivant en Suisse</button></div>
+    <div class="etape" data-branche="maladie" data-nom="Profil" hidden>
+      
+      <h3>Quelle est votre tranche d’âge ?</h3>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="age" data-valeur="0–18 ans" aria-pressed="false">0–18 ans</button>
+        <button class="option" type="button" data-choix="age" data-valeur="15–25 ans" aria-pressed="false">15–25 ans</button>
+        <button class="option" type="button" data-choix="age" data-valeur="26 ans et plus" aria-pressed="false">26 ans et plus</button>
+      </div>
+
+      <h3>Couverture accident</h3>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="accident" data-valeur="Avec accident" aria-pressed="false">Avec accident</button>
+        <button class="option" type="button" data-choix="accident" data-valeur="Sans accident" aria-pressed="false">Sans accident</button>
+      </div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="maladie" hidden>
-      <h3>Quelques informations sur vous</h3>
-      <p>La prime dépend de l’âge et du lieu de domicile.</p>
-      <div class="duo"><div class="field"><label for="devis-contact-naissance">Date de naissance</label><input id="devis-contact-naissance" name="naissance" type="date"></div><div class="field"><label for="devis-contact-npa">Code postal (NPA)</label><input id="devis-contact-npa" name="npa" type="text" placeholder="1208"></div></div><div class="field"><label for="devis-contact-personnes">Nombre de personnes à assurer</label><input id="devis-contact-personnes" name="personnes" type="number" placeholder="1"></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+    <div class="etape" data-branche="maladie" data-nom="Franchise" hidden>
+      
+      <h3>Quelle franchise souhaitez-vous ?</h3>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="franchise" data-valeur="CHF 300.–" aria-pressed="false">CHF 300.–</button>
+        <button class="option" type="button" data-choix="franchise" data-valeur="CHF 1'000.–" aria-pressed="false">CHF 1'000.–</button>
+        <button class="option" type="button" data-choix="franchise" data-valeur="CHF 2'500.–" aria-pressed="false">CHF 2'500.–</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="maladie" hidden>
-      <h3>Votre couverture actuelle</h3>
-      <p>Laissez vide si vous n’êtes pas encore assuré en Suisse.</p>
-      <div class="duo"><div class="field"><label for="devis-contact-caisse">Caisse maladie actuelle</label><input id="devis-contact-caisse" name="caisse" type="text" placeholder="Assura, CSS, Groupe Mutuel…"></div><div class="field"><label for="devis-contact-franchise">Franchise annuelle</label><select id="devis-contact-franchise" name="franchise"><option>300 CHF</option><option>500 CHF</option><option>1 000 CHF</option><option>1 500 CHF</option><option>2 000 CHF</option><option>2 500 CHF</option><option>Je ne sais pas</option></select></div></div><div class="field"><label for="devis-contact-modele">Modèle d’assurance</label><select id="devis-contact-modele" name="modele"><option>Standard (libre choix du médecin)</option><option>Médecin de famille</option><option>HMO</option><option>Télémédecine</option><option>Je ne sais pas</option></select></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+    <div class="etape" data-branche="maladie" data-nom="Couverture" hidden>
+      
+      <h3>Type de couverture</h3>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="couverture" data-valeur="Seul(e)" aria-pressed="false">Seul(e)</button>
+        <button class="option" type="button" data-choix="couverture" data-valeur="Famille" aria-pressed="false">Famille</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="maladie" hidden>
-      <h3>Que souhaitez-vous comparer ?</h3>
-      <p>On peut ne toucher qu’à une partie de votre couverture.</p>
-      <div class="options"><button class="option" type="button" data-choix="objet" data-valeur="L’assurance de base uniquement" aria-pressed="false">L’assurance de base uniquement</button><button class="option" type="button" data-choix="objet" data-valeur="Les complémentaires uniquement" aria-pressed="false">Les complémentaires uniquement</button><button class="option" type="button" data-choix="objet" data-valeur="La base et les complémentaires" aria-pressed="false">La base et les complémentaires</button><button class="option" type="button" data-choix="objet" data-valeur="Une couverture hospitalisation" aria-pressed="false">Une couverture hospitalisation</button></div>
+    <div class="etape" data-branche="maladie" data-nom="Options" hidden>
+      
+      <h3 class="question--multi">Complémentaires souhaitées (facultatif)</h3>
+      
+      <div class="options" data-multi="true">
+        <button class="option" type="button" data-choix="complementaires" data-cumul="true" data-valeur="Dentaire" aria-pressed="false">Dentaire</button>
+        <button class="option" type="button" data-choix="complementaires" data-cumul="true" data-valeur="Fitness" aria-pressed="false">Fitness</button>
+        <button class="option" type="button" data-choix="complementaires" data-cumul="true" data-valeur="Lunettes/lentilles" aria-pressed="false">Lunettes/lentilles</button>
+        <button class="option" type="button" data-choix="complementaires" data-cumul="true" data-valeur="Dents (orthodontie, enfants)" aria-pressed="false">Dents (orthodontie, enfants)</button>
+        <button class="option" type="button" data-choix="complementaires" data-cumul="true" data-valeur="Hospitalisation (demi-privée/privée)" aria-pressed="false">Hospitalisation (demi-privée/privée)</button>
+        <button class="option" type="button" data-choix="complementaires" data-cumul="true" data-valeur="Voyage" aria-pressed="false">Voyage</button>
+      </div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="vehicule" hidden>
+    <div class="etape" data-branche="vehicule" data-nom="Véhicule" hidden>
+      
       <h3>Quel type de véhicule ?</h3>
       
-      <div class="options"><button class="option" type="button" data-choix="vehicule_type" data-valeur="Voiture" aria-pressed="false">Voiture</button><button class="option" type="button" data-choix="vehicule_type" data-valeur="Moto" aria-pressed="false">Moto</button><button class="option" type="button" data-choix="vehicule_type" data-valeur="Scooter" aria-pressed="false">Scooter</button><button class="option" type="button" data-choix="vehicule_type" data-valeur="Véhicule utilitaire" aria-pressed="false">Véhicule utilitaire</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="vehicule_type" data-valeur="Voiture" aria-pressed="false">Voiture</button>
+        <button class="option" type="button" data-choix="vehicule_type" data-valeur="Moto" aria-pressed="false">Moto</button>
+        <button class="option" type="button" data-choix="vehicule_type" data-valeur="Scooter" aria-pressed="false">Scooter</button>
+        <button class="option" type="button" data-choix="vehicule_type" data-valeur="Véhicule utilitaire" aria-pressed="false">Véhicule utilitaire</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="vehicule" hidden>
+    <div class="etape" data-branche="vehicule" data-nom="Détails" hidden>
+      
       <h3>Le véhicule</h3>
       <p>Ces éléments suffisent pour obtenir une première offre.</p>
-      <div class="duo"><div class="field"><label for="devis-contact-vehicule_modele">Marque et modèle</label><input id="devis-contact-vehicule_modele" name="vehicule_modele" type="text" placeholder="Skoda Octavia"></div><div class="field"><label for="devis-contact-vehicule_annee">Année de mise en circulation</label><input id="devis-contact-vehicule_annee" name="vehicule_annee" type="number" placeholder="2020"></div></div><div class="field"><label for="devis-contact-vehicule_km">Kilomètres par an (estimation)</label><input id="devis-contact-vehicule_km" name="vehicule_km" type="text" placeholder="12 000"></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+      <div class="duo"><div class="field"><label for="devis-contact-vehicule_modele">Marque et modèle</label><input id="devis-contact-vehicule_modele" name="vehicule_modele" type="text" placeholder="Skoda Octavia"></div><div class="field"><label for="devis-contact-vehicule_annee">Année de mise en circulation</label><input id="devis-contact-vehicule_annee" name="vehicule_annee" type="number" placeholder="2020"></div></div>
+      <div class="field"><label for="devis-contact-vehicule_km">Kilomètres par an (estimation)</label><input id="devis-contact-vehicule_km" name="vehicule_km" type="text" placeholder="12 000"></div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="vehicule" hidden>
+    <div class="etape" data-branche="vehicule" data-nom="Couverture" hidden>
+      
       <h3>Quelle couverture souhaitez-vous ?</h3>
       
-      <div class="options"><button class="option" type="button" data-choix="vehicule_couverture" data-valeur="Responsabilité civile seule" aria-pressed="false">Responsabilité civile seule</button><button class="option" type="button" data-choix="vehicule_couverture" data-valeur="RC + casco partielle" aria-pressed="false">RC + casco partielle</button><button class="option" type="button" data-choix="vehicule_couverture" data-valeur="RC + casco complète" aria-pressed="false">RC + casco complète</button><button class="option" type="button" data-choix="vehicule_couverture" data-valeur="À déterminer avec le conseiller" aria-pressed="false">À déterminer avec le conseiller</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="vehicule_couverture" data-valeur="Responsabilité civile seule" aria-pressed="false">Responsabilité civile seule</button>
+        <button class="option" type="button" data-choix="vehicule_couverture" data-valeur="RC + casco partielle" aria-pressed="false">RC + casco partielle</button>
+        <button class="option" type="button" data-choix="vehicule_couverture" data-valeur="RC + casco complète" aria-pressed="false">RC + casco complète</button>
+        <button class="option" type="button" data-choix="vehicule_couverture" data-valeur="À déterminer avec le conseiller" aria-pressed="false">À déterminer avec le conseiller</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="vehicule" hidden>
+    <div class="etape" data-branche="vehicule" data-nom="Sinistres" hidden>
+      
       <h3>Un sinistre au cours des cinq dernières années ?</h3>
-      <p>Cela influence directement la prime proposée.</p>
-      <div class="options"><button class="option" type="button" data-choix="vehicule_sinistres" data-valeur="Aucun" aria-pressed="false">Aucun</button><button class="option" type="button" data-choix="vehicule_sinistres" data-valeur="Un sinistre" aria-pressed="false">Un sinistre</button><button class="option" type="button" data-choix="vehicule_sinistres" data-valeur="Plusieurs sinistres" aria-pressed="false">Plusieurs sinistres</button></div>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="vehicule_sinistres" data-valeur="Aucun" aria-pressed="false">Aucun</button>
+        <button class="option" type="button" data-choix="vehicule_sinistres" data-valeur="Un sinistre" aria-pressed="false">Un sinistre</button>
+        <button class="option" type="button" data-choix="vehicule_sinistres" data-valeur="Plusieurs sinistres" aria-pressed="false">Plusieurs sinistres</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="menage" hidden>
+    <div class="etape" data-branche="menage" data-nom="Logement" hidden>
+      
       <h3>Vous êtes…</h3>
       
-      <div class="options"><button class="option" type="button" data-choix="menage_statut" data-valeur="Locataire" aria-pressed="false">Locataire</button><button class="option" type="button" data-choix="menage_statut" data-valeur="Propriétaire" aria-pressed="false">Propriétaire</button><button class="option" type="button" data-choix="menage_statut" data-valeur="En colocation" aria-pressed="false">En colocation</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="menage_statut" data-valeur="Locataire" aria-pressed="false">Locataire</button>
+        <button class="option" type="button" data-choix="menage_statut" data-valeur="Propriétaire" aria-pressed="false">Propriétaire</button>
+        <button class="option" type="button" data-choix="menage_statut" data-valeur="En colocation" aria-pressed="false">En colocation</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="menage" hidden>
+    <div class="etape" data-branche="menage" data-nom="Détails" hidden>
+      
       <h3>Votre logement</h3>
       <p>La somme d’assurance se calcule sur le volume du mobilier.</p>
-      <div class="duo"><div class="field"><label for="devis-contact-menage_pieces">Nombre de pièces</label><input id="devis-contact-menage_pieces" name="menage_pieces" type="text" placeholder="3,5"></div><div class="field"><label for="devis-contact-menage_npa">Code postal (NPA)</label><input id="devis-contact-menage_npa" name="menage_npa" type="text" placeholder="1208"></div></div><div class="field"><label for="devis-contact-menage_valeur">Valeur estimée du mobilier</label><input id="devis-contact-menage_valeur" name="menage_valeur" type="text" placeholder="80 000 CHF"></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+      <div class="duo"><div class="field"><label for="devis-contact-menage_pieces">Nombre de pièces</label><input id="devis-contact-menage_pieces" name="menage_pieces" type="text" placeholder="3,5"></div><div class="field"><label for="devis-contact-menage_npa">Code postal (NPA)</label><input id="devis-contact-menage_npa" name="menage_npa" type="text" placeholder="1208"></div></div>
+      <div class="field"><label for="devis-contact-menage_valeur">Valeur estimée du mobilier</label><input id="devis-contact-menage_valeur" name="menage_valeur" type="text" placeholder="80 000 CHF"></div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="menage" hidden>
-      <h3>Souhaitez-vous y ajouter la protection juridique ?</h3>
-      <p>Litiges de bail, de travail, de circulation ou de consommation.</p>
-      <div class="options"><button class="option" type="button" data-choix="menage_juridique" data-valeur="Oui" aria-pressed="false">Oui</button><button class="option" type="button" data-choix="menage_juridique" data-valeur="Non" aria-pressed="false">Non</button><button class="option" type="button" data-choix="menage_juridique" data-valeur="À voir avec le conseiller" aria-pressed="false">À voir avec le conseiller</button></div>
+    <div class="etape" data-branche="menage" data-nom="Options" hidden>
+      
+      <h3 class="question--multi">Ce que vous souhaitez couvrir (facultatif)</h3>
+      
+      <div class="options" data-multi="true">
+        <button class="option" type="button" data-choix="menage_options" data-cumul="true" data-valeur="Mobilier de ménage" aria-pressed="false">Mobilier de ménage</button>
+        <button class="option" type="button" data-choix="menage_options" data-cumul="true" data-valeur="Responsabilité civile privée" aria-pressed="false">Responsabilité civile privée</button>
+        <button class="option" type="button" data-choix="menage_options" data-cumul="true" data-valeur="Protection juridique" aria-pressed="false">Protection juridique</button>
+        <button class="option" type="button" data-choix="menage_options" data-cumul="true" data-valeur="Vol à l’extérieur" aria-pressed="false">Vol à l’extérieur</button>
+        <button class="option" type="button" data-choix="menage_options" data-cumul="true" data-valeur="Objets de valeur" aria-pressed="false">Objets de valeur</button>
+      </div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="prevoyance" hidden>
+    <div class="etape" data-branche="prevoyance" data-nom="Objectif" hidden>
+      
       <h3>Quel est votre objectif principal ?</h3>
       
-      <div class="options"><button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Réduire mes impôts" aria-pressed="false">Réduire mes impôts</button><button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Préparer ma retraite" aria-pressed="false">Préparer ma retraite</button><button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Financer un bien immobilier" aria-pressed="false">Financer un bien immobilier</button><button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Me couvrir en cas de coup dur" aria-pressed="false">Me couvrir en cas de coup dur</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Réduire mes impôts" aria-pressed="false">Réduire mes impôts</button>
+        <button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Préparer ma retraite" aria-pressed="false">Préparer ma retraite</button>
+        <button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Financer un bien immobilier" aria-pressed="false">Financer un bien immobilier</button>
+        <button class="option" type="button" data-choix="prevoyance_objectif" data-valeur="Me couvrir en cas de coup dur" aria-pressed="false">Me couvrir en cas de coup dur</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="prevoyance" hidden>
+    <div class="etape" data-branche="prevoyance" data-nom="Solution" hidden>
+      
       <h3>Quelle solution vous intéresse ?</h3>
       <p>La solution bancaire est souple, celle d’assurance couvre les risques.</p>
-      <div class="options"><button class="option" type="button" data-choix="prevoyance_solution" data-valeur="Solution bancaire" aria-pressed="false">Solution bancaire</button><button class="option" type="button" data-choix="prevoyance_solution" data-valeur="Solution d’assurance" aria-pressed="false">Solution d’assurance</button><button class="option" type="button" data-choix="prevoyance_solution" data-valeur="Je souhaite comparer les deux" aria-pressed="false">Je souhaite comparer les deux</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="prevoyance_solution" data-valeur="Solution bancaire" aria-pressed="false">Solution bancaire</button>
+        <button class="option" type="button" data-choix="prevoyance_solution" data-valeur="Solution d’assurance" aria-pressed="false">Solution d’assurance</button>
+        <button class="option" type="button" data-choix="prevoyance_solution" data-valeur="Je souhaite comparer les deux" aria-pressed="false">Je souhaite comparer les deux</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="prevoyance" hidden>
-      <h3>Votre capacité d’épargne</h3>
-      <p>Une estimation suffit, rien n’est figé.</p>
-      <div class="duo"><div class="field"><label for="devis-contact-prevoyance_naissance">Date de naissance</label><input id="devis-contact-prevoyance_naissance" name="prevoyance_naissance" type="date"></div><div class="field"><label for="devis-contact-prevoyance_montant">Montant que vous pouvez épargner par mois</label><input id="devis-contact-prevoyance_montant" name="prevoyance_montant" type="text" placeholder="300 CHF"></div></div><div class="field"><label for="devis-contact-prevoyance_statut">Votre statut fiscal</label><select id="devis-contact-prevoyance_statut" name="prevoyance_statut"><option>Résident imposé en Suisse</option><option>Frontalier quasi-résident</option><option>Frontalier non quasi-résident</option><option>Je ne sais pas</option></select></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+    <div class="etape" data-branche="prevoyance" data-nom="Profil" hidden>
+      
+      <h3>Votre statut fiscal</h3>
+      
+      <div class="options">
+        <button class="option" type="button" data-choix="prevoyance_statut" data-valeur="Résident imposé en Suisse" aria-pressed="false">Résident imposé en Suisse</button>
+        <button class="option" type="button" data-choix="prevoyance_statut" data-valeur="Frontalier quasi-résident" aria-pressed="false">Frontalier quasi-résident</button>
+        <button class="option" type="button" data-choix="prevoyance_statut" data-valeur="Frontalier non quasi-résident" aria-pressed="false">Frontalier non quasi-résident</button>
+        <button class="option" type="button" data-choix="prevoyance_statut" data-valeur="Je ne sais pas" aria-pressed="false">Je ne sais pas</button>
+      </div>
+
+      
+      
+      <div class="duo"><div class="field"><label for="devis-contact-prevoyance_naissance">Date de naissance</label><input id="devis-contact-prevoyance_naissance" name="prevoyance_naissance" type="date"></div><div class="field"><label for="devis-contact-prevoyance_montant">Montant épargné par mois</label><input id="devis-contact-prevoyance_montant" name="prevoyance_montant" type="text" placeholder="300 CHF"></div></div>
+      
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="personnes" hidden>
+    <div class="etape" data-branche="personnes" data-nom="Besoin" hidden>
+      
       <h3>Que souhaitez-vous protéger en priorité ?</h3>
       
-      <div class="options"><button class="option" type="button" data-choix="personnes_objet" data-valeur="Mon revenu en cas de maladie" aria-pressed="false">Mon revenu en cas de maladie</button><button class="option" type="button" data-choix="personnes_objet" data-valeur="Mon revenu en cas d’accident" aria-pressed="false">Mon revenu en cas d’accident</button><button class="option" type="button" data-choix="personnes_objet" data-valeur="Mes proches en cas de décès" aria-pressed="false">Mes proches en cas de décès</button><button class="option" type="button" data-choix="personnes_objet" data-valeur="Une rente en cas d’invalidité" aria-pressed="false">Une rente en cas d’invalidité</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="personnes_objet" data-valeur="Mon revenu en cas de maladie" aria-pressed="false">Mon revenu en cas de maladie</button>
+        <button class="option" type="button" data-choix="personnes_objet" data-valeur="Mon revenu en cas d’accident" aria-pressed="false">Mon revenu en cas d’accident</button>
+        <button class="option" type="button" data-choix="personnes_objet" data-valeur="Mes proches en cas de décès" aria-pressed="false">Mes proches en cas de décès</button>
+        <button class="option" type="button" data-choix="personnes_objet" data-valeur="Une rente en cas d’invalidité" aria-pressed="false">Une rente en cas d’invalidité</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="personnes" hidden>
+    <div class="etape" data-branche="personnes" data-nom="Statut" hidden>
+      
       <h3>Quelle est votre situation professionnelle ?</h3>
       
-      <div class="options"><button class="option" type="button" data-choix="personnes_statut" data-valeur="Salarié" aria-pressed="false">Salarié</button><button class="option" type="button" data-choix="personnes_statut" data-valeur="Indépendant" aria-pressed="false">Indépendant</button><button class="option" type="button" data-choix="personnes_statut" data-valeur="Sans activité lucrative" aria-pressed="false">Sans activité lucrative</button><button class="option" type="button" data-choix="personnes_statut" data-valeur="Étudiant" aria-pressed="false">Étudiant</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="personnes_statut" data-valeur="Salarié" aria-pressed="false">Salarié</button>
+        <button class="option" type="button" data-choix="personnes_statut" data-valeur="Indépendant" aria-pressed="false">Indépendant</button>
+        <button class="option" type="button" data-choix="personnes_statut" data-valeur="Sans activité lucrative" aria-pressed="false">Sans activité lucrative</button>
+        <button class="option" type="button" data-choix="personnes_statut" data-valeur="Étudiant" aria-pressed="false">Étudiant</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="personnes" hidden>
+    <div class="etape" data-branche="personnes" data-nom="Détails" hidden>
+      
       <h3>Pour calibrer la couverture</h3>
       <p>Ces montants restent indicatifs.</p>
-      <div class="duo"><div class="field"><label for="devis-contact-personnes_naissance">Date de naissance</label><input id="devis-contact-personnes_naissance" name="personnes_naissance" type="date"></div><div class="field"><label for="devis-contact-personnes_revenu">Revenu annuel brut</label><input id="devis-contact-personnes_revenu" name="personnes_revenu" type="text" placeholder="85 000 CHF"></div></div><div class="field"><label for="devis-contact-personnes_charge">Personnes à charge</label><input id="devis-contact-personnes_charge" name="personnes_charge" type="text" placeholder="2 enfants"></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+      <div class="duo"><div class="field"><label for="devis-contact-personnes_naissance">Date de naissance</label><input id="devis-contact-personnes_naissance" name="personnes_naissance" type="date"></div><div class="field"><label for="devis-contact-personnes_revenu">Revenu annuel brut</label><input id="devis-contact-personnes_revenu" name="personnes_revenu" type="text" placeholder="85 000 CHF"></div></div>
+      <div class="field"><label for="devis-contact-personnes_charge">Personnes à charge</label><input id="devis-contact-personnes_charge" name="personnes_charge" type="text" placeholder="2 enfants"></div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="entreprise" hidden>
-      <h3>Que souhaitez-vous mettre en place ou revoir ?</h3>
+    <div class="etape" data-branche="entreprise" data-nom="Besoin" hidden>
       
-      <div class="options"><button class="option" type="button" data-choix="entreprise_objet" data-valeur="Assurance accidents (LAA)" aria-pressed="false">Assurance accidents (LAA)</button><button class="option" type="button" data-choix="entreprise_objet" data-valeur="Perte de gain maladie collective" aria-pressed="false">Perte de gain maladie collective</button><button class="option" type="button" data-choix="entreprise_objet" data-valeur="Plan de prévoyance LPP" aria-pressed="false">Plan de prévoyance LPP</button><button class="option" type="button" data-choix="entreprise_objet" data-valeur="RC professionnelle et locaux" aria-pressed="false">RC professionnelle et locaux</button></div>
+      <h3 class="question--multi">Que souhaitez-vous mettre en place ou revoir ?</h3>
+      
+      <div class="options" data-multi="true">
+        <button class="option" type="button" data-choix="entreprise_objet" data-cumul="true" data-valeur="Assurance accidents (LAA)" aria-pressed="false">Assurance accidents (LAA)</button>
+        <button class="option" type="button" data-choix="entreprise_objet" data-cumul="true" data-valeur="Perte de gain maladie collective" aria-pressed="false">Perte de gain maladie collective</button>
+        <button class="option" type="button" data-choix="entreprise_objet" data-cumul="true" data-valeur="Plan de prévoyance LPP" aria-pressed="false">Plan de prévoyance LPP</button>
+        <button class="option" type="button" data-choix="entreprise_objet" data-cumul="true" data-valeur="RC professionnelle" aria-pressed="false">RC professionnelle</button>
+        <button class="option" type="button" data-choix="entreprise_objet" data-cumul="true" data-valeur="Locaux et matériel" aria-pressed="false">Locaux et matériel</button>
+      </div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="entreprise" hidden>
+    <div class="etape" data-branche="entreprise" data-nom="Entreprise" hidden>
+      
       <h3>Votre entreprise</h3>
       
-      <div class="duo"><div class="field"><label for="devis-contact-entreprise_nom">Raison sociale</label><input id="devis-contact-entreprise_nom" name="entreprise_nom" type="text" placeholder="Mon entreprise Sàrl"></div><div class="field"><label for="devis-contact-entreprise_secteur">Secteur d’activité</label><input id="devis-contact-entreprise_secteur" name="entreprise_secteur" type="text" placeholder="Construction, services, commerce…"></div></div><div class="field"><label for="devis-contact-entreprise_effectif">Nombre de collaborateurs</label><input id="devis-contact-entreprise_effectif" name="entreprise_effectif" type="number" placeholder="5"></div>
-         <p style="margin-top:1.25rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
+      <div class="duo"><div class="field"><label for="devis-contact-entreprise_nom">Raison sociale</label><input id="devis-contact-entreprise_nom" name="entreprise_nom" type="text" placeholder="Mon entreprise Sàrl"></div><div class="field"><label for="devis-contact-entreprise_secteur">Secteur d’activité</label><input id="devis-contact-entreprise_secteur" name="entreprise_secteur" type="text" placeholder="Construction, services, commerce…"></div></div>
+      <div class="field"><label for="devis-contact-entreprise_effectif">Nombre de collaborateurs</label><input id="devis-contact-entreprise_effectif" name="entreprise_effectif" type="number" placeholder="5"></div>
+      <p style="margin-top:1.5rem"><button class="btn" type="button" data-suivant>Continuer <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></p>
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-branche="entreprise" hidden>
+    <div class="etape" data-branche="entreprise" data-nom="Existant" hidden>
+      
       <h3>Avez-vous déjà des contrats en place ?</h3>
       <p>Nous partons toujours de l’existant avant de proposer autre chose.</p>
-      <div class="options"><button class="option" type="button" data-choix="entreprise_existant" data-valeur="Oui, à revoir" aria-pressed="false">Oui, à revoir</button><button class="option" type="button" data-choix="entreprise_existant" data-valeur="Oui, mais je veux comparer" aria-pressed="false">Oui, mais je veux comparer</button><button class="option" type="button" data-choix="entreprise_existant" data-valeur="Non, je démarre" aria-pressed="false">Non, je démarre</button></div>
+      <div class="options">
+        <button class="option" type="button" data-choix="entreprise_existant" data-valeur="Oui, à revoir" aria-pressed="false">Oui, à revoir</button>
+        <button class="option" type="button" data-choix="entreprise_existant" data-valeur="Oui, mais je veux comparer" aria-pressed="false">Oui, mais je veux comparer</button>
+        <button class="option" type="button" data-choix="entreprise_existant" data-valeur="Non, je démarre" aria-pressed="false">Non, je démarre</button>
+      </div>
+      
       <div class="demande__pied">
         <button class="lien-retour" type="button" data-retour>← Étape précédente</button>
         <span class="demande__recap" data-recap></span>
       </div>
     </div>
 
-    <div class="etape" data-etape="contact" hidden>
-      <h3>Où pouvons-nous vous joindre ?</h3>
+    <div class="etape" data-etape="contact" data-nom="Contact" hidden>
+      <h3>Vos coordonnées</h3>
       <p>Nous revenons vers vous sous 24 h ouvrées avec une proposition chiffrée.</p>
       <div class="duo">
         <div class="field" data-required>
-          <label for="devis-contact-nom">Nom et prénom</label>
+          <label for="devis-contact-nom">Nom complet</label>
           <input id="devis-contact-nom" name="nom" type="text" autocomplete="name">
           <span class="err">Merci d’indiquer votre nom.</span>
         </div>
         <div class="field" data-required>
-          <label for="devis-contact-email">E-mail</label>
+          <label for="devis-contact-email">Adresse e-mail</label>
           <input id="devis-contact-email" name="email" type="email" autocomplete="email">
           <span class="err">Adresse e-mail incomplète.</span>
         </div>
       </div>
       <div class="duo">
         <div class="field" data-required>
-          <label for="devis-contact-tel">Téléphone</label>
+          <label for="devis-contact-tel">Numéro de téléphone</label>
           <input id="devis-contact-tel" name="telephone" type="tel" autocomplete="tel">
           <span class="err">Merci d’indiquer un numéro.</span>
         </div>
@@ -467,6 +603,6 @@
   <a class="btn" href="/devis.html">Mon devis <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </div>
 
-<script src="/assets/js/site.js?v=af3b844d" defer></script>
+<script src="/assets/js/site.js?v=026276ac" defer></script>
 </body>
 </html>
