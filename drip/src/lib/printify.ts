@@ -130,7 +130,11 @@ export type PrintifyProduct = {
 type Paginated<T> = { current_page: number; data: T[]; last_page: number };
 
 export async function listPrintifyProducts() {
-  const shopId = await resolveShopId();
+  const shops = await listPrintifyShops();
+  const configured = process.env.PRINTIFY_SHOP_ID;
+  const shopId = configured ?? (await resolveShopId());
+  const shop = shops.find((candidate) => String(candidate.id) === String(shopId));
+
   const products: PrintifyProduct[] = [];
   let page = 1;
 
@@ -146,7 +150,13 @@ export async function listPrintifyProducts() {
     page += 1;
   }
 
-  return products;
+  return {
+    products,
+    shopId,
+    shopName: shop?.title ?? `boutique ${shopId}`,
+    shopCount: shops.length,
+    shopChoisieAutomatiquement: !configured && shops.length > 1,
+  };
 }
 
 /**
@@ -253,6 +263,13 @@ export type SyncReport = {
   updated: number;
   variants: number;
   skipped: string[];
+  /** Nombre de produits réellement renvoyés par l'API, avant tout filtrage. */
+  remoteCount: number;
+  shopName: string;
+  shopId: string;
+  shopCount: number;
+  /** Vrai si le compte a plusieurs boutiques et qu'aucune n'a été désignée. */
+  shopChoisieAutomatiquement: boolean;
 };
 
 /**
@@ -264,8 +281,21 @@ export type SyncReport = {
  * Printify est désactivé, jamais supprimé — des commandes le référencent.
  */
 export async function syncPrintifyCatalog(): Promise<SyncReport> {
-  const report: SyncReport = { created: 0, updated: 0, variants: 0, skipped: [] };
-  const products = await listPrintifyProducts();
+  const source = await listPrintifyProducts();
+  const products = source.products;
+
+  const report: SyncReport = {
+    created: 0,
+    updated: 0,
+    variants: 0,
+    skipped: [],
+    remoteCount: products.length,
+    shopName: source.shopName,
+    shopId: source.shopId,
+    shopCount: source.shopCount,
+    shopChoisieAutomatiquement: source.shopChoisieAutomatiquement,
+  };
+
   const seenIds: string[] = [];
 
   for (const remote of products) {
@@ -292,7 +322,9 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
     const product = existing
       ? await prisma.product.update({
           where: { id: existing.id },
-          data: { name: remote.title, basePrice, active: true },
+          // `active` n'est pas touché : remettre en ligne une pièce que la
+          // boutique a volontairement retirée serait une mauvaise surprise.
+          data: { name: remote.title, basePrice },
         })
       : await prisma.product.create({
           data: {
