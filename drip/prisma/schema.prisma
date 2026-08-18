@@ -1,0 +1,344 @@
+// NATURAL BRUTAL — schéma de la boutique.
+// Tous les montants sont stockés en centimes (Int) pour éviter les erreurs de
+// flottants sur les prix. La devise par défaut est l'euro.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING // session Stripe créée, paiement pas encore confirmé
+  PAID // paiement confirmé par le webhook Stripe
+  IN_PRODUCTION // transmise à Printful
+  SHIPPED
+  DELIVERED
+  CANCELED
+  REFUNDED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  role          Role      @default(CUSTOMER)
+  acceptsMarketing Boolean @default(false)
+  // Invalide toutes les sessions émises avant cette date (changement de mot de
+  // passe, déconnexion globale).
+  sessionsValidFrom DateTime @default(now())
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses     Address[]
+  carts         Cart[]
+  orders        Order[]
+  reviews       Review[]
+  wishlist      WishlistItem[]
+  resetTokens   PasswordResetToken[]
+
+  @@index([createdAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  label      String?
+  fullName   String
+  line1      String
+  line2      String?
+  city       String
+  postalCode String
+  country    String  @default("FR")
+  phone      String?
+  isDefault  Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  tagline   String?
+  position  Int       @default(0)
+  products  Product[]
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  subtitle    String?
+  description String  @db.Text
+  // Détails affichés dans l'accordéon fiche produit (matière, entretien…).
+  composition String? @db.Text
+  categoryId  String?
+  // Identifiant du produit chez le fabricant à la demande (Printify).
+  podProductId String? @unique
+  // Prix d'appel affiché sur les listings, en centimes.
+  basePrice   Int
+  compareAtPrice Int?
+  currency    String  @default("EUR")
+  active      Boolean @default(true)
+  featured    Boolean @default(false)
+  badge       String? // "NOUVEAU", "EDITION LIMITEE"…
+  position    Int     @default(0)
+  seoTitle    String?
+  seoDescription String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images   ProductImage[]
+  variants Variant[]
+  reviews  Review[]
+  wishlist WishlistItem[]
+
+  @@index([active, position])
+  @@index([featured])
+}
+
+model ProductImage {
+  id        String @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  position  Int    @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+}
+
+model Variant {
+  id        String  @id @default(cuid())
+  productId String
+  name      String // "Noir / Taille unique"
+  color     String?
+  colorHex  String? // pour la pastille couleur du sélecteur
+  size      String?
+  sku       String? @unique
+  // Identifiant de variante chez le fabricant, utilisé à la création de commande.
+  podVariantId String? @unique
+  price     Int
+  available Boolean @default(true)
+  position  Int     @default(0)
+  imageUrl  String?
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId, position])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  // Panier invité : identifié par un token en cookie. Fusionné dans le panier
+  // du compte à la connexion.
+  token     String   @unique
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@index([userId])
+  @@index([updatedAt])
+}
+
+model CartItem {
+  id        String @id @default(cuid())
+  cartId    String
+  variantId String
+  quantity  Int    @default(1)
+  createdAt DateTime @default(now())
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant Variant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+}
+
+model Order {
+  id       String      @id @default(cuid())
+  number   String      @unique // NB-000123
+  userId   String?
+  email    String
+  status   OrderStatus @default(PENDING)
+
+  subtotal Int
+  shipping Int    @default(0)
+  discount Int    @default(0)
+  total    Int
+  currency String @default("EUR")
+
+  couponCode String?
+
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String?
+
+  podOrderId String?
+  trackingNumber  String?
+  trackingUrl     String?
+
+  shippingName       String?
+  shippingLine1      String?
+  shippingLine2      String?
+  shippingCity       String?
+  shippingPostalCode String?
+  shippingCountry    String?
+  shippingPhone      String?
+
+  paidAt      DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  canceledAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user    User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items   OrderItem[]
+  reviews Review[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  variantId String?
+  // Copie figée du produit au moment de la commande : le catalogue peut
+  // changer, la facture ne doit pas bouger.
+  productId   String?
+  productName String
+  productSlug String?
+  variantName String
+  unitPrice   Int
+  quantity    Int
+  imageUrl    String?
+  // Printify exige le couple produit + variante pour lancer la fabrication :
+  // les deux sont figes ici, le catalogue pouvant changer apres la vente.
+  podProductId String?
+  podVariantId String?
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model Review {
+  id        String       @id @default(cuid())
+  productId String
+  userId    String?
+  orderId   String?
+  authorName String
+  rating    Int // 1..5
+  title     String?
+  body      String       @db.Text
+  status    ReviewStatus @default(PENDING)
+  verifiedPurchase Boolean @default(false)
+  reply     String?      @db.Text // réponse de la boutique
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  // Un avis par produit et par commande.
+  @@unique([orderId, productId])
+  @@index([productId, status])
+  @@index([status, createdAt])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model Coupon {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  type        DiscountType @default(PERCENT)
+  value       Int // pourcentage (1..100) ou centimes
+  minSubtotal Int          @default(0)
+  maxUses     Int?
+  uses        Int          @default(0)
+  active      Boolean      @default(true)
+  startsAt    DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime     @default(now())
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([handled, createdAt])
+}

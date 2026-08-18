@@ -1,0 +1,47 @@
+{
+  "name": "drip",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint src prisma next.config.ts middleware.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "prisma db seed",
+    "printify:sync": "tsx scripts/sync-printify.ts",
+    "sql:generer": "prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script > prisma/sql/.brut.sql && node scripts/generer-sql-idempotent.mjs"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "next": "^16.2.11",
+    "pg": "^8.21.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "stripe": "^22.2.1",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^25.9.3",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.11",
+    "postcss": "^8.5.15",
+    "prisma": "^7.8.0",
+    "tailwindcss": "^4.3.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

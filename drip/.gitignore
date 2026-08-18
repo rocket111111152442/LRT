@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+build
+
+.env
+.env.*
+!.env.example
+
+/generated
+tsconfig.tsbuildinfo
+
+# Sortie brute de `prisma migrate diff`, transformee en 01-creer-les-tables.sql
+prisma/sql/.brut.sql
