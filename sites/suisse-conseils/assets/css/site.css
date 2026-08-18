@@ -146,13 +146,22 @@ p { text-wrap: pretty; }
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  min-height: 106px;
+  min-height: 108px;
 }
 
 .brand { display: inline-flex; align-items: center; }
-.brand svg { height: 74px; width: auto; }
-.footer .brand svg { height: 72px; }
-@media (max-width: 520px) { .brand svg { height: 46px; } }
+.brand img { height: 74px; width: auto; }
+@media (max-width: 520px) { .brand img { height: 46px; } }
+
+/* Le logo est fourni sur fond blanc : dans le pied de page sombre, il est posé
+   sur une plaque blanche plutôt que détouré — le lettrage « SUISSE » est blanc
+   et un détourage le trouerait. */
+.brand--plaque {
+  background: #fff;
+  border-radius: 12px;
+  padding: .7rem 1rem;
+}
+.brand--plaque img { height: 58px; }
 
 .nav { display: flex; align-items: center; gap: clamp(1.1rem, 2.2vw, 2rem); }
 .nav a {

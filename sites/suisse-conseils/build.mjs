@@ -17,6 +17,7 @@ const empreinte = (chemin) =>
 
 const V_CSS = empreinte("assets/css/site.css");
 const V_JS = empreinte("assets/js/site.js");
+const V_LOGO = empreinte("assets/img/logo.png");
 
 /* Coordonnées relevées sur la signature officielle des courriels du cabinet
    (info@ et slobozenco@suisse-conseilsm.ch, juin 2026). */
@@ -49,22 +50,11 @@ const I = {
   horloge: `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.4" stroke="currentColor" stroke-width="1.5"/><path d="M10 5.8V10l2.9 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 };
 
-/* Le logo est inséré en SVG dans la page (et non via <img>) : une image SVG
-   externe n'hérite pas des polices du document, le lettrage serait rendu avec
-   une police de repli. Les identifiants de dégradé sont suffixés pour que les
-   deux versions puissent coexister sur une même page. */
-const lireLogo = (fichier, suffixe) => {
-  let svg = readFileSync(new URL("./assets/img/" + fichier, import.meta.url), "utf8");
-  svg = svg.replace(/<\?xml[^>]*>/, "").trim();
-  for (const id of ["blob", "gloss", "swoosh"]) {
-    svg = svg.split('id="' + id + '"').join('id="' + id + suffixe + '"');
-    svg = svg.split("url(#" + id + ")").join("url(#" + id + suffixe + ")");
-  }
-  return svg;
-};
-
-const marque = () => lireLogo("logo.svg", "-h");
-const marqueBlanche = () => lireLogo("logo-blanc.svg", "-f");
+/* Logo officiel du cabinet. Le fichier source (images.jpg) a été détouré et
+   ré-encodé en PNG : voir assets/img/logo.png. Il est posé sur blanc, d'où la
+   plaque blanche qui l'accueille dans le pied de page sombre. */
+const marque = () =>
+  `<img src="/assets/img/logo.png?v=${V_LOGO}" width="699" height="328" alt="${SITE.nom}">`;
 
 /* ------------------------------------------------------------- mise en page */
 function layout({ slug, titre, description, contenu, actif }) {
@@ -145,7 +135,7 @@ ${contenu}
   <div class="wrap">
     <div class="footer__grid">
       <div>
-        <a class="brand" href="/">${marqueBlanche()}</a>
+        <a class="brand brand--plaque" href="/">${marque()}</a>
         <p style="margin-top:1.25rem;font-size:.9375rem;max-width:26rem">
           Courtier en assurances et prévoyance. Nous accompagnons résidents,
           frontaliers et entreprises dans toute la Suisse romande.
