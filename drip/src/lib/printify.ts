@@ -19,6 +19,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { PRINTIFY_SHOP_KEY, readSetting } from "@/lib/settings";
+import { htmlToText, looksEncoded } from "@/lib/html";
 
 // Surchargeable pour les tests ; en production, l'API publique de Printify.
 const PRINTIFY_API = process.env.PRINTIFY_API_URL ?? "https://api.printify.com/v1";
@@ -217,24 +218,6 @@ function describeVariant(
   return { label, color, colorHex, size };
 }
 
-/** La description Printify arrive en HTML : on la ramène à du texte lisible. */
-function htmlToText(html: string | null) {
-  if (!html) return "";
-
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -327,9 +310,20 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
     const product = existing
       ? await prisma.product.update({
           where: { id: existing.id },
-          // `active` n'est pas touché : remettre en ligne une pièce que la
-          // boutique a volontairement retirée serait une mauvaise surprise.
-          data: { name: remote.title, basePrice },
+          data: {
+            name: remote.title,
+            basePrice,
+            // `active` n'est pas touché : remettre en ligne une pièce que la
+            // boutique a volontairement retirée serait une mauvaise surprise.
+            //
+            // La description non plus, sauf si elle porte encore des entités
+            // HTML : personne ne tape « &rsquo; » à la main, c'est donc une
+            // description importée avant que le décodage soit correct. La
+            // réécrire répare, elle n'écrase aucun texte rédigé.
+            ...(looksEncoded(existing.description)
+              ? { description: htmlToText(remote.description) || existing.description }
+              : {}),
+          },
         })
       : await prisma.product.create({
           data: {
