@@ -596,3 +596,259 @@ p { text-wrap: pretty; }
   line-height: 1.45;
   letter-spacing: -0.015em;
 }
+
+/* ==========================================================================
+   Mouvement
+   Tout passe par transform et opacity : aucune animation ne déclenche de
+   recalcul de mise en page, et tout s'arrête sous prefers-reduced-motion.
+   ========================================================================== */
+
+/* entrées latérales et zoom, en complément de .rise */
+.rise-l, .rise-r, .zoom {
+  opacity: 0;
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+}
+.rise-l { transform: translateX(-26px); }
+.rise-r { transform: translateX(26px); }
+.zoom { transform: scale(.94); }
+.rise-l.on, .rise-r.on, .zoom.on { opacity: 1; transform: none; }
+
+/* bandeau défilant */
+.ruban {
+  overflow: hidden;
+  border-block: 1px solid var(--line);
+  background: var(--paper);
+  padding-block: .9rem;
+}
+.ruban--sombre { background: var(--ink); border-color: rgba(255,255,255,.12); }
+.ruban--rouge {
+  background: linear-gradient(100deg, var(--brand-dark), var(--brand-light) 55%, var(--brand-dark));
+  border-color: transparent;
+}
+.ruban__piste {
+  display: flex;
+  width: max-content;
+  animation: defile 38s linear infinite;
+  will-change: transform;
+}
+.ruban--inverse .ruban__piste { animation-direction: reverse; }
+.ruban:hover .ruban__piste { animation-play-state: paused; }
+.ruban__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding-inline: 1.6rem;
+  font-size: .9375rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  color: var(--ink-soft);
+}
+.ruban--sombre .ruban__item { color: rgba(255,255,255,.8); }
+.ruban--rouge .ruban__item { color: #fff; }
+.ruban__item::after {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex: none;
+}
+.ruban--sombre .ruban__item::after,
+.ruban--rouge .ruban__item::after { background: rgba(255,255,255,.6); }
+@keyframes defile { to { transform: translateX(-50%); } }
+
+/* mot qui se remplace dans le titre */
+.rotor {
+  display: inline-block;
+  font-style: italic;
+  color: var(--brand);
+  transition: opacity .3s var(--ease), transform .3s var(--ease);
+}
+.rotor--sort { opacity: 0; transform: translateY(-.3em); }
+
+/* formes décoratives en fond de section */
+.deco { position: relative; overflow: hidden; }
+.deco__forme {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  opacity: .06;
+  background: var(--brand);
+  animation: flotte 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.deco__forme--a { width: 320px; height: 200px; top: -60px; right: -40px; transform: rotate(-18deg); }
+.deco__forme--b { width: 220px; height: 140px; bottom: -50px; left: -30px; animation-delay: -6s; }
+.deco > .wrap { position: relative; z-index: 1; }
+@keyframes flotte {
+  from { transform: translate3d(0,0,0) rotate(-18deg); }
+  to   { transform: translate3d(-18px,14px,0) rotate(-10deg); }
+}
+
+/* pastille pulsée */
+.pulse { position: relative; }
+.pulse::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid var(--brand);
+  opacity: 0;
+  animation: onde 2.6s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes onde {
+  0% { transform: scale(.9); opacity: .5; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* ==========================================================================
+   Vignettes illustrées
+   ========================================================================== */
+.vignette {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+.vignette:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.vignette__image { position: relative; overflow: hidden; background: var(--paper-alt); }
+.vignette__image svg { width: 100%; height: auto; display: block; transition: transform .5s var(--ease); }
+.vignette:hover .vignette__image svg { transform: scale(1.04); }
+.vignette__etiquette {
+  position: absolute;
+  top: .8rem; left: .8rem;
+  background: rgba(255,255,255,.94);
+  border-radius: 999px;
+  padding: .3rem .75rem;
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.vignette__corps { padding: 1.4rem 1.5rem 1.6rem; display: flex; flex-direction: column; gap: .6rem; flex: 1; }
+.vignette__corps p { font-size: .9375rem; color: var(--ink-soft); }
+.vignette .arrowlink { margin-top: auto; padding-top: .6rem; }
+
+/* bande d'illustrations */
+.galerie {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ==========================================================================
+   Demande de contact guidée
+   ========================================================================== */
+.demande {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.demande__tete {
+  padding: clamp(1.4rem, 3vw, 2rem) clamp(1.4rem, 3vw, 2.25rem) 0;
+}
+.demande__fil { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+.demande__pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  transition: color .3s var(--ease);
+}
+.demande__pastille b {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--paper-alt);
+  color: var(--ink-soft);
+  display: grid; place-items: center;
+  font-size: .6875rem;
+  transition: background-color .3s var(--ease), color .3s var(--ease), transform .3s var(--ease);
+}
+.demande__pastille[data-actif="true"] { color: var(--brand); }
+.demande__pastille[data-actif="true"] b { background: var(--brand); color: #fff; transform: scale(1.08); }
+.demande__pastille + .demande__pastille::before {
+  content: "";
+  width: 18px; height: 2px;
+  background: var(--line);
+  border-radius: 2px;
+  margin-right: .5rem;
+}
+
+.demande__jauge {
+  height: 3px;
+  background: var(--line);
+  margin-top: 1.25rem;
+}
+.demande__jauge i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-dark), var(--brand-light));
+  transform-origin: left;
+  transform: scaleX(.33);
+  transition: transform .45s var(--ease);
+}
+
+.demande__corps { padding: clamp(1.4rem, 3vw, 2.25rem); }
+.etape[hidden] { display: none; }
+.etape h3 { font-size: 1.25rem; margin-bottom: .35rem; }
+.etape > p { color: var(--ink-soft); font-size: .9375rem; margin-bottom: 1.25rem; }
+
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem; }
+.option {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: 1rem 1.1rem;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  font-size: .9688rem;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .25s var(--ease), background-color .25s var(--ease), transform .25s var(--ease);
+}
+.option:hover { border-color: var(--brand); transform: translateY(-2px); }
+.option[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-wash); }
+.option svg { width: 24px; height: 24px; flex: none; color: var(--brand); }
+
+.demande__pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+.demande__recap { font-size: .875rem; color: var(--brand); font-weight: 700; }
+.lien-retour {
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: .4rem 0;
+}
+.lien-retour:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ruban__piste, .deco__forme, .pulse::after { animation: none !important; }
+  .rise-l, .rise-r, .zoom { opacity: 1 !important; transform: none !important; }
+}

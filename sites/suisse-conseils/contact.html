@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
-<link rel="stylesheet" href="/assets/css/site.css?v=45e1c798">
+<link rel="stylesheet" href="/assets/css/site.css?v=1f15efa3">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"InsuranceAgency","name":"Suisse-Conseils Management","url":"https://suisse-conseilsm.ch/","email":"contacts@suisse-conseilsm.ch","telephone":"+41225185546","address":{"@type":"PostalAddress","streetAddress":"Avenue Rosemont 12","postalCode":"1208","addressLocality":"Genève","addressRegion":"Genève","addressCountry":"CH"},"areaServed":"Suisse romande","slogan":"Votre confiance, notre responsabilité"}
 </script>
@@ -90,55 +90,96 @@
           <a class="arrowlink" href="https://www.google.com/maps/search/?api=1&amp;query=Avenue+Rosemont+12,+1208+Gen%C3%A8ve" target="_blank" rel="noopener">Ouvrir l’adresse dans Google Maps <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </p>
       </div>
-      <div class="rise">
-<form class="formcard" data-form data-to="contacts@suisse-conseilsm.ch" novalidate>
-  <div class="duo">
-    <div class="field" data-required>
-      <label for="nom">Nom et prénom</label>
-      <input id="nom" name="nom" type="text" autocomplete="name">
-      <span class="err">Merci d’indiquer votre nom.</span>
+      <div class="rise-r">
+<div class="demande" id="demande-contact" data-demande>
+  <div class="demande__tete">
+    <span class="eyebrow">Votre demande en 30 secondes</span>
+    <h2 class="d3" style="margin-top:.75rem">Dites-nous qui vous êtes, on s’occupe du reste</h2>
+    <div class="demande__fil">
+      <span class="demande__pastille" data-pastille data-actif="true"><b>1</b> Profil</span>
+      <span class="demande__pastille" data-pastille><b>2</b> Sujet</span>
+      <span class="demande__pastille" data-pastille><b>3</b> Coordonnées</span>
     </div>
-    <div class="field" data-required>
-      <label for="email">E-mail</label>
-      <input id="email" name="email" type="email" autocomplete="email">
-      <span class="err">Adresse e-mail incomplète.</span>
+    <div class="demande__jauge"><i data-jauge></i></div>
+  </div>
+
+  <form class="demande__corps" data-form data-to="contacts@suisse-conseilsm.ch" novalidate>
+    <input type="hidden" name="profil" value="">
+    <input type="hidden" name="sujet" value="">
+    <input type="hidden" name="moment" value="">
+
+    <div class="etape">
+      <h3>Vous êtes…</h3>
+      <p>Le conseil n’est pas le même selon votre statut : on adapte dès la première question.</p>
+      <div class="options">
+        <button class="option" type="button" data-choix="profil" data-valeur="Résident en Suisse" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.6 20.4 6v6.6c0 4.9-3.6 8.4-8.4 9.8-4.8-1.4-8.4-4.9-8.4-9.8V6L12 2.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.4 12.2 2.4 2.4 4.8-4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Résident en Suisse</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Frontalier" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M3.2 9.8h17.6M3.2 14.2h17.6" stroke="currentColor" stroke-width="1.4"/><path d="M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9s1.3-6.4 3.9-9Z" stroke="currentColor" stroke-width="1.4"/></svg> Frontalier</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Indépendant" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9.2" cy="8.4" r="3.4" stroke="currentColor" stroke-width="1.6"/><path d="M2.8 19.4c.7-3.6 3.2-5.6 6.4-5.6s5.7 2 6.4 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16.2 5.6a3.4 3.4 0 0 1 .6 6.6M17.6 13.9c2.2.5 3.5 2.3 4 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Indépendant</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Entreprise" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 20.5h17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5.5 20.5V5.2a1.6 1.6 0 0 1 1.6-1.6h6.3a1.6 1.6 0 0 1 1.6 1.6v15.3" stroke="currentColor" stroke-width="1.6"/><path d="M15 9.5h2.9a1.6 1.6 0 0 1 1.6 1.6v9.4" stroke="currentColor" stroke-width="1.6"/><path d="M8.6 7.4h3.2M8.6 11h3.2M8.6 14.6h3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Entreprise</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Nouvel arrivant" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5v17M5 6.5h14M7.5 20.5h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 6.5 2.5 13h5L5 6.5ZM19 6.5 16.5 13h5L19 6.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> Nouvel arrivant</button>
+      </div>
     </div>
-  </div>
-  <div class="duo">
-    <div class="field">
-      <label for="telephone">Téléphone</label>
-      <input id="telephone" name="telephone" type="tel" autocomplete="tel">
+
+    <div class="etape" hidden>
+      <h3>Sur quoi souhaitez-vous être conseillé ?</h3>
+      <p>Un seul sujet suffit pour démarrer : on balaiera le reste au rendez-vous.</p>
+      <div class="options">
+        <button class="option" type="button" data-choix="sujet" data-valeur="Assurance maladie" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="6.2" width="18" height="13" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 10v5.4M9.3 12.7h5.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9 6.2V5a1.6 1.6 0 0 1 1.6-1.6h2.8A1.6 1.6 0 0 1 15 5v1.2" stroke="currentColor" stroke-width="1.6"/></svg> Assurance maladie</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="3e pilier" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 19.5h17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="5.5" y="12" width="3.6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="10.2" y="8.5" width="3.6" height="9.5" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14.9" y="5" width="3.6" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/></svg> 3<sup>e</sup> pilier</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="LPP / 2e pilier" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5v17M5 6.5h14M7.5 20.5h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 6.5 2.5 13h5L5 6.5ZM19 6.5 16.5 13h5L19 6.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> LPP · 2<sup>e</sup> pilier</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="Ménage, RC, véhicule" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.6 20.4 6v6.6c0 4.9-3.6 8.4-8.4 9.8-4.8-1.4-8.4-4.9-8.4-9.8V6L12 2.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.4 12.2 2.4 2.4 4.8-4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Ménage, RC, véhicule</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="Perte de gain / invalidité" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9.2" cy="8.4" r="3.4" stroke="currentColor" stroke-width="1.6"/><path d="M2.8 19.4c.7-3.6 3.2-5.6 6.4-5.6s5.7 2 6.4 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16.2 5.6a3.4 3.4 0 0 1 .6 6.6M17.6 13.9c2.2.5 3.5 2.3 4 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Perte de gain</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="Assurance entreprise" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 20.5h17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5.5 20.5V5.2a1.6 1.6 0 0 1 1.6-1.6h6.3a1.6 1.6 0 0 1 1.6 1.6v15.3" stroke="currentColor" stroke-width="1.6"/><path d="M15 9.5h2.9a1.6 1.6 0 0 1 1.6 1.6v9.4" stroke="currentColor" stroke-width="1.6"/><path d="M8.6 7.4h3.2M8.6 11h3.2M8.6 14.6h3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Assurance entreprise</button>
+      </div>
+      <div class="demande__pied">
+        <button class="lien-retour" type="button" data-retour>← Revenir au profil</button>
+        <span class="demande__recap" data-recap></span>
+      </div>
     </div>
-    <div class="field">
-      <label for="situation">Votre situation</label>
-      <select id="situation" name="situation">
-        <option>Résident en Suisse</option>
-        <option>Frontalier</option>
-        <option>Nouvel arrivant</option>
-        <option>Indépendant</option>
-        <option>Entreprise</option>
-      </select>
+
+    <div class="etape" hidden>
+      <h3>Où peut-on vous joindre ?</h3>
+      <p>Nous rappelons sous 24 h ouvrées. Aucun démarchage, aucune donnée revendue.</p>
+      <div class="duo">
+        <div class="field" data-required>
+          <label for="demande-contact-nom">Nom et prénom</label>
+          <input id="demande-contact-nom" name="nom" type="text" autocomplete="name">
+          <span class="err">Merci d’indiquer votre nom.</span>
+        </div>
+        <div class="field" data-required>
+          <label for="demande-contact-email">E-mail</label>
+          <input id="demande-contact-email" name="email" type="email" autocomplete="email">
+          <span class="err">Adresse e-mail incomplète.</span>
+        </div>
+      </div>
+      <div class="duo">
+        <div class="field" data-required>
+          <label for="demande-contact-tel">Téléphone</label>
+          <input id="demande-contact-tel" name="telephone" type="tel" autocomplete="tel">
+          <span class="err">Merci d’indiquer un numéro.</span>
+        </div>
+        <div class="field">
+          <label for="demande-contact-moment">Quand vous rappeler ?</label>
+          <select id="demande-contact-moment" name="moment">
+            <option>Dès que possible</option>
+            <option>En matinée</option>
+            <option>En après-midi</option>
+            <option>En fin de journée</option>
+            <option>Le samedi</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="demande-contact-message">Un mot sur votre situation (facultatif)</label>
+        <textarea id="demande-contact-message" name="message" style="min-height:96px"></textarea>
+      </div>
+      <div class="demande__pied">
+        <button class="lien-retour" type="button" data-retour>← Revenir au sujet</button>
+        <button class="btn btn--lg pulse" type="submit">Envoyer ma demande <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
     </div>
-  </div>
-  <div class="field">
-    <label for="sujet">Sujet</label>
-    <select id="sujet" name="sujet">
-      <option>Assurance maladie</option>
-      <option>3e pilier</option>
-      <option>LPP / 2e pilier</option>
-      <option>Assurances de personnes</option>
-      <option>Assurance entreprise</option>
-      <option>Autre demande</option>
-    </select>
-  </div>
-  <div class="field" data-required>
-    <label for="message">Votre message</label>
-    <textarea id="message" name="message" placeholder="Décrivez brièvement votre situation."></textarea>
-    <span class="err">Merci d’écrire quelques mots.</span>
-  </div>
-  <button class="btn btn--lg" type="submit">Envoyer ma demande <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h12M9.5 3.5 14 8l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  <p class="note">Réponse sous 24 h ouvrées. Vos données ne sont ni vendues ni cédées à des tiers.</p>
-</form></div>
+  </form>
+</div></div>
     </div>
   </section>
 
@@ -188,6 +229,6 @@
   </div>
 </footer>
 
-<script src="/assets/js/site.js?v=462bff4f" defer></script>
+<script src="/assets/js/site.js?v=c4f95c26" defer></script>
 </body>
 </html>

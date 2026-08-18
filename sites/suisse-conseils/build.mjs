@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ILL } from "./illustrations.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 
@@ -261,6 +262,121 @@ const coordonnees = `
 </ul>`;
 
 /* --------------------------------------------------------------- pages */
+/* ------------------------------------------------- bandeau défilant */
+const ruban = (mots, variante = "") => {
+  const suite = mots.map((m) => `<span class="ruban__item">${m}</span>`).join("");
+  return `
+  <div class="ruban ${variante}" aria-hidden="true">
+    <div class="ruban__piste">${suite}${suite}</div>
+  </div>`;
+};
+
+/* --------------------------------- vignette illustrée */
+const vignette = (illustration, etiquette, titre, texte, lien) => `
+  <article class="vignette rise">
+    <div class="vignette__image">
+      ${illustration}
+      <span class="vignette__etiquette">${etiquette}</span>
+    </div>
+    <div class="vignette__corps">
+      <h3 class="d3">${titre}</h3>
+      <p>${texte}</p>
+      ${lien ? `<a class="arrowlink" href="${lien.href}">${lien.texte} ${I.fleche}</a>` : ""}
+    </div>
+  </article>`;
+
+/* ------------------------------- demande de contact guidée, en trois temps */
+const moduleDemande = (id = "demande") => `
+<div class="demande" id="${id}" data-demande>
+  <div class="demande__tete">
+    <span class="eyebrow">Votre demande en 30 secondes</span>
+    <h2 class="d3" style="margin-top:.75rem">Dites-nous qui vous êtes, on s’occupe du reste</h2>
+    <div class="demande__fil">
+      <span class="demande__pastille" data-pastille data-actif="true"><b>1</b> Profil</span>
+      <span class="demande__pastille" data-pastille><b>2</b> Sujet</span>
+      <span class="demande__pastille" data-pastille><b>3</b> Coordonnées</span>
+    </div>
+    <div class="demande__jauge"><i data-jauge></i></div>
+  </div>
+
+  <form class="demande__corps" data-form data-to="${SITE.mail}" novalidate>
+    <input type="hidden" name="profil" value="">
+    <input type="hidden" name="sujet" value="">
+    <input type="hidden" name="moment" value="">
+
+    <div class="etape">
+      <h3>Vous êtes…</h3>
+      <p>Le conseil n’est pas le même selon votre statut : on adapte dès la première question.</p>
+      <div class="options">
+        <button class="option" type="button" data-choix="profil" data-valeur="Résident en Suisse" aria-pressed="false">${I.bouclier} Résident en Suisse</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Frontalier" aria-pressed="false">${I.frontiere} Frontalier</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Indépendant" aria-pressed="false">${I.personnes} Indépendant</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Entreprise" aria-pressed="false">${I.entreprise} Entreprise</button>
+        <button class="option" type="button" data-choix="profil" data-valeur="Nouvel arrivant" aria-pressed="false">${I.balance} Nouvel arrivant</button>
+      </div>
+    </div>
+
+    <div class="etape" hidden>
+      <h3>Sur quoi souhaitez-vous être conseillé ?</h3>
+      <p>Un seul sujet suffit pour démarrer : on balaiera le reste au rendez-vous.</p>
+      <div class="options">
+        <button class="option" type="button" data-choix="sujet" data-valeur="Assurance maladie" aria-pressed="false">${I.sante} Assurance maladie</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="3e pilier" aria-pressed="false">${I.epargne} 3<sup>e</sup> pilier</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="LPP / 2e pilier" aria-pressed="false">${I.balance} LPP · 2<sup>e</sup> pilier</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="Ménage, RC, véhicule" aria-pressed="false">${I.bouclier} Ménage, RC, véhicule</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="Perte de gain / invalidité" aria-pressed="false">${I.personnes} Perte de gain</button>
+        <button class="option" type="button" data-choix="sujet" data-valeur="Assurance entreprise" aria-pressed="false">${I.entreprise} Assurance entreprise</button>
+      </div>
+      <div class="demande__pied">
+        <button class="lien-retour" type="button" data-retour>← Revenir au profil</button>
+        <span class="demande__recap" data-recap></span>
+      </div>
+    </div>
+
+    <div class="etape" hidden>
+      <h3>Où peut-on vous joindre ?</h3>
+      <p>Nous rappelons sous 24 h ouvrées. Aucun démarchage, aucune donnée revendue.</p>
+      <div class="duo">
+        <div class="field" data-required>
+          <label for="${id}-nom">Nom et prénom</label>
+          <input id="${id}-nom" name="nom" type="text" autocomplete="name">
+          <span class="err">Merci d’indiquer votre nom.</span>
+        </div>
+        <div class="field" data-required>
+          <label for="${id}-email">E-mail</label>
+          <input id="${id}-email" name="email" type="email" autocomplete="email">
+          <span class="err">Adresse e-mail incomplète.</span>
+        </div>
+      </div>
+      <div class="duo">
+        <div class="field" data-required>
+          <label for="${id}-tel">Téléphone</label>
+          <input id="${id}-tel" name="telephone" type="tel" autocomplete="tel">
+          <span class="err">Merci d’indiquer un numéro.</span>
+        </div>
+        <div class="field">
+          <label for="${id}-moment">Quand vous rappeler ?</label>
+          <select id="${id}-moment" name="moment">
+            <option>Dès que possible</option>
+            <option>En matinée</option>
+            <option>En après-midi</option>
+            <option>En fin de journée</option>
+            <option>Le samedi</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="${id}-message">Un mot sur votre situation (facultatif)</label>
+        <textarea id="${id}-message" name="message" style="min-height:96px"></textarea>
+      </div>
+      <div class="demande__pied">
+        <button class="lien-retour" type="button" data-retour>← Revenir au sujet</button>
+        <button class="btn btn--lg pulse" type="submit">Envoyer ma demande ${I.fleche}</button>
+      </div>
+    </div>
+  </form>
+</div>`;
+
 const pages = [];
 
 /* ============================== ACCUEIL ============================== */
@@ -283,8 +399,12 @@ pages.push({
           compagnies d’assurance — et vous apportons une réponse personnalisée, pour faire
           les meilleurs choix pour votre avenir.
         </p>
+        <p class="lead" style="margin-top:.5rem">
+          Aujourd’hui, parlons de
+          <span class="rotor" data-rotor="votre assurance maladie|votre 3ᵉ pilier|votre statut de frontalier|votre prévoyance LPP|vos contrats d’entreprise">votre assurance maladie</span>.
+        </p>
         <div class="hero__actions">
-          <a class="btn btn--lg" href="/contact.html">Demander une analyse gratuite ${I.fleche}</a>
+          <a class="btn btn--lg pulse" href="#demande">Être rappelé gratuitement ${I.fleche}</a>
           <a class="btn btn--ghost btn--lg" href="tel:${SITE.telHref}">${SITE.tel}</a>
         </div>
       </div>
@@ -310,6 +430,12 @@ pages.push({
     </div>
   </section>
 
+  ${ruban([
+    "Assurance maladie LAMal", "Complémentaires LCA", "3ᵉ pilier A", "3ᵉ pilier B",
+    "LPP · 2ᵉ pilier", "Perte de gain", "Assurance vie", "Protection juridique",
+    "RC privée", "Ménage", "Véhicule", "Frontaliers", "Indépendants", "PME",
+  ])}
+
   <div class="trust">
     <div class="wrap">
       <div class="trust__grid">
@@ -321,6 +447,34 @@ pages.push({
     </div>
   </div>
 
+  <!-- ====================== demande guidée, très en amont de la page ====== -->
+  <section class="section section--tight deco">
+    <div class="deco__forme deco__forme--a" aria-hidden="true"></div>
+    <div class="deco__forme deco__forme--b" aria-hidden="true"></div>
+    <div class="wrap split split--top">
+      <div class="rise-l">
+        <span class="eyebrow">Prise de contact</span>
+        <h2 class="d2" style="margin-top:1rem">Trois clics, et c’est nous qui <span class="ital">rappelons</span></h2>
+        <p class="lead" style="margin-top:1rem">
+          Pas de formulaire interminable : vous choisissez votre profil, votre sujet,
+          et le moment qui vous arrange. Le reste, c’est notre travail.
+        </p>
+        <ul class="checks" style="margin-top:1.75rem">
+          <li>${I.check}<span>Réponse sous <strong>24 h ouvrées</strong></span></li>
+          <li>${I.check}<span>Analyse et comparatif <strong>offerts</strong></span></li>
+          <li>${I.check}<span>Rendez-vous en agence, à domicile ou en visioconférence</span></li>
+          <li>${I.check}<span>Aucune donnée revendue, aucun démarchage</span></li>
+        </ul>
+        <div class="vignette rise" style="margin-top:2rem;max-width:26rem">
+          <div class="vignette__image">${ILL.conseil}<span class="vignette__etiquette">Premier rendez-vous</span></div>
+        </div>
+      </div>
+      <div class="rise-r">
+        ${moduleDemande("demande")}
+      </div>
+    </div>
+  </section>
+
   <section class="section">
     <div class="wrap">
       <div class="head rise">
@@ -330,57 +484,25 @@ pages.push({
           et relire ce que vous avez déjà signé.</p>
       </div>
 
-      <div class="cards">
-        <article class="card rise">
-          <div class="card__icon">${I.frontiere}</div>
-          <span class="card__n tnum">01</span>
-          <h3 class="d3">Frontaliers</h3>
-          <p>Assurance maladie, fiscalité et juridiction : les questions propres au statut de
-            frontalier, traitées ensemble plutôt qu’une par une.</p>
-          <a class="arrowlink" href="/frontaliers.html">Espace frontaliers ${I.fleche}</a>
-        </article>
-
-        <article class="card rise">
-          <div class="card__icon">${I.epargne}</div>
-          <span class="card__n tnum">02</span>
-          <h3 class="d3">3<sup>e</sup> pilier</h3>
-          <p>Épargner pour la retraite et se couvrir en cas de coup dur, avec la comparaison
-            des compagnies et la transparence sur ce que vous signez.</p>
-          <a class="arrowlink" href="/prevoyance.html">Prévoyance et 3<sup>e</sup> pilier ${I.fleche}</a>
-        </article>
-
-        <article class="card rise">
-          <div class="card__icon">${I.sante}</div>
-          <span class="card__n tnum">03</span>
-          <h3 class="d3">Assurance maladie</h3>
-          <p>Comparatif des caisses pour trouver la couverture la moins chère dans votre
-            canton de résidence, sans perdre de garanties.</p>
-          <a class="arrowlink" href="/assurance-maladie.html">Comparer mes primes ${I.fleche}</a>
-        </article>
-
-        <article class="card rise">
-          <div class="card__icon">${I.personnes}</div>
-          <span class="card__n tnum">04</span>
-          <h3 class="d3">Assurances de personnes</h3>
-          <p>Vie, invalidité, décès et perte de gain : ce qui protège vos revenus et vos
-            proches si la vie ne suit plus le plan prévu.</p>
-        </article>
-
-        <article class="card rise">
-          <div class="card__icon">${I.bouclier}</div>
-          <span class="card__n tnum">05</span>
-          <h3 class="d3">Ménage, RC et véhicule</h3>
-          <p>Les contrats du quotidien, revus pour supprimer les doublons et ajuster les
-            sommes d’assurance à la réalité.</p>
-        </article>
-
-        <article class="card rise">
-          <div class="card__icon">${I.entreprise}</div>
-          <span class="card__n tnum">06</span>
-          <h3 class="d3">Entreprises et indépendants</h3>
-          <p>LAA, perte de gain maladie, RC professionnelle et prévoyance du dirigeant,
-            réunies dans un dossier unique.</p>
-        </article>
+      <div class="galerie">
+        ${vignette(ILL.frontiere, "01 · Frontaliers", "Frontaliers",
+          "Assurance maladie, fiscalité et juridiction : les questions propres au statut de frontalier, traitées ensemble plutôt qu’une par une.",
+          { href: "/frontaliers.html", texte: "Espace frontaliers" })}
+        ${vignette(ILL.epargne, "02 · Prévoyance", "3<sup>e</sup> pilier",
+          "Épargner pour la retraite et se couvrir en cas de coup dur, avec la comparaison des compagnies et la transparence sur ce que vous signez.",
+          { href: "/prevoyance.html", texte: "Prévoyance et 3ᵉ pilier" })}
+        ${vignette(ILL.sante, "03 · Santé", "Assurance maladie",
+          "Comparatif des caisses pour trouver la couverture la moins chère dans votre canton de résidence, sans perdre de garanties.",
+          { href: "/assurance-maladie.html", texte: "Comparer mes primes" })}
+        ${vignette(ILL.famille, "04 · Personnes", "Assurances de personnes",
+          "Vie, invalidité, décès et perte de gain : ce qui protège vos revenus et vos proches si la vie ne suit plus le plan prévu.",
+          { href: "#demande", texte: "En parler à un conseiller" })}
+        ${vignette(ILL.maison, "05 · Quotidien", "Ménage, RC et véhicule",
+          "Les contrats du quotidien, revus pour supprimer les doublons et ajuster les sommes d’assurance à la réalité.",
+          { href: "#demande", texte: "Faire relire mes contrats" })}
+        ${vignette(ILL.entreprise, "06 · Entreprises", "Entreprises et indépendants",
+          "LAA, perte de gain maladie, RC professionnelle et prévoyance du dirigeant, réunies dans un dossier unique.",
+          { href: "#demande", texte: "Demander un audit" })}
       </div>
     </div>
   </section>
@@ -423,9 +545,9 @@ pages.push({
   <section class="section--tight">
     <div class="wrap">
       <div class="figband rise">
-        <div><b>3</b><span>Les trois piliers du système suisse, lus ensemble et jamais isolément.</span></div>
-        <div><b>1</b><span>Un seul interlocuteur, de la première analyse à la déclaration de sinistre.</span></div>
-        <div><b>0 CHF</b><span>Aucun frais de dossier : l’analyse et la comparaison sont offertes.</span></div>
+        <div><b class="tnum" data-compteur="3">3</b><span>Les trois piliers du système suisse, lus ensemble et jamais isolément.</span></div>
+        <div><b class="tnum" data-compteur="24" data-suffixe=" h">24 h</b><span>Le délai sous lequel nous vous rappelons, jours ouvrés.</span></div>
+        <div><b class="tnum" data-compteur="0" data-suffixe=" CHF">0 CHF</b><span>Aucun frais de dossier : l’analyse et la comparaison sont offertes.</span></div>
       </div>
     </div>
   </section>
@@ -491,6 +613,34 @@ pages.push({
       </div>
     </div>
   </section>
+
+  <!-- ============ situations concrètes, illustrées ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="head rise">
+        <span class="eyebrow">Cas fréquents</span>
+        <h2 class="d2">Trois situations où l’on vous fait <span class="ital">gagner</span></h2>
+        <p class="lead">Ce sont les dossiers qui reviennent le plus souvent à l’agence.</p>
+      </div>
+      <div class="galerie">
+        ${vignette(ILL.comparatif, "Primes", "Vous payez trop cher sans le savoir",
+          "Même couverture, caisse différente : l’écart de prime se chiffre souvent en centaines de francs par an. Nous refaisons le calcul chaque automne, avant le délai de résiliation.",
+          { href: "/assurance-maladie.html", texte: "Comparer mes primes" })}
+        ${vignette(ILL.voiture, "Doublons", "Vous êtes assuré deux fois",
+          "Ménage, RC, véhicule, protection juridique, cartes de crédit : les garanties se recoupent plus souvent qu’on ne croit. On relit l’ensemble et on supprime ce qui fait double emploi.",
+          { href: "#demande", texte: "Faire relire mes contrats" })}
+        ${vignette(ILL.famille, "Imprévu", "Un arrêt de travail se prépare avant",
+          "Perte de gain, invalidité, décès : ce sont les couvertures auxquelles on pense en dernier, et celles qui comptent le jour où tout s’arrête.",
+          { href: "#demande", texte: "En parler maintenant" })}
+      </div>
+    </div>
+  </section>
+
+  ${ruban([
+    "Analyse gratuite", "Comparatif écrit", "Rappel sous 24 h", "Conseillers FINMA",
+    "Sans engagement", "Genève &amp; Suisse romande", "Résidents", "Frontaliers",
+    "Indépendants", "Entreprises",
+  ], "ruban--rouge ruban--inverse")}
 
   ${bandeCta(
     "Faisons le point sur vos contrats",
@@ -844,7 +994,7 @@ pages.push({
           <a class="arrowlink" href="https://www.google.com/maps/search/?api=1&amp;query=Avenue+Rosemont+12,+1208+Gen%C3%A8ve" target="_blank" rel="noopener">Ouvrir l’adresse dans Google Maps ${I.fleche}</a>
         </p>
       </div>
-      <div class="rise">${formulaire}</div>
+      <div class="rise-r">${moduleDemande("demande-contact")}</div>
     </div>
   </section>
 `,
