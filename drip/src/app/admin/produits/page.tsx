@@ -7,6 +7,8 @@ import { PrintifySyncButton, CategoryForm } from "@/components/admin/AdminForms"
 import { listPrintifyShops, printifyEnabled } from "@/lib/printify";
 import { PrintifyShopPicker, type ShopChoice } from "@/components/admin/PrintifyShopPicker";
 import { PRINTIFY_SHOP_KEY, readSetting } from "@/lib/settings";
+import { countEncodedProducts } from "@/lib/repair";
+import { RepairTextsButton } from "@/components/admin/RepairTextsButton";
 
 export default async function AdminProduitsPage() {
   const data = await safeQuery(
@@ -45,6 +47,7 @@ export default async function AdminProduitsPage() {
     }
   }
 
+  const textesAReparer = await countEncodedProducts();
   const reglage = await readSetting(PRINTIFY_SHOP_KEY);
   const baseAJour = reglage !== undefined;
   const selectionnee = process.env.PRINTIFY_SHOP_ID ?? reglage ?? null;
@@ -72,6 +75,8 @@ export default async function AdminProduitsPage() {
           catalogue, ses variantes et ses mockups.
         </p>
       )}
+
+      <RepairTextsButton nombre={textesAReparer} />
 
       {printifyEnabled() && shops.length > 0 && (
         <PrintifyShopPicker
