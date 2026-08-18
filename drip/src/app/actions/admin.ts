@@ -1,11 +1,20 @@
 "use server";
 
+import { unstable_rethrow } from "next/navigation";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { fieldErrors } from "@/lib/validation";
-import { syncPrintifyCatalog, createPrintifyOrder, printifyEnabled } from "@/lib/printify";
+import {
+  syncPrintifyCatalog,
+  createPrintifyOrder,
+  printifyEnabled,
+  listPrintifyShops,
+} from "@/lib/printify";
+import { runSchema } from "@/lib/install";
+import { PRINTIFY_SHOP_KEY, writeSetting } from "@/lib/settings";
 import type { FormState } from "@/app/actions/auth";
 
 /** Toute action d'administration commence par revérifier le rôle côté serveur. */
@@ -547,4 +556,66 @@ export async function createCategoryAction(
   revalidatePath("/boutique");
 
   return { success: true, message: `Rayon ${parsed.data.name} créé.` };
+}
+
+/**
+ * Applique le schéma à la base.
+ *
+ * Le site évolue ; sa base doit suivre. Sans ce bouton, une nouvelle table
+ * n'existerait jamais chez l'exploitant et la fonctionnalité qui en dépend
+ * resterait muette. Le script est rejouable et ne supprime rien : au pire il
+ * ne fait rien.
+ */
+export async function applySchemaAction(): Promise<FormState> {
+  await guard();
+
+  try {
+    await runSchema();
+    revalidatePath("/admin/produits");
+    return { success: true, message: "Base de données à jour." };
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("[admin] mise à jour du schéma :", error);
+    return {
+      errors: {
+        form:
+          error instanceof Error ? error.message : "La mise à jour a échoué.",
+      },
+    };
+  }
+}
+
+/** Désigne la boutique Printify à utiliser, parmi celles du compte. */
+export async function setPrintifyShopAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await guard();
+
+  const shopId = formData.get("shopId");
+
+  if (typeof shopId !== "string" || !shopId) {
+    return { errors: { form: "Choisissez une boutique." } };
+  }
+
+  try {
+    const shops = await listPrintifyShops();
+    const shop = shops.find((candidate) => String(candidate.id) === shopId);
+
+    if (!shop) {
+      return { errors: { form: "Cette boutique n'existe plus dans le compte." } };
+    }
+
+    await writeSetting(PRINTIFY_SHOP_KEY, shopId);
+    revalidatePath("/admin/produits");
+
+    return {
+      success: true,
+      message: `Boutique « ${shop.title} » sélectionnée. Lancez la synchronisation.`,
+    };
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("[admin] choix de la boutique Printify :", error);
+    return { errors: { form: "Impossible de contacter Printify." } };
+  }
 }

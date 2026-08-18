@@ -4,7 +4,9 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { toggleProductFlagAction } from "@/app/actions/admin";
 import { PrintifySyncButton, CategoryForm } from "@/components/admin/AdminForms";
-import { printifyEnabled } from "@/lib/printify";
+import { listPrintifyShops, printifyEnabled } from "@/lib/printify";
+import { PrintifyShopPicker, type ShopChoice } from "@/components/admin/PrintifyShopPicker";
+import { PRINTIFY_SHOP_KEY, readSetting } from "@/lib/settings";
 
 export default async function AdminProduitsPage() {
   const data = await safeQuery(
@@ -26,6 +28,26 @@ export default async function AdminProduitsPage() {
     { products: [], categories: [] },
     "catalogue admin",
   );
+
+  // La liste des boutiques n'a de sens que si Printify répond ; une panne de
+  // leur côté ne doit pas empêcher d'administrer le catalogue.
+  let shops: ShopChoice[] = [];
+
+  if (printifyEnabled()) {
+    try {
+      shops = (await listPrintifyShops()).map((shop) => ({
+        id: String(shop.id),
+        title: shop.title,
+        salesChannel: shop.sales_channel,
+      }));
+    } catch (error) {
+      console.error("[admin] boutiques Printify injoignables :", error);
+    }
+  }
+
+  const reglage = await readSetting(PRINTIFY_SHOP_KEY);
+  const baseAJour = reglage !== undefined;
+  const selectionnee = process.env.PRINTIFY_SHOP_ID ?? reglage ?? null;
 
   return (
     <div className="space-y-12">
@@ -49,6 +71,15 @@ export default async function AdminProduitsPage() {
           variables d&apos;environnement pour importer automatiquement votre
           catalogue, ses variantes et ses mockups.
         </p>
+      )}
+
+      {printifyEnabled() && shops.length > 0 && (
+        <PrintifyShopPicker
+          shops={shops}
+          selectionnee={selectionnee}
+          fixeeParEnvironnement={Boolean(process.env.PRINTIFY_SHOP_ID)}
+          baseAJour={baseAJour}
+        />
       )}
 
       {data.products.length === 0 ? (

@@ -37,6 +37,16 @@ enum DiscountType {
   FIXED
 }
 
+/// Réglages modifiables depuis l'administration, sans passer par l'hébergeur.
+/// Une paire clé/valeur suffit : ces réglages sont peu nombreux et lus
+/// rarement. Le premier d'entre eux désigne la boutique Printify à utiliser
+/// quand le compte en contient plusieurs.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
