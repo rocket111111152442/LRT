@@ -9,12 +9,15 @@ directement dans **Supabase > SQL Editor**, puis « Run ».
 | `02-devenir-administrateur.sql` | Après avoir créé son compte sur le site, pour accéder à `/admin`. |
 
 `01-creer-les-tables.sql` est généré depuis `prisma/schema.prisma`. Après toute
-modification du schéma, le régénérer avec :
+modification du schéma :
 
 ```bash
-npx prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script \
-  > prisma/sql/01-creer-les-tables.sql
+npm run sql:generer
 ```
+
+Le script est **rejouable** : chaque instruction est sans effet si son objet
+existe déjà. Une exécution interrompue en cours de route se rattrape en le
+relançant simplement. Il ne supprime jamais rien.
 
 En local, `npm run prisma:push` reste plus pratique : il applique le schéma
 directement, sans passer par ces fichiers.

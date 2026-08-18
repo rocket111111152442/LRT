@@ -9,3 +9,6 @@ build
 
 /generated
 tsconfig.tsbuildinfo
+
+# Sortie brute de `prisma migrate diff`, transformee en 01-creer-les-tables.sql
+prisma/sql/.brut.sql

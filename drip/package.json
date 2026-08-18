@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "prisma:seed": "prisma db seed",
-    "printify:sync": "tsx scripts/sync-printify.ts"
+    "printify:sync": "tsx scripts/sync-printify.ts",
+    "sql:generer": "prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script > prisma/sql/.brut.sql && node scripts/generer-sql-idempotent.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
