@@ -22,7 +22,7 @@ async function nextOrderNumber() {
 export class ErreurBoutique extends Error {}
 
 export type CouponResult =
-  | { ok: true; code: string; discount: number }
+  | { ok: true; code: string; discount: number; freeShipping: boolean }
   | { ok: false; reason: string };
 
 export async function applyCoupon(
@@ -55,12 +55,18 @@ export async function applyCoupon(
     };
   }
 
+  // La livraison offerte ne touche pas au prix des pièces : elle annule le
+  // port au moment de calculer le total, et la remise reste nulle.
+  if (coupon.type === "FREE_SHIPPING") {
+    return { ok: true, code: normalized, discount: 0, freeShipping: true };
+  }
+
   const discount =
     coupon.type === "PERCENT"
       ? Math.round((subtotal * coupon.value) / 100)
       : Math.min(coupon.value, subtotal);
 
-  return { ok: true, code: normalized, discount };
+  return { ok: true, code: normalized, discount, freeShipping: false };
 }
 
 /**
@@ -81,19 +87,21 @@ export async function createCheckoutSession(couponCode?: string) {
   }
 
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
-  const shipping = shippingFor(subtotal);
 
   let discount = 0;
   let appliedCode: string | null = null;
+  let portOffert = false;
 
   if (couponCode) {
     const result = await applyCoupon(couponCode, subtotal);
     if (result.ok) {
       discount = result.discount;
       appliedCode = result.code;
+      portOffert = result.freeShipping;
     }
   }
 
+  const shipping = portOffert ? 0 : shippingFor(subtotal);
   const total = Math.max(0, subtotal - discount) + shipping;
 
   const variants = await prisma.variant.findMany({
@@ -199,7 +207,11 @@ export async function createCheckoutSession(couponCode?: string) {
         shipping_rate_data: {
           type: "fixed_amount",
           display_name:
-            shipping === 0 ? "Livraison offerte" : "Livraison standard suivie",
+            shipping === 0
+              ? portOffert
+                ? `Livraison offerte — code ${appliedCode}`
+                : "Livraison offerte"
+              : "Livraison standard suivie",
           fixed_amount: { amount: shipping, currency: "eur" },
           delivery_estimate: {
             minimum: { unit: "business_day", value: 2 },

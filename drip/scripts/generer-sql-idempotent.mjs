@@ -38,7 +38,40 @@ sql = sql.replace(
 );
 
 /**
- * Colonnes ajoutees apres coup.
+ * Valeurs d'enumeration ajoutees apres coup.
+ *
+ * `CREATE TYPE` est ignore si le type existe deja : une valeur ajoutee a une
+ * enumeration n'arriverait jamais sur une base installee. On la repete donc en
+ * `ALTER TYPE ... ADD VALUE IF NOT EXISTS`, sans effet si elle est deja la.
+ */
+function valeursEnumRattrapees(source) {
+  const lignes = [];
+  const types = source.matchAll(
+    /CREATE TYPE "([^"]+)" AS ENUM \(([^)]*)\)/g,
+  );
+
+  for (const [, type, corps] of types) {
+    for (const brut of corps.split(",")) {
+      const valeur = brut.trim();
+      if (!valeur.startsWith("'")) continue;
+
+      lignes.push(`ALTER TYPE "${type}" ADD VALUE IF NOT EXISTS ${valeur};`);
+    }
+  }
+
+  return lignes.length === 0
+    ? ""
+    : [
+        "",
+        "-- Valeurs d'enumeration ajoutees apres la premiere installation.",
+        "-- Sans effet sur une base a jour.",
+        ...lignes,
+        "",
+      ].join("\n");
+}
+
+/**
+ * Colonnes ajoutes apres coup.
  *
  * `CREATE TABLE IF NOT EXISTS` ne fait rien sur une table qui existe deja : une
  * base installee avant l'ajout d'un champ ne le verrait jamais arriver. On
@@ -82,6 +115,8 @@ function colonnesRattrapees(source) {
       ].join("\n");
 }
 
+// Les valeurs d'enumeration d'abord : une colonne peut en dependre.
+sql += valeursEnumRattrapees(sql);
 sql += colonnesRattrapees(sql);
 
 const entete = `-- NATURAL BRUTAL — création des tables de la boutique.

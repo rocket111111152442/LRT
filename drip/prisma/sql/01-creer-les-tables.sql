@@ -30,7 +30,13 @@ END $$;
 
 -- CreateEnum
 DO $$ BEGIN
-  CREATE TYPE "DiscountType" AS ENUM ('PERCENT', 'FIXED');
+  CREATE TYPE "Audience" AS ENUM ('UNISEXE', 'HOMME', 'FEMME', 'ENFANT');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- CreateEnum
+DO $$ BEGIN
+  CREATE TYPE "DiscountType" AS ENUM ('PERCENT', 'FIXED', 'FREE_SHIPPING');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -111,6 +117,7 @@ CREATE TABLE IF NOT EXISTS "Product" (
     "description" TEXT NOT NULL,
     "composition" TEXT,
     "categoryId" TEXT,
+    "audience" "Audience" NOT NULL DEFAULT 'UNISEXE',
     "podProductId" TEXT,
     "podDescription" TEXT,
     "basePrice" INTEGER NOT NULL,
@@ -497,6 +504,28 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 
+-- Valeurs d'enumeration ajoutees apres la premiere installation.
+-- Sans effet sur une base a jour.
+ALTER TYPE "Role" ADD VALUE IF NOT EXISTS 'CUSTOMER';
+ALTER TYPE "Role" ADD VALUE IF NOT EXISTS 'ADMIN';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'PENDING';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'PAID';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'IN_PRODUCTION';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'SHIPPED';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'DELIVERED';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'CANCELED';
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'REFUNDED';
+ALTER TYPE "ReviewStatus" ADD VALUE IF NOT EXISTS 'PENDING';
+ALTER TYPE "ReviewStatus" ADD VALUE IF NOT EXISTS 'APPROVED';
+ALTER TYPE "ReviewStatus" ADD VALUE IF NOT EXISTS 'REJECTED';
+ALTER TYPE "Audience" ADD VALUE IF NOT EXISTS 'UNISEXE';
+ALTER TYPE "Audience" ADD VALUE IF NOT EXISTS 'HOMME';
+ALTER TYPE "Audience" ADD VALUE IF NOT EXISTS 'FEMME';
+ALTER TYPE "Audience" ADD VALUE IF NOT EXISTS 'ENFANT';
+ALTER TYPE "DiscountType" ADD VALUE IF NOT EXISTS 'PERCENT';
+ALTER TYPE "DiscountType" ADD VALUE IF NOT EXISTS 'FIXED';
+ALTER TYPE "DiscountType" ADD VALUE IF NOT EXISTS 'FREE_SHIPPING';
+
 -- Colonnes ajoutees apres la premiere installation.
 -- Sans effet sur une base a jour.
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "firstName" TEXT;
@@ -520,6 +549,7 @@ ALTER TABLE "Category" ADD COLUMN IF NOT EXISTS "position" INTEGER NOT NULL DEFA
 ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "subtitle" TEXT;
 ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "composition" TEXT;
 ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "categoryId" TEXT;
+ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "audience" "Audience" NOT NULL DEFAULT 'UNISEXE';
 ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "podProductId" TEXT;
 ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "podDescription" TEXT;
 ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "compareAtPrice" INTEGER;

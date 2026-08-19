@@ -123,6 +123,7 @@ export default async function AdminProduitPage({ params }: { params: Params }) {
               basePrice: product.basePrice,
               compareAtPrice: product.compareAtPrice,
               categoryId: product.categoryId,
+              audience: product.audience,
               position: product.position,
               seoTitle: product.seoTitle,
               seoDescription: product.seoDescription,

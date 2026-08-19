@@ -2,7 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
-import { toggleProductFlagAction } from "@/app/actions/admin";
+import {
+  deleteCategoryAction,
+  moveCategoryAction,
+  toggleProductFlagAction,
+} from "@/app/actions/admin";
 import { PrintifySyncButton, CategoryForm } from "@/components/admin/AdminForms";
 import { listPrintifyShops, printifyEnabled } from "@/lib/printify";
 import { PrintifyShopPicker, type ShopChoice } from "@/components/admin/PrintifyShopPicker";
@@ -22,7 +26,10 @@ export default async function AdminProduitsPage() {
             _count: { select: { variants: true, reviews: true } },
           },
         }),
-        prisma.category.findMany({ orderBy: { position: "asc" } }),
+        prisma.category.findMany({
+          orderBy: [{ position: "asc" }, { name: "asc" }],
+          include: { _count: { select: { products: true } } },
+        }),
       ]);
 
       return { products, categories };
@@ -167,15 +174,61 @@ export default async function AdminProduitsPage() {
       <section className="hairline pt-10">
         <h2 className="display-lg mb-3">Rayons</h2>
         <p className="mb-8 max-w-[56ch] text-sm text-[color:var(--color-smoke)]">
-          Les rayons servent à filtrer la boutique et apparaissent sur la page
-          d&apos;accueil.
+          Les rayons servent à filtrer la boutique, et leur ordre ici est celui
+          de la boutique — c&apos;est aussi celui du classement « Par rayon ».
+          Supprimer un rayon ne supprime aucune pièce : elles se retrouvent
+          simplement sans rayon.
         </p>
 
         {data.categories.length > 0 && (
-          <ul className="mb-10 flex flex-wrap gap-2">
-            {data.categories.map((category) => (
-              <li key={category.id} className="tag">
-                {category.name}
+          <ul className="mb-10 hairline">
+            {data.categories.map((category, index) => (
+              <li
+                key={category.id}
+                className="hairline-b flex flex-wrap items-center justify-between gap-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm">{category.name}</p>
+                  <p className="label-sm mt-1 text-[color:var(--color-smoke)]">
+                    {category._count.products} pièce
+                    {category._count.products > 1 ? "s" : ""}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <form action={moveCategoryAction}>
+                    <input type="hidden" name="categoryId" value={category.id} />
+                    <input type="hidden" name="sens" value="haut" />
+                    <button
+                      type="submit"
+                      disabled={index === 0}
+                      className="label-sm link-sweep disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={`Monter ${category.name}`}
+                    >
+                      ↑
+                    </button>
+                  </form>
+
+                  <form action={moveCategoryAction}>
+                    <input type="hidden" name="categoryId" value={category.id} />
+                    <input type="hidden" name="sens" value="bas" />
+                    <button
+                      type="submit"
+                      disabled={index === data.categories.length - 1}
+                      className="label-sm link-sweep disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={`Descendre ${category.name}`}
+                    >
+                      ↓
+                    </button>
+                  </form>
+
+                  <form action={deleteCategoryAction}>
+                    <input type="hidden" name="categoryId" value={category.id} />
+                    <button type="submit" className="label-sm link-sweep">
+                      Supprimer
+                    </button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>

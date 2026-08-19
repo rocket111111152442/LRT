@@ -35,5 +35,6 @@ export async function POST(request: Request) {
     ok: true,
     code: result.code,
     discount: result.discount,
+    freeShipping: result.freeShipping,
   });
 }

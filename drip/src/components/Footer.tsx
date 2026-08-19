@@ -18,7 +18,8 @@ const COLUMNS = [
     links: [
       { href: "/histoire", label: "L'atelier" },
       { href: "/contact", label: "Contact" },
-      { href: "/faq", label: "Questions fréquentes" },
+      { href: "/programme-createurs", label: "Portez-le, publiez-le" },
+    { href: "/faq", label: "Questions fréquentes" },
       { href: "/livraison-retours", label: "Livraison & retours" },
     ],
   },

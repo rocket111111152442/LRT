@@ -5,8 +5,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartProvider";
 import { CapSilhouette } from "@/components/CapSilhouette";
+import { QuantityStepper } from "@/components/QuantityStepper";
 import { formatPrice, formatPriceSmart } from "@/lib/money";
-import { RETURN_WINDOW_DAYS, SHIPPING } from "@/lib/shop";
+import { MAX_PAR_LIGNE, RETURN_WINDOW_DAYS, SHIPPING } from "@/lib/shop";
 
 export type PurchaseVariant = {
   id: string;
@@ -29,12 +30,16 @@ export type PurchaseImage = { url: string; alt: string | null };
  * correspondant.
  */
 export function ProductPurchase({
+  productId,
   productName,
+  productSlug,
   images,
   variants,
   compareAtPrice,
 }: {
+  productId: string;
   productName: string;
+  productSlug: string;
   images: PurchaseImage[];
   variants: PurchaseVariant[];
   compareAtPrice: number | null;
@@ -118,6 +123,22 @@ export function ProductPurchase({
     return () => observer.disconnect();
   }, []);
 
+  /** De quoi dessiner la ligne dans le tiroir sans attendre le serveur. */
+  const apercu = selected
+    ? {
+        variantName: selected.name,
+        color: selected.color,
+        size: selected.size,
+        unitPrice: selected.price,
+        product: {
+          id: productId,
+          slug: productSlug,
+          name: productName,
+          imageUrl: selected.imageUrl ?? gallery[0]?.url ?? null,
+        },
+      }
+    : undefined;
+
   const chooseColor = (nextColor: string, variant: PurchaseVariant) => {
     setColor(nextColor);
 
@@ -138,7 +159,7 @@ export function ProductPurchase({
   const submit = async () => {
     if (!selected || !canBuy) return;
     setFeedback(null);
-    await add(selected.id, quantity, productName);
+    await add(selected.id, quantity, productName, { apercu });
     setFeedback("Ajouté au panier");
   };
 
@@ -157,7 +178,7 @@ export function ProductPurchase({
     setFeedback(null);
     setRedirecting(true);
 
-    await add(selected.id, quantity, productName, { openDrawer: false });
+    await add(selected.id, quantity, productName, { openDrawer: false, apercu });
     router.push("/panier");
   };
 
@@ -321,25 +342,7 @@ export function ProductPurchase({
 
         <div ref={actions} className="mt-8 space-y-3">
           <div className="flex items-stretch gap-3">
-            <div className="flex items-center border border-[color:var(--color-hairline)]">
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                className="h-full w-11 transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
-                aria-label="Diminuer la quantité"
-              >
-                −
-              </button>
-              <span className="w-10 text-center font-mono text-sm">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => Math.min(10, value + 1))}
-                className="h-full w-11 transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
-                aria-label="Augmenter la quantité"
-              >
-                +
-              </button>
-            </div>
+            <QuantityStepper value={quantity} onChange={setQuantity} disabled={!canBuy} />
 
             <button
               type="button"
@@ -381,6 +384,13 @@ export function ProductPurchase({
           </p>
         )}
 
+        {canBuy && quantity >= MAX_PAR_LIGNE && (
+          <p className="mt-4 text-xs text-[color:var(--color-smoke)]">
+            {MAX_PAR_LIGNE} pièces par référence, c&apos;est le maximum d&apos;une
+            commande. Écrivez-nous pour une quantité plus importante.
+          </p>
+        )}
+
         {canBuy && missingForFreeShipping > 0 && (
           <p className="mt-4 text-xs text-[color:var(--color-smoke)]">
             Plus que {formatPriceSmart(missingForFreeShipping)} pour la livraison offerte.
@@ -408,8 +418,9 @@ export function ProductPurchase({
               detail: "Confection puis envoi suivi, numéro de suivi par e-mail.",
             },
             {
-              titre: `Retour sous ${RETURN_WINDOW_DAYS} jours`,
-              detail: "Pièce non portée, dans son état d'origine.",
+              titre: `Défaut repris sous ${RETURN_WINDOW_DAYS} jours`,
+              detail:
+                "Impression ratée, défaut ou erreur de notre part : refait ou remboursé, à notre charge.",
             },
             {
               titre: "Paiement sécurisé",

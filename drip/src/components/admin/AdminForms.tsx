@@ -46,6 +46,7 @@ export function ProductAdminForm({
     basePrice: number;
     compareAtPrice: number | null;
     categoryId: string | null;
+    audience: string;
     position: number;
     seoTitle: string | null;
     seoDescription: string | null;
@@ -161,6 +162,29 @@ export function ProductAdminForm({
           </select>
         </div>
 
+        <div>
+          <label htmlFor="admin-audience" className="field-label">
+            Pour qui
+          </label>
+          <select
+            id="admin-audience"
+            name="audience"
+            defaultValue={product.audience}
+            className="field"
+          >
+            <option value="UNISEXE">Unisexe</option>
+            <option value="HOMME">Homme</option>
+            <option value="FEMME">Femme</option>
+            <option value="ENFANT">Enfant</option>
+          </select>
+          <p className="label-sm mt-2 text-[color:var(--color-smoke)]">
+            Une pièce unisexe apparaît dans le rayon homme comme dans le rayon
+            femme.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field
           label="Badge"
           name="badge"
@@ -369,7 +393,9 @@ export function ReviewReplyForm({
 
 export function CouponForm() {
   const [state, formAction] = useActionState(createCouponAction, initialState);
-  const [type, setType] = useState<"PERCENT" | "FIXED">("PERCENT");
+  const [type, setType] = useState<"PERCENT" | "FIXED" | "FREE_SHIPPING">(
+    "PERCENT",
+  );
 
   return (
     <form action={formAction} className="space-y-5">
@@ -387,21 +413,32 @@ export function CouponForm() {
             id="coupon-type"
             name="type"
             value={type}
-            onChange={(event) => setType(event.target.value as "PERCENT" | "FIXED")}
+            onChange={(event) =>
+              setType(event.target.value as "PERCENT" | "FIXED" | "FREE_SHIPPING")
+            }
             className="field"
           >
-            <option value="PERCENT">Pourcentage</option>
-            <option value="FIXED">Montant fixe</option>
+            <option value="PERCENT">Pourcentage de remise</option>
+            <option value="FIXED">Montant fixe de remise</option>
+            <option value="FREE_SHIPPING">Livraison offerte</option>
           </select>
         </div>
 
-        <Field
-          label={type === "PERCENT" ? "Remise (%)" : "Remise (€)"}
-          name="value"
-          type="number"
-          required
-          error={state.errors?.value}
-        />
+        {/* La livraison offerte n'a pas de montant à saisir : demander une
+            valeur pour rien ferait douter de ce que fait le code. */}
+        {type === "FREE_SHIPPING" ? (
+          <p className="self-end pb-3 text-sm text-[color:var(--color-smoke)]">
+            Le code annule les frais de port. Le prix des pièces ne change pas.
+          </p>
+        ) : (
+          <Field
+            label={type === "PERCENT" ? "Remise (%)" : "Remise (€)"}
+            name="value"
+            type="number"
+            required
+            error={state.errors?.value}
+          />
+        )}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-3">

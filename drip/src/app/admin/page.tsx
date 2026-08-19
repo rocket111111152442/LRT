@@ -2,8 +2,7 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { ORDER_STATUS, type OrderStatusKey } from "@/lib/orderStatus";
-import { printifyEnabled } from "@/lib/printify";
-import { stripeEnabled } from "@/lib/stripe";
+import { verifierPreparation } from "@/lib/preparation";
 import { daysAgo } from "@/lib/dates";
 
 export default async function AdminDashboard() {
@@ -80,15 +79,11 @@ export default async function AdminDashboard() {
     { label: "Pièces en ligne", value: String(data.activeProducts) },
   ];
 
+  const preparation = await verifierPreparation();
+  const manquants = preparation.filter((point) => !point.ok);
+  const bloquants = manquants.filter((point) => point.bloquant);
+
   const alerts = [
-    !stripeEnabled() && {
-      text: "Stripe n'est pas configuré : la caisse est fermée. Renseignez STRIPE_SECRET_KEY.",
-      href: null,
-    },
-    !printifyEnabled() && {
-      text: "Printify n'est pas connecté : les commandes ne partent pas en production automatiquement.",
-      href: null,
-    },
     data.pendingReviews > 0 && {
       text: `${data.pendingReviews} avis en attente de modération.`,
       href: "/admin/avis",
@@ -109,6 +104,65 @@ export default async function AdminDashboard() {
         <p className="label mb-4 text-[color:var(--color-smoke)]">(Tableau de bord)</p>
         <h1 className="display-xl">Vue d&apos;ensemble</h1>
       </header>
+
+      {/* Prêt à vendre ? La question revient à chaque ouverture : autant que
+          la réponse soit vérifiée, ici, plutôt que ressentie. */}
+      <section
+        className={`border p-5 ${
+          bloquants.length > 0
+            ? "border-[color:var(--color-ink)]"
+            : "border-[color:var(--color-hairline)]"
+        }`}
+      >
+        <p className="label mb-3">
+          {bloquants.length > 0
+            ? "La boutique ne peut pas encore vendre"
+            : manquants.length > 0
+              ? "La boutique peut vendre"
+              : "Tout est en place"}
+        </p>
+
+        <p className="mb-6 max-w-[62ch] text-sm leading-relaxed">
+          {bloquants.length > 0
+            ? `${bloquants.length} point${bloquants.length > 1 ? "s" : ""} bloque${bloquants.length > 1 ? "nt" : ""} la vente. Tant qu'il${bloquants.length > 1 ? "s ne sont" : " n'est"} pas réglé${bloquants.length > 1 ? "s" : ""}, un client ne peut pas commander.`
+            : manquants.length > 0
+              ? "Un client peut commander et payer. Les points ci-dessous ne bloquent rien, mais chacun vous fera gagner du temps sur chaque commande."
+              : "Encaissement, fabrication, suivi des colis, catalogue : tout répond."}
+        </p>
+
+        <ul className="hairline">
+          {preparation.map((point) => (
+            <li
+              key={point.cle}
+              className="hairline-b flex flex-wrap items-start justify-between gap-4 py-3.5"
+            >
+              <div className="min-w-0 max-w-[62ch]">
+                <p className="text-sm">
+                  <span
+                    aria-hidden
+                    className="mr-3 font-mono text-xs opacity-60"
+                  >
+                    {point.ok ? "✓" : point.bloquant ? "✗" : "—"}
+                  </span>
+                  {point.titre}
+                  {!point.ok && point.bloquant && (
+                    <span className="tag tag-solid ml-3">Bloquant</span>
+                  )}
+                </p>
+                <p className="mt-1.5 pl-7 text-xs leading-relaxed text-[color:var(--color-smoke)]">
+                  {point.detail}
+                </p>
+              </div>
+
+              {!point.ok && point.lien && (
+                <Link href={point.lien.href} className="label shrink-0 link-sweep">
+                  {point.lien.libelle} →
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {alerts.length > 0 && (
         <section className="border border-[color:var(--color-ink)]">
