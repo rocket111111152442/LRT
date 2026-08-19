@@ -97,9 +97,16 @@ export function HeroHome({
               transitionDelay: "620ms",
             }}
           >
-            {productCount > 0
-              ? `${String(productCount).padStart(2, "0")} pièces disponibles`
-              : "Collection en préparation"}
+            {productCount > 0 ? (
+              <>
+                {String(productCount).padStart(2, "0")} pièces
+                {/* « disponibles » passait à la ligne et venait buter contre le
+                    bord sur un écran étroit. */}
+                <span className="hidden sm:inline"> disponibles</span>
+              </>
+            ) : (
+              "Collection en préparation"
+            )}
           </p>
         </div>
       </div>
@@ -109,7 +116,7 @@ export function HeroHome({
           {/* Ligne 1 : lettrée large, elle pose le « naturel ». */}
           <span className="block overflow-hidden pt-[0.14em] -mt-[0.14em]">
             <span
-              className="display block text-[clamp(1.1rem,4.4vw,4rem)] tracking-[0.42em] indent-[0.42em] transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+              className="display block text-[clamp(1.1rem,6.2vw,4rem)] tracking-[0.42em] indent-[0.42em] transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
                 transform: mounted ? "none" : "translateY(135%)",
                 transitionDelay: "80ms",
@@ -122,7 +129,7 @@ export function HeroHome({
           {/* Ligne 2 : le bloc massif, c'est lui qui frappe. */}
           <span className="block overflow-hidden pt-[0.14em] -mt-[0.06em]">
             <span
-              className="display block text-[clamp(3.4rem,16.5vw,15rem)] tracking-[-0.01em] transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+              className="display block text-[clamp(3.4rem,23vw,15rem)] tracking-[-0.01em] transition-transform duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
                 transform: mounted ? "none" : "translateY(125%)",
                 transitionDelay: "220ms",
@@ -149,17 +156,17 @@ export function HeroHome({
           </p>
 
           <div
-            className="flex flex-wrap gap-3 transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            className="flex flex-col gap-3 sm:flex-row sm:flex-wrap transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
             style={{
               opacity: mounted ? 1 : 0,
               transform: mounted ? "none" : "translateY(20px)",
               transitionDelay: "860ms",
             }}
           >
-            <Link href="/boutique" className="btn">
+            <Link href="/boutique" className="btn justify-center sm:justify-start">
               Voir l&apos;équipement
             </Link>
-            <Link href="/histoire" className="btn btn-outline">
+            <Link href="/histoire" className="btn btn-outline justify-center sm:justify-start">
               L&apos;atelier
             </Link>
           </div>

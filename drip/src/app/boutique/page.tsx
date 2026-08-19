@@ -204,11 +204,17 @@ function FiltreLigne({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+    <div className="flex items-baseline gap-x-5">
       <span className="label-sm w-14 shrink-0 text-[color:var(--color-smoke)]">
         {titre}
       </span>
-      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">{children}</div>
+
+      {/* Sur téléphone les choix défilent sur une ligne au lieu de retomber
+          en pavé de trois rangs : le bloc de filtres reste lisible d'un coup
+          d'œil et ne repousse pas les pièces sous la ligne de flottaison. */}
+      <div className="flex items-baseline gap-x-5 gap-y-2 overflow-x-auto no-scrollbar md:flex-wrap md:overflow-visible">
+        {children}
+      </div>
     </div>
   );
 }

@@ -85,11 +85,16 @@ export function ProductCard({
           </div>
         </div>
 
-        <div className="mt-4 flex items-start justify-between gap-4">
+        {/* Sur téléphone la grille tient deux colonnes : nom et prix côte à
+            côte laissaient une centaine de pixels au nom, tronqué au tiers.
+            Ils s'empilent donc, et le nom dispose de toute la largeur. */}
+        <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-medium tracking-tight">{product.name}</h3>
+            <h3 className="text-sm font-medium tracking-tight sm:truncate">
+              {product.name}
+            </h3>
             {product.subtitle && (
-              <p className="mt-1 truncate text-xs text-[color:var(--color-smoke)]">
+              <p className="mt-1 line-clamp-2 text-xs text-[color:var(--color-smoke)] sm:truncate">
                 {product.subtitle}
               </p>
             )}
@@ -104,7 +109,7 @@ export function ProductCard({
             )}
           </div>
 
-          <div className="shrink-0 text-right">
+          <div className="shrink-0 sm:text-right">
             <p className="font-mono text-sm">{formatPriceSmart(product.basePrice)}</p>
             {product.compareAtPrice && product.compareAtPrice > product.basePrice && (
               <p className="font-mono text-xs text-[color:var(--color-smoke)] line-through">

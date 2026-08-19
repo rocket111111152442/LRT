@@ -83,7 +83,10 @@ export default async function HomePage() {
             </p>
 
             <h2 className="display-xl max-w-[13ch]">
-              {["Tout", "se gagne", "à", "l'entraînement."].map(
+              {/* Deux lignes, pas quatre : le découpage d'origine isolait
+                  « à » sur une ligne entière, ce qui passait sur un écran
+                  large et cassait la phrase sur un téléphone. */}
+              {["Tout se gagne", "à l'entraînement."].map(
                 (line, index) => (
                   <span
                     key={line}
