@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createCheckoutSession } from "@/lib/orders";
+import { ErreurBoutique, createCheckoutSession } from "@/lib/orders";
 import { stripeEnabled } from "@/lib/stripe";
 import { limitByIp } from "@/lib/rateLimit";
 
@@ -42,12 +42,23 @@ export async function POST(request: Request) {
     const session = await createCheckoutSession(couponCode);
     return NextResponse.json(session);
   } catch (error) {
+    // Seuls nos propres messages sont montrables : une erreur Stripe arrive en
+    // anglais et parle de paramètres d'API (« You may only specify one of these
+    // parameters… »). Le client n'en fera rien, la trace serveur si.
+    if (error instanceof ErreurBoutique) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    console.error(
+      "[paiement] session Stripe impossible :",
+      error instanceof Error ? error.message : error,
+    );
+
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Le paiement n'a pas pu être lancé.",
+          "Le paiement n'a pas pu être lancé. Réessayez dans un instant ; " +
+          "si cela recommence, écrivez-nous.",
       },
       { status: 400 },
     );
