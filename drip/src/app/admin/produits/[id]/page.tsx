@@ -9,6 +9,7 @@ import {
 } from "@/components/admin/AdminForms";
 import {
   deleteProductImageAction,
+  resetProductDescriptionAction,
   toggleProductFlagAction,
   updateVariantAction,
 } from "@/app/actions/admin";
@@ -87,6 +88,29 @@ export default async function AdminProduitPage({ params }: { params: Params }) {
       <div className="grid gap-14 lg:grid-cols-[1.4fr_1fr] lg:gap-20">
         <section>
           <h2 className="label mb-7 text-[color:var(--color-smoke)]">Fiche produit</h2>
+
+          {/* Le seul cas où le texte du site s'écarte de Printify : quelqu'un
+              l'a réécrit ici. On le dit, et on laisse revenir en arrière. */}
+          {product.podDescription &&
+            product.podDescription !== product.description && (
+              <div className="mb-8 border border-[color:var(--color-hairline)] p-5">
+                <p className="label mb-3">Texte modifié ici</p>
+                <p className="mb-5 max-w-[62ch] text-sm leading-relaxed">
+                  Cette description a été réécrite depuis l&apos;administration :
+                  la synchronisation Printify n&apos;y touche plus, pour ne pas
+                  effacer votre travail. Si vous préférez celle de Printify,
+                  reprenez-la ici.
+                </p>
+
+                <form action={resetProductDescriptionAction}>
+                  <input type="hidden" name="productId" value={product.id} />
+                  <button type="submit" className="btn btn-outline btn-sm">
+                    Reprendre le texte de Printify
+                  </button>
+                </form>
+              </div>
+            )}
+
           <ProductAdminForm
             product={{
               id: product.id,
