@@ -80,6 +80,17 @@ export async function createCheckoutSession(couponCode?: string) {
   const cart = await readCart();
   const user = await getCurrentUser();
 
+  // Un compte est obligatoire pour commander : c'est lui qui relie la
+  // commande à un historique consultable, et qui permet de recontacter le
+  // client sans dépendre d'une adresse saisie une seule fois à la caisse.
+  // Le contrôle est fait ici, pas seulement côté page : c'est le seul
+  // endroit par lequel une session de paiement peut être créée.
+  if (!user) {
+    throw new ErreurBoutique(
+      "Connectez-vous ou créez un compte pour passer commande.",
+    );
+  }
+
   const lines = cart.lines.filter((line) => line.available);
 
   if (lines.length === 0) {
@@ -115,8 +126,8 @@ export async function createCheckoutSession(couponCode?: string) {
   const order = await prisma.order.create({
     data: {
       number: await nextOrderNumber(),
-      userId: user?.id ?? null,
-      email: user?.email ?? "",
+      userId: user.id,
+      email: user.email,
       status: "PENDING",
       subtotal,
       shipping,
@@ -188,15 +199,13 @@ export async function createCheckoutSession(couponCode?: string) {
     ...(discounts.length > 0
       ? { discounts }
       : { allow_promotion_codes: false as const }),
-    customer_email: user?.email || undefined,
+    customer_email: user.email,
     client_reference_id: order.id,
     metadata: { orderId: order.id, orderNumber: order.number },
     payment_intent_data: {
       metadata: { orderId: order.id, orderNumber: order.number },
-      // Reçu envoyé par Stripe, sans service d'e-mail à installer. Pour un
-      // visiteur non connecté l'adresse n'est connue qu'après le paiement :
-      // elle est alors renseignée depuis le webhook.
-      receipt_email: user?.email || undefined,
+      // Reçu envoyé par Stripe, sans service d'e-mail à installer.
+      receipt_email: user.email,
     },
     shipping_address_collection: {
       allowed_countries: [...SHIPPING_COUNTRIES] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],

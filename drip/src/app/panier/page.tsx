@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CartPageContent } from "@/components/CartPageContent";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Panier",
@@ -17,6 +18,7 @@ export default async function PanierPage({
   // ressemble à un échec silencieux : on arrive sur son panier sans savoir
   // pourquoi, ni si quelque chose a été débité.
   const { annule } = await searchParams;
+  const user = await getCurrentUser();
 
   return (
     <div className="shell py-16 lg:py-24">
@@ -37,7 +39,7 @@ export default async function PanierPage({
         </div>
       )}
 
-      <CartPageContent />
+      <CartPageContent loggedIn={Boolean(user)} />
     </div>
   );
 }
