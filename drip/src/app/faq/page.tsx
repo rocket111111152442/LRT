@@ -77,7 +77,7 @@ const SECTIONS = [
       {
         title: "Quand suis-je remboursé ?",
         content:
-          "Le remboursement intervient sous 14 jours après réception du retour, sur le moyen de paiement utilisé lors de l'achat. Vous recevez une confirmation par e-mail dès qu'il est émis.",
+          "Le remboursement intervient sous 14 jours après réception du retour, sur le moyen de paiement utilisé lors de l'achat. Comptez ensuite 2 à 5 jours ouvrés pour que votre banque le fasse apparaître sur le relevé.",
       },
       {
         title: "J'ai reçu une pièce défectueuse.",

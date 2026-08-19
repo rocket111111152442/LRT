@@ -69,10 +69,11 @@ export default async function ConfirmationPage({
         </h1>
 
         <p className="reveal mb-12 max-w-[54ch] text-base leading-relaxed text-[color:var(--color-ink-soft)]">
-          Un e-mail de confirmation part à l&apos;adresse{" "}
-          <span className="font-medium">{order.email}</span>. Votre pièce est
-          maintenant en fabrication : comptez 2 à 5 jours ouvrés avant
-          l&apos;expédition, puis 2 à 4 jours de livraison.
+          Le reçu de paiement est envoyé à{" "}
+          <span className="font-medium">{order.email}</span>. Votre pièce part
+          en fabrication : comptez 2 à 5 jours ouvrés de confection, puis 2 à 4
+          jours de livraison. Gardez le numéro {order.number} sous la main pour
+          toute question.
         </p>
 
         <section className="hairline">
@@ -186,9 +187,9 @@ function Fallback() {
     <div className="shell flex min-h-[60vh] flex-col items-center justify-center gap-6 py-24 text-center">
       <h1 className="display-lg">Commande introuvable</h1>
       <p className="max-w-[46ch] text-sm text-[color:var(--color-smoke)]">
-        Nous n&apos;avons pas retrouvé cette commande. Si votre paiement est
-        passé, un e-mail de confirmation vous a été envoyé — contactez-nous avec
-        ce message si besoin.
+        Nous n&apos;avons pas retrouvé cette commande. Si le paiement est
+        passé, le reçu Stripe se trouve dans votre boîte mail : envoyez-le-nous
+        et nous retrouvons la commande.
       </p>
       <div className="flex gap-3">
         <Link href="/boutique" className="btn">

@@ -44,18 +44,67 @@ export const metadata: Metadata = {
     siteName: SHOP.name,
     title: `${SHOP.name} — ${SHOP.tagline}`,
     description: SHOP.description,
-    images: [{ url: "/logo-natural-brutal.png", width: 165, height: 162 }],
+    // Aperçu partagé sur Instagram, TikTok, WhatsApp : un visuel au format
+    // 1200 × 630. Le logo carré d'origine s'y affichait rogné ou minuscule.
+    images: [
+      {
+        url: "/og-natural-brutal.png",
+        width: 1200,
+        height: 630,
+        alt: `${SHOP.name} — ${SHOP.tagline}`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SHOP.name} — ${SHOP.tagline}`,
     description: SHOP.description,
+    images: ["/og-natural-brutal.png"],
   },
   robots: { index: true, follow: true },
   icons: {
     icon: [{ url: "/icone-natural-brutal.png", type: "image/png" }],
     apple: "/icone-natural-brutal.png",
   },
+};
+
+/**
+ * Données structurées de la marque.
+ *
+ * C'est ce qui permet à Google de relier le site aux comptes Instagram et
+ * TikTok, et d'afficher le nom et le logo dans un panneau de connaissance
+ * plutôt qu'un simple lien bleu. Seules des informations vérifiées y figurent.
+ */
+const marqueJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${appUrl()}#organisation`,
+      name: SHOP.name,
+      url: appUrl(),
+      logo: `${appUrl()}/logo-natural-brutal.png`,
+      image: `${appUrl()}/og-natural-brutal.png`,
+      description: SHOP.description,
+      sameAs: [SHOP.social.instagram, SHOP.social.tiktok],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${appUrl()}#site`,
+      url: appUrl(),
+      name: SHOP.name,
+      inLanguage: "fr-FR",
+      publisher: { "@id": `${appUrl()}#organisation` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${appUrl()}/boutique?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -85,6 +134,11 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `document.documentElement.classList.add("js")`,
           }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(marqueJsonLd) }}
         />
       </head>
       <body>

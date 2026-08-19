@@ -169,6 +169,10 @@ export async function createCheckoutSession(couponCode?: string) {
     metadata: { orderId: order.id, orderNumber: order.number },
     payment_intent_data: {
       metadata: { orderId: order.id, orderNumber: order.number },
+      // Reçu envoyé par Stripe, sans service d'e-mail à installer. Pour un
+      // visiteur non connecté l'adresse n'est connue qu'après le paiement :
+      // elle est alors renseignée depuis le webhook.
+      receipt_email: user?.email || undefined,
     },
     shipping_address_collection: {
       allowed_countries: [...SHIPPING_COUNTRIES] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
@@ -239,6 +243,12 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
       shipping_details?: { name?: string | null; address?: Stripe.Address | null };
     }).shipping_details ?? null;
 
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : (session.payment_intent?.id ?? null);
+  const emailClient = session.customer_details?.email ?? null;
+
   const livraison = collected ?? legacy;
   const address = livraison?.address ?? session.customer_details?.address ?? null;
   const shippingName =
@@ -253,10 +263,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
       status: "PAID",
       paidAt: new Date(),
       email: session.customer_details?.email ?? order.email,
-      stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : (session.payment_intent?.id ?? null),
+      stripePaymentIntentId: paymentIntentId,
       shippingName,
       shippingLine1: address?.line1 ?? null,
       shippingLine2: address?.line2 ?? null,
@@ -266,6 +273,23 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
       shippingPhone: session.customer_details?.phone ?? null,
     },
   });
+
+  // Reçu Stripe : sans compte client, l'adresse n'était pas connue au moment
+  // de créer la session. On la pose maintenant, ce qui déclenche l'envoi — un
+  // reçu automatique, sans service d'e-mail à installer. Un échec ici ne doit
+  // rien casser : le client a payé, sa commande est enregistrée.
+  if (paymentIntentId && emailClient) {
+    try {
+      await getStripe().paymentIntents.update(paymentIntentId, {
+        receipt_email: emailClient,
+      });
+    } catch (error) {
+      console.error(
+        `[commande] reçu Stripe non envoyé pour ${order.number} :`,
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
 
   if (order.couponCode) {
     await prisma.coupon.updateMany({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/components/CartProvider";
 import { CapSilhouette } from "@/components/CapSilhouette";
@@ -66,6 +66,8 @@ export function ProductPurchase({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
+  const [barVisible, setBarVisible] = useState(false);
+  const actions = useRef<HTMLDivElement>(null);
 
   // La variante retenue est celle qui satisfait les deux critères ; si le
   // produit n'a qu'un axe (taille unique par exemple), l'autre est ignoré.
@@ -99,6 +101,21 @@ export function ProductPurchase({
   // l'information qui décide un deuxième article, autant la donner ici.
   const projectedSubtotal = cart.subtotal + price * quantity;
   const missingForFreeShipping = Math.max(0, SHIPPING.freeThreshold - projectedSubtotal);
+
+  // Sur téléphone les boutons disparaissent dès qu'on lit la description :
+  // une barre d'achat prend le relais en bas de l'écran.
+  useEffect(() => {
+    const target = actions.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setBarVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+      { threshold: 0 },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const chooseColor = (nextColor: string, variant: PurchaseVariant) => {
     setColor(nextColor);
@@ -319,7 +336,7 @@ export function ProductPurchase({
           </fieldset>
         )}
 
-        <div className="mt-8 space-y-3">
+        <div ref={actions} className="mt-8 space-y-3">
           <div className="flex items-stretch gap-3">
             <div className="flex items-center border border-[color:var(--color-hairline)]">
               <button
@@ -347,11 +364,21 @@ export function ProductPurchase({
               disabled={!canBuy || busy}
               className="btn min-w-0 flex-1"
             >
-              {!canBuy
-                ? "Épuisé"
-                : redirecting
-                  ? "Redirection…"
-                  : `Acheter maintenant — ${formatPrice(price * quantity)}`}
+              {!canBuy ? (
+                "Épuisé"
+              ) : redirecting ? (
+                "Redirection…"
+              ) : (
+                <>
+                  Acheter maintenant
+                  {/* Le montant est déjà lu juste au-dessus : sur un écran
+                      étroit il ferait passer le bouton sur trois lignes. */}
+                  <span className="hidden sm:inline">
+                    {" "}
+                    — {formatPrice(price * quantity)}
+                  </span>
+                </>
+              )}
             </button>
           </div>
 
@@ -430,6 +457,36 @@ export function ProductPurchase({
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Barre d'achat mobile : elle reprend la sélection en cours, elle ne la
+          redemande pas. Masquée tant que les vrais boutons sont à l'écran. */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--color-hairline)] bg-[color:var(--color-paper)]/95 backdrop-blur-md transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
+          barVisible && canBuy ? "translate-y-0" : "translate-y-full"
+        }`}
+        aria-hidden={!barVisible || !canBuy}
+      >
+        <div className="shell flex items-center gap-4 py-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm">{productName}</p>
+            <p className="label-sm truncate text-[color:var(--color-smoke)]">
+              {[selected?.color, selected?.size].filter(Boolean).join(" / ") || "Sélection"}
+              {" — "}
+              {formatPrice(price * quantity)}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={buyNow}
+            disabled={!canBuy || busy}
+            className="btn btn-sm shrink-0"
+            tabIndex={barVisible && canBuy ? 0 : -1}
+          >
+            {redirecting ? "Redirection…" : "Acheter"}
+          </button>
+        </div>
       </div>
     </div>
   );
