@@ -198,9 +198,14 @@ export function ProductPurchase({
   return (
     <div className="grid gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
       {/* --- Galerie ------------------------------------------------- */}
-      <div className="flex flex-col-reverse gap-4 md:flex-row">
+      {/* `min-w-0` sur les deux niveaux : sans lui, un conteneur flexbox ne
+          rétrécit jamais en dessous de la largeur naturelle de son contenu
+          (ici six vignettes de 70px). Le bandeau défilant se retrouvait donc
+          à pousser toute la page plus large que l'écran au lieu de défiler
+          proprement à l'intérieur de lui-même — un piège flexbox classique. */}
+      <div className="flex min-w-0 flex-col-reverse gap-4 md:flex-row">
         {gallery.length > 1 && (
-          <div className="flex gap-3 overflow-x-auto md:max-h-[620px] md:w-[86px] md:flex-col md:overflow-y-auto no-scrollbar">
+          <div className="flex min-w-0 gap-3 overflow-x-auto md:max-h-[620px] md:w-[86px] md:flex-col md:overflow-y-auto no-scrollbar">
             {gallery.map((image, index) => (
               <button
                 key={image.url + index}
