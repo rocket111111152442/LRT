@@ -35,6 +35,8 @@ enum ReviewStatus {
 enum DiscountType {
   PERCENT
   FIXED
+  /// Le code annule les frais de port, sans toucher au prix des pièces.
+  FREE_SHIPPING
 }
 
 /// Réglages modifiables depuis l'administration, sans passer par l'hébergeur.

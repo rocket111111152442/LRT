@@ -418,8 +418,9 @@ export function ProductPurchase({
               detail: "Confection puis envoi suivi, numéro de suivi par e-mail.",
             },
             {
-              titre: `Retour sous ${RETURN_WINDOW_DAYS} jours`,
-              detail: "Pièce non portée, dans son état d'origine.",
+              titre: `Défaut repris sous ${RETURN_WINDOW_DAYS} jours`,
+              detail:
+                "Impression ratée, défaut ou erreur de notre part : refait ou remboursé, à notre charge.",
             },
             {
               titre: "Paiement sécurisé",

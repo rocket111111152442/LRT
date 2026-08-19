@@ -6,7 +6,7 @@ import { RETURN_WINDOW_DAYS, SHIPPING, SHOP } from "@/lib/shop";
 export const metadata: Metadata = {
   title: "Conditions générales de vente",
   description:
-    "Conditions générales de vente de la boutique NATURAL BRUTAL : commande, prix, livraison, droit de rétractation, garanties légales.",
+    "Conditions générales de vente de la boutique NATURAL BRUTAL : commande, prix, livraison, retours, garanties légales.",
 };
 
 export default function CgvPage() {
@@ -52,10 +52,11 @@ export default function CgvPage() {
             l&apos;autre.
           </p>
           <p>
-            Les produits sont fabriqués à la commande par un prestataire
-            partenaire. Aucune personnalisation à la demande du Client
-            n&apos;étant proposée, le droit de rétractation s&apos;applique
-            pleinement (voir article 8).
+            Les produits sont imprimés et confectionnés à l&apos;unité après la
+            commande, par un prestataire partenaire, et pour le seul Client qui
+            les a commandés. Aucun exemplaire n&apos;est détenu en stock. Les
+            conséquences de ce mode de fabrication sur les retours sont
+            détaillées à l&apos;article 8.
           </p>
         </section>
 
@@ -140,24 +141,36 @@ export default function CgvPage() {
         </section>
 
         <section>
-          <h2>8. Droit de rétractation</h2>
+          <h2>8. Retours</h2>
           <p>
-            Conformément à l&apos;article L221-18 du code de la consommation, le
-            Client dispose d&apos;un délai de {RETURN_WINDOW_DAYS} jours à
-            compter de la réception du produit pour exercer son droit de
-            rétractation, sans avoir à motiver sa décision.
+            Chaque produit est imprimé et confectionné à l&apos;unité après la
+            commande, sur la base du modèle, du coloris et de la taille choisis
+            par le Client. Aucun exemplaire n&apos;étant fabriqué à l&apos;avance
+            ni détenu en stock, un produit retourné ne peut pas être remis en
+            vente. Le Vendeur ne reprend donc pas un produit conforme à la
+            commande au seul motif d&apos;un changement d&apos;avis.
           </p>
           <p>
-            Pour l&apos;exercer, il suffit d&apos;adresser une demande explicite
-            à <a href={`mailto:${SHOP.email}`}>{SHOP.email}</a> en précisant le
-            numéro de commande. Le produit doit être retourné non porté, non
-            lavé, dans son état et son emballage d&apos;origine. Les frais de
-            retour sont à la charge du Client.
+            Le Vendeur reprend en revanche intégralement, à ses frais, tout
+            produit affecté d&apos;un défaut qui lui est imputable, notamment :
+            impression manquée, décalée ou incomplète ; défaut de confection ;
+            détérioration survenue pendant le transport ; erreur de modèle, de
+            taille ou de coloris lors de la préparation.
           </p>
           <p>
-            Le remboursement, incluant les frais de livraison standard initiaux,
-            intervient au plus tard 14 jours après réception du retour, par le
-            même moyen de paiement que celui utilisé lors de l&apos;achat.
+            Le Client dispose de {RETURN_WINDOW_DAYS} jours à compter de la
+            réception pour signaler un tel défaut à{" "}
+            <a href={`mailto:${SHOP.email}`}>{SHOP.email}</a>, en précisant le
+            numéro de commande et en joignant une photographie. Le Vendeur
+            procède, au choix du Client, à la refabrication et à la
+            réexpédition du produit ou à son remboursement intégral, frais de
+            livraison initiaux compris, au plus tard 14 jours après accord. Le
+            Client n&apos;avance aucun frais de retour.
+          </p>
+          <p>
+            Ces dispositions ne font pas obstacle aux garanties légales prévues
+            à l&apos;article 9, qui demeurent applicables en toutes
+            circonstances.
           </p>
         </section>
 

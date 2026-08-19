@@ -14,6 +14,7 @@ export function CartPageContent() {
   const [couponState, setCouponState] = useState<{
     code: string;
     discount: number;
+    freeShipping: boolean;
   } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -22,7 +23,9 @@ export function CartPageContent() {
   const unavailable = cart.lines.some((line) => !line.available);
   const remaining = Math.max(0, SHIPPING.freeThreshold - cart.subtotal);
   const discount = couponState?.discount ?? 0;
-  const total = Math.max(0, cart.subtotal - discount) + cart.shipping;
+  const portOffert = couponState?.freeShipping ?? false;
+  const shipping = portOffert ? 0 : cart.shipping;
+  const total = Math.max(0, cart.subtotal - discount) + shipping;
 
   const checkCoupon = async () => {
     setCouponError(null);
@@ -37,6 +40,7 @@ export function CartPageContent() {
       ok?: boolean;
       code?: string;
       discount?: number;
+      freeShipping?: boolean;
       error?: string;
     };
 
@@ -46,7 +50,11 @@ export function CartPageContent() {
       return;
     }
 
-    setCouponState({ code: data.code, discount: data.discount ?? 0 });
+    setCouponState({
+      code: data.code,
+      discount: data.discount ?? 0,
+      freeShipping: data.freeShipping ?? false,
+    });
   };
 
   const checkout = async () => {
@@ -171,7 +179,7 @@ export function CartPageContent() {
               <dd className="font-mono">{formatPrice(cart.subtotal)}</dd>
             </div>
 
-            {couponState && (
+            {couponState && !portOffert && (
               <div className="flex justify-between">
                 <dt className="text-[color:var(--color-smoke)]">
                   Code {couponState.code}
@@ -181,14 +189,17 @@ export function CartPageContent() {
             )}
 
             <div className="flex justify-between">
-              <dt className="text-[color:var(--color-smoke)]">Livraison</dt>
+              <dt className="text-[color:var(--color-smoke)]">
+                Livraison
+                {portOffert && ` — code ${couponState?.code}`}
+              </dt>
               <dd className="font-mono">
-                {cart.shipping === 0 ? "Offerte" : formatPrice(cart.shipping)}
+                {shipping === 0 ? "Offerte" : formatPrice(shipping)}
               </dd>
             </div>
           </dl>
 
-          {remaining > 0 && (
+          {remaining > 0 && !portOffert && (
             <p className="label-sm mt-4 text-[color:var(--color-smoke)]">
               Plus que {formatPrice(remaining)} pour la livraison offerte.
             </p>
@@ -232,7 +243,9 @@ export function CartPageContent() {
             )}
             {couponState && (
               <p className="label-sm mt-2" role="status">
-                Code appliqué : −{formatPrice(discount)}
+                {portOffert
+                  ? "Code appliqué : livraison offerte"
+                  : `Code appliqué : −${formatPrice(discount)}`}
               </p>
             )}
           </div>
@@ -260,7 +273,7 @@ export function CartPageContent() {
 
           <ul className="mt-7 space-y-2 text-xs text-[color:var(--color-smoke)]">
             <li>— Paiement sécurisé par Stripe</li>
-            <li>— Retours sous {RETURN_WINDOW_DAYS} jours</li>
+            <li>— Défaut repris sous {RETURN_WINDOW_DAYS} jours</li>
             <li>— Fabriqué à la commande</li>
           </ul>
         </div>

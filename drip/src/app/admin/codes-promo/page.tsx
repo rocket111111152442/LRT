@@ -2,6 +2,8 @@ import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { toggleCouponAction } from "@/app/actions/admin";
 import { CouponForm } from "@/components/admin/AdminForms";
+import { ProgrammeForm } from "@/components/admin/ProgrammeForm";
+import { lireProgramme } from "@/lib/programme";
 
 export default async function AdminCodesPromoPage() {
   const coupons = await safeQuery(
@@ -10,12 +12,31 @@ export default async function AdminCodesPromoPage() {
     "codes promo",
   );
 
+  const programme = await lireProgramme();
+
   return (
     <div className="space-y-14">
       <header>
         <p className="label mb-4 text-[color:var(--color-smoke)]">(Promotions)</p>
         <h1 className="display-xl">Codes promo</h1>
       </header>
+
+      <section className="border border-[color:var(--color-hairline)] p-5">
+        <p className="label mb-3">Programme « portez-le, publiez-le »</p>
+        <p className="mb-6 max-w-[62ch] text-sm leading-relaxed">
+          Un client publie une photo de sa pièce en vous mentionnant, vous lui
+          envoyez un code. La page publique est à l&apos;adresse{" "}
+          <code className="font-mono text-xs">/programme-createurs</code> ; ce
+          bloc en règle le contenu. Créez ensuite le code correspondant
+          ci-dessous — « livraison offerte » y est disponible.
+        </p>
+
+        <ProgrammeForm
+          actif={programme.actif}
+          recompense={programme.recompense}
+          delai={programme.delai}
+        />
+      </section>
 
       {coupons.length > 0 && (
         <section className="hairline">
@@ -32,9 +53,11 @@ export default async function AdminCodesPromoPage() {
                 <div className="min-w-[140px]">
                   <p className="font-mono text-sm">{coupon.code}</p>
                   <p className="label-sm mt-1.5 text-[color:var(--color-smoke)]">
-                    {coupon.type === "PERCENT"
-                      ? `−${coupon.value} %`
-                      : `−${formatPrice(coupon.value)}`}
+                    {coupon.type === "FREE_SHIPPING"
+                      ? "Livraison offerte"
+                      : coupon.type === "PERCENT"
+                        ? `−${coupon.value} %`
+                        : `−${formatPrice(coupon.value)}`}
                     {coupon.minSubtotal > 0 && ` dès ${formatPrice(coupon.minSubtotal)}`}
                   </p>
                 </div>

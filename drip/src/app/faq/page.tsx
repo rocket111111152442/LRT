@@ -72,7 +72,7 @@ const SECTIONS = [
     items: [
       {
         title: "Puis-je retourner ma commande ?",
-        content: `Vous disposez de ${RETURN_WINDOW_DAYS} jours après réception pour exercer votre droit de rétractation, sans avoir à vous justifier. La pièce doit être non portée, non lavée, dans son état d'origine. Les frais de retour sont à votre charge.`,
+        content: `Chaque pièce est imprimée et confectionnée après votre commande, pour vous seul : elle ne peut pas être remise en vente, et un simple changement d'avis n'ouvre donc pas droit au retour. Un problème qui vient de nous, lui, est toujours repris : impression ratée, défaut de fabrication, colis abîmé pendant le transport, ou erreur de taille ou de coloris de notre part. Vous avez ${RETURN_WINDOW_DAYS} jours après réception pour nous écrire avec une photo — nous refaisons la pièce ou nous remboursons, à notre charge.`,
       },
       {
         title: "Quand suis-je remboursé ?",

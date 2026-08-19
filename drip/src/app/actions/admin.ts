@@ -18,6 +18,7 @@ import { appUrl } from "@/lib/stripe";
 import { runSchema } from "@/lib/install";
 import { PRINTIFY_SHOP_KEY, writeSetting } from "@/lib/settings";
 import { repairEncodedProducts } from "@/lib/repair";
+import { enregistrerProgramme } from "@/lib/programme";
 import type { FormState } from "@/app/actions/auth";
 
 /** Toute action d'administration commence par revérifier le rôle côté serveur. */
@@ -408,8 +409,9 @@ const couponSchema = z.object({
     .min(3, "3 caractères minimum.")
     .max(40)
     .regex(/^[A-Z0-9-]+$/, "Lettres majuscules, chiffres et tirets uniquement."),
-  type: z.enum(["PERCENT", "FIXED"]),
-  value: z.coerce.number().int().min(1),
+  type: z.enum(["PERCENT", "FIXED", "FREE_SHIPPING"]),
+  // La livraison offerte n'a pas de montant : la valeur reste à zéro.
+  value: z.coerce.number().int().min(0),
   minSubtotal: z.coerce.number().int().min(0),
   maxUses: z.coerce.number().int().min(0).optional(),
   expiresAt: z.string().optional().or(z.literal("")),
@@ -421,14 +423,22 @@ export async function createCouponAction(
 ): Promise<FormState> {
   await guard();
 
-  const type = formData.get("type") === "FIXED" ? "FIXED" : "PERCENT";
+  const demande = String(formData.get("type") ?? "PERCENT");
+  const type =
+    demande === "FIXED" || demande === "FREE_SHIPPING" ? demande : "PERCENT";
   const rawValue = Number(formData.get("value") ?? 0);
 
   const parsed = couponSchema.safeParse({
     code: formData.get("code"),
     type,
-    // Un pourcentage reste tel quel, un montant fixe passe en centimes.
-    value: type === "PERCENT" ? Math.round(rawValue) : Math.round(rawValue * 100),
+    // Un pourcentage reste tel quel, un montant fixe passe en centimes, et la
+    // livraison offerte n'a rien à porter.
+    value:
+      type === "FREE_SHIPPING"
+        ? 0
+        : type === "PERCENT"
+          ? Math.round(rawValue)
+          : Math.round(rawValue * 100),
     minSubtotal: Math.round(Number(formData.get("minSubtotal") ?? 0) * 100),
     maxUses: formData.get("maxUses") ? Number(formData.get("maxUses")) : undefined,
     expiresAt: formData.get("expiresAt") ?? "",
@@ -440,6 +450,10 @@ export async function createCouponAction(
 
   if (parsed.data.type === "PERCENT" && parsed.data.value > 100) {
     return { errors: { value: "Un pourcentage ne peut pas dépasser 100." } };
+  }
+
+  if (parsed.data.type !== "FREE_SHIPPING" && parsed.data.value < 1) {
+    return { errors: { value: "Indiquez une remise supérieure à zéro." } };
   }
 
   const existing = await prisma.coupon.findUnique({
@@ -731,4 +745,43 @@ export async function resetProductDescriptionAction(formData: FormData) {
 
   revalidatePath(`/admin/produits/${productId}`);
   revalidatePath("/boutique");
+}
+
+const programmeSchema = z.object({
+  recompense: z.string().trim().min(3, "Décrivez la récompense.").max(80),
+  delai: z.string().trim().min(2, "Indiquez un délai de réponse.").max(60),
+});
+
+/** Réglage du programme « portez-le, publiez-le ». */
+export async function updateProgrammeAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await guard();
+
+  const parsed = programmeSchema.safeParse({
+    recompense: formData.get("recompense"),
+    delai: formData.get("delai"),
+  });
+
+  if (!parsed.success) {
+    return { errors: fieldErrors(parsed.error) };
+  }
+
+  try {
+    await enregistrerProgramme({
+      actif: formData.get("actif") === "on",
+      recompense: parsed.data.recompense,
+      delai: parsed.data.delai,
+    });
+
+    revalidatePath("/programme-createurs");
+    revalidatePath("/admin/codes-promo");
+
+    return { success: true, message: "Programme mis à jour." };
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("[admin] réglage du programme :", error);
+    return { errors: { form: "L'enregistrement a échoué." } };
+  }
 }

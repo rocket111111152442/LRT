@@ -253,8 +253,8 @@ export default async function ProductPage({ params }: { params: Params }) {
                   ),
                 },
                 {
-                  title: "Retours & échanges",
-                  content: `Vous disposez de ${RETURN_WINDOW_DAYS} jours après réception pour changer d'avis. La pièce doit être non portée, dans son état d'origine. Les frais de retour sont à votre charge, le remboursement intervient sous 14 jours après réception du colis.`,
+                  title: "Retours & garantie",
+                  content: `Chaque pièce est imprimée après votre commande, pour vous seul : un simple changement d'avis n'ouvre pas droit au retour. En revanche, si le problème vient de nous — impression ratée, défaut de fabrication, colis abîmé, mauvaise taille envoyée — vous avez ${RETURN_WINDOW_DAYS} jours après réception pour nous écrire avec une photo. Nous refaisons la pièce ou nous remboursons intégralement, à notre charge, sans que vous avanciez de frais.`,
                 },
                 {
                   title: "Paiement sécurisé",

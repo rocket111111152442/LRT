@@ -20,7 +20,7 @@ const TICKER = [
   "Livraison offerte dès 80 €",
   "Fabriqué à la commande",
   "Fait pour l'entraînement",
-  "Retours sous 14 jours",
+  "Défaut repris sous 14 jours",
   "Paiement sécurisé",
 ];
 
