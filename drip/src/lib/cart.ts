@@ -2,10 +2,9 @@ import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { CART_COOKIE, expireCookie, getCurrentUser } from "@/lib/auth";
-import { shippingFor } from "@/lib/shop";
+import { MAX_PAR_LIGNE, shippingFor } from "@/lib/shop";
 
 const CART_MAX_AGE = 60 * 60 * 24 * 60; // 60 jours
-const MAX_QUANTITY_PER_LINE = 10;
 
 export type CartLine = {
   id: string;
@@ -191,7 +190,7 @@ export async function addToCart(variantId: string, quantity = 1) {
   });
 
   const nextQuantity = Math.min(
-    MAX_QUANTITY_PER_LINE,
+    MAX_PAR_LIGNE,
     (existing?.quantity ?? 0) + Math.max(1, quantity),
   );
 
@@ -223,7 +222,7 @@ export async function setCartItemQuantity(itemId: string, quantity: number) {
 
   await prisma.cartItem.update({
     where: { id: item.id },
-    data: { quantity: Math.min(MAX_QUANTITY_PER_LINE, quantity) },
+    data: { quantity: Math.min(MAX_PAR_LIGNE, quantity) },
   });
 }
 
@@ -276,11 +275,11 @@ export async function mergeGuestCartInto(userId: string) {
       create: {
         cartId: userCart.id,
         variantId: item.variantId,
-        quantity: Math.min(MAX_QUANTITY_PER_LINE, item.quantity),
+        quantity: Math.min(MAX_PAR_LIGNE, item.quantity),
       },
       update: {
         quantity: Math.min(
-          MAX_QUANTITY_PER_LINE,
+          MAX_PAR_LIGNE,
           (existing?.quantity ?? 0) + item.quantity,
         ),
       },

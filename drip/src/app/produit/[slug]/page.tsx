@@ -188,7 +188,9 @@ export default async function ProductPage({ params }: { params: Params }) {
         </header>
 
         <ProductPurchase
+          productId={product.id}
           productName={product.name}
+          productSlug={product.slug}
           images={product.images.map((image) => ({ url: image.url, alt: image.alt }))}
           variants={product.variants.map((variant) => ({
             id: variant.id,

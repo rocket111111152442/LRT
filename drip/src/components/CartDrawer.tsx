@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
+import { QuantityStepper } from "@/components/QuantityStepper";
 import { formatPrice } from "@/lib/money";
 import { SHIPPING } from "@/lib/shop";
 
@@ -137,25 +138,11 @@ export function CartDrawer() {
                     </div>
 
                     <div className="mt-3 flex items-center justify-between">
-                      <div className="flex items-center border border-[color:var(--color-hairline)]">
-                        <button
-                          type="button"
-                          onClick={() => setQuantity(line.id, line.quantity - 1)}
-                          className="h-8 w-8 text-sm transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
-                          aria-label="Diminuer la quantité"
-                        >
-                          −
-                        </button>
-                        <span className="w-8 text-center font-mono text-xs">{line.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => setQuantity(line.id, line.quantity + 1)}
-                          className="h-8 w-8 text-sm transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
-                          aria-label="Augmenter la quantité"
-                        >
-                          +
-                        </button>
-                      </div>
+                      <QuantityStepper
+                        value={line.quantity}
+                        onChange={(quantite) => setQuantity(line.id, quantite)}
+                        size="sm"
+                      />
 
                       <button
                         type="button"

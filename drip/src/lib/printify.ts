@@ -261,6 +261,82 @@ async function uniqueSlug(base: string, podProductId: string) {
   }
 }
 
+/**
+ * Nombre de visuels repris d'une fiche Printify.
+ *
+ * Printify produit un mockup par couleur et par angle : un sweat en trois
+ * coloris en compte facilement une quarantaine. Tout garder alourdirait la
+ * fiche sans rien apporter ; huit — l'ancienne limite — n'en montrait même pas
+ * le dos.
+ */
+const MAX_VISUELS = 24;
+
+/** Cette image vient-elle de Printify, ou la boutique l'a-t-elle ajoutée ? */
+function estMockupPrintify(url: string) {
+  try {
+    return new URL(url).hostname.endsWith("printify.com");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Aligne la galerie sur ce que Printify renvoie aujourd'hui.
+ *
+ * L'ancienne version se contentait d'ajouter les visuels absents. Changer un
+ * design ne remplaçait donc rien : les mockups de l'ancien dessin restaient en
+ * tête de galerie et les nouveaux s'entassaient derrière. La fiche montrait les
+ * deux designs à la fois, l'ancien en premier.
+ *
+ * Les visuels ajoutés à la main depuis l'administration ne sont pas concernés :
+ * ils gardent leur place, devant, et la synchronisation n'y touche pas.
+ */
+async function synchroniserGalerie(
+  productId: string,
+  productName: string,
+  gallery: string[],
+) {
+  const existantes = await prisma.productImage.findMany({
+    where: { productId },
+    orderBy: { position: "asc" },
+    select: { id: true, url: true },
+  });
+
+  const attendues = new Set(gallery);
+
+  // Un mockup que Printify ne renvoie plus appartient à un design retiré.
+  const perimees = existantes.filter(
+    (image) => estMockupPrintify(image.url) && !attendues.has(image.url),
+  );
+
+  if (perimees.length > 0) {
+    await prisma.productImage.deleteMany({
+      where: { id: { in: perimees.map((image) => image.id) } },
+    });
+  }
+
+  const conservees = existantes.filter((image) => !perimees.includes(image));
+  const maison = conservees.filter((image) => !estMockupPrintify(image.url));
+  const dejaLa = new Map(conservees.map((image) => [image.url, image.id]));
+
+  // Ordre final : les visuels de la boutique d'abord, puis ceux de Printify
+  // dans l'ordre où Printify les donne — le mockup principal en tête.
+  const ordre = [...maison.map((image) => image.url), ...gallery];
+
+  for (const [position, url] of ordre.entries()) {
+    const id = dejaLa.get(url);
+
+    if (id) {
+      await prisma.productImage.update({ where: { id }, data: { position } });
+      continue;
+    }
+
+    await prisma.productImage.create({
+      data: { productId, url, alt: productName, position },
+    });
+  }
+}
+
 export type SyncReport = {
   created: number;
   updated: number;
@@ -421,27 +497,9 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
           .sort((a, b) => Number(b.is_default) - Number(a.is_default))
           .map((image) => image.src),
       ),
-    ).slice(0, 8);
+    ).slice(0, MAX_VISUELS);
 
-    if (gallery.length > 0) {
-      const current = await prisma.productImage.findMany({
-        where: { productId: product.id },
-        select: { url: true },
-      });
-      const currentUrls = new Set(current.map((image) => image.url));
-      const missing = gallery.filter((url) => !currentUrls.has(url));
-
-      if (missing.length > 0) {
-        await prisma.productImage.createMany({
-          data: missing.map((url, offset) => ({
-            productId: product.id,
-            url,
-            alt: product.name,
-            position: current.length + offset,
-          })),
-        });
-      }
-    }
+    await synchroniserGalerie(product.id, product.name, gallery);
   }
 
   if (seenIds.length > 0) {

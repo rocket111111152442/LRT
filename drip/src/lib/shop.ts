@@ -60,6 +60,16 @@ export const SHIPPING_COUNTRIES = [
 
 export const RETURN_WINDOW_DAYS = 14;
 
+/**
+ * Quantité maximale d'une même référence dans une commande.
+ *
+ * Chaque pièce étant fabriquée à la commande, rien ne limite le stock : ce
+ * plafond est un garde-fou contre la faute de frappe, pas une contrainte
+ * d'approvisionnement. Il est partagé par les boutons et par le serveur, pour
+ * qu'aucun des deux ne promette ce que l'autre refuse.
+ */
+export const MAX_PAR_LIGNE = 99;
+
 export function shippingFor(subtotal: number) {
   if (subtotal <= 0) return 0;
   return subtotal >= SHIPPING.freeThreshold ? 0 : SHIPPING.standard;
