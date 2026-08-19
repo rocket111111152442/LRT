@@ -37,6 +37,53 @@ sql = sql.replace(
     `DO $$ BEGIN\n  ALTER TABLE ${corps};\nEXCEPTION WHEN duplicate_object THEN NULL;\nEND $$;`,
 );
 
+/**
+ * Colonnes ajoutees apres coup.
+ *
+ * `CREATE TABLE IF NOT EXISTS` ne fait rien sur une table qui existe deja : une
+ * base installee avant l'ajout d'un champ ne le verrait jamais arriver. On
+ * repete donc chaque colonne en `ADD COLUMN IF NOT EXISTS`, ce qui complete les
+ * tables anciennes sans toucher aux donnees.
+ *
+ * Seules les colonnes sures sont reprises : nullables, ou pourvues d'un
+ * DEFAULT. Ajouter un NOT NULL sans valeur par defaut a une table deja remplie
+ * echouerait — cette decision-la se prend a la main.
+ */
+function colonnesRattrapees(source) {
+  const lignes = [];
+  const tables = source.matchAll(
+    /^CREATE TABLE IF NOT EXISTS "([^"]+)" \(([\s\S]*?)^\);$/gm,
+  );
+
+  for (const [, table, corps] of tables) {
+    for (const brut of corps.split("\n")) {
+      const colonne = brut.trim().replace(/,$/, "");
+
+      if (!colonne.startsWith('"')) continue; // CONSTRAINT, ligne vide…
+
+      const obligatoire = /\bNOT NULL\b/.test(colonne);
+      const parDefaut = /\bDEFAULT\b/.test(colonne);
+      if (obligatoire && !parDefaut) continue;
+
+      lignes.push(
+        `ALTER TABLE "${table}" ADD COLUMN IF NOT EXISTS ${colonne};`,
+      );
+    }
+  }
+
+  return lignes.length === 0
+    ? ""
+    : [
+        "",
+        "-- Colonnes ajoutees apres la premiere installation.",
+        "-- Sans effet sur une base a jour.",
+        ...lignes,
+        "",
+      ].join("\n");
+}
+
+sql += colonnesRattrapees(sql);
+
 const entete = `-- NATURAL BRUTAL — création des tables de la boutique.
 --
 -- À coller dans Supabase > SQL Editor, puis « Run ». Une seule fois suffit,

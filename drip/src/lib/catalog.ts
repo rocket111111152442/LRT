@@ -124,6 +124,9 @@ export async function getProductBySlug(slug: string) {
     () =>
       prisma.product.findFirst({
         where: { slug, active: true },
+        // `podDescription` ne sert qu'à la synchronisation. L'écarter garde la
+        // boutique lisible même si la base n'a pas encore reçu la colonne.
+        omit: { podDescription: true },
         include: {
           category: { select: { slug: true, name: true } },
           images: { orderBy: { position: "asc" } },

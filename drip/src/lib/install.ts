@@ -97,3 +97,48 @@ export async function runSchema() {
     await client.end().catch(() => undefined);
   }
 }
+
+/**
+ * La base porte-t-elle déjà toutes les colonnes du schéma courant ?
+ *
+ * `CREATE TABLE IF NOT EXISTS` ne complète pas une table existante : une base
+ * installée avant l'ajout d'un champ lui manque toujours. Cette sonde repère le
+ * cas pour ne rejouer le schéma que lorsqu'il y a vraiment quelque chose à
+ * rattraper — le SQL est rejouable, mais il pose des verrous, autant ne pas le
+ * lancer à chaque fois.
+ *
+ * La colonne témoin est la dernière ajoutée au schéma : c'est elle qui manque
+ * en premier sur une base en retard.
+ */
+export async function schemaComplet() {
+  const rows = await prisma.$queryRaw<{ un: number }[]>`
+    SELECT 1 AS un
+    FROM information_schema.columns
+    WHERE table_name = 'Product' AND column_name = 'podDescription'
+  `;
+
+  return rows.length > 0;
+}
+
+/**
+ * Complète la base si le schéma a bougé depuis son installation.
+ *
+ * Appelée depuis l'administration : mieux vaut une mise à niveau silencieuse
+ * qu'une page cassée assortie d'une consigne à suivre. Un échec n'interrompt
+ * rien — l'administration reste affichée et le bouton « Appliquer le schéma »
+ * garde le dernier mot.
+ */
+export async function rattraperSchema() {
+  try {
+    if (await schemaComplet()) return false;
+
+    await runSchema();
+    return true;
+  } catch (error) {
+    console.error(
+      "[install] mise à niveau automatique du schéma impossible :",
+      error instanceof Error ? error.message : error,
+    );
+    return false;
+  }
+}

@@ -703,3 +703,32 @@ export async function enablePrintifyTrackingAction(): Promise<FormState> {
     };
   }
 }
+
+/**
+ * Remet la description de Printify sur une fiche modifiée ici.
+ *
+ * La synchronisation laisse volontairement de côté les textes réécrits depuis
+ * l'administration. Ce bouton est la porte de sortie : il rend la main à
+ * Printify pour cette fiche, sans toucher aux autres.
+ */
+export async function resetProductDescriptionAction(formData: FormData) {
+  await guard();
+
+  const productId = String(formData.get("productId") ?? "");
+  if (!productId) return;
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { podDescription: true },
+  });
+
+  if (!product?.podDescription) return;
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: { description: product.podDescription },
+  });
+
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath("/boutique");
+}

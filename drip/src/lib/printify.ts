@@ -326,6 +326,26 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
     const existing = await prisma.product.findUnique({ where: { podProductId } });
     const slug = existing?.slug ?? (await uniqueSlug(slugify(titre), podProductId));
 
+    const descriptionPrintify = htmlToText(remote.description);
+
+    // La description suit Printify tant que personne ne l'a réécrite ici.
+    //
+    // `podDescription` garde le dernier texte reçu : si la description en base
+    // lui est identique, elle vient de Printify et peut être remplacée sans
+    // rien perdre. Dès que la boutique la modifie depuis l'administration, les
+    // deux divergent et la synchronisation n'y touche plus.
+    //
+    // Deux cas s'y ajoutent : une fiche importée avant que ce témoin existe
+    // (`podDescription` absent) et une description encore pleine d'entités HTML
+    // — personne ne tape « &rsquo; » à la main, ces textes-là viennent
+    // forcément de l'import.
+    const descriptionReprise =
+      existing !== null &&
+      Boolean(descriptionPrintify) &&
+      (existing.podDescription === null ||
+        existing.description === existing.podDescription ||
+        looksEncoded(existing.description));
+
     const product = existing
       ? await prisma.product.update({
           where: { id: existing.id },
@@ -334,14 +354,8 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
             basePrice,
             // `active` n'est pas touché : remettre en ligne une pièce que la
             // boutique a volontairement retirée serait une mauvaise surprise.
-            //
-            // La description non plus, sauf si elle porte encore des entités
-            // HTML : personne ne tape « &rsquo; » à la main, c'est donc une
-            // description importée avant que le décodage soit correct. La
-            // réécrire répare, elle n'écrase aucun texte rédigé.
-            ...(looksEncoded(existing.description)
-              ? { description: htmlToText(remote.description) || existing.description }
-              : {}),
+            ...(descriptionPrintify ? { podDescription: descriptionPrintify } : {}),
+            ...(descriptionReprise ? { description: descriptionPrintify } : {}),
           },
         })
       : await prisma.product.create({
@@ -349,8 +363,9 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
             slug,
             name: titre,
             description:
-              htmlToText(remote.description) ||
+              descriptionPrintify ||
               "Description à compléter depuis l'administration NATURAL BRUTAL.",
+            podDescription: descriptionPrintify || null,
             basePrice,
             podProductId,
             // Un nouveau produit reste hors ligne : il faut relire le texte et

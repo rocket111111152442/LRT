@@ -125,6 +125,10 @@ model Product {
   categoryId  String?
   // Identifiant du produit chez le fabricant à la demande (Printify).
   podProductId String? @unique
+  // Dernier texte reçu de Printify. Sert de témoin : tant que `description`
+  // lui est identique, personne ne l'a réécrit ici et la synchronisation peut
+  // reprendre le texte de Printify sans rien écraser.
+  podDescription String? @db.Text
   // Prix d'appel affiché sur les listings, en centimes.
   basePrice   Int
   compareAtPrice Int?
