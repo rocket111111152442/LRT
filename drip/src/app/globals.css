@@ -368,7 +368,10 @@
   }
 
   .section {
-    padding-block: clamp(4rem, 9vw, 9rem);
+    /* 4 rem de plancher tenaient de l'écran large ramené au téléphone : huit
+       sections espacées ainsi ajoutaient un écran entier de vide à parcourir.
+       Le plafond ne bouge pas — l'ampleur reste sur les grands écrans. */
+    padding-block: clamp(2.75rem, 9vw, 9rem);
   }
 
   /* --- Grain -------------------------------------------------------
