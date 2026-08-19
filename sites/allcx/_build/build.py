@@ -370,9 +370,12 @@ def contact_form(brand, subject, sujets):
     """Formulaire de contact : envoi PHP si disponible, repli mailto sinon."""
     info = BRAND_INFO[brand]
     options = "".join(f'<option value="{s}">{s}</option>' for s in sujets)
-    return f"""<form class="form" method="post" action="contact.php"
-      data-form="mailto" data-mailto="{info['mail']}" data-subject="{subject}" novalidate>
+    return f"""<form class="form" method="post" action="/api/contact"
+      data-form="api" data-endpoint="/api/contact" data-mailto="{info['mail']}"
+      data-subject="{subject}" novalidate>
   <input type="text" name="societe_web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <input type="hidden" name="marque" value="{brand}">
+  <input type="hidden" name="retour" value="/{brand}/contact.html">
   <div class="form-grid">
     <div class="field">
       <label for="f-nom">Nom et prénom <span class="req">*</span></label>
@@ -416,7 +419,7 @@ def contact_form(brand, subject, sujets):
     l’objet d’aucune cession à des tiers. <span class="req">*</span></span>
   </label>
   <div class="form-status" data-form-status role="status" aria-live="polite"></div>
-  <div class="btn-row">
+  <div class="btn-row" data-form-actions>
     <button class="btn" type="submit"><span>Envoyer la demande</span></button>
   </div>
 </form>"""

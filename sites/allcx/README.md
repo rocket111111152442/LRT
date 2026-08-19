@@ -22,7 +22,8 @@ ce sont des fichiers HTML, CSS, JS et SVG que l'on dépose tels quels sur un hé
 ```
 sites/allcx/
 ├── index.html                 portail (choix des deux univers)
-├── robots.txt  sitemap.xml
+├── vercel.json  .vercelignore  robots.txt  sitemap.xml
+├── api/contact.js             traitement du formulaire (fonction serverless)
 ├── assets/
 │   ├── css/allcx.css          feuille de styles unique (deux thèmes)
 │   ├── js/allcx.js            menu, apparitions, accordéons, formulaires
@@ -30,7 +31,7 @@ sites/allcx/
 ├── consulting/
 │   ├── index.html  expertises.html  afrique.html  formation.html
 │   ├── cabinet.html  contact.html  mentions-legales.html
-│   └── contact.php            traitement du formulaire (optionnel)
+│   └── contact.php            traitement du formulaire en hébergement IONOS
 ├── patrimoine/
 │   ├── index.html  investissement.html  acquisition.html  relocation.html
 │   ├── biens.html  honoraires.html  contact.html  mentions-legales.html
@@ -40,61 +41,81 @@ sites/allcx/
 
 ---
 
-## 2. Mise en ligne chez IONOS
+## 2. Mise en ligne
 
-1. Ouvrir l'espace client IONOS → **Hébergement** → **FTP/SFTP** (ou le gestionnaire de fichiers).
-2. Envoyer **le contenu** du dossier `sites/allcx/` (et non le dossier lui-même) dans le
-   répertoire racine du site, généralement `/` ou `/htdocs`.
-   Le dossier `_build/` n'a pas besoin d'être envoyé.
-3. Vérifier que `index.html` se trouve bien à la racine : `https://allcx-consulting.com/`
-   doit afficher le portail.
+Le site est publié sur **Vercel**, le nom de domaine restant acheté et administré chez **IONOS**.
 
-### Deux adresses distinctes (recommandé)
+### Projet Vercel
 
-Le site fonctionne tel quel en sous-dossiers :
+- **Root Directory** : `sites/allcx`
+- **Framework Preset** : Other — aucune commande de build, les fichiers sont servis tels quels
+- `vercel.json` fixe les en-têtes de sécurité et la politique de cache
+- `.vercelignore` exclut `_build/`, `README.md` et les fichiers `contact.php`
+  (le PHP ne s'exécute pas sur Vercel : servi en statique, il exposerait l'adresse de réception)
 
-- `allcx-consulting.com/consulting/`
-- `allcx-consulting.com/patrimoine/`
+### Brancher le domaine
 
-Pour donner à chaque marque sa propre adresse, deux possibilités dans IONOS :
+1. Dans le projet Vercel : **Settings → Domains → Add**, saisir `allcx-consulting.com`
+   (ajouter aussi `www.allcx-consulting.com`, Vercel propose la redirection automatiquement).
+2. Vercel affiche alors les enregistrements DNS exacts à créer. **Recopier ces valeurs telles
+   quelles** : la cible du `CNAME` est propre à chaque projet et ne correspond plus aux valeurs
+   génériques que l'on trouve dans les tutoriels.
+3. Côté IONOS : **Domaines & SSL → allcx-consulting.com → DNS**, créer l'enregistrement `A` sur
+   `@` et l'enregistrement `CNAME` sur `www` avec les valeurs affichées par Vercel.
 
-- **Sous-domaine** — créer `patrimoine.allcx-consulting.com` et pointer sa racine sur le
-  dossier `patrimoine/`. Aucune modification du code n'est nécessaire, sauf les chemins
-  `../assets/` qu'il faudra transformer en `assets/` après avoir copié le dossier `assets/`
-  dans `patrimoine/`.
-- **Second nom de domaine** — par exemple `allcx-patrimoine.com`, en le faisant pointer sur
-  le même dossier. C'est l'option la plus claire pour séparer réellement les deux activités.
+Ne **pas** déléguer les serveurs de noms (nameservers) à Vercel : cela déplacerait l'intégralité
+du DNS, enregistrements `MX` compris, et interromprait la messagerie `@allcx-consulting.com`.
+En ne touchant qu'aux enregistrements `A` et `CNAME`, la messagerie n'est jamais concernée.
 
-Dans les deux cas, penser à mettre à jour la constante `SITE_URL` dans `_build/build.py`
-(balises `canonical`, `sitemap.xml`, `robots.txt`) ou à corriger ces valeurs à la main.
+Le certificat HTTPS est émis automatiquement par Vercel une fois la propagation effectuée
+(de quelques minutes à quelques heures).
 
-### HTTPS
+### Variante : hébergement IONOS classique
 
-Activer le certificat SSL gratuit fourni par IONOS et forcer la redirection HTTP → HTTPS
-depuis l'espace client.
-
----
+Le site reste déployable sur un hébergement de fichiers ordinaire : envoyer par FTP **le contenu**
+du dossier `sites/allcx/` (et non le dossier lui-même) dans le répertoire racine, généralement
+`/` ou `/htdocs`. Dans ce cas, remettre l'attribut `action="contact.php"` sur les deux formulaires
+(voir § 3) et ne pas envoyer les dossiers `_build/` ni `api/`.
 
 ## 3. Formulaires de contact
 
-Chaque univers a son formulaire, avec deux modes de fonctionnement :
+Les deux formulaires envoient vers `POST /api/contact`, une fonction serverless sans aucune
+dépendance (`api/contact.js`). Elle valide les champs, filtre les robots via un champ piège, puis
+transmet le message par l'API HTTP de [Resend](https://resend.com) — le SMTP direct étant
+généralement bloqué depuis une fonction serverless.
 
-- **Par défaut (aucune configuration)** — à la validation, le navigateur ouvre le logiciel de
-  messagerie du visiteur avec un message prérempli. Fonctionne partout, y compris en
-  hébergement purement statique.
-- **Avec PHP (recommandé)** — les offres d'hébergement web IONOS exécutent PHP.
-  Le fichier `contact.php` de chaque dossier envoie la demande par courriel.
-  Pour l'activer :
-  1. ouvrir `consulting/contact.php` et `patrimoine/contact.php` ;
-  2. vérifier la variable `$destinataire` (adresse de réception) ;
-  3. dans `_build/build.py`, remplacer `data-form="mailto"` par `data-form="post"` dans la
-     fonction `contact_form`, puis régénérer — ou, plus simplement, supprimer l'attribut
-     `data-form="mailto"` dans les deux fichiers `contact.html`.
+### Variables d'environnement à définir dans Vercel
 
-Le formulaire comporte un champ piège anti-robot, une validation côté navigateur et une
-validation côté serveur (longueur, format d'adresse, consentement).
+*Settings → Environment Variables*, pour les environnements Production et Preview :
 
----
+| Variable | Rôle |
+|---|---|
+| `RESEND_API_KEY` | clé d'API Resend |
+| `CONTACT_FROM` | expéditeur, sur un domaine vérifié chez Resend (ex. `site@allcx-consulting.com`) |
+| `CONTACT_TO_CONSULTING` | destinataire des demandes Consulting |
+| `CONTACT_TO_PATRIMOINE` | destinataire des demandes Patrimoine |
+| `CONTACT_TO` | destinataire de repli si les deux précédentes sont absentes |
+
+Créer un compte Resend, y vérifier le domaine `allcx-consulting.com` (trois enregistrements DNS
+à ajouter chez IONOS, sans incidence sur la messagerie existante), puis générer la clé.
+
+### Tant que ce n'est pas configuré
+
+La fonction répond `503` et le formulaire bascule automatiquement sur l'ouverture du logiciel de
+messagerie du visiteur, avec la demande préremplie. Rien n'est perdu, mais le parcours est moins
+soigné : à configurer avant la mise en avant du site.
+
+### Sans JavaScript
+
+Le formulaire est envoyé de façon classique et la fonction redirige vers la page de contact avec
+`?envoi=ok` ou `?envoi=erreur`, message affiché à l'arrivée.
+
+### Sur hébergement IONOS
+
+Les fichiers `consulting/contact.php` et `patrimoine/contact.php` sont conservés pour ce cas :
+vérifier la variable `$destinataire` en tête de fichier, puis remplacer `action="/api/contact"`
+par `action="contact.php"` et `data-form="api"` par `data-form="mailto"` dans les deux pages
+`contact.html` — ou modifier la fonction `contact_form` de `_build/build.py` et régénérer.
 
 ## 4. À compléter avant la mise en ligne
 
@@ -195,7 +216,12 @@ sans aucune bibliothèque externe.
 
 ---
 
-## 8. Sécurité
+## 8. Plan Vercel
+
+Le plan Hobby de Vercel est réservé à un usage non commercial. Un site vitrine exploité pour le
+compte d'un client relève du plan Pro. À arbitrer avant la mise en production définitive.
+
+## 9. Sécurité
 
 Ne jamais enregistrer d'identifiants (IONOS, messagerie, banque) dans ce dépôt ni dans un
 fichier du site. Si des identifiants ont été transmis par messagerie ou par courriel, changer

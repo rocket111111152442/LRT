@@ -131,10 +131,27 @@
   });
 
   /* ---------------------------------------------------------------------
-     Formulaires : validation légère + repli « mailto »
+     Formulaires : validation, envoi par l'API, repli « mailto »
      --------------------------------------------------------------------- */
   document.querySelectorAll('form[data-form]').forEach(function (form) {
     var status = form.querySelector('[data-form-status]');
+    var actions = form.querySelector('[data-form-actions]');
+    var submit = form.querySelector('button[type="submit"]');
+
+    var dire = function (texte) {
+      if (!status) return;
+      status.textContent = texte;
+      status.setAttribute('data-visible', 'true');
+    };
+
+    var messageFor = function (input) {
+      if (input.validity.valueMissing) {
+        return input.type === 'checkbox' ? 'Merci de cocher cette case.' : 'Ce champ est obligatoire.';
+      }
+      if (input.validity.typeMismatch && input.type === 'email') return 'Adresse e-mail invalide.';
+      if (input.validity.tooShort) return 'Message trop court.';
+      return 'Valeur invalide.';
+    };
 
     var setFieldError = function (input, message) {
       var field = input.closest('.field') || input.closest('.consent');
@@ -144,7 +161,12 @@
       if (slot) slot.textContent = message || '';
     };
 
-    form.querySelectorAll('input, select, textarea').forEach(function (input) {
+    var champs = function () {
+      return Array.prototype.slice.call(form.querySelectorAll('input, select, textarea'))
+        .filter(function (el) { return el.type !== 'hidden' && !el.classList.contains('hp'); });
+    };
+
+    champs().forEach(function (input) {
       input.addEventListener('blur', function () {
         if (input.value) setFieldError(input, input.checkValidity() ? '' : messageFor(input));
       });
@@ -153,51 +175,87 @@
       });
     });
 
-    function messageFor(input) {
-      if (input.validity.valueMissing) return 'Ce champ est obligatoire.';
-      if (input.validity.typeMismatch && input.type === 'email') return 'Adresse e-mail invalide.';
-      if (input.validity.tooShort) return 'Message trop court.';
-      return 'Valeur invalide.';
-    }
+    var donnees = function () {
+      var out = {};
+      form.querySelectorAll('input, select, textarea').forEach(function (input) {
+        if (!input.name) return;
+        out[input.name] = input.type === 'checkbox' ? (input.checked ? 'oui' : '') : input.value;
+      });
+      return out;
+    };
+
+    var replisMailto = function () {
+      var lignes = [];
+      champs().forEach(function (input) {
+        if (input.type === 'checkbox') return;
+        var label = form.querySelector('label[for="' + input.id + '"]');
+        lignes.push((label ? label.textContent.replace('*', '').trim() : input.name) + ' : ' + input.value);
+      });
+      window.location.href = 'mailto:' + form.getAttribute('data-mailto') +
+        '?subject=' + encodeURIComponent(form.getAttribute('data-subject') || 'Demande depuis le site') +
+        '&body=' + encodeURIComponent(lignes.join('\n'));
+      dire('L’envoi automatique n’est pas disponible : votre messagerie s’ouvre avec la demande préremplie. Il ne reste qu’à l’envoyer.');
+    };
 
     form.addEventListener('submit', function (e) {
-      var firstInvalid = null;
-      form.querySelectorAll('input, select, textarea').forEach(function (input) {
+      var premierInvalide = null;
+      champs().forEach(function (input) {
         var ok = input.checkValidity();
         setFieldError(input, ok ? '' : messageFor(input));
-        if (!ok && !firstInvalid) firstInvalid = input;
+        if (!ok && !premierInvalide) premierInvalide = input;
       });
 
-      if (firstInvalid) {
+      if (premierInvalide) {
         e.preventDefault();
-        firstInvalid.focus();
-        if (status) {
-          status.textContent = 'Merci de compléter les champs signalés avant l’envoi.';
-          status.setAttribute('data-visible', 'true');
-        }
+        premierInvalide.focus();
+        dire('Merci de compléter les champs signalés avant l’envoi.');
         return;
       }
 
-      /* Repli sans serveur : ouverture du client de messagerie avec le message prérempli. */
-      if (form.getAttribute('data-form') === 'mailto') {
+      var mode = form.getAttribute('data-form');
+      if (mode === 'mailto') {
         e.preventDefault();
-        var to = form.getAttribute('data-mailto');
-        var subject = form.getAttribute('data-subject') || 'Demande depuis le site';
-        var lines = [];
-        form.querySelectorAll('input, select, textarea').forEach(function (input) {
-          if (!input.name || input.type === 'checkbox' || input.classList.contains('hp')) return;
-          var label = form.querySelector('label[for="' + input.id + '"]');
-          lines.push((label ? label.textContent.replace('*', '').trim() : input.name) + ' : ' + input.value);
-        });
-        window.location.href = 'mailto:' + to +
-          '?subject=' + encodeURIComponent(subject) +
-          '&body=' + encodeURIComponent(lines.join('\n'));
-        if (status) {
-          status.textContent = 'Votre messagerie s’ouvre avec la demande préremplie. Il ne reste qu’à l’envoyer.';
-          status.setAttribute('data-visible', 'true');
-        }
+        replisMailto();
+        return;
       }
+      if (mode !== 'api' || typeof window.fetch !== 'function') return;
+
+      e.preventDefault();
+      if (submit) {
+        submit.disabled = true;
+        submit.querySelector('span').textContent = 'Envoi en cours…';
+      }
+      dire('Envoi en cours…');
+
+      fetch(form.getAttribute('data-endpoint') || form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(donnees())
+      }).then(function (reponse) {
+        if (reponse.ok) {
+          form.reset();
+          if (actions) actions.hidden = true;
+          dire('Merci, votre demande est bien partie. Vous recevrez une réponse sous 48 heures ouvrées.');
+          return;
+        }
+        throw new Error('statut ' + reponse.status);
+      }).catch(function () {
+        replisMailto();
+      }).then(function () {
+        if (submit) {
+          submit.disabled = false;
+          submit.querySelector('span').textContent = 'Envoyer la demande';
+        }
+      });
     });
+
+    /* Retour d'un envoi sans JavaScript (redirection ?envoi=…) */
+    var etat = new URLSearchParams(window.location.search).get('envoi');
+    if (etat === 'ok') {
+      dire('Merci, votre demande est bien partie. Vous recevrez une réponse sous 48 heures ouvrées.');
+    } else if (etat === 'erreur') {
+      dire('L’envoi n’a pas abouti. Vous pouvez écrire directement à ' + form.getAttribute('data-mailto') + '.');
+    }
   });
 
   /* ---------------------------------------------------------------------
