@@ -210,9 +210,14 @@ export default async function ProductPage({ params }: { params: Params }) {
           <div>
             <p className="label reveal mb-6 text-[color:var(--color-smoke)]">(La pièce)</p>
             <div className="reveal max-w-[52ch] space-y-4 text-base leading-relaxed text-[color:var(--color-ink-soft)]">
-              {product.description.split("\n").filter(Boolean).map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+              {product.description
+                .split("\n")
+                // `filter(Boolean)` laissait passer les lignes blanches, qui
+                // s'affichaient en paragraphes vides.
+                .filter((paragraph) => paragraph.trim())
+                .map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
             </div>
           </div>
 

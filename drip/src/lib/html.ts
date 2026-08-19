@@ -106,12 +106,14 @@ export function htmlToText(html: string | null | undefined) {
 
   return decodeHtmlEntities(
     html
+      // Retours chariot d'abord : un « \r » esseulé survivrait au nettoyage et
+      // ferait un paragraphe vide de plus sur la fiche.
+      .replace(/\r\n?/g, "\n")
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/<\/(p|div|li|h[1-6])\s*>/gi, "\n\n")
       .replace(/<li\b[^>]*>/gi, "— ")
       .replace(/<[^>]+>/g, ""),
   )
-    .replace(/\r\n/g, "\n")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
