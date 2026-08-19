@@ -1,8 +1,9 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { Client } from "pg";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { SCHEMA_SQL } from "@/lib/schemaSql";
 import { databaseUrl, normalizeDatabaseUrl } from "@/lib/services";
+import { readSetting, writeSetting } from "@/lib/settings";
 
 /**
  * Installation en un clic.
@@ -98,41 +99,46 @@ export async function runSchema() {
   }
 }
 
-/**
- * La base porte-t-elle déjà toutes les colonnes du schéma courant ?
- *
- * `CREATE TABLE IF NOT EXISTS` ne complète pas une table existante : une base
- * installée avant l'ajout d'un champ lui manque toujours. Cette sonde repère le
- * cas pour ne rejouer le schéma que lorsqu'il y a vraiment quelque chose à
- * rattraper — le SQL est rejouable, mais il pose des verrous, autant ne pas le
- * lancer à chaque fois.
- *
- * La colonne témoin est la dernière ajoutée au schéma : c'est elle qui manque
- * en premier sur une base en retard.
- */
-export async function schemaComplet() {
-  const rows = await prisma.$queryRaw<{ un: number }[]>`
-    SELECT 1 AS un
-    FROM information_schema.columns
-    WHERE table_name = 'Product' AND column_name = 'podDescription'
-  `;
+/** Réglage où l'on note quel schéma a été appliqué la dernière fois. */
+const CLE_EMPREINTE = "schema.empreinte";
 
-  return rows.length > 0;
+/**
+ * Empreinte du schéma courant.
+ *
+ * La version précédente comparait une colonne témoin choisie à la main. Il a
+ * suffi d'ajouter un champ sans penser à changer le témoin pour que la mise à
+ * niveau se croie faite : la colonne manquait en base, et le catalogue est
+ * revenu vide en production.
+ *
+ * L'empreinte, elle, ne s'oublie pas : toute modification du schéma change le
+ * SQL, donc l'empreinte, donc déclenche le rattrapage.
+ */
+function empreinteSchema() {
+  return createHash("sha256").update(SCHEMA_SQL).digest("hex").slice(0, 32);
 }
 
 /**
- * Complète la base si le schéma a bougé depuis son installation.
+ * Complète la base si le schéma a bougé depuis la dernière application.
  *
- * Appelée depuis l'administration : mieux vaut une mise à niveau silencieuse
+ * Appelée au démarrage du serveur : mieux vaut une mise à niveau silencieuse
  * qu'une page cassée assortie d'une consigne à suivre. Un échec n'interrompt
- * rien — l'administration reste affichée et le bouton « Appliquer le schéma »
- * garde le dernier mot.
+ * rien — le site démarre et le bouton « Appliquer le schéma » garde le dernier
+ * mot.
  */
 export async function rattraperSchema() {
   try {
-    if (await schemaComplet()) return false;
+    const attendue = empreinteSchema();
+
+    // `undefined` : la table des réglages n'existe pas encore. Le schéma n'a
+    // alors jamais été appliqué, il faut le jouer.
+    const posee = await readSetting(CLE_EMPREINTE);
+    if (posee === attendue) return false;
 
     await runSchema();
+
+    // Notée seulement après coup : un échec en cours de route doit laisser le
+    // rattrapage se relancer au prochain démarrage.
+    await writeSetting(CLE_EMPREINTE, attendue);
     return true;
   } catch (error) {
     console.error(
