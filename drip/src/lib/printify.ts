@@ -17,6 +17,7 @@
  * à utiliser ; sans lui, la première boutique du compte est retenue.
  */
 
+import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import {
   PRINTIFY_SHOP_KEY,
@@ -755,111 +756,69 @@ export type WebhookReport = {
 export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookReport> {
   const shopId = await resolveShopId();
   const url = printifyWebhookUrl(baseUrl);
+  const hote = new URL(url).host;
 
   // Printify compare les adresses au caractère près : une barre finale de
   // différence lui fait voir deux abonnements là où il n'y en a qu'un.
   const meme = (autre: string) =>
     autre.replace(/\/$/, "").toLowerCase() === url.replace(/\/$/, "").toLowerCase();
 
-  const hote = new URL(url).host;
+  // Le secret ne vient pas de Printify : c'est la boutique qui le choisit et
+  // le lui confie, puis Printify signe chaque avis avec. Un secret déjà en
+  // place est conservé — le remplacer invaliderait les abonnements posés.
+  const secret = (await printifyWebhookSecret()) ?? randomBytes(32).toString("hex");
+
+  const poses: string[] = [];
+  const refuses: string[] = [];
 
   const existants = await listPrintifyWebhooks(shopId, hote);
   const notres = existants.filter((hook) => meme(hook.url));
 
-  const poses: string[] = [];
-  const refuses: string[] = [];
-  const supprimer = async (hooks: PrintifyWebhook[]) => {
-    for (const hook of hooks) {
-      await printifyRequest(
-        `/shops/${shopId}/webhooks/${hook.id}.json`,
-        { method: "DELETE" },
-        hote,
-      );
-    }
-  };
+  for (const topic of WEBHOOK_TOPICS) {
+    const dejaLa = notres.find((hook) => hook.topic === topic);
 
-  /**
-   * Crée les abonnements manquants et renvoie le secret que Printify remet.
-   *
-   * Le secret n'accompagne que la création : c'est la seule occasion de le
-   * connaître, d'où le soin à ne pas la manquer.
-   */
-  const souscrire = async (deja: PrintifyWebhook[]) => {
-    let secret: string | null = deja.find((hook) => hook.secret)?.secret ?? null;
-
-    for (const topic of WEBHOOK_TOPICS) {
-      if (deja.some((hook) => hook.topic === topic)) {
-        poses.push(topic);
-        continue;
-      }
-
-      try {
-        const cree = await printifyRequest<PrintifyWebhook>(
-          `/shops/${shopId}/webhooks.json`,
-          { method: "POST", body: JSON.stringify({ topic, url }) },
+    try {
+      if (dejaLa) {
+        // L'abonnement existe : on lui confie notre secret plutôt que de le
+        // détruire pour le recréer à l'identique.
+        await printifyRequest(
+          `/shops/${shopId}/webhooks/${dejaLa.id}.json`,
+          { method: "PUT", body: JSON.stringify({ url, secret }) },
           hote,
         );
-
-        poses.push(topic);
-        if (cree.secret) secret = cree.secret;
-      } catch (error) {
-        refuses.push(
-          `${topic} (${error instanceof Error ? error.message : "erreur inconnue"})`,
+      } else {
+        await printifyRequest<PrintifyWebhook>(
+          `/shops/${shopId}/webhooks.json`,
+          { method: "POST", body: JSON.stringify({ topic, url, secret }) },
+          hote,
         );
       }
-    }
 
-    return secret;
-  };
-
-  let secret = await souscrire(notres);
-
-  // Abonnements en place mais secret introuvable : ils viennent d'une tentative
-  // précédente dont la réponse s'est perdue. Sans secret, aucun avis
-  // d'expédition ne pourra être authentifié — ils ne servent donc à rien. On
-  // les remplace pour que Printify en délivre un nouveau.
-  if (!secret && refuses.length === 0 && notres.length > 0) {
-    poses.length = 0;
-    await supprimer(notres);
-    secret = await souscrire([]);
-  }
-
-  // Sujets refusés parce qu'ils existaient déjà : même situation, la liste ne
-  // les avait simplement pas montrés.
-  if (!secret && refuses.length > 0) {
-    const encore = (await listPrintifyWebhooks(shopId, hote)).filter((hook) =>
-      meme(hook.url),
-    );
-
-    if (encore.length > 0) {
-      poses.length = 0;
-      refuses.length = 0;
-      await supprimer(encore);
-      secret = await souscrire([]);
+      poses.push(topic);
+    } catch (error) {
+      refuses.push(
+        `${topic} (${error instanceof Error ? error.message : "erreur inconnue"})`,
+      );
     }
   }
 
-  // Dernier recours : Printify affirme que l'abonnement existe mais ne le
-  // montre pas, donc il est impossible de le supprimer pour en obtenir un
-  // secret neuf. On souscrit alors sur une adresse marquée, que Printify voit
-  // comme nouvelle. Le point d'entrée ignore la marque : c'est la même
-  // adresse pour nous, une autre pour lui.
-  if (!secret && refuses.some((refus) => refus.includes("already exists"))) {
+  // Printify affirme qu'un abonnement existe sans l'avoir listé : impossible
+  // de le retrouver pour lui confier le secret. On souscrit alors sur une
+  // adresse marquée d'un paramètre, que Printify voit comme nouvelle et que
+  // le point d'entrée ignore.
+  if (poses.length === 0 && refuses.some((refus) => refus.includes("already exists"))) {
     const marquee = `${url}?r=${Date.now().toString(36)}`;
-
-    poses.length = 0;
     refuses.length = 0;
 
     for (const topic of WEBHOOK_TOPICS) {
       try {
-        const cree = await printifyRequest<PrintifyWebhook>(
+        await printifyRequest<PrintifyWebhook>(
           `/shops/${shopId}/webhooks.json`,
-          { method: "POST", body: JSON.stringify({ topic, url: marquee }) },
+          { method: "POST", body: JSON.stringify({ topic, url: marquee, secret }) },
           hote,
         );
 
         poses.push(topic);
-        if (cree.secret) secret = cree.secret;
       } catch (error) {
         refuses.push(
           `${topic} (${error instanceof Error ? error.message : "erreur inconnue"})`,
@@ -867,8 +826,6 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
       }
     }
   }
-
-  if (secret) await writeSetting(PRINTIFY_WEBHOOK_KEY, secret);
 
   if (poses.length === 0) {
     throw new Error(
@@ -878,12 +835,14 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
     );
   }
 
+  await writeSetting(PRINTIFY_WEBHOOK_KEY, secret);
+
   return {
     url,
     topics: poses,
     refuses,
     remplaces: notres.length,
-    secretEnregistre: Boolean(secret),
+    secretEnregistre: true,
   };
 }
 
