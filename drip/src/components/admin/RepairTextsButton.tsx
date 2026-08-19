@@ -18,20 +18,21 @@ export function RepairTextsButton({ nombre }: { nombre: number }) {
 
   return (
     <section className="border border-[color:var(--color-ink)] p-5">
-      <p className="label mb-3">Textes à réparer</p>
+      <p className="label mb-3">Textes à corriger</p>
       <p className="mb-5 max-w-[62ch] text-sm leading-relaxed">
-        {nombre} fiche{nombre > 1 ? "s" : ""} contien{nombre > 1 ? "nent" : "t"} du
-        texte importé où les accents et les apostrophes sont restés codés
-        (« L&amp;rsquo;instinct » au lieu de « L&apos;instinct »). Un clic les
-        remet d&apos;aplomb — les textes que vous avez écrits ne sont pas
-        touchés.
+        {nombre} texte{nombre > 1 ? "s" : ""} importé{nombre > 1 ? "s" : ""} de
+        Printify {nombre > 1 ? "sont" : "est"} à reprendre : accents et
+        apostrophes restés codés (« L&amp;rsquo;instinct » au lieu de
+        « L&apos;instinct »), coloris et tailles encore en anglais
+        (« Black / One size »). Un clic les remet d&apos;aplomb — les textes
+        que vous avez écrits vous-même ne sont pas touchés.
       </p>
 
       <form action={action} className="flex flex-col gap-4">
         <FormError message={etat.errors?.form} />
         <FormSuccess message={etat.message} />
-        <SubmitButton className="btn btn-sm self-start" pendingLabel="Réparation…">
-          Réparer les textes
+        <SubmitButton className="btn btn-sm self-start" pendingLabel="Correction…">
+          Corriger les textes
         </SubmitButton>
       </form>
     </section>
