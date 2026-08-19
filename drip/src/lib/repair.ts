@@ -26,17 +26,36 @@ type ProduitTexte = {
   subtitle: string | null;
   description: string;
   composition: string | null;
+  podDescription: string | null;
 };
+
+/**
+ * Retours chariot d'un éditeur Windows : invisibles, mais ils font autant de
+ * paragraphes vides sur la fiche. La même transformation est appliquée au
+ * témoin Printify, pour que deux textes identiques le restent — sinon la fiche
+ * passerait à tort pour « réécrite ici » et la synchronisation cesserait de la
+ * suivre.
+ */
+function sansRetourChariot(texte: string) {
+  return texte.replace(/\r\n?/g, "\n");
+}
 
 /** Ce que ce produit doit devenir, ou `null` s'il est déjà correct. */
 function correctionsProduit(produit: ProduitTexte) {
   const decode = repairFields(produit) ?? {};
-  const nomActuel = (decode.name as string | undefined) ?? produit.name;
+
+  const nomActuel = decode.name ?? produit.name;
   const nomTraduit = traduireNomProduit(nomActuel);
+
+  const description = sansRetourChariot(decode.description ?? produit.description);
+  const podDescription =
+    produit.podDescription === null ? null : sansRetourChariot(produit.podDescription);
 
   const corrections = {
     ...decode,
     ...(nomTraduit !== produit.name ? { name: nomTraduit } : {}),
+    ...(description !== produit.description ? { description } : {}),
+    ...(podDescription !== produit.podDescription ? { podDescription } : {}),
   };
 
   return Object.keys(corrections).length > 0 ? corrections : null;
@@ -78,6 +97,7 @@ export async function countEncodedProducts() {
             subtitle: true,
             description: true,
             composition: true,
+            podDescription: true,
           },
         }),
         prisma.variant.findMany({
@@ -103,6 +123,7 @@ export async function repairEncodedProducts() {
       subtitle: true,
       description: true,
       composition: true,
+      podDescription: true,
     },
   });
 
