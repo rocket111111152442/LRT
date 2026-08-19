@@ -13,6 +13,7 @@ import {
   printifyEnabled,
   listPrintifyShops,
   ensurePrintifyWebhooks,
+  memoriserVisuelRetire,
 } from "@/lib/printify";
 import { appUrl } from "@/lib/stripe";
 import { runSchema } from "@/lib/install";
@@ -182,8 +183,20 @@ export async function deleteProductImageAction(formData: FormData) {
   const imageId = formData.get("imageId");
   if (typeof imageId !== "string") return;
 
+  const image = await prisma.productImage
+    .findUnique({ where: { id: imageId }, select: { productId: true, url: true } })
+    .catch(() => null);
+
+  if (!image) return;
+
   await prisma.productImage.delete({ where: { id: imageId } }).catch(() => null);
+
+  // Le retrait est mémorisé : sans cela, la synchronisation suivante
+  // remettrait le visuel et il faudrait le supprimer sans fin.
+  await memoriserVisuelRetire(image.productId, image.url).catch(() => null);
+
   revalidatePath("/admin/produits");
+  revalidatePath(`/admin/produits/${image.productId}`);
 }
 
 const variantSchema = z.object({
@@ -704,8 +717,11 @@ export async function enablePrintifyTrackingAction(): Promise<FormState> {
     return {
       success: true,
       message:
-        `Suivi des colis activé sur ${rapport.url}. ` +
-        `Printify préviendra la boutique à chaque expédition et à chaque livraison.`,
+        `Suivi des colis activé sur ${rapport.url} (${rapport.topics.length} abonnement(s)). ` +
+        "Printify préviendra la boutique à chaque expédition et à chaque livraison." +
+        (rapport.refuses.length > 0
+          ? ` Sujets refusés par Printify : ${rapport.refuses.join(" ; ")}.`
+          : ""),
     };
   } catch (error) {
     unstable_rethrow(error);

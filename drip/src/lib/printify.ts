@@ -64,10 +64,26 @@ async function printifyRequest<T>(path: string, init: RequestInit = {}): Promise
   const payload = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    const reason =
-      (payload as { message?: string; error?: string } | null)?.message ??
-      (payload as { error?: string } | null)?.error ??
-      response.statusText;
+    // Printify répond « Operation failed. » sur à peu près tout ; le motif
+    // réel se trouve dans `errors`. Le taire condamnait à deviner.
+    const corps = payload as {
+      message?: string;
+      error?: string;
+      errors?: unknown;
+    } | null;
+
+    const detail =
+      corps?.errors && typeof corps.errors === "object"
+        ? Object.values(corps.errors as Record<string, unknown>)
+            .flatMap((valeur) => (Array.isArray(valeur) ? valeur : [valeur]))
+            .filter((valeur) => typeof valeur === "string")
+            .join(" ")
+        : "";
+
+    const reason = [corps?.message ?? corps?.error ?? response.statusText, detail]
+      .filter(Boolean)
+      .join(" — ");
+
     throw new Error(`Printify (${response.status}) : ${reason}`);
   }
 
@@ -263,14 +279,48 @@ async function uniqueSlug(base: string, podProductId: string) {
 }
 
 /**
- * Nombre de visuels repris d'une fiche Printify.
+ * Garde-fou : au-delà, ce n'est plus une fiche produit.
  *
- * Printify produit un mockup par couleur et par angle : un sweat en trois
- * coloris en compte facilement une quarantaine. Tout garder alourdirait la
- * fiche sans rien apporter ; huit — l'ancienne limite — n'en montrait même pas
- * le dos.
+ * Printify produit un mockup par coloris et par angle. Toutes les images sont
+ * reprises — la boutique retire ensuite celles qu'elle ne veut pas, et son
+ * choix tient — mais un plafond très haut protège d'une fiche aberrante.
  */
-const MAX_VISUELS = 24;
+const MAX_VISUELS = 100;
+
+/** Visuels Printify que la boutique a retirés à la main, par produit. */
+export function cleVisuelsRetires(productId: string) {
+  return `printify.visuelsRetires.${productId}`;
+}
+
+async function lireVisuelsRetires(productId: string) {
+  const brut = await readSetting(cleVisuelsRetires(productId));
+  if (!brut) return new Set<string>();
+
+  try {
+    const liste = JSON.parse(brut);
+    return new Set<string>(Array.isArray(liste) ? liste : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+/**
+ * Note qu'un visuel Printify a été retiré à la main.
+ *
+ * Sans cette mémoire, la synchronisation suivante le remettrait : on
+ * supprimerait la même image indéfiniment.
+ */
+export async function memoriserVisuelRetire(productId: string, url: string) {
+  if (!estMockupPrintify(url)) return;
+
+  const retires = await lireVisuelsRetires(productId);
+  retires.add(url);
+
+  await writeSetting(
+    cleVisuelsRetires(productId),
+    JSON.stringify([...retires].slice(-MAX_VISUELS * 2)),
+  );
+}
 
 /** Cette image vient-elle de Printify, ou la boutique l'a-t-elle ajoutée ? */
 function estMockupPrintify(url: string) {
@@ -295,8 +345,13 @@ function estMockupPrintify(url: string) {
 async function synchroniserGalerie(
   productId: string,
   productName: string,
-  gallery: string[],
+  demandees: string[],
 ) {
+  // Un visuel retiré à la main ne revient pas : la boutique choisit ce
+  // qu'elle montre, la synchronisation ne le lui reprend pas.
+  const retires = await lireVisuelsRetires(productId);
+  const gallery = demandees.filter((url) => !retires.has(url));
+
   const existantes = await prisma.productImage.findMany({
     where: { productId },
     orderBy: { position: "asc" },
@@ -658,6 +713,8 @@ export async function listPrintifyWebhooks(shopId?: string) {
 export type WebhookReport = {
   url: string;
   topics: string[];
+  /** Sujets que Printify a refusés, avec son motif. */
+  refuses: string[];
   remplaces: number;
   secretEnregistre: boolean;
 };
@@ -673,31 +730,52 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
   const shopId = await resolveShopId();
   const url = printifyWebhookUrl(baseUrl);
 
-  const existants = await listPrintifyWebhooks(shopId);
+  const existants = await listPrintifyWebhooks(shopId).catch(() => []);
   const aRemplacer = existants.filter((hook) => hook.url === url);
 
   for (const hook of aRemplacer) {
+    // Un abonnement déjà disparu ne doit pas faire échouer la réinscription.
     await printifyRequest(`/shops/${shopId}/webhooks/${hook.id}.json`, {
       method: "DELETE",
-    });
+    }).catch(() => undefined);
   }
 
   let secret: string | null = null;
+  const poses: string[] = [];
+  const refuses: string[] = [];
 
+  // Chaque sujet est traité séparément : un sujet refusé — Printify en retire
+  // parfois — ne doit pas emporter les autres avec lui.
   for (const topic of WEBHOOK_TOPICS) {
-    const cree = await printifyRequest<PrintifyWebhook>(
-      `/shops/${shopId}/webhooks.json`,
-      { method: "POST", body: JSON.stringify({ topic, url }) },
-    );
+    try {
+      const cree = await printifyRequest<PrintifyWebhook>(
+        `/shops/${shopId}/webhooks.json`,
+        { method: "POST", body: JSON.stringify({ topic, url }) },
+      );
 
-    if (cree.secret) secret = cree.secret;
+      poses.push(topic);
+      if (cree.secret) secret = cree.secret;
+    } catch (error) {
+      refuses.push(
+        `${topic} (${error instanceof Error ? error.message : "erreur inconnue"})`,
+      );
+    }
   }
 
   if (secret) await writeSetting(PRINTIFY_WEBHOOK_KEY, secret);
 
+  if (poses.length === 0) {
+    throw new Error(
+      refuses.length > 0
+        ? `Printify a refusé les abonnements : ${refuses.join(" ; ")}`
+        : "Printify n'a créé aucun abonnement.",
+    );
+  }
+
   return {
     url,
-    topics: [...WEBHOOK_TOPICS],
+    topics: poses,
+    refuses,
     remplaces: aRemplacer.length,
     secretEnregistre: Boolean(secret),
   };

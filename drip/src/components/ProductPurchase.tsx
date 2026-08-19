@@ -70,6 +70,10 @@ export function ProductPurchase({
   const [size, setSize] = useState<string | null>(firstAvailable?.size ?? null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  // Une fiche Printify peut compter des dizaines de mockups. Les poser tous
+  // dans la page les ferait tous télécharger d'un coup, alors qu'un seul est
+  // visible : on ne monte que ceux qui ont été demandés, et leurs voisins.
+  const [visuelsMontes, setVisuelsMontes] = useState<number[]>([0, 1]);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
   const [barVisible, setBarVisible] = useState(false);
@@ -139,6 +143,15 @@ export function ProductPurchase({
       }
     : undefined;
 
+  const montrerVisuel = (index: number) => {
+    setActiveImage(index);
+    setVisuelsMontes((montes) =>
+      montes.includes(index) && montes.includes(index + 1)
+        ? montes
+        : [...new Set([...montes, index - 1, index, index + 1])],
+    );
+  };
+
   const chooseColor = (nextColor: string, variant: PurchaseVariant) => {
     setColor(nextColor);
 
@@ -153,7 +166,7 @@ export function ProductPurchase({
     }
 
     const index = gallery.findIndex((image) => image.url === variant.imageUrl);
-    if (index >= 0) setActiveImage(index);
+    if (index >= 0) montrerVisuel(index);
   };
 
   const submit = async () => {
@@ -187,12 +200,12 @@ export function ProductPurchase({
       {/* --- Galerie ------------------------------------------------- */}
       <div className="flex flex-col-reverse gap-4 md:flex-row">
         {gallery.length > 1 && (
-          <div className="flex gap-3 overflow-x-auto md:w-[86px] md:flex-col md:overflow-visible no-scrollbar">
+          <div className="flex gap-3 overflow-x-auto md:max-h-[620px] md:w-[86px] md:flex-col md:overflow-y-auto no-scrollbar">
             {gallery.map((image, index) => (
               <button
                 key={image.url + index}
                 type="button"
-                onClick={() => setActiveImage(index)}
+                onClick={() => montrerVisuel(index)}
                 className={`relative aspect-4/5 w-[70px] shrink-0 overflow-hidden border transition-colors md:w-full ${
                   activeImage === index
                     ? "border-[color:var(--color-ink)]"
@@ -215,19 +228,21 @@ export function ProductPurchase({
         <div className="relative flex-1">
           <div className="relative aspect-4/5 overflow-hidden bg-[color:var(--color-paper-pure)]">
             {gallery.length > 0 ? (
-              gallery.map((image, index) => (
-                <Image
-                  key={image.url + index}
-                  src={image.url}
-                  alt={image.alt ?? productName}
-                  fill
-                  priority={index === 0}
-                  sizes="(max-width: 1024px) 100vw, 55vw"
-                  className={`object-cover transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    activeImage === index ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-              ))
+              gallery.map((image, index) =>
+                visuelsMontes.includes(index) ? (
+                  <Image
+                    key={image.url + index}
+                    src={image.url}
+                    alt={image.alt ?? productName}
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 1024px) 100vw, 55vw"
+                    className={`object-cover transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      activeImage === index ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                ) : null,
+              )
             ) : (
               <CapSilhouette />
             )}
@@ -243,7 +258,7 @@ export function ProductPurchase({
                 <button
                   type="button"
                   onClick={() =>
-                    setActiveImage((index) => (index - 1 + gallery.length) % gallery.length)
+                    montrerVisuel((activeImage - 1 + gallery.length) % gallery.length)
                   }
                   className="label px-2 py-1 transition-transform duration-300 hover:-translate-x-0.5"
                   aria-label="Visuel précédent"
@@ -252,7 +267,7 @@ export function ProductPurchase({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveImage((index) => (index + 1) % gallery.length)}
+                  onClick={() => montrerVisuel((activeImage + 1) % gallery.length)}
                   className="label px-2 py-1 transition-transform duration-300 hover:translate-x-0.5"
                   aria-label="Visuel suivant"
                 >

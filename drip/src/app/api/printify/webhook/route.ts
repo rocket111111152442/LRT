@@ -24,12 +24,18 @@ export async function POST(request: Request) {
   const secret = await printifyWebhookSecret();
 
   if (!secret) {
-    // Sans secret, impossible de distinguer Printify de n'importe qui : on
-    // refuse plutôt que de faire confiance à l'expéditeur.
-    return NextResponse.json(
-      { error: "Suivi des colis non activé." },
-      { status: 503 },
+    // Pas encore de secret : l'abonnement est en train d'être créé, et le
+    // secret n'arrive qu'avec la réponse de Printify. Refuser ici ferait
+    // échouer la vérification d'accessibilité que Printify effectue avant de
+    // créer l'abonnement — l'activation ne pourrait jamais aboutir.
+    //
+    // On accepte donc la requête sans rien en faire : sans secret, rien ne
+    // permet de l'authentifier, donc rien ne doit être appliqué.
+    console.warn(
+      "[printify] événement reçu avant l'activation du suivi : ignoré.",
     );
+
+    return NextResponse.json({ received: true, applique: false });
   }
 
   const entete =
