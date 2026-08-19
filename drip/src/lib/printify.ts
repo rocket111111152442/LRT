@@ -39,7 +39,22 @@ export function printifyEnabled() {
   return Boolean(process.env.PRINTIFY_API_KEY);
 }
 
-async function printifyRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+/**
+ * Ajoute le paramètre `host` que Printify réclame sur ses routes de webhooks.
+ *
+ * Il n'est pas documenté : la réponse se contente de « You must provide the
+ * host query parameter ». Il attend le domaine de l'adresse abonnée.
+ */
+function avecHote(path: string, hote: string) {
+  if (/[?&]host=/.test(path)) return path;
+  return `${path}${path.includes("?") ? "&" : "?"}host=${encodeURIComponent(hote)}`;
+}
+
+async function printifyRequest<T>(
+  path: string,
+  init: RequestInit = {},
+  hote?: string,
+): Promise<T> {
   const apiKey = process.env.PRINTIFY_API_KEY;
 
   if (!apiKey) {
@@ -83,6 +98,13 @@ async function printifyRequest<T>(path: string, init: RequestInit = {}): Promise
     const reason = [corps?.message ?? corps?.error ?? response.statusText, detail]
       .filter(Boolean)
       .join(" — ");
+
+    // Le paramètre `host` manquant est réclamé après coup, sur des routes que
+    // la documentation ne signale pas. Plutôt que de deviner lesquelles, on
+    // réessaie une fois en le fournissant.
+    if (hote && /host query parameter/i.test(reason) && !/[?&]host=/.test(path)) {
+      return printifyRequest<T>(avecHote(path, hote), init);
+    }
 
     throw new Error(`Printify (${response.status}) : ${reason}`);
   }
@@ -705,9 +727,13 @@ export function printifyWebhookUrl(baseUrl: string) {
   return `${baseUrl.replace(/\/$/, "")}/api/printify/webhook`;
 }
 
-export async function listPrintifyWebhooks(shopId?: string) {
+export async function listPrintifyWebhooks(shopId?: string, hote?: string) {
   const shop = shopId ?? (await resolveShopId());
-  return printifyRequest<PrintifyWebhook[]>(`/shops/${shop}/webhooks.json`);
+  return printifyRequest<PrintifyWebhook[]>(
+    `/shops/${shop}/webhooks.json`,
+    {},
+    hote,
+  );
 }
 
 export type WebhookReport = {
@@ -735,16 +761,20 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
   const meme = (autre: string) =>
     autre.replace(/\/$/, "").toLowerCase() === url.replace(/\/$/, "").toLowerCase();
 
-  const existants = await listPrintifyWebhooks(shopId);
+  const hote = new URL(url).host;
+
+  const existants = await listPrintifyWebhooks(shopId, hote);
   const notres = existants.filter((hook) => meme(hook.url));
 
   const poses: string[] = [];
   const refuses: string[] = [];
   const supprimer = async (hooks: PrintifyWebhook[]) => {
     for (const hook of hooks) {
-      await printifyRequest(`/shops/${shopId}/webhooks/${hook.id}.json`, {
-        method: "DELETE",
-      });
+      await printifyRequest(
+        `/shops/${shopId}/webhooks/${hook.id}.json`,
+        { method: "DELETE" },
+        hote,
+      );
     }
   };
 
@@ -767,6 +797,7 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
         const cree = await printifyRequest<PrintifyWebhook>(
           `/shops/${shopId}/webhooks.json`,
           { method: "POST", body: JSON.stringify({ topic, url }) },
+          hote,
         );
 
         poses.push(topic);
@@ -796,7 +827,7 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
   // Sujets refusés parce qu'ils existaient déjà : même situation, la liste ne
   // les avait simplement pas montrés.
   if (!secret && refuses.length > 0) {
-    const encore = (await listPrintifyWebhooks(shopId)).filter((hook) =>
+    const encore = (await listPrintifyWebhooks(shopId, hote)).filter((hook) =>
       meme(hook.url),
     );
 
@@ -824,6 +855,7 @@ export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookRe
         const cree = await printifyRequest<PrintifyWebhook>(
           `/shops/${shopId}/webhooks.json`,
           { method: "POST", body: JSON.stringify({ topic, url: marquee }) },
+          hote,
         );
 
         poses.push(topic);
