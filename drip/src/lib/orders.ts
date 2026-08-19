@@ -12,6 +12,15 @@ async function nextOrderNumber() {
   return `${ORDER_PREFIX}-${String(count + 1).padStart(6, "0")}`;
 }
 
+/**
+ * Erreur dont le message est écrit pour le client.
+ *
+ * Tout le reste — une erreur Stripe, une panne de base — porte un message
+ * technique, en anglais, qui n'a rien à faire sur une page de boutique. La
+ * distinction se fait ici pour que l'appelant sache lequel il peut afficher.
+ */
+export class ErreurBoutique extends Error {}
+
 export type CouponResult =
   | { ok: true; code: string; discount: number }
   | { ok: false; reason: string };
@@ -68,7 +77,7 @@ export async function createCheckoutSession(couponCode?: string) {
   const lines = cart.lines.filter((line) => line.available);
 
   if (lines.length === 0) {
-    throw new Error("Votre panier est vide.");
+    throw new ErreurBoutique("Votre panier est vide.");
   }
 
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
@@ -163,7 +172,14 @@ export async function createCheckoutSession(couponCode?: string) {
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: lineItems,
-    discounts: discounts.length > 0 ? discounts : undefined,
+    // Stripe refuse `discounts` et `allow_promotion_codes` dans la même
+    // requête, y compris quand le second vaut `false` : la clé compte comme
+    // « spécifiée ». Quand un code est déjà appliqué côté boutique, on n'envoie
+    // donc que la remise ; sinon on ferme explicitement le champ de Stripe pour
+    // qu'aucun code inconnu de la boutique ne passe par là.
+    ...(discounts.length > 0
+      ? { discounts }
+      : { allow_promotion_codes: false as const }),
     customer_email: user?.email || undefined,
     client_reference_id: order.id,
     metadata: { orderId: order.id, orderNumber: order.number },
@@ -192,7 +208,6 @@ export async function createCheckoutSession(couponCode?: string) {
         },
       },
     ],
-    allow_promotion_codes: false,
     success_url: `${base}/commande/confirmation?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/panier?annule=1`,
     // Une session abandonnée expire au bout de 30 minutes : la commande PENDING

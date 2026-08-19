@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
-import { rattraperSchema } from "@/lib/install";
 import { logoutAction } from "@/app/actions/auth";
 import { AdminNav } from "@/components/AdminNav";
 import { Logo } from "@/components/Logo";
@@ -20,10 +19,6 @@ export default async function AdminLayout({
   // dans chaque action serveur avant toute écriture.
   const user = await requireAdmin();
 
-  // Une base installée avant l'ajout d'une colonne se complète ici, une fois,
-  // sans rien demander : c'est le premier endroit où quelqu'un d'autorisé pose
-  // le pied, et les pages qui suivent supposent le schéma à jour.
-  await rattraperSchema();
 
   return (
     <div className="min-h-screen">
