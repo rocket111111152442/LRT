@@ -20,6 +20,11 @@
 import { prisma } from "@/lib/prisma";
 import { PRINTIFY_SHOP_KEY, readSetting } from "@/lib/settings";
 import { htmlToText, looksEncoded } from "@/lib/html";
+import {
+  traduireCouleur,
+  traduireNomProduit,
+  traduireTaille,
+} from "@/lib/traduction";
 
 // Surchargeable pour les tests ; en production, l'API publique de Printify.
 const PRINTIFY_API = process.env.PRINTIFY_API_URL ?? "https://api.printify.com/v1";
@@ -210,12 +215,17 @@ function describeVariant(
     }
   }
 
+  // Les libellés Printify sont anglais : on les francise à l'import, pour que
+  // la fiche produit ne mélange pas les deux langues.
+  const couleurFr = traduireCouleur(color);
+  const tailleFr = traduireTaille(size);
+
   const label =
-    [color, size, ...others].filter(Boolean).join(" / ") ||
+    [couleurFr, tailleFr, ...others].filter(Boolean).join(" / ") ||
     variant.title ||
     "Taille unique";
 
-  return { label, color, colorHex, size };
+  return { label, color: couleurFr, colorHex, size: tailleFr };
 }
 
 function slugify(value: string) {
@@ -303,15 +313,19 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
     const prices = variants.map((variant) => variant.price).filter((price) => price > 0);
     const basePrice = prices.length > 0 ? Math.min(...prices) : 0;
 
+    // Le titre Printify est anglais (« Unisex Heavy Blend Hooded Sweatshirt ») :
+    // on le francise avant de l'enregistrer. Un titre déjà écrit en français
+    // traverse la traduction sans changer.
+    const titre = traduireNomProduit(remote.title);
+
     const existing = await prisma.product.findUnique({ where: { podProductId } });
-    const slug =
-      existing?.slug ?? (await uniqueSlug(slugify(remote.title), podProductId));
+    const slug = existing?.slug ?? (await uniqueSlug(slugify(titre), podProductId));
 
     const product = existing
       ? await prisma.product.update({
           where: { id: existing.id },
           data: {
-            name: remote.title,
+            name: titre,
             basePrice,
             // `active` n'est pas touché : remettre en ligne une pièce que la
             // boutique a volontairement retirée serait une mauvaise surprise.
@@ -328,7 +342,7 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
       : await prisma.product.create({
           data: {
             slug,
-            name: remote.title,
+            name: titre,
             description:
               htmlToText(remote.description) ||
               "Description à compléter depuis l'administration NATURAL BRUTAL.",

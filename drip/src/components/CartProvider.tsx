@@ -17,7 +17,12 @@ type CartContextValue = {
   lastAdded: string | null;
   open: () => void;
   close: () => void;
-  add: (variantId: string, quantity?: number, productName?: string) => Promise<void>;
+  add: (
+    variantId: string,
+    quantity?: number,
+    productName?: string,
+    options?: { openDrawer?: boolean },
+  ) => Promise<void>;
   setQuantity: (itemId: string, quantity: number) => Promise<void>;
   remove: (itemId: string) => Promise<void>;
   refresh: () => Promise<void>;
@@ -77,13 +82,27 @@ export function CartProvider({
   }, []);
 
   const add = useCallback(
-    async (variantId: string, quantity = 1, productName?: string) => {
+    async (
+      variantId: string,
+      quantity = 1,
+      productName?: string,
+      options?: { openDrawer?: boolean },
+    ) => {
       // Ouverture immédiate du tiroir : le retour visuel ne doit pas attendre
-      // l'aller-retour réseau.
-      setIsOpen(true);
-      if (productName) setLastAdded(productName);
+      // l'aller-retour réseau. « Acheter maintenant » la désactive : le client
+      // part vers la caisse, lui montrer le panier au passage n'a pas de sens.
+      const openDrawer = options?.openDrawer ?? true;
+
+      if (openDrawer) {
+        setIsOpen(true);
+        if (productName) setLastAdded(productName);
+      }
+
       await send({ action: "add", variantId, quantity });
-      startTransition(() => setLastAdded(productName ?? null));
+
+      if (openDrawer) {
+        startTransition(() => setLastAdded(productName ?? null));
+      }
     },
     [send],
   );

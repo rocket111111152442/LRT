@@ -194,6 +194,8 @@ export async function createCheckoutSession(couponCode?: string) {
     // Une session abandonnée expire au bout de 30 minutes : la commande PENDING
     // correspondante sera nettoyée.
     expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    // Sans cela Stripe suivrait la langue du navigateur : un client sur un
+    // navigateur anglais verrait une page de paiement en anglais.
     locale: "fr",
     custom_text: {
       submit: {
@@ -227,16 +229,23 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
   if (!order) return;
   if (order.status !== "PENDING") return; // déjà traité
 
-  const shippingDetails =
+  // Stripe a déplacé l'adresse de livraison sous `collected_information` ; le
+  // champ de premier niveau ne survit que sur d'anciennes versions de l'API. On
+  // lit les deux, puis on se rabat sur l'adresse de facturation — un client qui
+  // paie sans que la boutique sache où livrer serait le pire des cas.
+  const collected = session.collected_information?.shipping_details ?? null;
+  const legacy =
     (session as unknown as {
-      shipping_details?: {
-        name?: string | null;
-        phone?: string | null;
-        address?: Stripe.Address | null;
-      };
+      shipping_details?: { name?: string | null; address?: Stripe.Address | null };
     }).shipping_details ?? null;
 
-  const address = shippingDetails?.address ?? session.customer_details?.address ?? null;
+  const livraison = collected ?? legacy;
+  const address = livraison?.address ?? session.customer_details?.address ?? null;
+  const shippingName =
+    livraison?.name ??
+    session.collected_information?.individual_name ??
+    session.customer_details?.name ??
+    null;
 
   await prisma.order.update({
     where: { id: order.id },
@@ -248,15 +257,13 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
         typeof session.payment_intent === "string"
           ? session.payment_intent
           : (session.payment_intent?.id ?? null),
-      shippingName:
-        shippingDetails?.name ?? session.customer_details?.name ?? null,
+      shippingName,
       shippingLine1: address?.line1 ?? null,
       shippingLine2: address?.line2 ?? null,
       shippingCity: address?.city ?? null,
       shippingPostalCode: address?.postal_code ?? null,
       shippingCountry: address?.country ?? null,
-      shippingPhone:
-        shippingDetails?.phone ?? session.customer_details?.phone ?? null,
+      shippingPhone: session.customer_details?.phone ?? null,
     },
   });
 
@@ -273,6 +280,22 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
     ? await prisma.cart.findFirst({ where: { userId: order.userId } })
     : null;
   if (cart) await clearCart(cart.id);
+
+  // Sans adresse complète, la commande ne part pas en fabrication : Printify
+  // l'accepterait et imprimerait une étiquette inutilisable. Elle reste au
+  // statut payé, visible dans l'administration, et peut être renvoyée à la main
+  // une fois l'adresse obtenue auprès du client.
+  const adresseComplete = Boolean(
+    address?.line1 && address?.city && address?.postal_code && address?.country,
+  );
+
+  if (!adresseComplete) {
+    console.error(
+      `[commande] ${order.number} payée sans adresse de livraison exploitable : ` +
+        "fabrication non lancée, à traiter depuis l'administration.",
+    );
+    return;
+  }
 
   if (printifyEnabled()) {
     try {
