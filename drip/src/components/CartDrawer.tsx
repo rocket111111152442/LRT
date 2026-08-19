@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
@@ -8,9 +8,7 @@ import { formatPrice } from "@/lib/money";
 import { SHIPPING } from "@/lib/shop";
 
 export function CartDrawer() {
-  const { cart, isOpen, close, setQuantity, remove, isBusy } = useCart();
-  const [checkingOut, setCheckingOut] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { cart, isOpen, close, setQuantity, remove } = useCart();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -33,26 +31,9 @@ export function CartDrawer() {
   const remaining = Math.max(0, SHIPPING.freeThreshold - cart.subtotal);
   const progress = Math.min(100, (cart.subtotal / SHIPPING.freeThreshold) * 100);
 
-  const checkout = async () => {
-    setCheckingOut(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/checkout", { method: "POST" });
-      const data = (await response.json()) as { url?: string; error?: string };
-
-      if (!response.ok || !data.url) {
-        setError(data.error ?? "Le paiement n'a pas pu être lancé.");
-        setCheckingOut(false);
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch {
-      setError("Connexion impossible. Réessayez dans un instant.");
-      setCheckingOut(false);
-    }
-  };
+  // Rien à commander tant qu'aucune ligne n'est disponible : le tiroir peut
+  // contenir des pièces épuisées, qu'il faut retirer avant de continuer.
+  const commandable = cart.lines.some((line) => line.available);
 
   return (
     <>
@@ -201,24 +182,18 @@ export function CartDrawer() {
                 </span>
               </div>
 
-              {error && (
-                <p className="mb-3 border border-[color:var(--color-ink)] px-3 py-2 text-xs">
-                  {error}
-                </p>
+              {/* Le tiroir mène au panier, jamais droit à la caisse : c'est
+                  là que se saisit le code promo et que le total se lit en
+                  entier. Le paiement part de cette page-là. */}
+              {commandable ? (
+                <Link href="/panier" onClick={close} className="btn btn-block">
+                  Passer commande — {formatPrice(cart.total)}
+                </Link>
+              ) : (
+                <button type="button" disabled className="btn btn-block">
+                  Retirez les pièces épuisées
+                </button>
               )}
-
-              <button
-                type="button"
-                onClick={checkout}
-                disabled={checkingOut || isBusy || cart.lines.every((line) => !line.available)}
-                className="btn btn-block"
-              >
-                {checkingOut ? "Redirection…" : `Payer ${formatPrice(cart.total)}`}
-              </button>
-
-              <Link href="/panier" onClick={close} className="label-sm mt-4 block text-center text-[color:var(--color-smoke)] link-sweep">
-                Voir le panier détaillé
-              </Link>
             </footer>
           </>
         )}
