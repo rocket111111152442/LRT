@@ -8,7 +8,7 @@ import { QuantityStepper } from "@/components/QuantityStepper";
 import { formatPrice } from "@/lib/money";
 import { SHIPPING, RETURN_WINDOW_DAYS } from "@/lib/shop";
 
-export function CartPageContent() {
+export function CartPageContent({ loggedIn }: { loggedIn: boolean }) {
   const { cart, setQuantity, remove, isBusy } = useCart();
   const [coupon, setCoupon] = useState("");
   const [couponState, setCouponState] = useState<{
@@ -256,19 +256,42 @@ export function CartPageContent() {
             </p>
           )}
 
-          <button
-            type="button"
-            onClick={checkout}
-            disabled={checkingOut || isBusy || unavailable}
-            className="btn btn-block mt-7"
-          >
-            {checkingOut ? "Redirection…" : "Passer au paiement"}
-          </button>
+          {loggedIn ? (
+            <>
+              <button
+                type="button"
+                onClick={checkout}
+                disabled={checkingOut || isBusy || unavailable}
+                className="btn btn-block mt-7"
+              >
+                {checkingOut ? "Redirection…" : "Passer au paiement"}
+              </button>
 
-          {unavailable && (
-            <p className="label-sm mt-3 text-center text-[color:var(--color-smoke)]">
-              Retirez les pièces épuisées pour continuer.
-            </p>
+              {unavailable && (
+                <p className="label-sm mt-3 text-center text-[color:var(--color-smoke)]">
+                  Retirez les pièces épuisées pour continuer.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="mt-7 border border-[color:var(--color-ink)] p-5">
+              <p className="label mb-2">Un compte est nécessaire</p>
+              <p className="mb-5 text-sm leading-relaxed text-[color:var(--color-smoke)]">
+                Pour suivre votre commande et vous recontacter si besoin, la
+                commande se fait avec un compte. Cela prend une minute.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/connexion?suite=/panier" className="btn btn-block">
+                  Se connecter
+                </Link>
+                <Link
+                  href="/inscription?suite=/panier"
+                  className="btn btn-outline btn-block"
+                >
+                  Créer un compte
+                </Link>
+              </div>
+            </div>
           )}
 
           <ul className="mt-7 space-y-2 text-xs text-[color:var(--color-smoke)]">

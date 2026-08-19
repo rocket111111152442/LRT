@@ -29,7 +29,14 @@ export default async function ConnexionPage({
       footer={
         <p className="text-sm text-[color:var(--color-smoke)]">
           Pas encore de compte ?{" "}
-          <Link href="/inscription" className="link-underline text-[color:var(--color-ink)]">
+          <Link
+            href={
+              params.suite
+                ? `/inscription?suite=${encodeURIComponent(params.suite)}`
+                : "/inscription"
+            }
+            className="link-underline text-[color:var(--color-ink)]"
+          >
             Créer un compte
           </Link>
         </p>
