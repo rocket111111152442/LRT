@@ -83,8 +83,10 @@ export default function CgvPage() {
             paiement.
           </p>
           <p>
-            Un e-mail récapitulatif est adressé au Client. Le Vendeur se réserve
-            le droit de refuser ou d&apos;annuler toute commande présentant un
+            Un reçu de paiement est adressé au Client par le prestataire de
+            paiement, puis un avis d&apos;expédition portant le numéro de suivi
+            dès la remise du colis au transporteur. Le Vendeur se réserve le
+            droit de refuser ou d&apos;annuler toute commande présentant un
             caractère anormal, notamment en cas de litige de paiement antérieur.
           </p>
         </section>

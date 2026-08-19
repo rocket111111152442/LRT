@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/components/CartProvider";
 import { CapSilhouette } from "@/components/CapSilhouette";
 import { formatPrice, formatPriceSmart } from "@/lib/money";
+import { RETURN_WINDOW_DAYS, SHIPPING } from "@/lib/shop";
 
 export type PurchaseVariant = {
   id: string;
@@ -37,7 +38,7 @@ export function ProductPurchase({
   variants: PurchaseVariant[];
   compareAtPrice: number | null;
 }) {
-  const { add, isBusy } = useCart();
+  const { add, cart, isBusy } = useCart();
 
   const colors = useMemo(
     () =>
@@ -63,6 +64,10 @@ export function ProductPurchase({
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
+  const [barVisible, setBarVisible] = useState(false);
+  const actions = useRef<HTMLDivElement>(null);
 
   // La variante retenue est celle qui satisfait les deux critères ; si le
   // produit n'a qu'un axe (taille unique par exemple), l'autre est ignoré.
@@ -85,6 +90,32 @@ export function ProductPurchase({
 
   const price = selected?.price ?? 0;
   const canBuy = Boolean(selected?.available);
+  const busy = isBusy || redirecting;
+
+  const discount =
+    compareAtPrice && compareAtPrice > price
+      ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
+      : 0;
+
+  // Ce qu'il manque pour la livraison offerte, panier courant compris : c'est
+  // l'information qui décide un deuxième article, autant la donner ici.
+  const projectedSubtotal = cart.subtotal + price * quantity;
+  const missingForFreeShipping = Math.max(0, SHIPPING.freeThreshold - projectedSubtotal);
+
+  // Sur téléphone les boutons disparaissent dès qu'on lit la description :
+  // une barre d'achat prend le relais en bas de l'écran.
+  useEffect(() => {
+    const target = actions.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setBarVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+      { threshold: 0 },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const chooseColor = (nextColor: string, variant: PurchaseVariant) => {
     setColor(nextColor);
@@ -106,8 +137,45 @@ export function ProductPurchase({
   const submit = async () => {
     if (!selected || !canBuy) return;
     setFeedback(null);
+    setError(null);
     await add(selected.id, quantity, productName);
     setFeedback("Ajouté au panier");
+  };
+
+  /**
+   * Achat direct : la pièce rejoint le panier puis le client part vers la
+   * caisse Stripe sans passer par la page panier. Le tiroir ne s'ouvre pas —
+   * il serait balayé par la redirection.
+   */
+  const buyNow = async () => {
+    if (!selected || !canBuy || busy) return;
+
+    setFeedback(null);
+    setError(null);
+    setRedirecting(true);
+
+    try {
+      await add(selected.id, quantity, productName, { openDrawer: false });
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      const data = (await response.json()) as { url?: string; error?: string };
+
+      if (!response.ok || !data.url) {
+        setError(data.error ?? "Le paiement n'a pas pu être lancé.");
+        setRedirecting(false);
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch {
+      setError("Connexion impossible. Réessayez dans un instant.");
+      setRedirecting(false);
+    }
   };
 
   return (
@@ -194,14 +262,22 @@ export function ProductPurchase({
 
       {/* --- Achat ---------------------------------------------------- */}
       <div className="lg:sticky lg:top-[100px] lg:self-start">
-        <div className="flex items-baseline gap-4">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
           <p className="font-mono text-2xl">{formatPriceSmart(price)}</p>
+
           {compareAtPrice && compareAtPrice > price && (
-            <p className="font-mono text-sm text-[color:var(--color-smoke)] line-through">
-              {formatPriceSmart(compareAtPrice)}
-            </p>
+            <>
+              <p className="font-mono text-sm text-[color:var(--color-smoke)] line-through">
+                {formatPriceSmart(compareAtPrice)}
+              </p>
+              {discount > 0 && <span className="tag tag-solid">−{discount} %</span>}
+            </>
           )}
         </div>
+
+        <p className="label-sm mt-3 text-[color:var(--color-smoke)]">
+          TVA incluse — livraison offerte dès {SHIPPING.freeThreshold / 100} €
+        </p>
 
         {colors.length > 0 && (
           <fieldset className="mt-9">
@@ -260,38 +336,59 @@ export function ProductPurchase({
           </fieldset>
         )}
 
-        <div className="mt-8 flex items-stretch gap-3">
-          <div className="flex items-center border border-[color:var(--color-hairline)]">
+        <div ref={actions} className="mt-8 space-y-3">
+          <div className="flex items-stretch gap-3">
+            <div className="flex items-center border border-[color:var(--color-hairline)]">
+              <button
+                type="button"
+                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                className="h-full w-11 transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
+                aria-label="Diminuer la quantité"
+              >
+                −
+              </button>
+              <span className="w-10 text-center font-mono text-sm">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity((value) => Math.min(10, value + 1))}
+                className="h-full w-11 transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
+                aria-label="Augmenter la quantité"
+              >
+                +
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-              className="h-full w-11 transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
-              aria-label="Diminuer la quantité"
+              onClick={buyNow}
+              disabled={!canBuy || busy}
+              className="btn min-w-0 flex-1"
             >
-              −
-            </button>
-            <span className="w-10 text-center font-mono text-sm">{quantity}</span>
-            <button
-              type="button"
-              onClick={() => setQuantity((value) => Math.min(10, value + 1))}
-              className="h-full w-11 transition-colors hover:bg-[color:var(--color-ink)] hover:text-[color:var(--color-paper)]"
-              aria-label="Augmenter la quantité"
-            >
-              +
+              {!canBuy ? (
+                "Épuisé"
+              ) : redirecting ? (
+                "Redirection…"
+              ) : (
+                <>
+                  Acheter maintenant
+                  {/* Le montant est déjà lu juste au-dessus : sur un écran
+                      étroit il ferait passer le bouton sur trois lignes. */}
+                  <span className="hidden sm:inline">
+                    {" "}
+                    — {formatPrice(price * quantity)}
+                  </span>
+                </>
+              )}
             </button>
           </div>
 
           <button
             type="button"
             onClick={submit}
-            disabled={!canBuy || isBusy}
-            className="btn flex-1"
+            disabled={!canBuy || busy}
+            className="btn btn-outline btn-block"
           >
-            {!canBuy
-              ? "Épuisé"
-              : isBusy
-                ? "Ajout…"
-                : `Ajouter — ${formatPrice(price * quantity)}`}
+            {isBusy && !redirecting ? "Ajout…" : "Ajouter au panier"}
           </button>
         </div>
 
@@ -301,12 +398,95 @@ export function ProductPurchase({
           </p>
         )}
 
+        {error && (
+          <p
+            className="mt-4 border border-[color:var(--color-ink)] px-3 py-2 text-xs"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+
+        {canBuy && missingForFreeShipping > 0 && (
+          <p className="mt-4 text-xs text-[color:var(--color-smoke)]">
+            Plus que {formatPriceSmart(missingForFreeShipping)} pour la livraison offerte.
+          </p>
+        )}
+
         {!canBuy && (
           <p className="mt-4 text-xs text-[color:var(--color-smoke)]">
             Cette référence est momentanément indisponible. Inscrivez-vous à la
             liste pour être prévenu du retour en stock.
           </p>
         )}
+
+        {/* Les quatre réponses que l'on se pose avant de payer : quand
+            j'expédie, ce que je paie, si je peux renvoyer, si c'est sûr. */}
+        <ul className="mt-9 space-y-3 border-t border-[color:var(--color-hairline)] pt-7">
+          {[
+            {
+              titre: "Fabriqué à la commande",
+              detail:
+                "Rien n'est produit à l'avance : aucune pièce ne finit détruite faute d'acheteur.",
+            },
+            {
+              titre: "Expédition sous 2 à 5 jours ouvrés",
+              detail: "Confection puis envoi suivi, numéro de suivi par e-mail.",
+            },
+            {
+              titre: `Retour sous ${RETURN_WINDOW_DAYS} jours`,
+              detail: "Pièce non portée, dans son état d'origine.",
+            },
+            {
+              titre: "Paiement sécurisé",
+              detail:
+                "Carte bancaire, Apple Pay et Google Pay via Stripe. Vos coordonnées bancaires ne passent jamais par nos serveurs.",
+            },
+          ].map((item) => (
+            <li key={item.titre} className="flex gap-3">
+              <span
+                aria-hidden
+                className="mt-[7px] h-px w-4 shrink-0 bg-[color:var(--color-ink)]"
+              />
+              <span className="min-w-0">
+                <span className="block text-sm">{item.titre}</span>
+                <span className="block text-xs leading-relaxed text-[color:var(--color-smoke)]">
+                  {item.detail}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Barre d'achat mobile : elle reprend la sélection en cours, elle ne la
+          redemande pas. Masquée tant que les vrais boutons sont à l'écran. */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--color-hairline)] bg-[color:var(--color-paper)]/95 backdrop-blur-md transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
+          barVisible && canBuy ? "translate-y-0" : "translate-y-full"
+        }`}
+        aria-hidden={!barVisible || !canBuy}
+      >
+        <div className="shell flex items-center gap-4 py-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm">{productName}</p>
+            <p className="label-sm truncate text-[color:var(--color-smoke)]">
+              {[selected?.color, selected?.size].filter(Boolean).join(" / ") || "Sélection"}
+              {" — "}
+              {formatPrice(price * quantity)}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={buyNow}
+            disabled={!canBuy || busy}
+            className="btn btn-sm shrink-0"
+            tabIndex={barVisible && canBuy ? 0 : -1}
+          >
+            {redirecting ? "Redirection…" : "Acheter"}
+          </button>
+        </div>
       </div>
     </div>
   );

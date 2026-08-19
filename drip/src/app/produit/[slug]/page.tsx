@@ -115,11 +115,40 @@ export default async function ProductPage({ params }: { params: Params }) {
       : {}),
   };
 
+  // Fil d'ariane structuré : Google affiche « Accueil › Boutique › Rayon »
+  // sous le lien, au lieu de l'adresse brute de la page.
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { name: "Accueil", item: appUrl() },
+      { name: "Boutique", item: `${appUrl()}/boutique` },
+      ...(product.category
+        ? [
+            {
+              name: product.category.name,
+              item: `${appUrl()}/boutique?rayon=${product.category.slug}`,
+            },
+          ]
+        : []),
+      { name: product.name, item: `${appUrl()}/produit/${product.slug}` },
+    ].map((entry, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: entry.name,
+      item: entry.item,
+    })),
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <nav className="shell flex items-center gap-2 py-6 text-[color:var(--color-smoke)]" aria-label="Fil d'ariane">

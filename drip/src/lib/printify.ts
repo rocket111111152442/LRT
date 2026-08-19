@@ -18,8 +18,18 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { PRINTIFY_SHOP_KEY, readSetting } from "@/lib/settings";
+import {
+  PRINTIFY_SHOP_KEY,
+  PRINTIFY_WEBHOOK_KEY,
+  readSetting,
+  writeSetting,
+} from "@/lib/settings";
 import { htmlToText, looksEncoded } from "@/lib/html";
+import {
+  traduireCouleur,
+  traduireNomProduit,
+  traduireTaille,
+} from "@/lib/traduction";
 
 // Surchargeable pour les tests ; en production, l'API publique de Printify.
 const PRINTIFY_API = process.env.PRINTIFY_API_URL ?? "https://api.printify.com/v1";
@@ -210,12 +220,17 @@ function describeVariant(
     }
   }
 
+  // Les libellés Printify sont anglais : on les francise à l'import, pour que
+  // la fiche produit ne mélange pas les deux langues.
+  const couleurFr = traduireCouleur(color);
+  const tailleFr = traduireTaille(size);
+
   const label =
-    [color, size, ...others].filter(Boolean).join(" / ") ||
+    [couleurFr, tailleFr, ...others].filter(Boolean).join(" / ") ||
     variant.title ||
     "Taille unique";
 
-  return { label, color, colorHex, size };
+  return { label, color: couleurFr, colorHex, size: tailleFr };
 }
 
 function slugify(value: string) {
@@ -303,15 +318,19 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
     const prices = variants.map((variant) => variant.price).filter((price) => price > 0);
     const basePrice = prices.length > 0 ? Math.min(...prices) : 0;
 
+    // Le titre Printify est anglais (« Unisex Heavy Blend Hooded Sweatshirt ») :
+    // on le francise avant de l'enregistrer. Un titre déjà écrit en français
+    // traverse la traduction sans changer.
+    const titre = traduireNomProduit(remote.title);
+
     const existing = await prisma.product.findUnique({ where: { podProductId } });
-    const slug =
-      existing?.slug ?? (await uniqueSlug(slugify(remote.title), podProductId));
+    const slug = existing?.slug ?? (await uniqueSlug(slugify(titre), podProductId));
 
     const product = existing
       ? await prisma.product.update({
           where: { id: existing.id },
           data: {
-            name: remote.title,
+            name: titre,
             basePrice,
             // `active` n'est pas touché : remettre en ligne une pièce que la
             // boutique a volontairement retirée serait une mauvaise surprise.
@@ -328,7 +347,7 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
       : await prisma.product.create({
           data: {
             slug,
-            name: remote.title,
+            name: titre,
             description:
               htmlToText(remote.description) ||
               "Description à compléter depuis l'administration NATURAL BRUTAL.",
@@ -480,9 +499,10 @@ export async function createPrintifyOrder(orderId: string) {
         line_items: lineItems,
         shipping_method: 1, // 1 = standard
         is_printify_express: false,
-        // Printify n'écrit pas au client : la boutique reste le seul
-        // interlocuteur, avec ses propres e-mails.
-        send_shipping_notification: false,
+        // Printify prévient le client dès que le colis part, avec son numéro
+        // de suivi. Sans cela personne ne l'avertirait : la boutique n'envoie
+        // aucun e-mail elle-même.
+        send_shipping_notification: true,
         address_to: {
           first_name: first,
           last_name: last,
@@ -524,4 +544,157 @@ export async function createPrintifyOrder(orderId: string) {
   }
 
   return podOrderId;
+}
+
+/* --------------------------------------------------------------------------
+ * Suivi des colis
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Printify prévient par webhook dès qu'un colis part. Sans cet abonnement, la
+ * boutique ne saurait jamais qu'une commande a été expédiée : la fiche resterait
+ * indéfiniment « en fabrication » et le client n'aurait aucun numéro de suivi à
+ * consulter dans son compte.
+ */
+const WEBHOOK_TOPICS = [
+  "order:shipment:created",
+  "order:shipment:delivered",
+] as const;
+
+type PrintifyWebhook = {
+  id: string;
+  topic: string;
+  url: string;
+  secret?: string;
+};
+
+export function printifyWebhookUrl(baseUrl: string) {
+  return `${baseUrl.replace(/\/$/, "")}/api/printify/webhook`;
+}
+
+export async function listPrintifyWebhooks(shopId?: string) {
+  const shop = shopId ?? (await resolveShopId());
+  return printifyRequest<PrintifyWebhook[]>(`/shops/${shop}/webhooks.json`);
+}
+
+export type WebhookReport = {
+  url: string;
+  topics: string[];
+  remplaces: number;
+  secretEnregistre: boolean;
+};
+
+/**
+ * Abonne la boutique aux événements d'expédition et range le secret HMAC.
+ *
+ * L'opération est rejouable : les abonnements déjà posés sur la même adresse
+ * sont retirés avant d'être recréés. C'est le seul moyen d'obtenir un secret
+ * — Printify ne le renvoie qu'à la création.
+ */
+export async function ensurePrintifyWebhooks(baseUrl: string): Promise<WebhookReport> {
+  const shopId = await resolveShopId();
+  const url = printifyWebhookUrl(baseUrl);
+
+  const existants = await listPrintifyWebhooks(shopId);
+  const aRemplacer = existants.filter((hook) => hook.url === url);
+
+  for (const hook of aRemplacer) {
+    await printifyRequest(`/shops/${shopId}/webhooks/${hook.id}.json`, {
+      method: "DELETE",
+    });
+  }
+
+  let secret: string | null = null;
+
+  for (const topic of WEBHOOK_TOPICS) {
+    const cree = await printifyRequest<PrintifyWebhook>(
+      `/shops/${shopId}/webhooks.json`,
+      { method: "POST", body: JSON.stringify({ topic, url }) },
+    );
+
+    if (cree.secret) secret = cree.secret;
+  }
+
+  if (secret) await writeSetting(PRINTIFY_WEBHOOK_KEY, secret);
+
+  return {
+    url,
+    topics: [...WEBHOOK_TOPICS],
+    remplaces: aRemplacer.length,
+    secretEnregistre: Boolean(secret),
+  };
+}
+
+/** Le secret posé à la main sur l'hébergeur l'emporte sur celui rangé en base. */
+export async function printifyWebhookSecret() {
+  return (
+    process.env.PRINTIFY_WEBHOOK_SECRET ||
+    (await readSetting(PRINTIFY_WEBHOOK_KEY)) ||
+    null
+  );
+}
+
+type PrintifyEvent = {
+  type?: string;
+  resource?: {
+    id?: string | number;
+    data?: {
+      shipped_at?: string;
+      delivered_at?: string;
+      carrier?: {
+        code?: string;
+        tracking_number?: string;
+        tracking_url?: string;
+      };
+      shipments?: {
+        carrier?: string;
+        number?: string;
+        url?: string;
+        delivered_at?: string;
+      }[];
+    };
+  };
+};
+
+/**
+ * Applique un événement Printify à la commande correspondante.
+ *
+ * Le format exact du corps a bougé au fil des versions de l'API : on lit les
+ * deux formes connues (`carrier` seul, ou tableau `shipments`) et on ignore en
+ * silence un événement qui ne concerne aucune commande connue — un rejeu ou une
+ * commande passée hors du site ne doit pas produire d'erreur.
+ */
+export async function applyPrintifyEvent(event: PrintifyEvent) {
+  const podOrderId = event.resource?.id ? String(event.resource.id) : null;
+  if (!podOrderId) return { traite: false, raison: "événement sans commande" };
+
+  const order = await prisma.order.findFirst({ where: { podOrderId } });
+  if (!order) return { traite: false, raison: "commande inconnue" };
+
+  const data = event.resource?.data ?? {};
+  const expedition = data.shipments?.[0];
+
+  const trackingNumber =
+    data.carrier?.tracking_number ?? expedition?.number ?? null;
+  const trackingUrl = data.carrier?.tracking_url ?? expedition?.url ?? null;
+
+  const livre =
+    event.type === "order:shipment:delivered" ||
+    Boolean(data.delivered_at ?? expedition?.delivered_at);
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      status: livre ? "DELIVERED" : "SHIPPED",
+      shippedAt: order.shippedAt ?? new Date(data.shipped_at ?? Date.now()),
+      ...(livre
+        ? { deliveredAt: new Date(data.delivered_at ?? expedition?.delivered_at ?? Date.now()) }
+        : {}),
+      // Un rejeu sans numéro ne doit pas effacer celui déjà enregistré.
+      ...(trackingNumber ? { trackingNumber } : {}),
+      ...(trackingUrl ? { trackingUrl } : {}),
+    },
+  });
+
+  return { traite: true, commande: order.number };
 }

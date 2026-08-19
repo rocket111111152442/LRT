@@ -11,6 +11,9 @@ import { prisma, safeQuery } from "@/lib/prisma";
 
 export const PRINTIFY_SHOP_KEY = "printify.shopId";
 
+/** Secret HMAC remis par Printify à l'enregistrement des webhooks. */
+export const PRINTIFY_WEBHOOK_KEY = "printify.webhookSecret";
+
 /** `null` quand la table n'existe pas encore : le schéma est alors en retard. */
 export async function readSetting(key: string): Promise<string | null | undefined> {
   return safeQuery(

@@ -169,6 +169,10 @@ export async function createCheckoutSession(couponCode?: string) {
     metadata: { orderId: order.id, orderNumber: order.number },
     payment_intent_data: {
       metadata: { orderId: order.id, orderNumber: order.number },
+      // Reçu envoyé par Stripe, sans service d'e-mail à installer. Pour un
+      // visiteur non connecté l'adresse n'est connue qu'après le paiement :
+      // elle est alors renseignée depuis le webhook.
+      receipt_email: user?.email || undefined,
     },
     shipping_address_collection: {
       allowed_countries: [...SHIPPING_COUNTRIES] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
@@ -194,6 +198,8 @@ export async function createCheckoutSession(couponCode?: string) {
     // Une session abandonnée expire au bout de 30 minutes : la commande PENDING
     // correspondante sera nettoyée.
     expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    // Sans cela Stripe suivrait la langue du navigateur : un client sur un
+    // navigateur anglais verrait une page de paiement en anglais.
     locale: "fr",
     custom_text: {
       submit: {
@@ -227,16 +233,29 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
   if (!order) return;
   if (order.status !== "PENDING") return; // déjà traité
 
-  const shippingDetails =
+  // Stripe a déplacé l'adresse de livraison sous `collected_information` ; le
+  // champ de premier niveau ne survit que sur d'anciennes versions de l'API. On
+  // lit les deux, puis on se rabat sur l'adresse de facturation — un client qui
+  // paie sans que la boutique sache où livrer serait le pire des cas.
+  const collected = session.collected_information?.shipping_details ?? null;
+  const legacy =
     (session as unknown as {
-      shipping_details?: {
-        name?: string | null;
-        phone?: string | null;
-        address?: Stripe.Address | null;
-      };
+      shipping_details?: { name?: string | null; address?: Stripe.Address | null };
     }).shipping_details ?? null;
 
-  const address = shippingDetails?.address ?? session.customer_details?.address ?? null;
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : (session.payment_intent?.id ?? null);
+  const emailClient = session.customer_details?.email ?? null;
+
+  const livraison = collected ?? legacy;
+  const address = livraison?.address ?? session.customer_details?.address ?? null;
+  const shippingName =
+    livraison?.name ??
+    session.collected_information?.individual_name ??
+    session.customer_details?.name ??
+    null;
 
   await prisma.order.update({
     where: { id: order.id },
@@ -244,21 +263,33 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
       status: "PAID",
       paidAt: new Date(),
       email: session.customer_details?.email ?? order.email,
-      stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : (session.payment_intent?.id ?? null),
-      shippingName:
-        shippingDetails?.name ?? session.customer_details?.name ?? null,
+      stripePaymentIntentId: paymentIntentId,
+      shippingName,
       shippingLine1: address?.line1 ?? null,
       shippingLine2: address?.line2 ?? null,
       shippingCity: address?.city ?? null,
       shippingPostalCode: address?.postal_code ?? null,
       shippingCountry: address?.country ?? null,
-      shippingPhone:
-        shippingDetails?.phone ?? session.customer_details?.phone ?? null,
+      shippingPhone: session.customer_details?.phone ?? null,
     },
   });
+
+  // Reçu Stripe : sans compte client, l'adresse n'était pas connue au moment
+  // de créer la session. On la pose maintenant, ce qui déclenche l'envoi — un
+  // reçu automatique, sans service d'e-mail à installer. Un échec ici ne doit
+  // rien casser : le client a payé, sa commande est enregistrée.
+  if (paymentIntentId && emailClient) {
+    try {
+      await getStripe().paymentIntents.update(paymentIntentId, {
+        receipt_email: emailClient,
+      });
+    } catch (error) {
+      console.error(
+        `[commande] reçu Stripe non envoyé pour ${order.number} :`,
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
 
   if (order.couponCode) {
     await prisma.coupon.updateMany({
@@ -273,6 +304,22 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session) {
     ? await prisma.cart.findFirst({ where: { userId: order.userId } })
     : null;
   if (cart) await clearCart(cart.id);
+
+  // Sans adresse complète, la commande ne part pas en fabrication : Printify
+  // l'accepterait et imprimerait une étiquette inutilisable. Elle reste au
+  // statut payé, visible dans l'administration, et peut être renvoyée à la main
+  // une fois l'adresse obtenue auprès du client.
+  const adresseComplete = Boolean(
+    address?.line1 && address?.city && address?.postal_code && address?.country,
+  );
+
+  if (!adresseComplete) {
+    console.error(
+      `[commande] ${order.number} payée sans adresse de livraison exploitable : ` +
+        "fabrication non lancée, à traiter depuis l'administration.",
+    );
+    return;
+  }
 
   if (printifyEnabled()) {
     try {

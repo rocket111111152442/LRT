@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma, safeQuery } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { ORDER_STATUS, type OrderStatusKey } from "@/lib/orderStatus";
+import { printifyEnabled, printifyWebhookSecret } from "@/lib/printify";
+import { PrintifyTrackingButton } from "@/components/admin/PrintifyTrackingButton";
 
 type SearchParams = Promise<{ statut?: string }>;
 
@@ -37,12 +39,16 @@ export default async function AdminCommandesPage({
     "commandes admin",
   );
 
+  const suiviActif = Boolean(await printifyWebhookSecret());
+
   return (
     <div className="space-y-10">
       <header>
         <p className="label mb-4 text-[color:var(--color-smoke)]">(Ventes)</p>
         <h1 className="display-xl">Commandes</h1>
       </header>
+
+      {printifyEnabled() && <PrintifyTrackingButton actif={suiviActif} />}
 
       <nav className="flex flex-wrap gap-5" aria-label="Filtrer par statut">
         {FILTERS.map((item) => (

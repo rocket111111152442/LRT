@@ -55,6 +55,9 @@ export async function listProducts(
             { name: { contains: search, mode: "insensitive" as const } },
             { subtitle: { contains: search, mode: "insensitive" as const } },
             { description: { contains: search, mode: "insensitive" as const } },
+            // « accessoires », « combat » : on cherche aussi par rayon, sinon
+            // le mot le plus naturel ne renvoie rien.
+            { category: { name: { contains: search, mode: "insensitive" as const } } },
           ],
         }
       : {}),

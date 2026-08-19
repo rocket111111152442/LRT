@@ -16,10 +16,19 @@ export async function POST(request: Request) {
   }
 
   if (!stripeEnabled()) {
+    // Le client n'a que faire du nom de la variable : il lui faut une phrase
+    // qui lui dise quoi faire. Le détail technique va dans la trace serveur,
+    // là où la boutique le lira.
+    console.error(
+      "[paiement] STRIPE_SECRET_KEY manquante : la caisse refuse toute " +
+        "commande. Renseignez-la dans les variables d'environnement.",
+    );
+
     return NextResponse.json(
       {
         error:
-          "Le paiement n'est pas encore activé. Renseignez STRIPE_SECRET_KEY pour ouvrir la caisse.",
+          "La caisse n'est pas encore ouverte. Écrivez-nous et nous " +
+          "enregistrerons votre commande à la main.",
       },
       { status: 503 },
     );

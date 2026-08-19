@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { useCart } from "@/components/CartProvider";
+import { SHOP } from "@/lib/shop";
 import type { SessionUser } from "@/lib/auth";
 
 const NAV = [
@@ -28,7 +29,10 @@ export function Header({ user }: { user: SessionUser | null }) {
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchField = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -52,6 +56,41 @@ export function Header({ user }: { user: SessionUser | null }) {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
+
+  // Changer de page referme ce qui était ouvert : sans cela le menu mobile
+  // resterait par-dessus la page d'arrivée. L'ajustement se fait pendant le
+  // rendu — c'est la forme recommandée pour un état dérivé d'une prop, et
+  // elle évite le rendu intermédiaire qu'un effet provoquerait.
+  const [pathVu, setPathVu] = useState(pathname);
+
+  if (pathVu !== pathname) {
+    setPathVu(pathname);
+    setMenuOpen(false);
+    setSearchOpen(false);
+  }
+
+  useEffect(() => {
+    if (!searchOpen) return;
+
+    searchField.current?.focus();
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSearchOpen(false);
+    };
+
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [searchOpen]);
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const query = new FormData(event.currentTarget).get("q");
+    const terme = typeof query === "string" ? query.trim() : "";
+
+    setSearchOpen(false);
+    router.push(terme ? `/boutique?q=${encodeURIComponent(terme)}` : "/boutique");
+  };
 
   return (
     <>
@@ -100,13 +139,15 @@ export function Header({ user }: { user: SessionUser | null }) {
           </nav>
 
           <div className="flex items-center gap-5">
-            <Link
-              href="/boutique"
-              className="label hidden opacity-70 transition-opacity hover:opacity-100 sm:block"
-              aria-label="Rechercher un produit"
+            <button
+              type="button"
+              onClick={() => setSearchOpen((value) => !value)}
+              className="label opacity-70 transition-opacity hover:opacity-100"
+              aria-label="Rechercher une pièce"
+              aria-expanded={searchOpen}
             >
               <SearchIcon />
-            </Link>
+            </button>
 
             <Link
               href={user ? "/compte" : "/connexion"}
@@ -146,6 +187,42 @@ export function Header({ user }: { user: SessionUser | null }) {
             </button>
           </div>
         </div>
+
+        {/* Recherche : le panneau descend sous la barre plutôt que d'ouvrir
+            une page intermédiaire. La loupe ne mène plus « quelque part »,
+            elle cherche vraiment. */}
+        <div
+          className={`overflow-hidden border-t border-[color:var(--color-hairline)] bg-[color:var(--color-paper)] transition-[max-height,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            searchOpen ? "max-h-40 opacity-100" : "max-h-0 border-transparent opacity-0"
+          }`}
+        >
+          <form onSubmit={submitSearch} className="shell flex items-center gap-4 py-4" role="search">
+            <label htmlFor="recherche-entete" className="sr-only">
+              Rechercher une pièce
+            </label>
+            <input
+              ref={searchField}
+              id="recherche-entete"
+              name="q"
+              type="search"
+              placeholder="Chercher une pièce, une couleur, un rayon…"
+              autoComplete="off"
+              tabIndex={searchOpen ? 0 : -1}
+              className="min-w-0 flex-1 border-0 border-b border-[color:var(--color-hairline)] bg-transparent pb-2 text-lg outline-none placeholder:text-[color:var(--color-smoke)] focus:border-[color:var(--color-ink)]"
+            />
+            <button type="submit" className="btn btn-sm shrink-0" tabIndex={searchOpen ? 0 : -1}>
+              Chercher
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchOpen(false)}
+              className="label-sm shrink-0 text-[color:var(--color-smoke)] link-sweep"
+              tabIndex={searchOpen ? 0 : -1}
+            >
+              Fermer
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* Menu mobile plein écran, liens révélés en cascade. */}
@@ -183,14 +260,24 @@ export function Header({ user }: { user: SessionUser | null }) {
           >
             {user ? "Mon compte" : "Connexion"}
           </Link>
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="label link-sweep"
-          >
-            Instagram
-          </a>
+          <span className="flex items-center gap-5">
+            <a
+              href={SHOP.social.instagram}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="label link-sweep"
+            >
+              Instagram
+            </a>
+            <a
+              href={SHOP.social.tiktok}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="label link-sweep"
+            >
+              TikTok
+            </a>
+          </span>
         </div>
       </div>
     </>

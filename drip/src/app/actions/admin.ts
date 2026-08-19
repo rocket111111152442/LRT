@@ -12,7 +12,9 @@ import {
   createPrintifyOrder,
   printifyEnabled,
   listPrintifyShops,
+  ensurePrintifyWebhooks,
 } from "@/lib/printify";
+import { appUrl } from "@/lib/stripe";
 import { runSchema } from "@/lib/install";
 import { PRINTIFY_SHOP_KEY, writeSetting } from "@/lib/settings";
 import { repairEncodedProducts } from "@/lib/repair";
@@ -648,5 +650,56 @@ export async function repairTextsAction(): Promise<FormState> {
     unstable_rethrow(error);
     console.error("[admin] réparation des textes :", error);
     return { errors: { form: "La réparation a échoué." } };
+  }
+}
+
+/**
+ * Abonne la boutique aux événements d'expédition Printify.
+ *
+ * C'est ce qui remplit le numéro de suivi dans le compte client et fait passer
+ * la commande en « expédiée » toute seule. Sans cet abonnement, la fiche reste
+ * bloquée sur « en fabrication » jusqu'à ce qu'on la corrige à la main.
+ */
+export async function enablePrintifyTrackingAction(): Promise<FormState> {
+  await guard();
+
+  if (!printifyEnabled()) {
+    return {
+      errors: { form: "PRINTIFY_API_KEY manquante : Printify n'est pas relié." },
+    };
+  }
+
+  try {
+    const rapport = await ensurePrintifyWebhooks(appUrl());
+
+    if (!rapport.secretEnregistre) {
+      return {
+        errors: {
+          form:
+            "Printify n'a pas renvoyé de secret : le suivi ne peut pas être " +
+            "vérifié. Réessayez dans un instant.",
+        },
+      };
+    }
+
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      message:
+        `Suivi des colis activé sur ${rapport.url}. ` +
+        `Printify préviendra la boutique à chaque expédition et à chaque livraison.`,
+    };
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("[admin] activation du suivi Printify :", error);
+    return {
+      errors: {
+        form:
+          error instanceof Error
+            ? error.message
+            : "L'activation du suivi a échoué.",
+      },
+    };
   }
 }
