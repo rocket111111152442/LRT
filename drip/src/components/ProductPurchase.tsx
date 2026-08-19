@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartProvider";
 import { CapSilhouette } from "@/components/CapSilhouette";
 import { formatPrice, formatPriceSmart } from "@/lib/money";
@@ -39,6 +40,7 @@ export function ProductPurchase({
   compareAtPrice: number | null;
 }) {
   const { add, cart, isBusy } = useCart();
+  const router = useRouter();
 
   const colors = useMemo(
     () =>
@@ -64,7 +66,6 @@ export function ProductPurchase({
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
   const [barVisible, setBarVisible] = useState(false);
   const actions = useRef<HTMLDivElement>(null);
@@ -137,45 +138,27 @@ export function ProductPurchase({
   const submit = async () => {
     if (!selected || !canBuy) return;
     setFeedback(null);
-    setError(null);
     await add(selected.id, quantity, productName);
     setFeedback("Ajouté au panier");
   };
 
   /**
-   * Achat direct : la pièce rejoint le panier puis le client part vers la
-   * caisse Stripe sans passer par la page panier. Le tiroir ne s'ouvre pas —
-   * il serait balayé par la redirection.
+   * Achat direct : la pièce rejoint le panier, puis le client arrive sur la
+   * page panier — pas sur la caisse Stripe.
+   *
+   * C'est là que se trouvent le code promo, les frais de port et le total :
+   * partir droit au paiement prive le client du seul endroit où il peut
+   * encore agir sur sa commande. Le tiroir ne s'ouvre pas, la page panier le
+   * remplace.
    */
   const buyNow = async () => {
     if (!selected || !canBuy || busy) return;
 
     setFeedback(null);
-    setError(null);
     setRedirecting(true);
 
-    try {
-      await add(selected.id, quantity, productName, { openDrawer: false });
-
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-
-      const data = (await response.json()) as { url?: string; error?: string };
-
-      if (!response.ok || !data.url) {
-        setError(data.error ?? "Le paiement n'a pas pu être lancé.");
-        setRedirecting(false);
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch {
-      setError("Connexion impossible. Réessayez dans un instant.");
-      setRedirecting(false);
-    }
+    await add(selected.id, quantity, productName, { openDrawer: false });
+    router.push("/panier");
   };
 
   return (
@@ -367,7 +350,7 @@ export function ProductPurchase({
               {!canBuy ? (
                 "Épuisé"
               ) : redirecting ? (
-                "Redirection…"
+                "Un instant…"
               ) : (
                 <>
                   Acheter maintenant
@@ -395,15 +378,6 @@ export function ProductPurchase({
         {feedback && (
           <p className="label mt-4 text-[color:var(--color-smoke)]" role="status">
             {feedback}
-          </p>
-        )}
-
-        {error && (
-          <p
-            className="mt-4 border border-[color:var(--color-ink)] px-3 py-2 text-xs"
-            role="alert"
-          >
-            {error}
           </p>
         )}
 
@@ -484,7 +458,7 @@ export function ProductPurchase({
             className="btn btn-sm shrink-0"
             tabIndex={barVisible && canBuy ? 0 : -1}
           >
-            {redirecting ? "Redirection…" : "Acheter"}
+            {redirecting ? "Un instant…" : "Acheter"}
           </button>
         </div>
       </div>
