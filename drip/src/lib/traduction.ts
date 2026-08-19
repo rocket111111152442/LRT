@@ -225,6 +225,28 @@ const PUBLICS: [string, string][] = [
   ["toddler", "enfant"],
 ];
 
+/**
+ * À qui ce gabarit Printify s'adresse.
+ *
+ * Le titre le dit presque toujours — « Men's Tank Top », « Women's Leggings ».
+ * Le déduire à l'import évite de classer une centaine de pièces à la main ;
+ * l'administration garde le dernier mot.
+ */
+export function deduirePublic(titre: string): "HOMME" | "FEMME" | "ENFANT" | "UNISEXE" {
+  const texte = cle(titre);
+
+  const contient = (terme: string) =>
+    new RegExp(`(^|[^\\p{L}\\p{N}])${terme}(?![\\p{L}\\p{N}])`, "u").test(texte);
+
+  if (contient("women's") || contient("womens") || contient("ladies")) return "FEMME";
+  if (contient("men's") || contient("mens")) return "HOMME";
+  if (contient("kids") || contient("youth") || contient("toddler") || contient("baby")) {
+    return "ENFANT";
+  }
+
+  return "UNISEXE";
+}
+
 /** Mots vides du jargon Printify : ils n'apportent rien en français. */
 const BRUIT = new Set(["the", "a", "an", "for", "with", "and", "of"]);
 

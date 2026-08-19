@@ -26,6 +26,7 @@ import {
 } from "@/lib/settings";
 import { htmlToText, looksEncoded } from "@/lib/html";
 import {
+  deduirePublic,
   traduireCouleur,
   traduireNomProduit,
   traduireTaille,
@@ -442,6 +443,10 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
               descriptionPrintify ||
               "Description à compléter depuis l'administration NATURAL BRUTAL.",
             podDescription: descriptionPrintify || null,
+            // Déduit du titre d'origine, et seulement à la création : le
+            // classement fait à la main dans l'administration ne doit pas
+            // sauter à la synchronisation suivante.
+            audience: deduirePublic(remote.title),
             basePrice,
             podProductId,
             // Un nouveau produit reste hors ligne : il faut relire le texte et

@@ -32,6 +32,15 @@ enum ReviewStatus {
   REJECTED
 }
 
+/// À qui la pièce est destinée. Un rayon dit ce que c'est, le public dit
+/// pour qui : deux axes indépendants, qu'une seule catégorie ne peut pas porter.
+enum Audience {
+  UNISEXE
+  HOMME
+  FEMME
+  ENFANT
+}
+
 enum DiscountType {
   PERCENT
   FIXED
@@ -125,6 +134,7 @@ model Product {
   // Détails affichés dans l'accordéon fiche produit (matière, entretien…).
   composition String? @db.Text
   categoryId  String?
+  audience    Audience @default(UNISEXE)
   // Identifiant du produit chez le fabricant à la demande (Printify).
   podProductId String? @unique
   // Dernier texte reçu de Printify. Sert de témoin : tant que `description`

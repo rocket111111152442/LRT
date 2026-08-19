@@ -46,6 +46,7 @@ export function ProductAdminForm({
     basePrice: number;
     compareAtPrice: number | null;
     categoryId: string | null;
+    audience: string;
     position: number;
     seoTitle: string | null;
     seoDescription: string | null;
@@ -161,6 +162,29 @@ export function ProductAdminForm({
           </select>
         </div>
 
+        <div>
+          <label htmlFor="admin-audience" className="field-label">
+            Pour qui
+          </label>
+          <select
+            id="admin-audience"
+            name="audience"
+            defaultValue={product.audience}
+            className="field"
+          >
+            <option value="UNISEXE">Unisexe</option>
+            <option value="HOMME">Homme</option>
+            <option value="FEMME">Femme</option>
+            <option value="ENFANT">Enfant</option>
+          </select>
+          <p className="label-sm mt-2 text-[color:var(--color-smoke)]">
+            Une pièce unisexe apparaît dans le rayon homme comme dans le rayon
+            femme.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field
           label="Badge"
           name="badge"

@@ -1,8 +1,14 @@
 import { prisma, safeQuery } from "@/lib/prisma";
 
-export type SortKey = "nouveautes" | "prix-croissant" | "prix-decroissant" | "populaires";
+export type SortKey =
+  | "rayon"
+  | "nouveautes"
+  | "prix-croissant"
+  | "prix-decroissant"
+  | "populaires";
 
 export const SORT_LABELS: Record<SortKey, string> = {
+  rayon: "Par rayon",
   nouveautes: "Nouveautés",
   populaires: "Les plus aimées",
   "prix-croissant": "Prix croissant",
@@ -10,7 +16,26 @@ export const SORT_LABELS: Record<SortKey, string> = {
 };
 
 export function parseSort(value: string | undefined): SortKey {
-  return value && value in SORT_LABELS ? (value as SortKey) : "nouveautes";
+  // « Par rayon » par défaut : sans lui, « Tout » affichait le catalogue dans
+  // l'ordre d'import, casquettes et sweats mélangés au hasard des
+  // synchronisations.
+  return value && value in SORT_LABELS ? (value as SortKey) : "rayon";
+}
+
+export const AUDIENCE_LABELS = {
+  HOMME: "Homme",
+  FEMME: "Femme",
+  UNISEXE: "Unisexe",
+  ENFANT: "Enfant",
+} as const;
+
+export type AudienceKey = keyof typeof AUDIENCE_LABELS;
+
+export function parseAudience(value: string | undefined): AudienceKey | undefined {
+  if (!value) return undefined;
+
+  const cle = value.toUpperCase();
+  return cle in AUDIENCE_LABELS ? (cle as AudienceKey) : undefined;
 }
 
 const listSelect = {
@@ -30,25 +55,55 @@ const listSelect = {
     select: { id: true, color: true, colorHex: true, size: true, price: true },
   },
   category: { select: { slug: true, name: true } },
+  audience: true,
 } as const;
 
 type ProductList = Awaited<ReturnType<typeof prisma.product.findMany<{ select: typeof listSelect }>>>;
 
 export type ProductCardData = ProductList[number];
 
+/**
+ * Publics réellement présents au catalogue.
+ *
+ * Le filtre homme/femme n'a de sens que si la boutique vend des deux : proposer
+ * un choix qui ne change rien encombre la page pour rien.
+ */
+export async function listAudiences() {
+  return safeQuery(
+    async () => {
+      const lignes = await prisma.product.groupBy({
+        by: ["audience"],
+        where: { active: true },
+      });
+
+      return lignes.map((ligne) => ligne.audience);
+    },
+    [],
+    "publics du catalogue",
+  );
+}
+
 export async function listProducts(
   options: {
     category?: string;
+    audience?: AudienceKey;
     sort?: SortKey;
     search?: string;
     take?: number;
   } = {},
 ) {
-  const { category, sort = "nouveautes", search, take } = options;
+  const { category, audience, sort = "rayon", search, take } = options;
 
   const where = {
     active: true,
     ...(category ? { category: { slug: category } } : {}),
+    // « Unisexe » recouvre le reste : une pièce unisexe a sa place dans le
+    // rayon homme comme dans le rayon femme, ce serait absurde de la cacher.
+    ...(audience
+      ? audience === "UNISEXE"
+        ? { audience: "UNISEXE" as const }
+        : { audience: { in: [audience, "UNISEXE" as const] } }
+      : {}),
     ...(search
       ? {
           OR: [
@@ -70,7 +125,17 @@ export async function listProducts(
         ? [{ basePrice: "desc" as const }]
         : sort === "populaires"
           ? [{ featured: "desc" as const }, { position: "asc" as const }]
-          : [{ createdAt: "desc" as const }];
+          : sort === "nouveautes"
+            ? [{ createdAt: "desc" as const }]
+            : // Par rayon : les rayons dans l'ordre choisi en administration,
+              // puis les pièces dans le leur. Les pièces sans rayon ferment la
+              // marche, PostgreSQL plaçant les valeurs nulles en fin de tri
+              // croissant.
+              [
+                { category: { position: "asc" as const } },
+                { position: "asc" as const },
+                { createdAt: "desc" as const },
+              ];
 
   return safeQuery(
     async () => {
