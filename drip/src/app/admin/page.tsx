@@ -11,8 +11,17 @@ export default async function AdminDashboard() {
       const paidStatuses = ["PAID", "IN_PRODUCTION", "SHIPPED", "DELIVERED"] as const;
       const thirtyDaysAgo = daysAgo(30);
 
-      const [revenue, revenue30, orderCount, pendingReviews, customers, unhandled, lowActivity, recent] =
-        await Promise.all([
+      const [
+        revenue,
+        revenue30,
+        orderCount,
+        pendingReviews,
+        customers,
+        unhandled,
+        lowActivity,
+        bloquees,
+        recent,
+      ] = await Promise.all([
           prisma.order.aggregate({
             where: { status: { in: [...paidStatuses] } },
             _sum: { total: true },
@@ -28,6 +37,10 @@ export default async function AdminDashboard() {
           prisma.user.count({ where: { role: "CUSTOMER" } }),
           prisma.contactMessage.count({ where: { handled: false } }),
           prisma.product.count({ where: { active: true } }),
+          // Payée, mais jamais transmise au fabricant. C'est ce que laisse
+          // derrière elle une carte refusée chez Printify — faute de fonds,
+          // le plus souvent, l'encaissement Stripe n'étant versé que plus tard.
+          prisma.order.count({ where: { status: "PAID", podOrderId: null } }),
           prisma.order.findMany({
             where: { status: { not: "PENDING" } },
             orderBy: { createdAt: "desc" },
@@ -51,6 +64,7 @@ export default async function AdminDashboard() {
         customers,
         unhandled,
         activeProducts: lowActivity,
+        bloquees,
         recent,
       };
     },
@@ -84,6 +98,10 @@ export default async function AdminDashboard() {
   const bloquants = manquants.filter((point) => point.bloquant);
 
   const alerts = [
+    data.bloquees > 0 && {
+      text: `${data.bloquees} commande${data.bloquees > 1 ? "s" : ""} payée${data.bloquees > 1 ? "s" : ""} mais pas encore transmise${data.bloquees > 1 ? "s" : ""} à la fabrication. Vérifiez le moyen de paiement enregistré dans Printify, puis relancez l'envoi depuis la commande.`,
+      href: "/admin/commandes?statut=PAID",
+    },
     data.pendingReviews > 0 && {
       text: `${data.pendingReviews} avis en attente de modération.`,
       href: "/admin/avis",
