@@ -25,7 +25,10 @@ contact.html            Coordonnées + formulaire
 mentions-legales.html   Mentions légales et protection des données
 assets/css/site.css     Styles — la palette est en tête de fichier
 assets/js/site.js       Menu, accordéon, apparitions, formulaire
-assets/img/             Image Open Graph, icône iOS
+assets/img/             Logo, image Open Graph, icône iOS
+parcours.mjs            Questions du devis, une branche par assurance
+illustrations.mjs       Illustrations SVG dessinées aux couleurs du cabinet
+api/lead.js             Réception des demandes et envoi au cabinet
 vercel.json             cleanUrls, en-têtes de sécurité, cache des assets
 ```
 
@@ -56,16 +59,16 @@ lettrage du logo. Repli sur les polices système.
 
 ## Logo
 
-`assets/img/logo.svg` et sa variante pour fond sombre `logo-blanc.svg` sont
-une reconstitution vectorielle du logo fourni. Le lettrage y est du texte
-composé en Archivo : le SVG est donc **inséré dans la page** plutôt
-qu'appelé via `<img>`, car une image SVG externe n'hérite pas des polices du
-document.
+`assets/img/logo.png` est le logo officiel du cabinet : le fichier fourni
+(`assets/img/images.jpg`) a été détouré, recadré et ré-encodé en PNG. Il est
+posé sur blanc — d'où la plaque blanche qui l'accueille dans le pied de page
+sombre (`.brand--plaque`).
 
-Pour poser le fichier original à la place : remplacer `assets/img/logo.svg`
-(et la variante claire), puis relancer `node build.mjs`. Si le fichier
-original contient déjà son lettrage vectorisé, un simple
-`<img src="/assets/img/logo.svg" alt="…">` suffit dans `build.mjs`.
+Pour le remplacer : déposer le nouveau fichier sous `assets/img/logo.png`
+puis relancer `node build.mjs`. Le générateur recalcule l'empreinte du
+fichier et met à jour le `?v=…` de toutes les pages, ce qui vide le cache
+des navigateurs. Si les proportions changent, ajuster `width`/`height` dans
+la fonction `marque()` de `build.mjs`.
 
 ## Tenue en performance
 
@@ -79,12 +82,44 @@ Le site doit rester fluide sur une machine modeste :
 
 Page d'accueil : 5 requêtes, 419 éléments DOM, DOM interactif en 15 ms.
 
-## Formulaire de contact
+## Où arrivent les demandes
 
-Il n'y a pas de backend : le formulaire valide les champs puis compose un
-`mailto:` vers l'adresse définie par l'attribut `data-to` du `<form>`.
-Pour passer à un envoi côté serveur, remplacer le gestionnaire `submit` dans
-`assets/js/site.js` par un `fetch` vers une route d'API.
+Les trois formulaires du site (devis guidé, demande de contact, formulaire
+de la page contact) envoient les réponses en JSON à `/api/lead`, une
+fonction sans serveur Vercel (`api/lead.js`). Celle-ci compose un courriel
+lisible — une ligne par question posée — et l'expédie à l'adresse du
+cabinet. La réponse du visiteur est mise en `reply-to` : il suffit de
+répondre au message pour lui écrire.
+
+### Configuration (variables d'environnement Vercel)
+
+| Variable | Rôle |
+| --- | --- |
+| `RESEND_API_KEY` | clé [Resend](https://resend.com) — 100 mails/jour gratuits |
+| `BREVO_API_KEY` | clé [Brevo](https://brevo.com) — 300 mails/jour gratuits, alternative à Resend |
+| `LEAD_TO` | destinataire (défaut : `contacts@suisse-conseilsm.ch`) |
+| `LEAD_FROM` | expéditeur, à vérifier chez le fournisseur (défaut : `onboarding@resend.dev`) |
+
+Une seule des deux clés suffit : `RESEND_API_KEY` est essayée en premier.
+À poser dans *Project → Settings → Environment Variables*, puis redéployer.
+
+**Tant qu'aucune clé n'est configurée**, la fonction répond `501` et le site
+bascule automatiquement sur l'ouverture de la messagerie du visiteur
+(`mailto:` vers l'adresse de `data-to`) : aucune demande n'est perdue, mais
+elle dépend alors du logiciel de courrier du visiteur. Configurer une clé
+est donc la première chose à faire avant la mise en ligne.
+
+### Garde-fous
+
+- champ leurre `site_web`, invisible et hors tabulation : rempli, la demande
+  est ignorée en silence ;
+- une demande par adresse IP et par minute ;
+- nom et adresse e-mail vérifiés côté serveur ;
+- aucune base de données : rien n'est stocké, tout part par courriel.
+
+Pour brancher un CRM à la place (ou en plus) du courriel, ajouter l'appel
+dans `api/lead.js` : le corps reçu contient `assurance`, `nom`, `email`,
+`telephone` et le tableau `reponses` (`{question, reponse, nom}`).
 
 ## Textes
 
@@ -93,8 +128,8 @@ Les textes actuels sont **provisoires**. Le site d'origine
 développement, l'accès sortant étant filtré par le proxy réseau. Les
 coordonnées, en revanche, sont celles du cabinet :
 
-- Route de Saint-Julien 129, 1228 Plan-les-Ouates, Genève
-- +41 76 206 05 91 — contact@suisse-conseilsm.ch
+- Avenue Rosemont 12, 1208 Genève
+- +41 22 518 55 46 — contacts@suisse-conseilsm.ch
 
 À compléter avant mise en ligne définitive : raison sociale exacte, forme
 juridique, numéro IDE et numéro d'inscription au registre FINMA

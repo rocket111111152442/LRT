@@ -52,6 +52,27 @@ const I = {
   horloge: `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.4" stroke="currentColor" stroke-width="1.5"/><path d="M10 5.8V10l2.9 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 };
 
+/* Champ leurre : invisible et hors tabulation. Un visiteur ne le voit jamais,
+   les robots le remplissent — la demande est alors ignorée côté serveur. */
+const piege = (id) => `
+  <div class="piege" aria-hidden="true">
+    <label for="${id}-site">Ne pas remplir</label>
+    <input id="${id}-site" name="site_web" type="text" tabindex="-1" autocomplete="off">
+  </div>`;
+
+/* Panneau affiché une fois la demande transmise au cabinet. */
+const succes = (mot = "Votre demande est bien arrivée.") => `
+  <div class="succes" data-succes hidden>
+    <span class="succes__sceau">${I.check}</span>
+    <h3>${mot}</h3>
+    <p>Un conseiller la reprend et vous rappelle sous 24 h ouvrées. Vous recevez
+      votre comparatif chiffré par e-mail, sans engagement.</p>
+    <p class="succes__actions">
+      <a class="btn" href="tel:${SITE.telHref}">${SITE.tel}</a>
+      <a class="btn btn--ghost" href="/">Retour à l’accueil ${I.fleche}</a>
+    </p>
+  </div>`;
+
 /* Logo officiel du cabinet. Le fichier source (images.jpg) a été détouré et
    ré-encodé en PNG : voir assets/img/logo.png. Il est posé sur blanc, d'où la
    plaque blanche qui l'accueille dans le pied de page sombre. */
@@ -210,56 +231,6 @@ const bandeCta = (titre, texte) => `
   </div>
 </section>`;
 
-const formulaire = `
-<form class="formcard" data-form data-to="${SITE.mail}" novalidate>
-  <div class="duo">
-    <div class="field" data-required>
-      <label for="nom">Nom et prénom</label>
-      <input id="nom" name="nom" type="text" autocomplete="name">
-      <span class="err">Merci d’indiquer votre nom.</span>
-    </div>
-    <div class="field" data-required>
-      <label for="email">E-mail</label>
-      <input id="email" name="email" type="email" autocomplete="email">
-      <span class="err">Adresse e-mail incomplète.</span>
-    </div>
-  </div>
-  <div class="duo">
-    <div class="field">
-      <label for="telephone">Téléphone</label>
-      <input id="telephone" name="telephone" type="tel" autocomplete="tel">
-    </div>
-    <div class="field">
-      <label for="situation">Votre situation</label>
-      <select id="situation" name="situation">
-        <option>Résident en Suisse</option>
-        <option>Frontalier</option>
-        <option>Nouvel arrivant</option>
-        <option>Indépendant</option>
-        <option>Entreprise</option>
-      </select>
-    </div>
-  </div>
-  <div class="field">
-    <label for="sujet">Sujet</label>
-    <select id="sujet" name="sujet">
-      <option>Assurance maladie</option>
-      <option>3e pilier</option>
-      <option>LPP / 2e pilier</option>
-      <option>Assurances de personnes</option>
-      <option>Assurance entreprise</option>
-      <option>Autre demande</option>
-    </select>
-  </div>
-  <div class="field" data-required>
-    <label for="message">Votre message</label>
-    <textarea id="message" name="message" placeholder="Décrivez brièvement votre situation."></textarea>
-    <span class="err">Merci d’écrire quelques mots.</span>
-  </div>
-  <button class="btn btn--lg" type="submit">Envoyer ma demande ${I.fleche}</button>
-  <p class="note">Réponse sous 24 h ouvrées. Vos données ne sont ni vendues ni cédées à des tiers.</p>
-</form>`;
-
 const coordonnees = `
 <ul class="coord">
   <li>${I.tel}<div><b>Téléphone</b><a href="tel:${SITE.telHref}">${SITE.tel}</a></div></li>
@@ -365,11 +336,14 @@ const etapeHtml = (etape, branche, prefixe) => {
 };
 
 const moduleDevis = (id = "devis") => {
-  const cachés = new Set();
+  /* Les réponses aux questions à choix voyagent dans des champs cachés.
+     On leur attache l'intitulé affiché à l'écran (data-libelle) : la demande
+     reçue par le cabinet se relit alors exactement comme le formulaire. */
+  const cachés = new Map();
   PARCOURS.forEach((p) =>
     p.etapes.forEach((e) =>
       e.questions.forEach((q) => {
-        if (q.type === "choix" || q.type === "multi") cachés.add(q.champ);
+        if (q.type === "choix" || q.type === "multi") cachés.set(q.champ, q.titre);
       })
     )
   );
@@ -386,8 +360,14 @@ const moduleDevis = (id = "devis") => {
   </div>
 
   <form class="demande__corps" data-form data-to="${SITE.mail}" novalidate>
-    <input type="hidden" name="assurance" value="">
-    ${[...cachés].map((c) => `<input type="hidden" name="${c}" value="">`).join("\n    ")}
+    ${piege(id)}
+    <input type="hidden" name="assurance" data-libelle="Assurance demandée" value="">
+    ${[...cachés]
+      .map(
+        ([champ, titre]) =>
+          `<input type="hidden" name="${champ}" data-libelle="${titre.replace(/"/g, "&quot;")}" value="">`
+      )
+      .join("\n    ")}
 
     <div class="etape" data-etape="type" data-nom="Assurance">
       <h3>Pour quelle assurance souhaitez-vous un devis ?</h3>
@@ -447,101 +427,12 @@ const moduleDevis = (id = "devis") => {
         <button class="btn btn--lg pulse" type="submit">Recevoir mon devis ${I.fleche}</button>
       </div>
     </div>
+
+    ${succes("Votre demande de devis est partie.")}
   </form>
 </div>`;
 };
 
-/* ------------------------------- demande de contact guidée, en trois temps */
-const moduleDemande = (id = "demande") => `
-<div class="demande" id="${id}" data-demande>
-  <div class="demande__tete">
-    <span class="eyebrow">Votre demande en 30 secondes</span>
-    <h2 class="d3" style="margin-top:.75rem">Dites-nous qui vous êtes, on s’occupe du reste</h2>
-    <div class="demande__fil">
-      <span class="demande__pastille" data-pastille data-actif="true"><b>1</b> Profil</span>
-      <span class="demande__pastille" data-pastille><b>2</b> Sujet</span>
-      <span class="demande__pastille" data-pastille><b>3</b> Coordonnées</span>
-    </div>
-    <div class="demande__jauge"><i data-jauge></i></div>
-  </div>
-
-  <form class="demande__corps" data-form data-to="${SITE.mail}" novalidate>
-    <input type="hidden" name="profil" value="">
-    <input type="hidden" name="sujet" value="">
-    <input type="hidden" name="moment" value="">
-
-    <div class="etape">
-      <h3>Vous êtes…</h3>
-      <p>Le conseil n’est pas le même selon votre statut : on adapte dès la première question.</p>
-      <div class="options">
-        <button class="option" type="button" data-choix="profil" data-valeur="Résident en Suisse" aria-pressed="false">${I.bouclier} Résident en Suisse</button>
-        <button class="option" type="button" data-choix="profil" data-valeur="Frontalier" aria-pressed="false">${I.frontiere} Frontalier</button>
-        <button class="option" type="button" data-choix="profil" data-valeur="Indépendant" aria-pressed="false">${I.personnes} Indépendant</button>
-        <button class="option" type="button" data-choix="profil" data-valeur="Entreprise" aria-pressed="false">${I.entreprise} Entreprise</button>
-        <button class="option" type="button" data-choix="profil" data-valeur="Nouvel arrivant" aria-pressed="false">${I.balance} Nouvel arrivant</button>
-      </div>
-    </div>
-
-    <div class="etape" hidden>
-      <h3>Sur quoi souhaitez-vous être conseillé ?</h3>
-      <p>Un seul sujet suffit pour démarrer : on balaiera le reste au rendez-vous.</p>
-      <div class="options">
-        <button class="option" type="button" data-choix="sujet" data-valeur="Assurance maladie" aria-pressed="false">${I.sante} Assurance maladie</button>
-        <button class="option" type="button" data-choix="sujet" data-valeur="3e pilier" aria-pressed="false">${I.epargne} 3<sup>e</sup> pilier</button>
-        <button class="option" type="button" data-choix="sujet" data-valeur="LPP / 2e pilier" aria-pressed="false">${I.balance} LPP · 2<sup>e</sup> pilier</button>
-        <button class="option" type="button" data-choix="sujet" data-valeur="Ménage, RC, véhicule" aria-pressed="false">${I.bouclier} Ménage, RC, véhicule</button>
-        <button class="option" type="button" data-choix="sujet" data-valeur="Perte de gain / invalidité" aria-pressed="false">${I.personnes} Perte de gain</button>
-        <button class="option" type="button" data-choix="sujet" data-valeur="Assurance entreprise" aria-pressed="false">${I.entreprise} Assurance entreprise</button>
-      </div>
-      <div class="demande__pied">
-        <button class="lien-retour" type="button" data-retour>← Revenir au profil</button>
-        <span class="demande__recap" data-recap></span>
-      </div>
-    </div>
-
-    <div class="etape" hidden>
-      <h3>Où peut-on vous joindre ?</h3>
-      <p>Nous rappelons sous 24 h ouvrées. Aucun démarchage, aucune donnée revendue.</p>
-      <div class="duo">
-        <div class="field" data-required>
-          <label for="${id}-nom">Nom et prénom</label>
-          <input id="${id}-nom" name="nom" type="text" autocomplete="name">
-          <span class="err">Merci d’indiquer votre nom.</span>
-        </div>
-        <div class="field" data-required>
-          <label for="${id}-email">E-mail</label>
-          <input id="${id}-email" name="email" type="email" autocomplete="email">
-          <span class="err">Adresse e-mail incomplète.</span>
-        </div>
-      </div>
-      <div class="duo">
-        <div class="field" data-required>
-          <label for="${id}-tel">Téléphone</label>
-          <input id="${id}-tel" name="telephone" type="tel" autocomplete="tel">
-          <span class="err">Merci d’indiquer un numéro.</span>
-        </div>
-        <div class="field">
-          <label for="${id}-moment">Quand vous rappeler ?</label>
-          <select id="${id}-moment" name="moment">
-            <option>Dès que possible</option>
-            <option>En matinée</option>
-            <option>En après-midi</option>
-            <option>En fin de journée</option>
-            <option>Le samedi</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label for="${id}-message">Un mot sur votre situation (facultatif)</label>
-        <textarea id="${id}-message" name="message" style="min-height:96px"></textarea>
-      </div>
-      <div class="demande__pied">
-        <button class="lien-retour" type="button" data-retour>← Revenir au sujet</button>
-        <button class="btn btn--lg pulse" type="submit">Envoyer ma demande ${I.fleche}</button>
-      </div>
-    </div>
-  </form>
-</div>`;
 
 const pages = [];
 
@@ -1214,10 +1105,15 @@ pages.push({
         <li>Vous pouvez demander l’accès, la rectification ou la suppression de vos données en
           écrivant à <a href="mailto:${SITE.mail}">${SITE.mail}</a>.</li>
       </ul>
+      <p>Les réponses que vous saisissez dans le formulaire de devis sont transmises par
+        courriel à <a href="mailto:${SITE.mail}">${SITE.mail}</a> au moment de l’envoi, puis
+        conservées dans la messagerie du cabinet le temps du traitement de votre dossier.
+        Aucun profil publicitaire n’est constitué et aucune donnée n’est revendue.</p>
 
       <h2>Cookies</h2>
-      <p>Ce site ne dépose aucun cookie et n’utilise aucun traceur. Le formulaire de contact
-        n’enregistre rien côté serveur : il ouvre votre messagerie avec le message pré-rempli.</p>
+      <p>Ce site ne dépose aucun cookie et n’utilise aucun traceur. Aucune base de données
+        n’est constituée : le formulaire se contente d’acheminer votre demande jusqu’à la
+        messagerie du cabinet.</p>
 
       <h2>Droit applicable</h2>
       <p>Le présent site est soumis au droit suisse. Le for juridique est à Genève, sous

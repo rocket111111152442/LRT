@@ -301,27 +301,79 @@
       if (!ok) return;
 
       /* On reprend tous les champs remplis, avec l'intitulé affiché à l'écran
-         quand il existe : le message reçu se lit comme le formulaire. */
-      var lignes = [];
+         quand il existe : la demande reçue se lit comme le formulaire. */
+      var reponses = [];
       Array.prototype.forEach.call(form.elements, function (el) {
-        if (!el.name || el.type === "submit" || el.type === "button") return;
+        if (!el.name || el.name === "site_web") return;
+        if (el.type === "submit" || el.type === "button") return;
         var valeur = (el.value || "").trim();
         if (!valeur) return;
-        var etiquette = "";
-        var label = el.id ? form.querySelector('label[for="' + el.id + '"]') : null;
-        if (label) etiquette = label.textContent.trim();
-        else etiquette = el.name.charAt(0).toUpperCase() + el.name.slice(1).replace(/_/g, " ");
-        lignes.push(etiquette + " : " + valeur);
+        var etiquette = el.getAttribute("data-libelle") || "";
+        if (!etiquette) {
+          var label = el.id ? form.querySelector('label[for="' + el.id + '"]') : null;
+          etiquette = label
+            ? label.textContent.trim()
+            : el.name.charAt(0).toUpperCase() + el.name.slice(1).replace(/_/g, " ");
+        }
+        reponses.push({ question: etiquette, reponse: valeur, nom: el.name });
       });
 
-      var objet = form.elements.assurance && form.elements.assurance.value
-        ? form.elements.assurance.value
-        : (form.elements.sujet && form.elements.sujet.value) || "Contact";
+      var lire = function (n) {
+        return form.elements[n] ? form.elements[n].value.trim() : "";
+      };
+      var objet = lire("assurance") || lire("sujet") || "Contact";
 
-      window.location.href =
-        "mailto:" + form.getAttribute("data-to") +
-        "?subject=" + encodeURIComponent("Demande depuis le site — " + objet) +
-        "&body=" + encodeURIComponent(lignes.join("\n"));
+      var versMessagerie = function () {
+        window.location.href =
+          "mailto:" + form.getAttribute("data-to") +
+          "?subject=" + encodeURIComponent("Demande depuis le site — " + objet) +
+          "&body=" + encodeURIComponent(
+            reponses.map(function (r) { return r.question + " : " + r.reponse; }).join("\n")
+          );
+      };
+
+      var bouton = form.querySelector('button[type="submit"]');
+      var libelle = bouton ? bouton.innerHTML : "";
+      if (bouton) {
+        bouton.disabled = true;
+        bouton.textContent = "Envoi en cours…";
+      }
+
+      /* La demande part vers le site, qui la transmet au cabinet. Si ce circuit
+         n'est pas disponible, on ouvre la messagerie du visiteur : la demande
+         n'est jamais perdue. */
+      fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assurance: objet,
+          nom: lire("nom"),
+          email: lire("email"),
+          telephone: lire("telephone"),
+          site_web: lire("site_web"),
+          reponses: reponses,
+        }),
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("statut " + r.status);
+          var bloc = form.closest(".demande") || form;
+          var panneau = form.querySelector("[data-succes]");
+          if (!panneau) { form.reset(); return; }
+          panneau.hidden = false;
+          bloc.classList.add("est-envoye");
+          panneau.setAttribute("tabindex", "-1");
+          panneau.focus({ preventScroll: true });
+          bloc.scrollIntoView({ behavior: "smooth", block: "center" });
+        })
+        .catch(function () {
+          versMessagerie();
+        })
+        .then(function () {
+          if (bouton) {
+            bouton.disabled = false;
+            bouton.innerHTML = libelle;
+          }
+        });
     });
   });
 })();

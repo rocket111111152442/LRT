@@ -852,6 +852,41 @@ p { text-wrap: pretty; }
 }
 .lien-retour:hover { color: var(--ink); }
 
+/* champ leurre anti-robots : hors écran, hors tabulation */
+.piege {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* accusé de réception, une fois la demande transmise au cabinet */
+.succes { text-align: center; padding: 1rem 0 .5rem; }
+.succes__sceau {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--brand-wash);
+  color: var(--brand);
+  margin-bottom: 1.25rem;
+}
+.succes__sceau svg { width: 32px; height: 32px; }
+.succes h3 { font-size: clamp(1.35rem, 2.6vw, 1.75rem); margin: 0 0 .75rem; }
+.succes p { color: var(--ink-soft); max-width: 34rem; margin: 0 auto; }
+.succes__actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+}
+.est-envoye .demande__tete,
+.est-envoye .etape { display: none; }
+.formcard.est-envoye > *:not([data-succes]) { display: none; }
+
 /* barre d'action fixe sur petits écrans : le devis et le téléphone
    restent accessibles où que l'on soit dans la page */
 .barre-mobile { display: none; }
