@@ -187,6 +187,9 @@ model Variant {
   // Identifiant de variante chez le fabricant, utilisé à la création de commande.
   podVariantId String? @unique
   price     Int
+  // Coût de fabrication facturé par Printify (centimes) : sert à calculer la
+  // marge réelle, séparément du prix de vente ci-dessus.
+  cost      Int?
   available Boolean @default(true)
   position  Int     @default(0)
   imageUrl  String?
@@ -285,6 +288,10 @@ model OrderItem {
   productSlug String?
   variantName String
   unitPrice   Int
+  // Coût de fabrication au moment de la vente (centimes), figé comme le
+  // reste de la ligne : sert à calculer la marge sans dépendre du coût
+  // actuel de la variante, qui peut changer.
+  costPrice   Int?
   quantity    Int
   imageUrl    String?
   // Printify exige le couple produit + variante pour lancer la fabrication :

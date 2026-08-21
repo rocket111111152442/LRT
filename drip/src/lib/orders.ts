@@ -144,6 +144,7 @@ export async function createCheckoutSession(couponCode?: string) {
             productSlug: variant?.product.slug ?? line.product.slug,
             variantName: line.variantName,
             unitPrice: line.unitPrice,
+            costPrice: variant?.cost ?? null,
             quantity: line.quantity,
             imageUrl: line.product.imageUrl,
             podProductId: variant?.product.podProductId ?? null,
