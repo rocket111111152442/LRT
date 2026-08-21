@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/money";
 import { ORDER_STATUS, type OrderStatusKey } from "@/lib/orderStatus";
 import { verifierPreparation } from "@/lib/preparation";
 import { daysAgo } from "@/lib/dates";
+import { currentMonthFinance, getMonthlyFinances } from "@/lib/finances";
 
 export default async function AdminDashboard() {
   const data = await safeQuery(
@@ -96,6 +97,10 @@ export default async function AdminDashboard() {
   const preparation = await verifierPreparation();
   const manquants = preparation.filter((point) => !point.ok);
   const bloquants = manquants.filter((point) => point.bloquant);
+
+  const monthlyFinances = await getMonthlyFinances();
+  const currentMonth = currentMonthFinance(monthlyFinances);
+  const pastMonths = monthlyFinances.filter((month) => month.key !== currentMonth.key);
 
   const alerts = [
     data.bloquees > 0 && {
@@ -215,6 +220,81 @@ export default async function AdminDashboard() {
             <p className="display text-[2.4rem] leading-none">{stat.value}</p>
           </div>
         ))}
+      </section>
+
+      <section>
+        <div className="mb-6">
+          <h2 className="display-lg">Répartition du bénéfice</h2>
+          <p className="label-sm mt-2 text-[color:var(--color-smoke)]">
+            {currentMonth.label} — {currentMonth.orderCount} vente
+            {currentMonth.orderCount > 1 ? "s" : ""}, {formatPrice(currentMonth.netProfit)} de
+            bénéfice net
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-px border-t border-[color:var(--color-hairline)] sm:grid-cols-2">
+          <div className="border-b border-[color:var(--color-hairline)] py-6 sm:border-r sm:pr-6">
+            <p className="label-sm mb-3 text-[color:var(--color-smoke)]">Ismael</p>
+            <p className="display text-[2.4rem] leading-none">
+              {formatPrice(currentMonth.ismaelShare)}
+            </p>
+          </div>
+          <div className="border-b border-[color:var(--color-hairline)] py-6 sm:pl-6">
+            <p className="label-sm mb-3 text-[color:var(--color-smoke)]">Gabalah</p>
+            <p className="display text-[2.4rem] leading-none">
+              {formatPrice(currentMonth.gabalahShare)}
+            </p>
+          </div>
+        </div>
+
+        <p className="label-sm mt-4 max-w-[62ch] text-[color:var(--color-smoke)]">
+          Bénéfice = prix de vente moins coût de fabrication Printify, remises
+          déduites. Le port payé par le client n&apos;est pas compté. Pour les
+          commandes passées avant l&apos;activation de ce suivi, le coût
+          Printify est repris depuis la fiche produit actuelle quand elle
+          existe encore, sinon compté à zéro.
+        </p>
+
+        {pastMonths.length > 0 && (
+          <div className="mt-10 overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead>
+                <tr className="hairline-b text-left">
+                  <th className="label-sm py-3 pr-4 font-normal text-[color:var(--color-smoke)]">
+                    Mois
+                  </th>
+                  <th className="label-sm py-3 pr-4 font-normal text-[color:var(--color-smoke)]">
+                    Ventes
+                  </th>
+                  <th className="label-sm py-3 pr-4 font-normal text-[color:var(--color-smoke)]">
+                    CA brut
+                  </th>
+                  <th className="label-sm py-3 pr-4 font-normal text-[color:var(--color-smoke)]">
+                    CA net
+                  </th>
+                  <th className="label-sm py-3 pr-4 font-normal text-[color:var(--color-smoke)]">
+                    Part Ismael
+                  </th>
+                  <th className="label-sm py-3 font-normal text-[color:var(--color-smoke)]">
+                    Part Gabalah
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {pastMonths.map((month) => (
+                  <tr key={month.key} className="hairline-b">
+                    <td className="py-3 pr-4">{month.label}</td>
+                    <td className="py-3 pr-4 font-mono">{month.orderCount}</td>
+                    <td className="py-3 pr-4 font-mono">{formatPrice(month.grossRevenue)}</td>
+                    <td className="py-3 pr-4 font-mono">{formatPrice(month.netProfit)}</td>
+                    <td className="py-3 pr-4 font-mono">{formatPrice(month.ismaelShare)}</td>
+                    <td className="py-3 font-mono">{formatPrice(month.gabalahShare)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section>

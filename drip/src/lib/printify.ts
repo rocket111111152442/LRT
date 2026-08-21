@@ -553,6 +553,7 @@ export async function syncPrintifyCatalog(): Promise<SyncReport> {
         size: described.size,
         sku: variant.sku || null,
         price: variant.price,
+        cost: variant.cost,
         available: variant.is_available,
         position,
         imageUrl: mockup,
