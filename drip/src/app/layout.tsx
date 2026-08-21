@@ -124,6 +124,12 @@ export default async function RootLayout({
     <html
       lang="fr"
       className={`${anton.variable} ${interTight.variable} ${mono.variable}`}
+      // Le site a un défilement doux (`scroll-behavior: smooth`) pour les
+      // ancres internes. Depuis Next.js 16, il faut le déclarer ici pour que
+      // le changement de page reste instantané : sans ça, chaque clic sur un
+      // lien anime un défilement lent vers le haut avant d'afficher la
+      // nouvelle page, ce qui donne l'impression d'un blocage ou d'un bug.
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>
