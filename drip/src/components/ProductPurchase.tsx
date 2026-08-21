@@ -152,6 +152,15 @@ export function ProductPurchase({
     );
   };
 
+  // Certains produits (une coque par modèle de téléphone, par exemple) ont un
+  // visuel différent par variante : dès que Printify le fournit, il est déjà
+  // dans la galerie, il suffit d'y sauter.
+  const showVariantImage = (variant?: PurchaseVariant) => {
+    if (!variant?.imageUrl) return;
+    const index = gallery.findIndex((image) => image.url === variant.imageUrl);
+    if (index >= 0) montrerVisuel(index);
+  };
+
   const chooseColor = (nextColor: string, variant: PurchaseVariant) => {
     setColor(nextColor);
 
@@ -165,8 +174,16 @@ export function ProductPurchase({
       setSize(sizesForColor[0] ?? null);
     }
 
-    const index = gallery.findIndex((image) => image.url === variant.imageUrl);
-    if (index >= 0) montrerVisuel(index);
+    showVariantImage(variant);
+  };
+
+  const chooseSize = (nextSize: string) => {
+    setSize(nextSize);
+
+    const variant = variants.find(
+      (item) => item.size === nextSize && (color === null || item.color === color),
+    );
+    showVariantImage(variant);
   };
 
   const submit = async () => {
@@ -343,7 +360,7 @@ export function ProductPurchase({
                   <button
                     key={sizeName}
                     type="button"
-                    onClick={() => setSize(sizeName)}
+                    onClick={() => chooseSize(sizeName)}
                     disabled={disabled}
                     className={`label border px-4 py-3 transition-colors ${
                       size === sizeName
