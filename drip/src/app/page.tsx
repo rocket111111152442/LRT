@@ -8,7 +8,7 @@ import { NewsletterForm } from "@/components/NewsletterForm";
 import { Stars } from "@/components/Stars";
 import {
   countActiveProducts,
-  getFeaturedProducts,
+  getBestSellingProducts,
   getGlobalRating,
   getLatestReviews,
   getRatingsFor,
@@ -49,7 +49,7 @@ const PILLARS = [
 export default async function HomePage() {
   const [featured, reviews, globalRating, categories, productCount] =
     await Promise.all([
-      getFeaturedProducts(8),
+      getBestSellingProducts(4),
       getLatestReviews(10),
       getGlobalRating(),
       listCategories(),
@@ -148,7 +148,7 @@ export default async function HomePage() {
           {featured.length === 0 ? (
             <EmptyCatalog />
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-12 lg:grid-cols-4">
               {featured.map((product, index) => (
                 <ProductCard
                   key={product.id}

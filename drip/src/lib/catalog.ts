@@ -283,31 +283,68 @@ export async function getRelatedProducts(productId: string, categoryId: string |
   );
 }
 
-export async function getFeaturedProducts(take = 4) {
+/**
+ * Les pièces préférées des clients : les plus vendues, départagées par la
+ * meilleure note. Une commande ne compte que si elle a réellement abouti à
+ * une vente (payée et non annulée/remboursée) — sinon un panier abandonné
+ * ferait passer une pièce pour un best-seller.
+ */
+export async function getBestSellingProducts(take = 4) {
   return safeQuery(
     async () => {
-      const products = await prisma.product.findMany({
-        where: { active: true, featured: true },
-        orderBy: { position: "asc" },
-        take,
-        select: listSelect,
-      });
+      const [sales, ratings, products] = await Promise.all([
+        prisma.orderItem.groupBy({
+          by: ["productId"],
+          where: {
+            productId: { not: null },
+            order: { status: { in: ["PAID", "IN_PRODUCTION", "SHIPPED", "DELIVERED"] } },
+          },
+          _sum: { quantity: true },
+        }),
+        prisma.review.groupBy({
+          by: ["productId"],
+          where: { status: "APPROVED" },
+          _avg: { rating: true },
+          _count: { rating: true },
+        }),
+        prisma.product.findMany({ where: { active: true }, select: listSelect }),
+      ]);
 
-      if (products.length >= take) return products;
+      const soldByProduct = new Map(
+        sales
+          .filter((row) => row.productId !== null)
+          .map((row) => [row.productId as string, row._sum.quantity ?? 0]),
+      );
 
-      // Pas assez de pièces mises en avant : on complète avec les plus récentes
-      // pour que la page d'accueil ne paraisse jamais dégarnie.
-      const fillers = await prisma.product.findMany({
-        where: { active: true, id: { notIn: products.map((product) => product.id) } },
-        orderBy: { createdAt: "desc" },
-        take: take - products.length,
-        select: listSelect,
-      });
+      const ratingByProduct = new Map(
+        ratings.map((row) => [
+          row.productId,
+          { average: row._avg.rating ?? 0, count: row._count.rating },
+        ]),
+      );
 
-      return [...products, ...fillers];
+      const ranked = products
+        .map((product) => ({
+          product,
+          sold: soldByProduct.get(product.id) ?? 0,
+          rating: ratingByProduct.get(product.id) ?? { average: 0, count: 0 },
+        }))
+        .sort((a, b) => {
+          if (b.sold !== a.sold) return b.sold - a.sold;
+          if (b.rating.average !== a.rating.average) return b.rating.average - a.rating.average;
+          if (b.rating.count !== a.rating.count) return b.rating.count - a.rating.count;
+          return b.product.createdAt.getTime() - a.product.createdAt.getTime();
+        });
+
+      // Assez de pièces vendues pour remplir la sélection : on s'y tient
+      // strictement, sans laisser une pièce jamais achetée s'y glisser.
+      const withSales = ranked.filter((entry) => entry.sold > 0);
+      const chosen = withSales.length >= take ? withSales : ranked;
+
+      return chosen.slice(0, take).map((entry) => entry.product);
     },
     [] as ProductList,
-    "sélection de la page d'accueil",
+    "pièces préférées des clients",
   );
 }
 

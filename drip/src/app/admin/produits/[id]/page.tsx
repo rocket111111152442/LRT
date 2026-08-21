@@ -71,7 +71,9 @@ export default async function AdminProduitPage({ params }: { params: Params }) {
             <input type="hidden" name="productId" value={product.id} />
             <input type="hidden" name="flag" value="featured" />
             <button type="submit" className="btn btn-outline btn-sm">
-              {product.featured ? "Retirer de l'accueil" : "Mettre en avant"}
+              {product.featured
+                ? "Retirer du tri « Les plus aimées »"
+                : "Mettre en avant dans « Les plus aimées »"}
             </button>
           </form>
 

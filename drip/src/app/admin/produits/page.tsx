@@ -148,7 +148,7 @@ export default async function AdminProduitsPage() {
                   <button
                     type="submit"
                     className={`tag ${product.featured ? "tag-solid" : ""}`}
-                    title="Mettre en avant sur l'accueil"
+                    title="Mettre en avant dans le tri « Les plus aimées » de la boutique"
                   >
                     Mise en avant
                   </button>
