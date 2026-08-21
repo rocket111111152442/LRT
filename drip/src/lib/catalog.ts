@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma, safeQuery } from "@/lib/prisma";
 
 export type SortKey =
@@ -184,7 +185,10 @@ export async function listCategories() {
   );
 }
 
-export async function getProductBySlug(slug: string) {
+// `cache()` : la fiche produit est lue une fois pour `generateMetadata` et une
+// fois pour la page elle-même. Sans ce partage, chaque visite ferait deux
+// allers-retours base de données identiques au lieu d'un seul.
+export const getProductBySlug = cache(async (slug: string) => {
   return safeQuery(
     () =>
       prisma.product.findFirst({
@@ -201,7 +205,7 @@ export async function getProductBySlug(slug: string) {
     null,
     "chargement de la fiche produit",
   );
-}
+});
 
 /** Note moyenne et répartition des étoiles pour un produit. */
 export async function getProductRating(productId: string) {
