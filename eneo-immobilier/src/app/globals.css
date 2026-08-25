@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background-color: #f6f4ef;
+}
+
+body {
+  background-color: #f6f4ef;
+  color: #0e0f0d;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background-color: #1f2b22;
+  color: #f6f4ef;
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Reveal helpers driven by GSAP ScrollTrigger */
+.reveal-line {
+  overflow: hidden;
+  display: block;
+}
+
+.reveal-line > span {
+  display: inline-block;
+  will-change: transform;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
