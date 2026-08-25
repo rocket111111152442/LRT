@@ -61,14 +61,10 @@ cassé.
 public/images/hero-poster.jpg
 ```
 
-Un poster provisoire (`public/images/hero-poster.svg`, généré en local,
-sans dépendance réseau) est déjà en place et référencé dans
-`src/components/Hero.tsx`. Pour le remplacer par une vraie photo :
-
-1. Déposez votre image très haut de gamme dans
-   `public/images/hero-poster.jpg` (format paysage, ≥ 1920×1080).
-2. Dans `src/components/Hero.tsx`, changez `poster="/images/hero-poster.svg"`
-   en `poster="/images/hero-poster.jpg"`.
+Le poster réel (façade d'entrée genevoise) est en place et référencé dans
+`src/components/Hero.tsx`. Pour le remplacer par une autre photo, déposez
+votre image très haut de gamme au même chemin (format paysage,
+≥ 1920×1080).
 
 ### Images des services, biens et du projet « La Croisette »
 
