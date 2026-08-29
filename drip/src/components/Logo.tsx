@@ -3,11 +3,11 @@ import Image from "next/image";
 /**
  * Identité NATURAL BRUTAL.
  *
- * Le fichier fourni (`logo-natural-brutal.png`) est un carré noir de 425 px
- * de côté : la panthère qui rugit, le feuillage et le nom. Son fond (7,8,8)
- * est à un cheveu de l'encre du site, donc il se fond sans bord visible dans
- * les sections noires. `icone-natural-brutal.png` en est un recadrage carré
- * qui isole la tête et le feuillage, sans le nom.
+ * Le fichier fourni (`logo-natural-brutal.png`) est un carré noir d'environ
+ * 415 px de côté : la panthère qui rugit, le feuillage et le nom. Son fond
+ * (7,8,8) est à un cheveu de l'encre du site, donc il se fond sans bord
+ * visible dans les sections noires. `icone-natural-brutal.png` en est un
+ * recadrage carré qui isole la tête et le feuillage, sans le nom.
  *
  * Trois usages, dictés par la lisibilité :
  *
@@ -19,7 +19,7 @@ import Image from "next/image";
  *    navigation : à 30 px le dessin se referme en tache noire, le nom composé
  *    reste net et le blanc autour respire.
  *
- * Le fichier source fait 425 px : au-delà d'environ 380 px d'affichage il
+ * Le fichier source fait 415 px : au-delà d'environ 370 px d'affichage il
  * commencera à manquer de définition. Un export plus grand règlera ça sans
  * toucher au code.
  */
@@ -47,7 +47,7 @@ export function Logo({
         src="/logo-natural-brutal.png"
         alt="NATURAL BRUTAL"
         width={scale.lockup}
-        height={Math.round(scale.lockup * (408 / 425))}
+        height={Math.round(scale.lockup * (408 / 415))}
         className={`h-auto ${className}`}
         priority
       />
