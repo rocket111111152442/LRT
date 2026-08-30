@@ -1,7 +1,0 @@
-# Outils d'auteur et documentation : inutiles en production
-_build/
-README.md
-
-# Traitement PHP réservé à un hébergement IONOS : ne doit pas être servi par Vercel
-consulting/contact.php
-patrimoine/contact.php
