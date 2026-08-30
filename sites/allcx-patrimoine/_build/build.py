@@ -198,7 +198,6 @@ def footer(brand):
         <ul>
           <li><a href="mailto:{info['mail']}">{info['mail']}</a></li>
           <li><a href="tel:{TEL_LIEN}">{TEL_AFFICHE}</a></li>
-          <li>140 C rue Antoine Durafour<br>42100 Saint-Étienne</li>
         </ul>
       </div>
     </div>
