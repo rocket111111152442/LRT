@@ -27,6 +27,8 @@ p, figure, blockquote, dl, dd, ul, ol {
 
 ul[class], ol[class] { list-style: none; }
 
+[hidden] { display: none !important; }
+
 img, svg, video {
   display: block;
   max-width: 100%;
