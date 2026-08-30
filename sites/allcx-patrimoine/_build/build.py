@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # ---------------------------------------------------------------------------
 # Coordonnées — à ajuster ici une seule fois
 # ---------------------------------------------------------------------------
-SITE_URL = "https://allcx-patrimoine.com"
+SITE_URL = "https://www.allcx-patrimoine.com"
 
 PATRIMOINE_MAIL = "contact@allcx-patrimoine.com"
 LINKEDIN = ""  # renseigner l'URL du profil pour afficher le lien
