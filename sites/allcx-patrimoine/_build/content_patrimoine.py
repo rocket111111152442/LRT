@@ -42,31 +42,21 @@ def pages(B):
       <div data-reveal>
         <p class="eyebrow">01 — Le métier</p>
         <h2 class="display-lg">Un cabinet de transaction, pas un portail d’annonces.</h2>
-        <p class="lede mt-3">
+      </div>
+      <div data-reveal>
+        <p class="lede">
           Un bien ne vaut rien en soi. Il vaut par rapport à un projet, à une fiscalité et à un horizon.
         </p>
-        <p class="body-lg muted mt-3 measure">
+        <p class="body-lg muted mt-3">
           Nous commençons par la situation du client — objectif, capacité d’emprunt, régime fiscal,
           durée de détention envisagée — avant de parler de biens. La recherche vient ensuite, et elle
           est restreinte : mieux vaut trois dossiers instruits qu’une liste de trente annonces.
         </p>
-        <p class="body-lg muted mt-2 measure">
+        <p class="body-lg muted mt-2">
           L’accompagnement va jusqu’à la signature chez le notaire, et se prolonge par la mise en relation
           avec les professionnels qui prendront le relais : courtage, gestion locative, assurance, gestion
           de patrimoine.
         </p>
-      </div>
-      <div data-reveal>
-        <div class="card">
-          <p class="index-num">Cadre d’exercice</p>
-          <ul class="list-rule mt-2">
-            <li><span class="k">Carte professionnelle</span><span class="v">""" + B.CARTE_T + """</span></li>
-            <li><span class="k">Mention</span><span class="v">Transactions sur immeubles<br>et fonds de commerce</span></li>
-            <li><span class="k">Délivrée par</span><span class="v">""" + B.CARTE_T_CCI + """</span></li>
-            <li><span class="k">Zone</span><span class="v">France entière</span></li>
-          </ul>
-          <div class="card__foot"><a class="link link--reverse" href="honoraires.html">Barème d’honoraires """ + A + """</a></div>
-        </div>
       </div>
     </div>
   </div>
