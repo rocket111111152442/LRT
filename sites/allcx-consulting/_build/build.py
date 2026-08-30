@@ -303,7 +303,7 @@ def contact_form(brand, subject, sujets):
       data-subject="{subject}" novalidate>
   <input type="text" name="societe_web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
   <input type="hidden" name="marque" value="{brand}">
-  <input type="hidden" name="retour" value="/{brand}/contact.html">
+  <input type="hidden" name="retour" value="/contact.html">
   <div class="form-grid">
     <div class="field">
       <label for="f-nom">Nom et prénom <span class="req">*</span></label>
