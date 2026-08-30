@@ -202,8 +202,7 @@ def footer(brand):
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <span data-year>2026</span> ALLCX. Tous droits réservés. — Site réalisé par
-      <a href="mailto:{AUTEUR_MAIL}">{AUTEUR}</a></span>
+      <span>© <span data-year>2026</span> ALLCX. Tous droits réservés.</span>
       <ul>
         <li><a href="mentions-legales.html">Mentions légales</a></li>
         {extra}
