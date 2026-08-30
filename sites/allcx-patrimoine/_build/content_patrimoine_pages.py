@@ -569,7 +569,6 @@ def _more(B):
           <dl class="mt-3">
             <div><dt>Courriel</dt><dd><a href="mailto:""" + B.PATRIMOINE_MAIL + """">""" + B.PATRIMOINE_MAIL + """</a></dd></div>
             <div><dt>Téléphone</dt><dd><a href="tel:""" + B.TEL_LIEN + """">""" + B.TEL_AFFICHE + """</a></dd></div>
-            <div><dt>Carte professionnelle</dt><dd>""" + B.CARTE_T + """</dd></div>
             <div><dt>Délai de réponse</dt><dd>48 heures ouvrées</dd></div>
           </dl>
         </div>
