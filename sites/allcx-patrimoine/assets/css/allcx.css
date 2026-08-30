@@ -677,8 +677,7 @@ body.no-scroll { overflow: hidden; }
   gap: clamp(2.5rem, 5vw, 4rem);
   grid-template-columns: 1fr;
 }
-@media (min-width: 48em) { .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; } }
-@media (min-width: 64em) { .footer-grid { grid-template-columns: 1.6fr 1fr 1fr 1.1fr; } }
+@media (min-width: 48em) { .footer-grid { grid-template-columns: 1.5fr 1fr 1.2fr; } }
 .footer-grid ul { display: grid; gap: .625rem; }
 .site-footer .logo { color: #fff; }
 .site-footer .logo__mark { color: var(--gold-500); }

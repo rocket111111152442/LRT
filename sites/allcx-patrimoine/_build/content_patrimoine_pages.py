@@ -44,7 +44,6 @@ def pages(B):
       <div data-reveal>
         <figure class="figure-frame">
           <img src="assets/img/haussmann.svg" alt="Immeuble haussmannien de centre-ville." width="1200" height="900" loading="lazy">
-          <figcaption>Immeuble de rapport — illustration</figcaption>
         </figure>
         <div class="card mt-3">
           <p class="index-num">Rappel</p>
@@ -63,7 +62,6 @@ def pages(B):
       <div data-reveal>
         <figure class="figure-frame">
           <img src="assets/img/hotel.svg" alt="Façade d’un hôtel avec marquise." width="1200" height="900" loading="lazy">
-          <figcaption>Hôtellerie — illustration</figcaption>
         </figure>
       </div>
       <div data-reveal>
@@ -75,8 +73,8 @@ def pages(B):
           bail, rarement dans le prix demandé.
         </p>
         <p class="body-lg muted mt-2">
-          Le cabinet est intervenu, pour le compte d’un client, dans la négociation du rachat d’un hôtel
-          pour un montant de 2,1 millions d’euros. Ce type d’opération mobilise, en plus de la recherche,
+          Le cabinet est intervenu, pour le compte d’un client, dans la négociation du rachat d’un hôtel.
+          Ce type d’opération mobilise, en plus de la recherche,
           une coordination étroite avec l’expert-comptable, l’avocat et le financeur.
         </p>
         <h3 class="display-sm mt-6">Points examinés</h3>
@@ -190,7 +188,6 @@ def pages(B):
       <div data-reveal>
         <figure class="figure-frame">
           <img src="assets/img/villa.svg" alt="Villa contemporaine avec piscine." width="1200" height="900" loading="lazy">
-          <figcaption>Villa contemporaine — illustration</figcaption>
         </figure>
       </div>
     </div>
@@ -243,7 +240,6 @@ def pages(B):
         </div>
         <figure class="figure-frame mt-3">
           <img src="assets/img/interieur.svg" alt="Intérieur haussmannien avec cheminée et parquet." width="1200" height="900" loading="lazy">
-          <figcaption>Résidence principale — illustration</figcaption>
         </figure>
       </div>
     </div>
@@ -315,9 +311,7 @@ def pages(B):
         <div class="card mt-3">
           <p class="index-num">Repères</p>
           <ul class="list-rule mt-2">
-            <li><span class="k">Depuis</span><span class="v">2021</span></li>
-            <li><span class="k">Sportifs accompagnés</span><span class="v">15</span></li>
-            <li><span class="k">Délai visé</span><span class="v">10 jours</span></li>
+            <li><span class="k">Délai visé</span><span class="v">30 jours</span></li>
             <li><span class="k">Zone</span><span class="v">France entière</span></li>
           </ul>
         </div>
@@ -334,8 +328,8 @@ def pages(B):
         <h2 class="display-lg">Une pratique construite avec le monde du football professionnel.</h2>
       </div>
       <div data-reveal>
-        <p class="lede">Depuis 2021, dans le cadre d’un partenariat avec l’AS Saint-Étienne, le cabinet a
-        accompagné une quinzaine de joueurs professionnels dans leur installation.</p>
+        <p class="lede">Le cabinet accompagne des joueurs professionnels et leur famille à chaque étape de
+        leur installation, avec les contraintes de calendrier et de discrétion propres à ce milieu.</p>
       </div>
     </div>
     <div class="grid grid-4" data-reveal-group>
@@ -363,7 +357,7 @@ def pages(B):
         "relocation.html",
         "Relocation et mobilité — sportifs et salariés | ALLCX Patrimoine",
         "Service de relocation : recherche de logement, dossier locatif, bail, état des lieux et "
-        "installation pour les personnes en mobilité, dont les sportifs de haut niveau. Depuis 2021.",
+        "installation pour les personnes en mobilité, dont les sportifs de haut niveau.",
         reloc,
     ))
 
@@ -439,7 +433,7 @@ def _more(B):
         ["Acquisition", "Ancien", "Travaux"],
     ) + estate(
         "Mobilité", "residence.svg",
-        "Résidence contemporaine avec balcons, illustration du parc destiné à la location.",
+        "Résidence contemporaine avec balcons et jardins.",
         "Location pour personnes en mobilité",
         "Maisons et appartements destinés à la location meublée ou nue pour des séjours professionnels, "
         "avec constitution du dossier locatif et suivi jusqu’à la remise des clés.",
@@ -448,10 +442,9 @@ def _more(B):
     </div>
     <div class="card mt-6" data-reveal>
       <p class="index-num">Précision importante</p>
-      <p>Les visuels de cette page sont des illustrations réalisées pour le site. Ils ne représentent pas des
-      biens réellement proposés à la vente ou à la location et ne constituent en aucun cas une offre.
-      Les biens disponibles, leurs caractéristiques et leurs prix sont communiqués individuellement,
-      après entretien.</p>
+      <p>Les visuels de cette page ne représentent pas des biens réellement proposés à la vente ou à la
+      location et ne constituent en aucun cas une offre. Les biens disponibles, leurs caractéristiques
+      et leurs prix sont communiqués individuellement, après entretien.</p>
     </div>
   </div>
 </section>
@@ -575,8 +568,8 @@ def _more(B):
           <h2 class="display-sm">Coordonnées</h2>
           <dl class="mt-3">
             <div><dt>Courriel</dt><dd><a href="mailto:""" + B.PATRIMOINE_MAIL + """">""" + B.PATRIMOINE_MAIL + """</a></dd></div>
-            <div><dt>Téléphone</dt><dd>""" + TODO + """</dd></div>
-            <div><dt>Adresse</dt><dd>""" + TODO + """<br>France</dd></div>
+            <div><dt>Téléphone</dt><dd><a href="tel:""" + B.TEL_LIEN + """">""" + B.TEL_AFFICHE + """</a></dd></div>
+            <div><dt>Adresse</dt><dd>140 C rue Antoine Durafour<br>42100 Saint-Étienne</dd></div>
             <div><dt>Carte professionnelle</dt><dd>""" + B.CARTE_T + """</dd></div>
             <div><dt>Délai de réponse</dt><dd>48 heures ouvrées</dd></div>
           </dl>

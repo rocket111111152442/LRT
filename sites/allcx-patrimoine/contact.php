@@ -12,7 +12,7 @@
 
 declare(strict_types=1);
 
-$destinataire = 'patrimoine@allcx-consulting.com';   // ex. contact@allcx-consulting.com
+$destinataire = 'contact@allcx-patrimoine.com';   // adresse de réception
 $expediteurTechnique = 'no-reply@allcx-consulting.com';
 $pageRetour = 'contact.html';
 

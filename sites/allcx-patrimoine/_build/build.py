@@ -19,14 +19,26 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # ---------------------------------------------------------------------------
 # Coordonnées — à ajuster ici une seule fois
 # ---------------------------------------------------------------------------
-SITE_URL = "https://allcx-consulting.com"
+SITE_URL = "https://allcx-patrimoine.com"
 
-PATRIMOINE_MAIL = "patrimoine@allcx-consulting.com"
+PATRIMOINE_MAIL = "contact@allcx-patrimoine.com"
 LINKEDIN = ""  # renseigner l'URL du profil pour afficher le lien
 
 SIRET = "908 081 771 00010"
+RAISON_SOCIALE = "ALLCX CONSULTING"
+CAPITAL = "1 000 €"
+SIEGE = "140 C rue Antoine Durafour, 42100 Saint-Étienne"
+RCS = "Saint-Étienne"
+TVA = "FR34908081771"
+GARANTIE = "Non-détention de fonds, effets ou valeurs"
+TEL_AFFICHE = "+33 6 32 49 49 07"
+TEL_LIEN = "+33632494907"
+AUTEUR = "Ismael Lullin"
+AUTEUR_MAIL = "lullinismael2@gmail.com"
+AUTEUR_TEL = "07 53 30 54 52"
+AUTEUR_TEL_LIEN = "+33753305452"
+MAJ = "30 août 2026"
 CARTE_T = "CPI 4202 2022 000 000 020"
-CARTE_T_FIN = "09/08/2028"
 CARTE_T_CCI = "CCI de Lyon Métropole Saint-Étienne Roanne"
 
 TODO = '<span class="todo" title="Information à compléter avant mise en ligne">à compléter</span>'
@@ -157,17 +169,10 @@ def header(brand, current):
 def footer(brand):
     info = BRAND_INFO[brand]
     nav_links = "".join(f'<li><a href="{h}">{l}</a></li>' for h, l in NAV[brand][1:])
-    col3 = f"""<h4>Activité réglementée</h4>
-    <ul>
-      <li>Carte professionnelle<br>« Transactions sur immeubles et fonds de commerce »</li>
-      <li>N° {CARTE_T}</li>
-      <li>Valable jusqu'au {CARTE_T_FIN}</li>
-      <li>Délivrée par la {CARTE_T_CCI}</li>
-    </ul>"""
     legal = (
         f"ALLCX PATRIMOINE — marque exploitée par une société par actions simplifiée immatriculée sous le SIRET {SIRET}. "
         f"Titulaire de la carte professionnelle « Transactions sur immeubles et fonds de commerce » n° {CARTE_T}, "
-        f"délivrée par la {CARTE_T_CCI}, valable jusqu'au {CARTE_T_FIN}. "
+        f"délivrée par la {CARTE_T_CCI}. "
         "Les honoraires applicables sont consultables sur la page Honoraires."
     )
     extra = '<li><a href="honoraires.html">Honoraires</a></li>' 
@@ -188,18 +193,18 @@ def footer(brand):
         <h4>Navigation</h4>
         <ul>{nav_links}</ul>
       </div>
-      <div>{col3}</div>
       <div>
         <h4>Contact</h4>
         <ul>
           <li><a href="mailto:{info['mail']}">{info['mail']}</a></li>
-          <li>Téléphone : {TODO}</li>
-          <li>{TODO}<br>France</li>
+          <li><a href="tel:{TEL_LIEN}">{TEL_AFFICHE}</a></li>
+          <li>140 C rue Antoine Durafour<br>42100 Saint-Étienne</li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© <span data-year>2026</span> ALLCX. Tous droits réservés.</span>
+      <span>© <span data-year>2026</span> ALLCX. Tous droits réservés. — Site réalisé par
+      <a href="mailto:{AUTEUR_MAIL}">{AUTEUR}</a></span>
       <ul>
         <li><a href="mentions-legales.html">Mentions légales</a></li>
         {extra}
@@ -399,9 +404,8 @@ def legal_page(brand):
       <ul>
         <li>Carte professionnelle « Transactions sur immeubles et fonds de commerce » n° {CARTE_T}</li>
         <li>Délivrée par la {CARTE_T_CCI}</li>
-        <li>Valable jusqu’au {CARTE_T_FIN}</li>
-        <li>Garantie financière : {TODO} — à défaut de garantie financière, mention obligatoire de la
-        non-détention de fonds, effets ou valeurs</li>
+        <li>Garantie financière : {GARANTIE}. Le titulaire de la carte professionnelle ne reçoit ni ne
+        détient de fonds, effets ou valeurs pour le compte de tiers.</li>
         <li>Assurance de responsabilité civile professionnelle : {TODO} (assureur, n° de contrat, couverture géographique)</li>
       </ul>
       <p>Les honoraires pratiqués sont affichés sur la page <a href="honoraires.html">Honoraires</a>,
@@ -432,24 +436,30 @@ def legal_page(brand):
 
       <h2>Éditeur du site</h2>
       <ul>
-        <li>Dénomination sociale : ALLCX CONSULTING</li>
+        <li>Dénomination sociale : {RAISON_SOCIALE}</li>
         <li>Forme juridique : société par actions simplifiée (SAS)</li>
-        <li>Capital social : {TODO}</li>
-        <li>Siège social : {TODO}</li>
+        <li>Capital social : {CAPITAL}</li>
+        <li>Siège social : {SIEGE}</li>
         <li>SIRET : {SIRET}</li>
-        <li>RCS : {TODO}</li>
-        <li>Numéro de TVA intracommunautaire : {TODO}</li>
-        <li>Code APE : 70.22Z — Conseil pour les affaires et autres conseils de gestion</li>
+        <li>RCS : {RCS}</li>
+        <li>Numéro de TVA intracommunautaire : {TVA}</li>
         <li>Courriel : <a href="mailto:{info['mail']}">{info['mail']}</a></li>
-        <li>Téléphone : {TODO}</li>
+        <li>Téléphone : <a href="tel:{TEL_LIEN}">{TEL_AFFICHE}</a></li>
       </ul>
 
       <h2>Directeur de la publication</h2>
       <p>Fabrice Ekissi, en qualité de représentant légal de la société éditrice.</p>
 
-      <h2>Hébergement</h2>
-      <p>Le site est hébergé par IONOS SARL, 7 place de la Gare, BP 70109, 57200 Sarreguemines Cedex,
-      France — <a href="https://www.ionos.fr" rel="noopener">www.ionos.fr</a>.</p>
+      <h2>Hébergement et nom de domaine</h2>
+      <p>Nom de domaine enregistré auprès de Hostinger International Ltd., 61 Lordou Vironos Street,
+      6023 Larnaca, Chypre — <a href="https://www.hostinger.fr" rel="noopener">www.hostinger.fr</a>.</p>
+      <p>Hébergement du site : Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis —
+      <a href="https://vercel.com" rel="noopener">vercel.com</a>.</p>
+
+      <h2>Conception et réalisation</h2>
+      <p>Le site a été conçu et réalisé par {AUTEUR} —
+      <a href="mailto:{AUTEUR_MAIL}">{AUTEUR_MAIL}</a>,
+      <a href="tel:{AUTEUR_TEL_LIEN}">{AUTEUR_TEL}</a>.</p>
 
       {reglemente}
 
@@ -496,7 +506,7 @@ def legal_page(brand):
       <p>Le présent site et les mentions qui y figurent sont soumis au droit français. En cas de litige et
       à défaut de résolution amiable, les tribunaux français seront seuls compétents.</p>
 
-      <p class="mt-6 muted" style="font-size:.8125rem">Dernière mise à jour : {TODO}.</p>
+      <p class="mt-6 muted" style="font-size:.8125rem">Dernière mise à jour : {MAJ}.</p>
   </div>
 </section>"""
 

@@ -32,7 +32,7 @@ sites/allcx-patrimoine/
 
 ## 2. Mise en ligne
 
-Le site est publié sur **Vercel**, le nom de domaine restant acheté et administré chez **IONOS**.
+Le site est publié sur **Vercel**, le nom de domaine étant enregistré chez **Hostinger**.
 
 ### Projet Vercel
 
@@ -48,8 +48,9 @@ Le site est publié sur **Vercel**, le nom de domaine restant acheté et adminis
 2. Vercel affiche alors les enregistrements DNS exacts à créer. **Recopier ces valeurs telles
    quelles** : la cible du `CNAME` est propre à chaque projet et ne correspond plus aux valeurs
    génériques que l'on trouve dans les tutoriels.
-3. Côté IONOS : **Domaines & SSL → le domaine → DNS**, créer l'enregistrement `A` sur `@` et
-   l'enregistrement `CNAME` sur `www` avec les valeurs affichées par Vercel.
+3. Côté Hostinger : **Domaines → le domaine → DNS / Serveurs de noms → Gérer les enregistrements**,
+   créer l'enregistrement `A` sur `@` et l'enregistrement `CNAME` sur `www` avec les valeurs
+   affichées par Vercel.
 
 Ne **pas** déléguer les serveurs de noms (nameservers) à Vercel : cela déplacerait l'intégralité du
 DNS, enregistrements `MX` compris, et interromprait la messagerie. En ne touchant qu'aux
@@ -57,17 +58,14 @@ enregistrements `A` et `CNAME`, la messagerie n'est jamais concernée.
 
 Le certificat HTTPS est émis automatiquement une fois la propagation effectuée.
 
-### Choix du nom de domaine
+### Nom de domaine
 
-La constante `SITE_URL` en tête de `_build/build.py` vaut aujourd'hui
-`https://allcx-consulting.com`. Elle alimente les URL canoniques, le `sitemap.xml` et le
-`robots.txt`. **Si le site est publié sur un autre domaine, modifier cette constante et régénérer**
-(§ 6), sinon les moteurs de recherche recevront des URL canoniques pointant ailleurs.
+La constante `SITE_URL` en tête de `_build/build.py` vaut `https://allcx-patrimoine.com`. Elle
+alimente les URL canoniques, le `sitemap.xml` et le `robots.txt`. **En cas de changement de domaine,
+modifier cette constante et régénérer** (§ 6), sinon les moteurs de recherche recevront des URL
+canoniques pointant ailleurs.
 
-Publier une agence de transaction immobilière sur une adresse contenant « consulting » nuit à la
-lisibilité de la marque : un domaine propre à ALLCX Patrimoine est préférable.
-
-### Variante : hébergement IONOS classique
+### Variante : hébergement mutualisé classique
 
 Envoyer par FTP **le contenu** de ce dossier (et non le dossier lui-même) dans le répertoire racine,
 généralement `/` ou `/htdocs`. Dans ce cas, remettre `action="contact.php"` sur le formulaire
@@ -89,10 +87,10 @@ depuis une fonction serverless.
 | Variable | Rôle |
 |---|---|
 | `RESEND_API_KEY` | clé d'API Resend |
-| `CONTACT_FROM` | expéditeur, sur un domaine vérifié chez Resend (ex. `site@allcx-consulting.com`) |
+| `CONTACT_FROM` | expéditeur, sur un domaine vérifié chez Resend (ex. `site@allcx-patrimoine.com`) |
 | `CONTACT_TO` | adresse de réception des demandes |
 
-Créer un compte Resend, y vérifier le domaine (trois enregistrements DNS à ajouter chez IONOS, sans
+Créer un compte Resend, y vérifier le domaine (trois enregistrements DNS à ajouter chez Hostinger, sans
 incidence sur la messagerie existante), puis générer la clé.
 
 ### Tant que ce n'est pas configuré
@@ -117,43 +115,38 @@ puis remplacer `action="/api/contact"` par `action="contact.php"` et `data-form=
 
 ## 4. À compléter avant la mise en ligne
 
-Toutes les informations manquantes apparaissent sur le site en rouge, soulignées en pointillé, avec
-le libellé « à compléter ». On les retrouve toutes d'un coup :
+Les informations manquantes apparaissent sur le site en rouge, soulignées en pointillé, avec le
+libellé « à compléter ». On les retrouve toutes d'un coup :
 
 ```sh
 grep -rn "à compléter" --include="*.html" .
 ```
 
-**Coordonnées**
-- Numéro de téléphone
-- Adresse postale du siège
-- Adresse de réception : `patrimoine@allcx-consulting.com` est proposée par défaut ; **cette boîte
-  doit être créée dans IONOS**, sinon la remplacer par une adresse existante (modifiable en tête de
-  `_build/build.py`)
+Il en reste trois :
 
-**Mentions légales**
-- Capital social, siège social, ville et numéro RCS, numéro de TVA intracommunautaire
-- Garantie financière, ou mention de non-détention de fonds, effets ou valeurs
-- Assurance de responsabilité civile professionnelle : assureur, n° de contrat, couverture
-- Médiateur de la consommation : obligatoire
-- Date de dernière mise à jour
-
-**Barème d'honoraires** (`honoraires.html`)
-Son affichage complet, en euros toutes taxes comprises, est imposé par l'arrêté du 10 janvier 2017
-et fait l'objet de contrôles. Toutes les lignes sont à renseigner.
+- **Barème d'honoraires** (`honoraires.html`) — toutes les lignes, plus la date d'entrée en vigueur.
+  Son affichage complet, en euros toutes taxes comprises, est imposé par l'arrêté du 10 janvier 2017
+  et fait l'objet de contrôles. C'est le point bloquant avant toute mise en avant du site.
+- **Assurance de responsabilité civile professionnelle** (`mentions-legales.html`) — assureur,
+  numéro de contrat et couverture géographique. Obligatoire pour un titulaire de carte
+  professionnelle.
+- **Médiateur de la consommation** (`mentions-legales.html`) — nom, adresse postale et site
+  internet. Obligatoire dès lors que des prestations sont vendues à des particuliers.
 
 **Points à valider**
-- La page `relocation.html` mentionne nommément le partenariat avec l'AS Saint-Étienne. Vérifier que
-  le club autorise cette citation avant publication ; à défaut, remplacer par une formulation
-  générique (« un club de football professionnel français »).
 - La phrase mise en exergue sur l'accueil est attribuée à Fabrice Ekissi : la faire valider ou la
   remplacer.
+- L'adresse `contact@allcx-patrimoine.com` doit exister côté messagerie, sinon la remplacer en tête
+  de `_build/build.py` et régénérer.
 
 **Note légale**
 Les mentions légales désignent **ALLCX CONSULTING** comme dénomination sociale de l'éditeur et
 responsable de traitement. C'est la raison sociale de la société qui exploite la marque ALLCX
 Patrimoine et qui détient la carte professionnelle : cette mention est obligatoire et ne peut pas
 être retirée, même si le site ne présente que l'activité immobilière.
+
+L'adresse de l'hébergeur Vercel indiquée dans les mentions légales est celle publiée par la société ;
+la vérifier avant publication si le site venait à être hébergé ailleurs.
 
 ---
 
@@ -218,9 +211,16 @@ compte d'un client relève du plan Pro. À arbitrer avant la mise en production 
 
 ---
 
-## 9. Sécurité
+## 9. Conception
 
-Ne jamais enregistrer d'identifiants (IONOS, messagerie, Resend) dans ce dépôt ni dans un fichier du
+Site conçu et réalisé par Ismael Lullin — lullinismael2@gmail.com, 07 53 30 54 52. Le crédit figure
+en pied de page et dans les mentions légales.
+
+---
+
+## 10. Sécurité
+
+Ne jamais enregistrer d'identifiants (Hostinger, messagerie, Resend) dans ce dépôt ni dans un fichier du
 site. Les clés se déclarent uniquement dans les variables d'environnement Vercel. Si des
 identifiants ont circulé par messagerie, changer le mot de passe concerné et activer la double
 authentification.

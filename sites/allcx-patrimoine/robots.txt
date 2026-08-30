@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://allcx-consulting.com/sitemap.xml
+Sitemap: https://allcx-patrimoine.com/sitemap.xml

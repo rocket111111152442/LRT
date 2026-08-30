@@ -25,14 +25,13 @@ def pages(B):
       <div data-reveal>
         <figure class="hero-figure hero-figure--fill">
           <img src="assets/img/haussmann.svg" alt="Façade haussmannienne : pierre de taille, balcons en fer forgé et toiture en zinc." width="1200" height="900" loading="eager">
-          <figcaption class="hero-figure__caption">Immeuble haussmannien</figcaption>
         </figure>
       </div>
     </div>
     <div class="hero-meta hero-meta--light" data-reveal>
-      <div class="hero-meta__item"><span class="hero-meta__k">2,1 M€</span><span class="hero-meta__v">Rachat d’hôtel négocié pour un client</span></div>
-      <div class="hero-meta__item"><span class="hero-meta__k">15</span><span class="hero-meta__v">Sportifs accompagnés depuis 2021</span></div>
-      <div class="hero-meta__item"><span class="hero-meta__k">2028</span><span class="hero-meta__v">Validité de la carte professionnelle</span></div>
+      <div class="hero-meta__item"><span class="hero-meta__k">+2,1 M€</span><span class="hero-meta__v">Volume de transactions réalisées</span></div>
+      <div class="hero-meta__item"><span class="hero-meta__k">+20</span><span class="hero-meta__v">Projets réalisés</span></div>
+      <div class="hero-meta__item"><span class="hero-meta__k">+5</span><span class="hero-meta__v">Années d’expertise</span></div>
     </div>
   </div>
 </section>
@@ -64,7 +63,6 @@ def pages(B):
             <li><span class="k">Carte professionnelle</span><span class="v">""" + B.CARTE_T + """</span></li>
             <li><span class="k">Mention</span><span class="v">Transactions sur immeubles<br>et fonds de commerce</span></li>
             <li><span class="k">Délivrée par</span><span class="v">""" + B.CARTE_T_CCI + """</span></li>
-            <li><span class="k">Validité</span><span class="v">Jusqu’au """ + B.CARTE_T_FIN + """</span></li>
             <li><span class="k">Zone</span><span class="v">France entière</span></li>
           </ul>
           <div class="card__foot"><a class="link link--reverse" href="honoraires.html">Barème d’honoraires """ + A + """</a></div>
@@ -212,9 +210,9 @@ def pages(B):
     <div class="split split--wide-left split--top">
       <div data-reveal>
         <p class="eyebrow" style="color:var(--gold-300)">05 — Sportifs de haut niveau</p>
-        <h2 class="display-lg">Un club recrute, la famille doit être installée en dix jours.</h2>
+        <h2 class="display-lg">Un club recrute, la famille doit être installée en trente jours.</h2>
         <p class="lede mt-3" style="color:rgba(255,255,255,.74)">
-          Depuis 2021, ALLCX Patrimoine accompagne des joueurs professionnels dans leur installation :
+          ALLCX Patrimoine accompagne des joueurs professionnels dans leur installation :
           recherche de logement, visites groupées, constitution du dossier, remise des clés — et, lorsque
           la carrière se projette, acquisition d’un patrimoine.
         </p>
@@ -230,9 +228,7 @@ def pages(B):
       </div>
       <div data-reveal>
         <div class="stats stats--2 stats--dark">
-          <div class="stat"><span class="stat__k">2021</span><span class="stat__v">Première année d’accompagnement de joueurs professionnels</span></div>
-          <div class="stat"><span class="stat__k">15</span><span class="stat__v">Sportifs professionnels accompagnés à ce jour</span></div>
-          <div class="stat"><span class="stat__k">10 j</span><span class="stat__v">Délai visé entre la demande et la remise des clés</span></div>
+          <div class="stat"><span class="stat__k">30 j</span><span class="stat__v">Délai visé entre la demande et la remise des clés</span></div>
           <div class="stat"><span class="stat__k">1</span><span class="stat__v">Interlocuteur unique pour le joueur et sa famille</span></div>
         </div>
       </div>
@@ -261,7 +257,6 @@ def pages(B):
       <div data-reveal>
         <figure class="figure-frame">
           <img src="assets/img/interieur.svg" alt="Intérieur haussmannien : moulures, cheminée en marbre et parquet à bâtons rompus." width="1200" height="900" loading="lazy">
-          <figcaption>Intérieur haussmannien — illustration</figcaption>
         </figure>
       </div>
     </div>
