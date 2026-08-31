@@ -1,0 +1,323 @@
+@import 'tailwindcss';
+@import './ui.css';
+
+/* ==========================================================================
+   ADIMEN — Design system
+   Fond graphite bleuté, gris acier, ivoire, accent champagne (bronze froid)
+   et vert tactique employé avec parcimonie.
+   ========================================================================== */
+
+@theme {
+  /* --- Couleurs ---------------------------------------------------------- */
+  --color-noir: #06080b;
+  --color-graphite: #0b0f14;
+  --color-ardoise: #12181f;
+  --color-acier: #1e262f;
+  --color-acier-clair: #2c3742;
+  --color-brume: #7e8b98;
+  --color-argent: #b4bec8;
+  --color-ivoire: #eceff3;
+  --color-champagne: #c9ab72;
+  --color-champagne-clair: #e2caa0;
+  --color-champagne-sombre: #8d7443;
+  --color-tactique: #7d9a86;
+  --color-alerte: #e8a0a0;
+
+  /* --- Typographie ------------------------------------------------------- */
+  --font-display:
+    var(--police-display), 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-sans:
+    var(--police-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--police-mono), ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+
+  /* Échelle fluide : chaque pas s'adapte entre 375 px et 1600 px. */
+  --text-etiquette: 0.6875rem;
+  --text-etiquette--line-height: 1.2;
+  --text-etiquette--letter-spacing: 0.18em;
+  --text-menu: 0.8125rem;
+  --text-menu--line-height: 1.4;
+  --text-menu--letter-spacing: 0.06em;
+  --text-corps: clamp(0.9375rem, 0.9rem + 0.18vw, 1.0625rem);
+  --text-corps--line-height: 1.75;
+  --text-conduite: clamp(1.0625rem, 0.98rem + 0.36vw, 1.3125rem);
+  --text-conduite--line-height: 1.62;
+  --text-t4: clamp(1.125rem, 1.05rem + 0.34vw, 1.375rem);
+  --text-t4--line-height: 1.35;
+  --text-t3: clamp(1.375rem, 1.2rem + 0.75vw, 1.9375rem);
+  --text-t3--line-height: 1.25;
+  --text-t2: clamp(1.875rem, 1.5rem + 1.6vw, 3.125rem);
+  --text-t2--line-height: 1.12;
+  --text-t1: clamp(2.375rem, 1.7rem + 2.9vw, 4.5rem);
+  --text-t1--line-height: 1.05;
+  --text-affiche: clamp(2.75rem, 1.6rem + 4.8vw, 6.25rem);
+  --text-affiche--line-height: 0.98;
+
+  /* --- Rythme et grille -------------------------------------------------- */
+  --spacing: 0.25rem;
+  --container-lisible: 46rem;
+  --container-cadre: 82.5rem;
+
+  /* --- Rayons ------------------------------------------------------------ */
+  --radius-fin: 2px;
+  --radius-net: 4px;
+  --radius-doux: 10px;
+  --radius-carte: 16px;
+  --radius-ample: 26px;
+
+  /* --- Profondeurs ------------------------------------------------------- */
+  --shadow-niveau-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-niveau-2: 0 12px 30px -14px rgb(0 0 0 / 0.7);
+  --shadow-niveau-3: 0 30px 70px -30px rgb(0 0 0 / 0.85);
+  --shadow-niveau-4: 0 50px 120px -40px rgb(0 0 0 / 0.9);
+  --shadow-lueur: 0 0 0 1px rgb(201 171 114 / 0.28), 0 18px 50px -22px rgb(201 171 114 / 0.32);
+
+  /* --- Mouvement --------------------------------------------------------- */
+  --ease-net: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-doux: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-appui: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --duree-eclair: 120ms;
+  --duree-vive: 220ms;
+  --duree-posee: 420ms;
+  --duree-ample: 720ms;
+  --duree-scene: 1200ms;
+}
+
+/* --------------------------------------------------------------------------
+   Variables hors @theme (non génératrices d'utilitaires)
+   -------------------------------------------------------------------------- */
+:root {
+  --entete-hauteur: 76px;
+  --marge-cadre: clamp(1.25rem, 5vw, 5rem);
+  --trait: color-mix(in oklab, var(--color-acier-clair) 65%, transparent);
+  --trait-fort: color-mix(in oklab, var(--color-argent) 26%, transparent);
+  --verre: color-mix(in oklab, var(--color-ardoise) 72%, transparent);
+  color-scheme: dark;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --entete-hauteur: 88px;
+  }
+}
+
+/* ==========================================================================
+   Réinitialisation et primitives, rangées dans les couches de Tailwind.
+
+   C'est indispensable : une règle écrite hors couche l'emporte sur TOUTES
+   les couches, utilitaires compris. Un simple `h1 { margin: 0 }` non rangé
+   neutraliserait donc silencieusement chaque `mt-*` posé sur un titre.
+   ========================================================================== */
+
+@layer base {
+  /* --------------------------------------------------------------------------
+     Réinitialisation ciblée
+     -------------------------------------------------------------------------- */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Compense l'en-tête fixe lors d'une navigation par ancre. */
+    scroll-padding-top: calc(var(--entete-hauteur) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-noir);
+    color: var(--color-ivoire);
+    font-family: var(--font-sans);
+    font-size: var(--text-corps);
+    line-height: var(--text-corps--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Aucun débordement horizontal, quelles que soient les scènes en fond. */
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p {
+    text-wrap: pretty;
+    margin: 0;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-champagne) 35%, transparent);
+    color: var(--color-ivoire);
+  }
+
+  /* --------------------------------------------------------------------------
+     Accessibilité : focus visible homogène
+     -------------------------------------------------------------------------- */
+  :focus-visible {
+    outline: 2px solid var(--color-champagne-clair);
+    outline-offset: 3px;
+    border-radius: var(--radius-net);
+  }
+
+  /* Le focus par pointeur ne doit pas dessiner d'anneau. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  .lien-evitement {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 200;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-champagne);
+    color: var(--color-noir);
+    font-weight: 600;
+    border-radius: var(--radius-net);
+    transform: translateY(-200%);
+    transition: transform var(--duree-vive) var(--ease-net);
+  }
+
+  .lien-evitement:focus {
+    transform: translateY(0);
+  }
+
+  /* --------------------------------------------------------------------------
+     Barre de défilement
+     -------------------------------------------------------------------------- */
+  @supports (scrollbar-color: black white) {
+    html {
+      scrollbar-color: var(--color-acier-clair) var(--color-noir);
+      scrollbar-width: thin;
+    }
+  }
+}
+
+@layer components {
+  /* --------------------------------------------------------------------------
+     Primitives d'animation au défilement
+     L'état initial n'est appliqué que si le script est actif (classe sur <html>),
+     afin que le contenu reste visible sans JavaScript.
+     -------------------------------------------------------------------------- */
+  .js .revele {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    will-change: opacity, transform;
+  }
+
+  .js .revele[data-vu='true'] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--duree-ample) var(--ease-net),
+      transform var(--duree-ample) var(--ease-net);
+    transition-delay: var(--retard, 0ms);
+    will-change: auto;
+  }
+
+  /* Masque cinématographique : le texte se dévoile ligne par ligne. */
+  /* La boîte de découpe est élargie puis le décalage rattrapé : sans cela, le
+     masque rogne les accents des capitales (le É de « Établir ») et les
+     jambages descendants. */
+  .masque-ligne {
+    display: block;
+    padding-block: 0.16em 0.08em;
+    margin-block: -0.16em -0.08em;
+  }
+
+  .js .masque-ligne {
+    overflow: hidden;
+  }
+
+  .js .masque-ligne > span {
+    display: block;
+    /* Au-delà de 100 % pour que rien ne dépasse malgré la marge ajoutée. */
+    transform: translate3d(0, 125%, 0);
+    will-change: transform;
+  }
+
+  /* Le marqueur est posé sur le titre : toutes ses lignes se dévoilent alors
+     en cascade, chacune avec son propre retard. */
+  .js [data-vu='true'] .masque-ligne > span,
+  .js .masque-ligne[data-vu='true'] > span {
+    transform: none;
+    transition: transform var(--duree-scene) var(--ease-net);
+    transition-delay: var(--retard, 0ms);
+    will-change: auto;
+  }
+}
+
+/* Hors couche, et volontairement : la préférence de mouvement réduit et les
+   styles d'impression doivent primer sur tout le reste. */
+/* --------------------------------------------------------------------------
+   Préférence de mouvement réduit — neutralise toute animation non essentielle
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js .revele,
+  .js .masque-ligne > span {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Impression
+   -------------------------------------------------------------------------- */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .sans-impression {
+    display: none !important;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+  }
+}
