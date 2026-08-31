@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/format";
@@ -202,6 +202,14 @@ function StepContent({
   t: Dictionary["estimation"];
 }) {
   const s = t.steps;
+  const surfaceId = useId();
+  const roomsId = useId();
+  const yearId = useId();
+  const landId = useId();
+  const parkingId = useId();
+  const contactNameId = useId();
+  const contactEmailId = useId();
+  const contactPhoneId = useId();
 
   switch (step) {
     case 0:
@@ -230,8 +238,12 @@ function StepContent({
     case 2:
       return (
         <Field title={s.surface.title} description={s.surface.description}>
-          <label className="input-label">{s.surface.label}</label>
+          <label htmlFor={surfaceId} className="input-label">
+            {s.surface.label}
+          </label>
           <input
+            id={surfaceId}
+            autoFocus
             type="number"
             min={10}
             max={2000}
@@ -244,8 +256,12 @@ function StepContent({
     case 3:
       return (
         <Field title={s.rooms.title} description={s.rooms.description}>
-          <label className="input-label">{s.rooms.label}</label>
+          <label htmlFor={roomsId} className="input-label">
+            {s.rooms.label}
+          </label>
           <input
+            id={roomsId}
+            autoFocus
             type="number"
             min={1}
             max={30}
@@ -259,8 +275,12 @@ function StepContent({
     case 4:
       return (
         <Field title={s.year.title} description={s.year.description}>
-          <label className="input-label">{s.year.label}</label>
+          <label htmlFor={yearId} className="input-label">
+            {s.year.label}
+          </label>
           <input
+            id={yearId}
+            autoFocus
             type="number"
             min={1800}
             max={2028}
@@ -285,8 +305,12 @@ function StepContent({
         <Field title={s.land.title} description={s.land.description}>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="input-label">{s.land.landLabel}</label>
+              <label htmlFor={landId} className="input-label">
+                {s.land.landLabel}
+              </label>
               <input
+                id={landId}
+                autoFocus
                 type="number"
                 min={0}
                 value={data.landSurface}
@@ -295,8 +319,11 @@ function StepContent({
               />
             </div>
             <div>
-              <label className="input-label">{s.land.parkingLabel}</label>
+              <label htmlFor={parkingId} className="input-label">
+                {s.land.parkingLabel}
+              </label>
               <input
+                id={parkingId}
                 type="number"
                 min={0}
                 max={20}
@@ -313,8 +340,12 @@ function StepContent({
         <Field title={s.contact.title} description={s.contact.description}>
           <div className="grid gap-5">
             <div>
-              <label className="input-label">{s.contact.nameLabel}</label>
+              <label htmlFor={contactNameId} className="input-label">
+                {s.contact.nameLabel}
+              </label>
               <input
+                id={contactNameId}
+                autoFocus
                 type="text"
                 autoComplete="name"
                 value={data.fullName}
@@ -324,8 +355,11 @@ function StepContent({
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="input-label">{s.contact.emailLabel}</label>
+                <label htmlFor={contactEmailId} className="input-label">
+                  {s.contact.emailLabel}
+                </label>
                 <input
+                  id={contactEmailId}
                   type="email"
                   autoComplete="email"
                   value={data.email}
@@ -334,8 +368,11 @@ function StepContent({
                 />
               </div>
               <div>
-                <label className="input-label">{s.contact.phoneLabel}</label>
+                <label htmlFor={contactPhoneId} className="input-label">
+                  {s.contact.phoneLabel}
+                </label>
                 <input
+                  id={contactPhoneId}
                   type="tel"
                   autoComplete="tel"
                   value={data.phone}
