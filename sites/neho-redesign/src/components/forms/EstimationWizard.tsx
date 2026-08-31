@@ -83,16 +83,29 @@ export function EstimationWizard({ locale, dict }: { locale: Locale; dict: Dicti
     return true;
   }
 
+  // Ne recadre la vue que si le haut du formulaire n'est plus confortablement
+  // visible (caché par le header fixe, ou déjà scrollé plus bas en remplissant
+  // une étape longue) — un scrollIntoView inconditionnel à chaque étape fait
+  // "sauter" la page même quand ce n'est pas nécessaire.
+  function scrollToWizardIfNeeded() {
+    const el = topRef.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight * 0.4) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   function goNext() {
     if (!validateStep(step)) return;
     setStep((s) => Math.min(s + 1, totalSteps - 1));
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToWizardIfNeeded();
   }
 
   function goBack() {
     setErrors([]);
     setStep((s) => Math.max(s - 1, 0));
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToWizardIfNeeded();
   }
 
   async function handleSubmit() {
@@ -130,7 +143,7 @@ export function EstimationWizard({ locale, dict }: { locale: Locale; dict: Dicti
   }
 
   return (
-    <div ref={topRef}>
+    <div ref={topRef} className="scroll-mt-28">
       <div
         role="progressbar"
         aria-valuemin={1}

@@ -4,6 +4,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { siteConfig } from "@/config/site";
 import { Container } from "@/components/ui/Container";
 import { DemoBadge } from "@/components/ui/Badge";
+import { Logo } from "@/components/ui/Logo";
 import { NewsletterForm } from "@/components/layout/NewsletterForm";
 
 export function Footer({ locale }: { locale: Locale }) {
@@ -19,11 +20,9 @@ export function Footer({ locale }: { locale: Locale }) {
       <Container className="relative py-16 sm:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
-            <Link href={`/${locale}`} className="flex items-center gap-2 font-display text-2xl font-semibold">
-              <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full bg-ivy-500 text-night-950 text-sm">
-                N
-              </span>
-              {siteConfig.name}
+            <Link href={`/${locale}`} className="flex items-center gap-3">
+              <Logo size="md" />
+              <span className="font-display text-lg font-medium text-cream-50/80">Concept</span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-cream-50/70">{f.tagline}</p>
             <div className="mt-6">

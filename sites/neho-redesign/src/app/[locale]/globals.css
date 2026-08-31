@@ -4,9 +4,11 @@
   Ného Concept — design system
   ------------------------------------------------------------------
   Direction artistique : immobilier suisse premium x design éditorial x
-  interface SaaS aboutie. Fonds crème/pierre, sections anthracite/vert nuit,
-  accent "ivy" (vert profond) + accent secondaire bronze pour le haut de
-  gamme (formule Privilege, badges premium).
+  interface SaaS aboutie. Fonds crème/pierre, sections indigo profond,
+  accent "ivy" (indigo/violet, inspiré de l'identité réelle Neho à la
+  demande explicite du commanditaire du concept — voir docs/neho-audit.md
+  pour le disclaimer identité) + accent secondaire bronze/or pour le haut
+  de gamme (formule Privilege, badges premium).
 */
 
 @theme {
@@ -19,33 +21,34 @@
   --color-stone-600: #7a6f5a;
 
   /* Encre (texte sur fond clair) */
-  --color-ink-900: #15181a;
-  --color-ink-700: #363c37;
-  --color-ink-500: #5b625c;
+  --color-ink-900: #17151f;
+  --color-ink-700: #38333f;
+  --color-ink-500: #5e5866;
 
-  /* Nuit (sections sombres) — anthracite à dominante vert profond */
-  --color-night-950: #0b120f;
-  --color-night-900: #101913;
-  --color-night-800: #17241d;
-  --color-night-700: #223327;
-  --color-night-line: #2b3b30;
+  /* Nuit (sections sombres) — indigo profond à dominante violette */
+  --color-night-950: #0c0919;
+  --color-night-900: #130f28;
+  --color-night-800: #1c1640;
+  --color-night-700: #2a2054;
+  --color-night-line: #362a63;
 
-  /* Accent primaire "ivy" (vert profond, issu de l'esprit de marque Neho,
-     réinterprété — voir docs/neho-audit.md pour le disclaimer identité) */
-  --color-ivy-900: #16281d;
-  --color-ivy-700: #26492f;
-  --color-ivy-600: #2f5d46;
-  --color-ivy-500: #3c7256;
-  --color-ivy-400: #5b9678;
-  --color-ivy-300: #8ebba1;
-  --color-ivy-100: #dcebe1;
+  /* Accent primaire "ivy" (indigo/violet, inspiré de l'identité réelle
+     Neho — réinterprété pour ce concept, voir docs/neho-audit.md) */
+  --color-ivy-900: #1a1235;
+  --color-ivy-700: #2c1f54;
+  --color-ivy-600: #392a6b;
+  --color-ivy-500: #4c3a8a;
+  --color-ivy-400: #6f5aae;
+  --color-ivy-300: #a292d4;
+  --color-ivy-100: #e8e3f6;
 
-  /* Accent secondaire bronze (premium / formule Privilege) */
-  --color-bronze-700: #5f471f;
-  --color-bronze-600: #92703c;
-  --color-bronze-500: #b08a4e;
-  --color-bronze-300: #d9bd8b;
-  --color-bronze-100: #f1e5cf;
+  /* Accent secondaire bronze/or (premium / formule Privilege — contraste
+     chaud classique face à l'indigo) */
+  --color-bronze-700: #61480f;
+  --color-bronze-600: #9a7523;
+  --color-bronze-500: #c79a41;
+  --color-bronze-300: #e2c483;
+  --color-bronze-100: #f6ead0;
 
   /* États */
   --color-error-600: #b3432f;
