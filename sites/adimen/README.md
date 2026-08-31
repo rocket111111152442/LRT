@@ -238,9 +238,21 @@ Cible : **WCAG 2.2 niveau AA**.
 
 Le site est un projet Next.js autonome dans un dépôt qui en contient d'autres.
 
+- **Projet Vercel** : `adimen`, relié à `rocket111111152442/LRT`
 - **Root Directory** : `sites/adimen`
 - **Framework** : Next.js — détecté automatiquement
+- **Branche de production** : `main`. Tant que la refonte n'y est pas fusionnée,
+  seules des préversions sont construites, depuis la branche de travail.
 - Variables d'environnement : voir `.env.example`
+
+Le dépôt héberge plusieurs sites : chaque projet Vercel se distingue par son
+**Root Directory**, et une poussée ne reconstruit que les projets dont le
+dossier a changé.
+
+> **Plan Vercel.** Le compte est actuellement sur le plan Hobby, réservé à un
+> usage non commercial. Un site vitrine exploité pour le compte d'un client
+> relève du plan Pro : à arbitrer avant la mise en production définitive, comme
+> c'est déjà noté pour les autres sites du dépôt.
 
 `next.config.ts` ancre `turbopack.root` sur ce dossier. **Sans cette ancre**,
 l'outil remonte jusqu'au dépôt parent — qui contient d'autres `package-lock.json`
