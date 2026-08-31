@@ -131,7 +131,14 @@ export function EstimationWizard({ locale, dict }: { locale: Locale; dict: Dicti
 
   return (
     <div ref={topRef}>
-      <div role="progressbar" aria-valuemin={1} aria-valuemax={totalSteps} aria-valuenow={step + 1} className="mb-8">
+      <div
+        role="progressbar"
+        aria-valuemin={1}
+        aria-valuemax={totalSteps}
+        aria-valuenow={step + 1}
+        aria-label={`${t.stepLabels[step]} (${step + 1}/${totalSteps})`}
+        className="mb-8"
+      >
         <div className="mb-2 flex items-center justify-between text-xs font-medium text-ink-500">
           <span>
             {t.stepLabels[step]} ({step + 1}/{totalSteps})

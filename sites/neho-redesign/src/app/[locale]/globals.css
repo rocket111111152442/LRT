@@ -41,6 +41,7 @@
   --color-ivy-100: #dcebe1;
 
   /* Accent secondaire bronze (premium / formule Privilege) */
+  --color-bronze-700: #5f471f;
   --color-bronze-600: #92703c;
   --color-bronze-500: #b08a4e;
   --color-bronze-300: #d9bd8b;
@@ -65,71 +66,83 @@
   --breakpoint-xs: 22.5rem; /* 360px */
 }
 
-:root {
-  color-scheme: light;
-}
+/*
+  Tout reset d'élément (body, a, button…) doit vivre dans @layer base :
+  Tailwind v4 place ses propres styles dans des layers nommés (theme, base,
+  components, utilities). Une règle CSS écrite hors de tout layer est
+  toujours prioritaire sur une règle dans un layer, quelle que soit sa
+  spécificité — donc un simple `a { color: inherit }` hors layer écraserait
+  silencieusement `.text-cream-50` (qui vit dans le layer `utilities`) sur
+  tous les boutons/liens. D'où ce regroupement explicite dans `@layer base`.
+*/
+@layer base {
+  :root {
+    color-scheme: light;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  margin: 0;
-  background: var(--color-cream-50);
-  color: var(--color-ink-900);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+  body {
+    margin: 0;
+    background: var(--color-cream-50);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  letter-spacing: -0.01em;
-  line-height: 1.08;
-}
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    line-height: 1.08;
+  }
 
-button, input, textarea, select {
-  font: inherit;
-  color: inherit;
-}
+  button, input, textarea, select {
+    font: inherit;
+    color: inherit;
+  }
 
-a {
-  color: inherit;
-}
+  a {
+    color: inherit;
+  }
 
-::selection {
-  background: var(--color-ivy-300);
-  color: var(--color-ivy-900);
-}
+  ::selection {
+    background: var(--color-ivy-300);
+    color: var(--color-ivy-900);
+  }
 
-/* Focus visible cohérent sur tout le site (accessibilité clavier) */
-:focus-visible {
-  outline: 2px solid var(--color-ivy-500);
-  outline-offset: 3px;
-  border-radius: 0.25rem;
-}
-
-.skip-link {
-  position: absolute;
-  left: 1rem;
-  top: -4rem;
-  z-index: 100;
-  background: var(--color-ink-900);
-  color: var(--color-cream-50);
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.6rem;
-  transition: top 0.2s ease;
-}
-
-.skip-link:focus {
-  top: 1rem;
+  /* Focus visible cohérent sur tout le site (accessibilité clavier) */
+  :focus-visible {
+    outline: 2px solid var(--color-ivy-500);
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+  }
 }
 
 @layer components {
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    background: var(--color-ink-900);
+    color: var(--color-cream-50);
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.6rem;
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+
+
   .input-label {
     display: block;
     margin-bottom: 0.4rem;

@@ -27,7 +27,7 @@ export function SavingsCalculator({ locale, dict }: { locale: Locale; dict: Dict
   const fmt = (n: number) => formatCHF(n, locale);
 
   return (
-    <div className="grid gap-10 rounded-[2rem] border border-stone-200 bg-cream-100/60 p-6 sm:p-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
+    <div className="grid gap-10 rounded-[2rem] border border-stone-200 bg-cream-100 p-6 sm:p-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
       <div>
         <div className="mb-8">
           <label htmlFor={priceInputId} className="mb-2 flex items-center justify-between text-sm font-medium text-ink-900">

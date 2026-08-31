@@ -11,7 +11,7 @@ export function Badge({
 }) {
   const tones: Record<string, string> = {
     ivy: "bg-ivy-100 text-ivy-700",
-    bronze: "bg-bronze-100 text-bronze-600",
+    bronze: "bg-bronze-100 text-bronze-700",
     stone: "bg-stone-200 text-ink-700",
     cream: "bg-cream-50/15 text-cream-50 border border-cream-50/25",
   };
@@ -32,7 +32,7 @@ export function DemoBadge({ label, className }: { label: string; className?: str
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-bronze-500/60 bg-bronze-100/70 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-bronze-600",
+        "inline-flex items-center gap-1.5 rounded-full border border-bronze-500/60 bg-bronze-100 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-bronze-700",
         className,
       )}
       role="note"

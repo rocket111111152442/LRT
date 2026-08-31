@@ -23,12 +23,12 @@ export function NewsletterForm({ placeholder, cta }: { placeholder: string; cta:
         required
         placeholder={placeholder}
         disabled={state === "submitted"}
-        className="h-11 flex-1 rounded-full border border-cream-50/25 bg-transparent px-4 text-sm text-cream-50 placeholder:text-cream-50/45 focus-visible:border-ivy-400 disabled:opacity-60"
+        className="h-11 flex-1 rounded-full border border-cream-50/25 bg-transparent px-4 text-sm text-cream-50 placeholder:text-cream-50/60 focus-visible:border-ivy-400 disabled:opacity-60"
       />
       <button
         type="submit"
         disabled={state === "submitted"}
-        className="h-11 shrink-0 rounded-full bg-ivy-500 px-5 text-sm font-medium text-night-950 hover:bg-ivy-400 disabled:opacity-70"
+        className="h-11 shrink-0 rounded-full bg-ivy-600 px-5 text-sm font-medium text-cream-50 hover:bg-ivy-700 disabled:opacity-70"
       >
         {state === "submitted" ? "✓" : cta}
       </button>

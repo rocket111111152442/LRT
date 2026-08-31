@@ -57,7 +57,7 @@ export function Footer({ locale }: { locale: Locale }) {
             </div>
             <NewsletterForm placeholder={f.newsletter.placeholder} cta={f.newsletter.cta} />
           </div>
-          <p className="mt-3 text-xs text-cream-50/45">{f.newsletter.disclaimer}</p>
+          <p className="mt-3 text-xs text-cream-50/65">{f.newsletter.disclaimer}</p>
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-cream-50/10 pt-6 text-xs text-cream-50/55 sm:flex-row sm:items-center sm:justify-between">
