@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  /* Typographie */
+  --font-sans: var(--font-sans-family), "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-serif-family), "Iowan Old Style", Georgia, serif;
+
+  /* Palette Courvoisier — ivoire, pierre, encre chaude, vert profond,
+     brun en accent rare. Aucun bleu/violet "startup tech". */
+  --color-ivory: #f5f2ea;
+  --color-paper: #fbf9f4;
+  --color-stone: #e8e1d1;
+  --color-stone-dark: #d5cbb3;
+  --color-ink: #1a1912;
+  --color-ink-soft: #2b2a22;
+  --color-graphite: #55503f;
+  --color-graphite-light: #5f5943;
+  --color-green: #23342a;
+  --color-green-dark: #17221b;
+  --color-green-mist: #cdd6c9;
+  --color-brown: #6b4c2e;
+  --color-focus: #988158;
+  --color-night: #111309;
+
+  --container-page: 88rem;
+  --container-copy: 42rem;
+
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    border-color: var(--color-stone-dark);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-green);
+    color: var(--color-ivory);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Révélation au scroll : masque en bas, translation courte, jamais de bounce. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition:
+      opacity 0.9s var(--ease-editorial),
+      transform 0.9s var(--ease-editorial);
+  }
+  .reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-mask {
+    overflow: hidden;
+  }
+  .reveal-mask > * {
+    display: block;
+    transform: translateY(105%);
+    transition: transform 1s var(--ease-editorial);
+  }
+  .reveal-mask.reveal-visible > * {
+    transform: translateY(0);
+  }
+
+  /* Soulignement animé — utilisé pour les liens éditoriaux */
+  .link-underline {
+    position: relative;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.4s var(--ease-editorial);
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
+  }
+}
