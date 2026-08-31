@@ -17,7 +17,7 @@ export function Counter({ value, className }: { value: string; className?: strin
     // Les branches ci-dessous font toutes de la synchronisation avec un
     // état lu uniquement côté client (DOM monté, préférence système) :
     // impossible de le savoir avant l'effet, donc setState y est correct.
-    const match = value.match(/[\d'.,]+/);
+    const match = value.match(/[\d'’.,]+/);
     const el = ref.current;
     if (!match || !el) {
       setDisplay(value);
@@ -25,7 +25,19 @@ export function Counter({ value, className }: { value: string; className?: strin
     }
 
     const numStr = match[0];
-    const target = parseFloat(numStr.replace(/[’']/g, "").replace(",", "."));
+    // "." et "," servent tantôt de séparateur de milliers (ex. EN "25,000",
+    // FR "25'000"), tantôt de séparateur décimal (ex. "4,7 / 5", "4.7 / 5") :
+    // on désambiguïse par la longueur du dernier groupe de chiffres. Un
+    // groupe final de 3 chiffres est un regroupement de milliers ; un
+    // groupe final de 1 ou 2 chiffres est une décimale.
+    const groups = numStr.split(/['’.,]/);
+    const lastGroup = groups[groups.length - 1] ?? "";
+    const isDecimal = groups.length > 1 && lastGroup.length > 0 && lastGroup.length <= 2;
+    const decimals = isDecimal ? lastGroup.length : 0;
+    const target = isDecimal
+      ? parseFloat(`${groups.slice(0, -1).join("")}.${lastGroup}`)
+      : parseFloat(groups.join(""));
+
     if (Number.isNaN(target)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplay(value);
@@ -34,8 +46,10 @@ export function Counter({ value, className }: { value: string; className?: strin
 
     const prefix = value.slice(0, match.index);
     const suffix = value.slice((match.index ?? 0) + numStr.length);
-    const decimals = numStr.includes(",") || numStr.includes(".") ? 1 : 0;
-    const hasThousandSep = numStr.includes("'") || numStr.includes("’");
+    const hasThousandSep = !isDecimal && groups.length > 1;
+    // Préserve le caractère décimal d'origine (« , » en français, « . » en
+    // anglais) pour ne pas mélanger les conventions pendant l'animation.
+    const decimalChar = isDecimal ? numStr[numStr.length - lastGroup.length - 1] : ",";
 
     if (prefersReducedMotion()) {
       setDisplay(value);
@@ -51,11 +65,14 @@ export function Counter({ value, className }: { value: string; className?: strin
         ease: "power2.out",
         scrollTrigger: { trigger: el, start: "top 90%", once: true },
         onUpdate: () => {
-          const formatted = counter.n.toLocaleString("fr-CH", {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-            useGrouping: hasThousandSep,
-          });
+          // Formatage manuel (voir src/lib/utils/format.ts) plutôt que
+          // `toLocaleString` : ce calcul tourne uniquement côté client
+          // (après hydratation), mais on garde un séparateur des milliers
+          // fixe pour rester visuellement identique au reste du site.
+          const fixed = counter.n.toFixed(decimals);
+          const [intPart, decimalPart] = fixed.split(".");
+          const grouped = hasThousandSep ? (intPart ?? "0").replace(/\B(?=(\d{3})+(?!\d))/g, "'") : (intPart ?? "0");
+          const formatted = decimalPart ? `${grouped}${decimalChar}${decimalPart}` : grouped;
           setDisplay(`${prefix}${formatted}${suffix}`);
         },
         onComplete: () => setDisplay(value),

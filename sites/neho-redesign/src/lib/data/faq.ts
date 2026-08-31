@@ -1,4 +1,5 @@
 import type { Canton, LocalFaqItem } from "./types";
+import { formatNumber } from "@/lib/utils/format";
 
 export const siteFaq: LocalFaqItem[] = [
   {
@@ -41,7 +42,7 @@ export function generateCantonFaq(canton: Canton): LocalFaqItem[] {
   return [
     {
       question: `Quel est le prix moyen au m² dans le canton de ${canton.name} ?`,
-      answer: `À titre indicatif (démonstration), le prix moyen constaté est d'environ CHF ${canton.stats.averagePricePerSqm.toLocaleString("fr-CH")} par m². Il varie fortement selon la commune — voir le détail par commune sur cette page.`,
+      answer: `À titre indicatif (démonstration), le prix moyen constaté est d'environ CHF ${formatNumber(canton.stats.averagePricePerSqm)} par m². Il varie fortement selon la commune — voir le détail par commune sur cette page.`,
     },
     {
       question: `Combien de temps prend une vente dans le canton de ${canton.name} ?`,
