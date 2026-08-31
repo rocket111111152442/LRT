@@ -17,10 +17,19 @@ type OptionsMeta = {
  */
 export function construireMeta({ titre, description, chemin, noIndex }: OptionsMeta): Metadata {
   const url = `${SITE_URL}${chemin}`;
+
+  /* La mise en page racine déclare `title.template` : « %s — Agence ADIMEN ».
+     Next applique ce gabarit aux segments ENFANTS, jamais au segment qui le
+     déclare. On renvoie donc le titre nu — y ajouter le suffixe ici le
+     dupliquerait sur toutes les pages intérieures. L'accueil, qui partage le
+     segment racine, ne reçoit pas le gabarit : son titre porte déjà la marque.
+
+     `titreComplet` reconstitue le rendu final pour Open Graph et Twitter, qui
+     n'utilisent pas de gabarit. */
   const titreComplet = chemin === '/' ? titre : `${titre} — ${agence.nom}`;
 
   return {
-    title: titreComplet,
+    title: titre,
     description,
     alternates: { canonical: url },
     robots: noIndex ? { index: false, follow: false } : undefined,
