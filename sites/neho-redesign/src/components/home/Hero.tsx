@@ -58,10 +58,6 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dictionary }) {
 
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] border border-stone-200 shadow-lift sm:aspect-[5/4.6] lg:aspect-[4/4.6]">
           <HeroScene label={t.title} />
-          <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl bg-ink-900/85 px-4 py-3 text-cream-50 backdrop-blur">
-            <span className="text-xs font-medium">{t.stat3Label}</span>
-            <span className="font-display text-sm">{t.stat3Value}</span>
-          </div>
         </div>
       </Container>
 

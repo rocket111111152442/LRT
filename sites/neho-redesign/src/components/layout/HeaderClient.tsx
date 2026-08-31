@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { navStructure, type NavLink } from "@/config/nav";
 import type { Locale } from "@/lib/i18n/config";
@@ -14,11 +15,9 @@ type MenuGroup = "sell" | "buy" | "discover";
 
 export function HeaderClient({
   locale,
-  siteName,
   nav,
 }: {
   locale: Locale;
-  siteName: string;
   nav: Dictionary["nav"];
 }) {
   const [scrolled, setScrolled] = useState(false);
@@ -79,11 +78,9 @@ export function HeaderClient({
       )}
     >
       <div className="mx-auto flex h-18 max-w-[88rem] items-center justify-between px-5 sm:px-8 lg:px-12" style={{ height: "4.5rem" }}>
-        <Link href={`/${locale}`} className="flex items-center gap-2 font-display text-xl font-semibold text-ink-900">
-          <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-ivy-600 text-cream-50 text-sm">
-            N
-          </span>
-          {siteName}
+        <Link href={`/${locale}`} className="flex items-center gap-2.5">
+          <Logo />
+          <span className="font-display text-base font-medium text-ink-500">Concept</span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
