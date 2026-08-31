@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  /* ---------- Couleurs ---------- */
+  /* Palette minérale : papier chaud, pierre, graphite, vert sombre
+     architectural, terre cuite en accent unique et très maîtrisé. */
+  --color-paper: #f6f3ec;
+  --color-paper-dim: #efe9dd;
+  --color-stone: #ded4c1;
+  --color-stone-dark: #c7b9a0;
+
+  --color-ink: #1a1815;
+  --color-ink-soft: #4c473e;
+  --color-ink-faint: #756e60;
+
+  --color-pine: #16211b;
+  --color-pine-dim: #223229;
+  --color-pine-line: #2c3a32;
+
+  --color-clay: #9a6a41;
+  --color-clay-soft: #c8a179;
+  --color-clay-line: #d9bd98;
+
+  --color-alert: #8a3324;
+
+  /* ---------- Typographie ---------- */
+  --font-sans: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
+
+  /* ---------- Rayons ---------- */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+
+  /* ---------- Ombres (très discrètes) ---------- */
+  --shadow-soft: 0 1px 2px rgba(26, 24, 21, 0.04), 0 8px 24px rgba(26, 24, 21, 0.06);
+  --shadow-lift: 0 2px 4px rgba(26, 24, 21, 0.05), 0 16px 40px rgba(26, 24, 21, 0.10);
+
+  /* ---------- Timings ---------- */
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- Largeurs ---------- */
+  --container-max: 88rem;
+  --container-narrow: 46rem;
+
+  --breakpoint-xs: 22.5rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-stone);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-clay-soft);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-clay);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-feature-numeric {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
