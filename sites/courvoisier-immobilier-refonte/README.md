@@ -1,5 +1,8 @@
 # Courvoisier Immobilier — concept de refonte (non officiel)
 
+Déploiement Vercel : projet `courvoisier-redesign-demo` (racine
+`sites/courvoisier-immobilier-refonte`), branche `claude/courvoisier-immobilier-refonte-ubrsr8`.
+
 Concept privé de refonte de [courvoisier.immo](https://www.courvoisier.immo/),
 réalisé pour étude de direction artistique. **Aucune affiliation avec
 Courvoisier Immobilier SA.** Ne pas diffuser comme un site officiel.
