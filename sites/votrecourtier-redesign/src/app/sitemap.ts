@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/config/site";
-import { properties } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 import { blogPosts } from "@/lib/data/blog";
 import { localities } from "@/lib/data/localities";
 
@@ -23,7 +23,7 @@ const staticRoutes = [
   "/conditions-generales",
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const entries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
@@ -33,6 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === "" ? 1 : 0.7,
   }));
 
+  const properties = await getAllProperties();
   for (const property of properties) {
     entries.push({
       url: `${site.url}/tous-nos-biens/${property.slug}`,

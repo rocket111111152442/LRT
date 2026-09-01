@@ -28,6 +28,10 @@ export type Property = {
   features: string[];
   scene: SceneVariant;
   gallery: SceneVariant[];
+  /** Vraies photographies (Vercel Blob), pour les biens ajoutés depuis /admin. */
+  photos?: string[];
+  /** Présent uniquement sur les biens ajoutés depuis /admin. */
+  createdAt?: string;
 };
 
 export const properties: Property[] = [
@@ -168,12 +172,12 @@ export function formatChf(value: number) {
   return new Intl.NumberFormat("fr-CH", { maximumFractionDigits: 0 }).format(value);
 }
 
-export function getPropertyBySlug(slug: string) {
-  return properties.find((p) => p.slug === slug);
+export function getPropertyBySlug(slug: string, list: Property[] = properties) {
+  return list.find((p) => p.slug === slug);
 }
 
-export function getSimilarProperties(current: Property, limit = 3) {
-  return properties
+export function getSimilarProperties(current: Property, list: Property[] = properties, limit = 3) {
+  return list
     .filter((p) => p.slug !== current.slug && (p.type === current.type || p.canton === current.canton))
     .slice(0, limit);
 }

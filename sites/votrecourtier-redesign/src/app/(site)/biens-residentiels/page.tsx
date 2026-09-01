@@ -3,7 +3,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { PropertyGrid } from "@/components/properties/PropertyGrid";
-import { properties } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 
 export const metadata: Metadata = {
   title: "Biens résidentiels à vendre — Vaud & Fribourg",
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/biens-residentiels" },
 };
 
-export default function BiensResidentielsPage() {
+export default async function BiensResidentielsPage() {
+  const properties = await getAllProperties();
   const residential = properties.filter((p) => p.type === "maison" || p.type === "appartement");
 
   return (

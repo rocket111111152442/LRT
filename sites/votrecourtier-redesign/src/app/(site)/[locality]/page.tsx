@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { PropertyGrid } from "@/components/properties/PropertyGrid";
 import { getLocalityBySlug, localities } from "@/lib/data/localities";
 import { offices } from "@/config/site";
-import { properties } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 
 const PREFIX = "agence-immobiliere-a-";
 
@@ -39,7 +39,8 @@ export default async function LocalAgencyPage({ params }: { params: Promise<{ lo
   if (!locality) notFound();
 
   const office = offices.find((o) => o.id === locality.office)!;
-  const localProperties = properties.filter((p) => p.canton === locality.canton).slice(0, 3);
+  const allProperties = await getAllProperties();
+  const localProperties = allProperties.filter((p) => p.canton === locality.canton).slice(0, 3);
 
   return (
     <>

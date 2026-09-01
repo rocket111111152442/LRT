@@ -4,9 +4,10 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Reveal } from "@/components/animation/Reveal";
 import { PropertyCard } from "@/components/properties/PropertyCard";
 import { TextLink } from "@/components/ui/TextLink";
-import { properties } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 
-export function FeaturedProperties() {
+export async function FeaturedProperties() {
+  const properties = await getAllProperties();
   const featured = properties.filter((p) => p.status !== "vendu").slice(0, 3);
   const [first, second, third] = featured;
 

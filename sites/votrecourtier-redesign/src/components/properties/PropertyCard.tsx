@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Property } from "@/lib/data/properties";
 import { formatChf, propertyStatusLabels, propertyTypeLabels } from "@/lib/data/properties";
@@ -18,15 +19,28 @@ export function PropertyCard({
 
   return (
     <Link href={`/tous-nos-biens/${property.slug}`} className={cn("group block", className)}>
-      <div className={cn("relative overflow-hidden", aspect)}>
-        <ArchitecturalScene
-          variant={property.scene}
-          label={property.title}
-          className={cn(
-            "h-full w-full transition-transform duration-[1400ms] ease-luxury group-hover:scale-[1.045]",
-            isSold && "grayscale",
-          )}
-        />
+      <div className={cn("relative overflow-hidden bg-stone", aspect)}>
+        {property.photos?.[0] ? (
+          <Image
+            src={property.photos[0]}
+            alt={property.title}
+            fill
+            sizes="(min-width: 1024px) 40vw, 90vw"
+            className={cn(
+              "object-cover transition-transform duration-[1400ms] ease-luxury group-hover:scale-[1.045]",
+              isSold && "grayscale",
+            )}
+          />
+        ) : (
+          <ArchitecturalScene
+            variant={property.scene}
+            label={property.title}
+            className={cn(
+              "h-full w-full transition-transform duration-[1400ms] ease-luxury group-hover:scale-[1.045]",
+              isSold && "grayscale",
+            )}
+          />
+        )}
         <div className="absolute left-4 top-4 flex items-center gap-2">
           <span
             className={cn(

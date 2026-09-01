@@ -4,7 +4,8 @@ import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { PropertyGrid } from "@/components/properties/PropertyGrid";
-import { properties, propertyTypeLabels, type PropertyType } from "@/lib/data/properties";
+import { propertyTypeLabels, type PropertyType } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 import { cn } from "@/lib/utils/cn";
 
 export const metadata: Metadata = {
@@ -38,7 +39,8 @@ export default async function TousNosBiensPage({
   const activeType = (params.type as PropertyType | undefined) ?? "tous";
   const activeCanton = (params.canton as "VD" | "FR" | undefined) ?? "tous";
 
-  const filtered = properties.filter((p) => {
+  const allProperties = await getAllProperties();
+  const filtered = allProperties.filter((p) => {
     const typeMatch = activeType === "tous" || p.type === activeType;
     const cantonMatch = activeCanton === "tous" || p.canton === activeCanton;
     return typeMatch && cantonMatch;

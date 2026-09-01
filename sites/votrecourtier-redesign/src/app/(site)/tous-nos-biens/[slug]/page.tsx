@@ -7,14 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/properties/PropertyGallery";
 import { PropertyGrid } from "@/components/properties/PropertyGrid";
 import { Reveal } from "@/components/animation/Reveal";
-import {
-  formatChf,
-  getPropertyBySlug,
-  getSimilarProperties,
-  properties,
-  propertyStatusLabels,
-  propertyTypeLabels,
-} from "@/lib/data/properties";
+import { formatChf, properties, propertyStatusLabels, propertyTypeLabels } from "@/lib/data/properties";
+import { findPropertyBySlug, findSimilarProperties } from "@/lib/data/allProperties";
 import { offices } from "@/config/site";
 
 export function generateStaticParams() {
@@ -23,7 +17,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const property = getPropertyBySlug(slug);
+  const property = await findPropertyBySlug(slug);
   if (!property) return {};
   return {
     title: `${property.title} — ${property.city}`,
@@ -34,10 +28,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PropertyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const property = getPropertyBySlug(slug);
+  const property = await findPropertyBySlug(slug);
   if (!property) notFound();
 
-  const similar = getSimilarProperties(property);
+  const similar = await findSimilarProperties(property);
   const office = offices.find((o) => o.canton.toLowerCase() === property.canton.toLowerCase()) ?? offices[0]!;
 
   return (
@@ -69,7 +63,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ slug:
       </div>
 
       <Container className="-mt-px pb-0">
-        <PropertyGallery gallery={property.gallery} title={property.title} />
+        <PropertyGallery gallery={property.gallery} photos={property.photos} title={property.title} />
       </Container>
 
       <Section tone="paper">

@@ -3,7 +3,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { PropertyGrid } from "@/components/properties/PropertyGrid";
-import { properties } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 
 export const metadata: Metadata = {
   title: "Projets neufs — Vente sur plan à Vaud & Fribourg",
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/projets-neufs" },
 };
 
-export default function ProjetsNeufsPage() {
+export default async function ProjetsNeufsPage() {
+  const properties = await getAllProperties();
   const projects = properties.filter((p) => p.type === "projet-neuf");
 
   return (

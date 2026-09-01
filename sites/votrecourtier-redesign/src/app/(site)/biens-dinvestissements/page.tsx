@@ -3,7 +3,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { PropertyGrid } from "@/components/properties/PropertyGrid";
-import { properties } from "@/lib/data/properties";
+import { getAllProperties } from "@/lib/data/allProperties";
 
 export const metadata: Metadata = {
   title: "Biens d'investissement — Immeubles de rendement",
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/biens-dinvestissements" },
 };
 
-export default function BiensInvestissementPage() {
+export default async function BiensInvestissementPage() {
+  const properties = await getAllProperties();
   const investment = properties.filter((p) => p.type === "investissement");
 
   return (
