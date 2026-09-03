@@ -121,7 +121,9 @@ section[id]{scroll-margin-top:96px;}
 [data-reveal].in{opacity:1;transform:translateY(0);}
 
 /* services cards */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+@media (max-width:920px){.cards-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:560px){.cards-grid{grid-template-columns:1fr;}}
 .card{background:var(--bg);padding:40px 32px;transition:background .35s var(--ease);}
 .card:hover{background:var(--bg-alt);}
 .card-num{display:block;font-family:var(--font-display);color:var(--fg-dim);font-size:.85rem;margin-bottom:28px;}
