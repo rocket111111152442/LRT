@@ -218,7 +218,7 @@ def pages(B):
       </div>
       <div data-reveal>
         <div class="stats stats--2 stats--dark">
-          <div class="stat"><span class="stat__k">3 jours</span><span class="stat__v">Délai visé entre la demande et la remise des clés</span></div>
+          <div class="stat"><span class="stat__k">30 jours</span><span class="stat__v">Délai visé entre la demande et la remise des clés</span></div>
           <div class="stat"><span class="stat__k">1</span><span class="stat__v">Interlocuteur unique pour le joueur et sa famille</span></div>
         </div>
       </div>
