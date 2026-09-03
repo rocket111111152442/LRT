@@ -184,6 +184,7 @@ function repairSelect() {
     paidAmountCents: true,
     depositCents: true,
     paymentStatus: true,
+    paymentMethod: true,
     warrantyUntil: true,
     warrantyReturn: true,
     expectedPickupAt: true,
@@ -372,6 +373,7 @@ function normalizeRepairForResponse(value: unknown) {
     paidAmountCents: readNullableNumber(repair.paidAmountCents) ?? 0,
     depositCents: readNullableNumber(repair.depositCents) ?? 0,
     paymentStatus: readRepairPaymentStatus(repair.paymentStatus),
+    paymentMethod: readNullableString(repair.paymentMethod),
     warrantyUntil: readDateString(repair.warrantyUntil),
     warrantyReturn: readBoolean(repair.warrantyReturn),
     expectedPickupAt: readDateString(repair.expectedPickupAt),
@@ -683,6 +685,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     data.paymentStatus = body.paymentStatus;
+  }
+
+  if ("paymentMethod" in body) {
+    data.paymentMethod = readOptionalText(body, "paymentMethod");
   }
 
   if ("warrantyUntil" in body) {

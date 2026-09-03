@@ -985,6 +985,7 @@ function createFirestorePrisma() {
           qualireparError: args.data.qualireparError ?? null,
           partsStatus: args.data.partsStatus ?? "NONE",
           partsCostCents: args.data.partsCostCents ?? null,
+          paymentMethod: args.data.paymentMethod ?? null,
           archivedAt: args.data.archivedAt ?? null,
           createdAt: timestamp,
           updatedAt: timestamp,

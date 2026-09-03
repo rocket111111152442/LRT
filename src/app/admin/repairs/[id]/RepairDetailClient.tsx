@@ -62,6 +62,7 @@ type RepairDetail = {
   paidAmountCents: number;
   depositCents: number;
   paymentStatus: RepairPaymentStatus;
+  paymentMethod: string | null;
   warrantyUntil: string | null;
   warrantyReturn: boolean;
   expectedPickupAt: string | null;
@@ -114,6 +115,17 @@ type CustomerHistoryItem = {
 type RepairDetailClientProps = {
   repairId: string;
 };
+
+// Moyens de paiement proposés (choix rapides pour la compta).
+const PAYMENT_METHOD_OPTIONS = [
+  "",
+  "Espèces",
+  "Carte",
+  "Virement",
+  "Chèque",
+  "PayPal",
+  "Autre",
+] as const;
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -207,6 +219,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
   const [deposit, setDeposit] = useState("");
   const [paymentStatus, setPaymentStatus] =
     useState<RepairPaymentStatus>("NON_PAYE");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [warrantyUntil, setWarrantyUntil] = useState("");
   const [warrantyReturn, setWarrantyReturn] = useState(false);
   const [expectedPickupAt, setExpectedPickupAt] = useState("");
@@ -251,6 +264,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
     setPaidAmount(centsToInput(payloadRepair.paidAmountCents));
     setDeposit(centsToInput(payloadRepair.depositCents));
     setPaymentStatus(payloadRepair.paymentStatus);
+    setPaymentMethod(payloadRepair.paymentMethod ?? "");
     setWarrantyUntil(dateToInput(payloadRepair.warrantyUntil));
     setWarrantyReturn(payloadRepair.warrantyReturn);
     setExpectedPickupAt(dateTimeToInput(payloadRepair.expectedPickupAt));
@@ -467,6 +481,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
       paidAmountCents: inputToCents(paidAmount) ?? 0,
       depositCents: inputToCents(deposit) ?? 0,
       paymentStatus,
+      paymentMethod: paymentMethod || null,
       warrantyUntil: warrantyUntil || null,
       warrantyReturn,
       expectedPickupAt: expectedPickupAt || null,
@@ -795,6 +810,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               <DetailItem label="Paye" value={formatPrice(repair.paidAmountCents)} />
               <DetailItem label="Reste a payer" value={formatPrice(remainingBalanceCents)} />
               <DetailItem label="Statut paiement" value={repair.paymentStatus} />
+              <DetailItem label="Moyen de paiement" value={repair.paymentMethod || "-"} />
               <DetailItem
                 label="Benefice reel estime"
                 value={
@@ -1122,6 +1138,14 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
             value={paymentStatus}
             options={REPAIR_PAYMENT_STATUSES}
             onChange={(value) => setPaymentStatus(value as RepairPaymentStatus)}
+          />
+          <SelectField
+            id="payment-method"
+            label="Moyen de paiement"
+            value={paymentMethod}
+            options={PAYMENT_METHOD_OPTIONS}
+            optionLabels={{ "": "Non renseigné" }}
+            onChange={setPaymentMethod}
           />
           <TextField
             id="deposit"

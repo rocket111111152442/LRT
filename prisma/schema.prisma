@@ -97,6 +97,7 @@ model Repair {
   paidAmountCents Int          @default(0)
   depositCents    Int          @default(0)
   paymentStatus   RepairPaymentStatus @default(NON_PAYE)
+  paymentMethod   String?
   warrantyUntil   DateTime?
   warrantyReturn  Boolean      @default(false)
   expectedPickupAt DateTime?
