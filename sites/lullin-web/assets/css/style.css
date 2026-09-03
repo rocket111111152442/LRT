@@ -143,11 +143,25 @@ section[id]{scroll-margin-top:96px;}
 .work-card{display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);transition:transform .4s var(--ease), border-color .4s var(--ease);}
 .work-card:hover{transform:translateY(-6px);border-color:var(--line-strong);}
 .work-visual{aspect-ratio:4/3;position:relative;overflow:hidden;}
-.work-visual::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, rgba(245,245,242,.18), transparent 60%);}
+.work-visual::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, rgba(245,245,242,.18), transparent 60%);z-index:1;}
+.work-visual::after{
+  content:'';position:absolute;inset:0;z-index:0;opacity:.5;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px),linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:36px 36px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 100%, black 20%, transparent 75%);
+}
 .work-visual[data-tone="1"]{background:linear-gradient(135deg,#111 0%,#050505 100%);}
 .work-visual[data-tone="2"]{background:linear-gradient(135deg,#161616 0%,#050505 100%);}
 .work-visual[data-tone="3"]{background:linear-gradient(135deg,#0e0e0e 0%,#020202 100%);}
 .work-card:hover .work-visual::before{opacity:.6;}
+.work-mark{
+  position:absolute;left:-.05em;bottom:-.14em;z-index:0;
+  font-family:var(--font-display);font-weight:700;font-size:clamp(3.2rem,11vw,6rem);
+  line-height:1;letter-spacing:-.03em;white-space:nowrap;
+  color:transparent;-webkit-text-stroke:1.5px rgba(245,245,242,.4);
+  transition:transform .5s var(--ease), -webkit-text-stroke-color .4s var(--ease);
+}
+.work-card:hover .work-mark{transform:translateY(-6px);-webkit-text-stroke-color:rgba(245,245,242,.7);}
 .work-status{position:absolute;top:16px;left:16px;font-size:.72rem;letter-spacing:.06em;padding:6px 12px;border-radius:999px;border:1px solid var(--line-strong);background:rgba(10,10,12,.6);backdrop-filter:blur(4px);}
 div.work-card{cursor:default;}
 .work-meta{padding:20px 22px;display:flex;justify-content:space-between;align-items:center;}
