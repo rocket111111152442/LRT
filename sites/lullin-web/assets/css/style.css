@@ -162,6 +162,11 @@ div.work-card{cursor:default;}
 .offre:hover{border-color:var(--line-strong);transform:translateY(-4px);}
 .offre h3{font-size:1.4rem;}
 .offre p{color:var(--fg-dim);font-size:.95rem;}
+.offre-price{font-family:var(--font-display);color:var(--fg);font-size:1.05rem;}
+.offre-price strong{font-size:1.3rem;font-weight:700;}
+.offre-price span{display:block;font-family:var(--font-body);color:var(--fg-dim);font-size:.78rem;margin-top:2px;}
+.offre-highlight .offre-price,.offre-highlight .offre-price strong{color:var(--bg);}
+.offre-highlight .offre-price span{color:rgba(10,10,12,.65);}
 .offre ul{display:flex;flex-direction:column;gap:8px;font-size:.9rem;flex:1;}
 .offre ul li{padding-left:18px;position:relative;}
 .offre ul li::before{content:'—';position:absolute;left:0;color:var(--fg-dim);}
