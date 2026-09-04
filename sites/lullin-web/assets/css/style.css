@@ -221,6 +221,15 @@ div.work-card{cursor:default;}
 .form-status.ok{color:#7bffb0;}
 .form-status.err{color:#ff8a8a;}
 
+/* grille de navigation vers les pages du site (accueil) */
+.pages-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;}
+@media (max-width:760px){.pages-grid{grid-template-columns:1fr;}}
+.page-card{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;transition:transform .4s var(--ease), border-color .4s var(--ease);}
+.page-card:hover{transform:translateY(-6px);border-color:var(--line-strong);}
+.page-card .num{position:absolute;top:20px;left:24px;font-family:var(--font-display);font-size:.8rem;color:rgba(255,255,255,.6);}
+.page-card h3{font-size:1.4rem;margin:0 0 8px;position:relative;z-index:1;}
+.page-card p{margin:0;font-size:.9rem;color:rgba(255,255,255,.78);position:relative;z-index:1;}
+
 /* footer */
 .site-footer{border-top:1px solid var(--line);padding:64px clamp(20px,4vw,56px) 40px;}
 .footer-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;flex-wrap:wrap;gap:20px;}

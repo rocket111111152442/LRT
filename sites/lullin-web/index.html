@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=5">
+<link rel="stylesheet" href="/assets/css/style.css?v=6">
 </head>
 <body>
 
@@ -28,12 +28,11 @@
 <header class="site-header" data-reveal>
   <a href="/" class="brand">Lullin<span>Web</span></a>
   <nav class="main-nav" aria-label="Navigation principale">
-    <a href="#services">Services</a>
-    <a href="#process">Méthode</a>
-    <a href="#realisations">Réalisations</a>
-    <a href="#offres">Offres</a>
-    <a href="/styles/">Styles</a>
-    <a href="#contact" class="nav-cta magnetic">Demander un devis</a>
+    <a href="/services.html">Services</a>
+    <a href="/methode.html">Méthode</a>
+    <a href="/realisations.html">Réalisations</a>
+    <a href="/offres.html">Offres</a>
+    <a href="/contact.html" class="nav-cta magnetic">Demander un devis</a>
   </nav>
   <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -57,8 +56,8 @@
         un devis personnalisé sous 48&nbsp;h.
       </p>
       <div class="hero-actions" data-reveal>
-        <a href="#contact" class="btn btn-primary magnetic">Je m'inscris, on me fait un devis</a>
-        <a href="#services" class="btn btn-ghost magnetic">Voir les services</a>
+        <a href="/contact.html" class="btn btn-primary magnetic">Je m'inscris, on me fait un devis</a>
+        <a href="/services.html" class="btn btn-ghost magnetic">Voir les services</a>
       </div>
       <div class="hero-stats" data-reveal>
         <div class="stat"><span class="stat-num" data-count="48">0</span><span class="stat-label">h pour un premier devis</span></div>
@@ -69,214 +68,32 @@
     <div class="scroll-cue" aria-hidden="true"><span></span>Scroll</div>
   </section>
 
-  <section id="services" class="services">
+  <section class="pages-section">
     <div class="section-head" data-reveal>
-      <p class="eyebrow">Services</p>
-      <h2>Un site, pensé pour durer.</h2>
+      <p class="eyebrow">Explorer le site</p>
+      <h2>Chaque page, son univers.</h2>
     </div>
-    <div class="cards-grid">
-      <article class="card" data-reveal>
-        <span class="card-num">01</span>
-        <h3>Site vitrine sur-mesure</h3>
-        <p>Design unique, rapide, responsive, pensé pour convertir vos visiteurs en clients.</p>
-      </article>
-      <article class="card" data-reveal>
-        <span class="card-num">02</span>
-        <h3>Refonte de site existant</h3>
-        <p>Votre site vieillit ? On le modernise sans perdre votre référencement ni votre identité.</p>
-      </article>
-      <article class="card" data-reveal>
-        <span class="card-num">03</span>
-        <h3>Maintenance &amp; suivi</h3>
-        <p>Mises à jour, sécurité, sauvegardes, disponibilité surveillée. Vous gardez la tête libre.</p>
-      </article>
-      <article class="card" data-reveal>
-        <span class="card-num">04</span>
-        <h3>E-commerce</h3>
-        <p>Boutique en ligne performante, paiement sécurisé, gestion des commandes simplifiée.</p>
-      </article>
-      <article class="card" data-reveal>
-        <span class="card-num">05</span>
-        <h3>Référencement technique</h3>
-        <p>Vitesse, structure, balises : les fondations pour être visible sur Google.</p>
-      </article>
-      <article class="card" data-reveal>
-        <span class="card-num">06</span>
-        <h3>Nom de domaine &amp; hébergement</h3>
-        <p>On s'occupe de la partie technique : domaine, hébergement, certificats, e-mails pro.</p>
-      </article>
-    </div>
-  </section>
-
-  <section id="process" class="process">
-    <div class="section-head" data-reveal>
-      <p class="eyebrow">Méthode</p>
-      <h2>Du premier contact à la mise en ligne.</h2>
-    </div>
-    <ol class="steps">
-      <li data-reveal>
-        <span class="step-index">01</span>
-        <div><h3>Inscription</h3><p>Vous remplissez le formulaire avec votre projet et vos besoins.</p></div>
-      </li>
-      <li data-reveal>
-        <span class="step-index">02</span>
-        <div><h3>Devis sous 48h</h3><p>Analyse de votre demande et proposition chiffrée, claire et sans engagement.</p></div>
-      </li>
-      <li data-reveal>
-        <span class="step-index">03</span>
-        <div><h3>Conception</h3><p>Design et développement de votre site, validation à chaque étape.</p></div>
-      </li>
-      <li data-reveal>
-        <span class="step-index">04</span>
-        <div><h3>Mise en ligne &amp; suivi</h3><p>Livraison du site puis maintenance continue selon la formule choisie.</p></div>
-      </li>
-    </ol>
-  </section>
-
-  <section id="realisations" class="realisations">
-    <div class="section-head" data-reveal>
-      <p class="eyebrow">Réalisations</p>
-      <h2>Ce qu'on a déjà construit.</h2>
-    </div>
-    <div class="work-grid">
-      <a class="work-card" href="https://www.qoravo.fr" target="_blank" rel="noopener" data-reveal>
-        <div class="work-visual" data-tone="1">
-          <span class="work-status">En ligne</span>
-          <span class="work-mark" aria-hidden="true">Qoravo</span>
-        </div>
-        <div class="work-meta"><h3>Qoravo</h3><span>Logiciel de gestion pour ateliers de réparation</span></div>
+    <div class="pages-grid">
+      <a class="page-card" href="/services.html" data-reveal style="background:linear-gradient(135deg,#1a0033,#00040d);">
+        <span class="num">01</span>
+        <h3>Services</h3>
+        <p>Ce qu'on construit pour vous — vitrine, refonte, e-commerce, maintenance.</p>
       </a>
-      <a class="work-card" href="https://www.allcx-patrimoine.com" target="_blank" rel="noopener" data-reveal>
-        <div class="work-visual" data-tone="2">
-          <span class="work-status">En ligne</span>
-          <span class="work-mark" aria-hidden="true">ALLCX</span>
-        </div>
-        <div class="work-meta"><h3>ALLCX Patrimoine</h3><span>Site vitrine — transactions immobilières</span></div>
+      <a class="page-card" href="/methode.html" data-reveal style="background:#e9e6df;color:#111;">
+        <span class="num" style="color:#111;">02</span>
+        <h3 style="color:#111;">Méthode</h3>
+        <p style="color:#333;">Du premier contact à la mise en ligne, étape par étape.</p>
       </a>
-      <a class="work-card" href="https://loryance.ch" target="_blank" rel="noopener" data-reveal>
-        <div class="work-visual" data-tone="3">
-          <span class="work-status">En ligne</span>
-          <span class="work-mark" aria-hidden="true">Loryance</span>
-        </div>
-        <div class="work-meta"><h3>Loryance</h3><span>Site vitrine — entreprise</span></div>
+      <a class="page-card" href="/realisations.html" data-reveal style="background:linear-gradient(135deg,#3a1c71,#5b2a86);">
+        <span class="num">03</span>
+        <h3>Réalisations</h3>
+        <p>Des sites réels, en ligne aujourd'hui, pour de vraies entreprises.</p>
       </a>
-      <a class="work-card" href="https://dehay-gestion.vercel.app/" target="_blank" rel="noopener" data-reveal>
-        <div class="work-visual" data-tone="1">
-          <span class="work-status">En ligne</span>
-          <span class="work-mark" aria-hidden="true">Dehay</span>
-        </div>
-        <div class="work-meta"><h3>Dehay Gestion</h3><span>Logiciel de gestion — immobilier</span></div>
+      <a class="page-card" href="/offres.html" data-reveal style="background:linear-gradient(135deg,#0a0a0a,#1a1408);">
+        <span class="num" style="color:#d4af6a;">04</span>
+        <h3 style="color:#e8cf98;">Offres</h3>
+        <p style="color:#b8a373;">Trois formules, du site vitrine au sur-mesure complet.</p>
       </a>
-      <a class="work-card" href="https://lrt.life" target="_blank" rel="noopener" data-reveal>
-        <div class="work-visual" data-tone="2">
-          <span class="work-status">En ligne</span>
-          <span class="work-mark" aria-hidden="true">LRT</span>
-        </div>
-        <div class="work-meta"><h3>LRT.life</h3><span>Logiciel de collecte de dons pour associations</span></div>
-      </a>
-    </div>
-    <p class="work-note" data-reveal>Votre projet pourrait être le prochain. <a href="#contact">Inscrivez-vous</a>.</p>
-  </section>
-
-  <section id="offres" class="offres">
-    <div class="section-head" data-reveal>
-      <p class="eyebrow">Offres</p>
-      <h2>Un accompagnement qui s'adapte à vous.</h2>
-    </div>
-    <div class="offres-grid">
-      <article class="offre" data-reveal>
-        <h3>Essentiel</h3>
-        <p class="offre-price">À partir de <strong>690&nbsp;€</strong><span> / projet</span></p>
-        <p>Site vitrine one-page, idéal pour lancer votre présence en ligne rapidement.</p>
-        <ul>
-          <li>Design sur-mesure</li>
-          <li>Responsive mobile</li>
-          <li>Formulaire de contact</li>
-        </ul>
-        <a href="#contact" class="btn btn-ghost magnetic">Demander un devis</a>
-      </article>
-      <article class="offre offre-highlight" data-reveal>
-        <span class="offre-tag">Le plus demandé</span>
-        <h3>Business</h3>
-        <p class="offre-price">À partir de <strong>1&nbsp;490&nbsp;€</strong><span> + maintenance dès 49&nbsp;€/mois</span></p>
-        <p>Site multi-pages complet avec maintenance incluse pour une entreprise établie.</p>
-        <ul>
-          <li>Toutes les pages nécessaires</li>
-          <li>SEO technique inclus</li>
-          <li>Maintenance mensuelle</li>
-          <li>Support prioritaire</li>
-        </ul>
-        <a href="#contact" class="btn btn-primary magnetic">Demander un devis</a>
-      </article>
-      <article class="offre" data-reveal>
-        <h3>Sur-mesure</h3>
-        <p class="offre-price">Sur devis</p>
-        <p>E-commerce, application métier ou besoin spécifique : on construit ensemble.</p>
-        <ul>
-          <li>Cahier des charges dédié</li>
-          <li>Intégrations spécifiques</li>
-          <li>Accompagnement long terme</li>
-        </ul>
-        <a href="#contact" class="btn btn-ghost magnetic">En discuter</a>
-      </article>
-    </div>
-  </section>
-
-  <section id="contact" class="contact">
-    <div class="contact-inner">
-      <div class="contact-intro" data-reveal>
-        <p class="eyebrow">Inscription</p>
-        <h2>Décrivez votre projet,<br>on vous prépare un devis.</h2>
-        <p class="contact-text">Toutes les entreprises sont les bienvenues, quel que soit le stade
-        de votre projet. Réponse sous 48&nbsp;h ouvrées.</p>
-        <a class="contact-mail" href="mailto:contact@lullinweb.fr">contact@lullinweb.fr</a>
-      </div>
-      <form class="devis-form" id="devis-form" data-reveal novalidate>
-        <input type="text" name="societe_web" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <div class="form-row">
-          <label>
-            <span>Nom complet *</span>
-            <input type="text" name="nom" required maxlength="120" autocomplete="name">
-          </label>
-          <label>
-            <span>Entreprise</span>
-            <input type="text" name="entreprise" maxlength="160" autocomplete="organization">
-          </label>
-        </div>
-        <div class="form-row">
-          <label>
-            <span>E-mail *</span>
-            <input type="email" name="email" required maxlength="180" autocomplete="email">
-          </label>
-          <label>
-            <span>Téléphone</span>
-            <input type="tel" name="telephone" maxlength="40" autocomplete="tel">
-          </label>
-        </div>
-        <label>
-          <span>Type de projet</span>
-          <select name="projet">
-            <option value="Site vitrine">Site vitrine</option>
-            <option value="Refonte">Refonte de site existant</option>
-            <option value="E-commerce">E-commerce</option>
-            <option value="Maintenance">Maintenance uniquement</option>
-            <option value="Autre">Autre / sur-mesure</option>
-          </select>
-        </label>
-        <label>
-          <span>Décrivez votre besoin *</span>
-          <textarea name="message" required minlength="20" maxlength="5000" rows="5" placeholder="Votre activité, vos objectifs, vos délais…"></textarea>
-        </label>
-        <label class="consent">
-          <input type="checkbox" name="consentement" required>
-          <span>J'accepte d'être recontacté(e) au sujet de ma demande.</span>
-        </label>
-        <button type="submit" class="btn btn-primary btn-submit magnetic">
-          <span class="btn-label">Envoyer ma demande</span>
-          <span class="btn-spinner" aria-hidden="true"></span>
-        </button>
-        <p class="form-status" role="status" aria-live="polite"></p>
-      </form>
     </div>
   </section>
 
@@ -285,11 +102,12 @@
 <footer class="site-footer">
   <div class="footer-top" data-reveal>
     <span class="brand">Lullin<span>Web</span></span>
-    <a href="#contact" class="btn btn-ghost magnetic">Demander un devis</a>
+    <a href="/contact.html" class="btn btn-ghost magnetic">Demander un devis</a>
   </div>
   <div class="footer-links">
     <a href="mailto:contact@lullinweb.fr">contact@lullinweb.fr</a>
     <a href="/mentions-legales.html">Mentions légales</a>
+    <a href="/styles/">Galerie de styles (démo)</a>
   </div>
   <p class="footer-copy">© <span id="year"></span> Lullin Web. Tous droits réservés.</p>
 </footer>

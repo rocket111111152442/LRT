@@ -1,7 +1,8 @@
 (function () {
   'use strict';
 
-  document.getElementById('year').textContent = new Date().getFullYear();
+  var yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ---------- menu mobile ---------- */
   var toggle = document.querySelector('.nav-toggle');
@@ -103,13 +104,43 @@
     io2.observe(el);
   });
 
-  /* ---------- header : fond au scroll ---------- */
+  /* ---------- header : fond au scroll (page d'accueil uniquement) ---------- */
   var header = document.querySelector('.site-header');
-  window.addEventListener('scroll', function () {
-    header.style.background = window.scrollY > 40
-      ? 'linear-gradient(to bottom, rgba(10,10,12,.92), rgba(10,10,12,.7))'
-      : 'linear-gradient(to bottom, rgba(10,10,12,.75), rgba(10,10,12,0))';
-  }, { passive: true });
+  if (header) {
+    window.addEventListener('scroll', function () {
+      header.style.background = window.scrollY > 40
+        ? 'linear-gradient(to bottom, rgba(10,10,12,.92), rgba(10,10,12,.7))'
+        : 'linear-gradient(to bottom, rgba(10,10,12,.75), rgba(10,10,12,0))';
+    }, { passive: true });
+  }
+
+  /* ---------- "plus tu descends, plus le texte avance, puis ça s'arrête" ---------- */
+  var reduceMotionPin = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pins = Array.prototype.slice.call(document.querySelectorAll('[data-pin]')).map(function (section) {
+    return {
+      section: section,
+      sticky: section.querySelector('[data-pin-sticky]'),
+      track: section.querySelector('[data-pin-track]')
+    };
+  });
+  function updatePins() {
+    var vh = window.innerHeight;
+    pins.forEach(function (p) {
+      var rect = p.section.getBoundingClientRect();
+      var total = rect.height - vh;
+      if (total <= 0) return;
+      var progress = Math.min(1, Math.max(0, -rect.top / total));
+      var maxShift = p.track.scrollWidth - p.sticky.clientWidth;
+      if (maxShift <= 0) return;
+      var x = reduceMotionPin ? 0 : -progress * maxShift;
+      p.track.style.transform = 'translate3d(' + x + 'px,0,0)';
+    });
+  }
+  if (pins.length) {
+    updatePins();
+    window.addEventListener('scroll', updatePins, { passive: true });
+    window.addEventListener('resize', updatePins);
+  }
 
   /* ---------- particules hero (canvas léger) ---------- */
   var canvas = document.getElementById('hero-canvas');
