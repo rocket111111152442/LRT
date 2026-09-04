@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Néon Cyber — Styles Lullin Web</title>
+<meta name="robots" content="noindex, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#050109;--pink:#ff2bd6;--cyan:#39f2ff;--fg:#f2f2ff;--dim:#9d8fc0;--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Space Mono',monospace;line-height:1.5;overflow-x:hidden;
+    background-image:radial-gradient(circle at 20% 10%, rgba(255,43,214,.18), transparent 45%),radial-gradient(circle at 80% 30%, rgba(57,242,255,.16), transparent 45%);}
+  a{color:inherit;text-decoration:none;}
+  header{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,4vw,56px);background:linear-gradient(to bottom, rgba(5,1,9,.9), transparent);}
+  .brand{font-family:'Orbitron',sans-serif;font-weight:700;color:var(--cyan);}
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(20px,4vw,56px);position:relative;}
+  .eyebrow{font-size:.78rem;letter-spacing:.3em;text-transform:uppercase;color:var(--pink);margin-bottom:22px;}
+  h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.4rem,8vw,6.5rem);line-height:1;margin:0;
+    text-shadow:0 0 12px var(--pink), 0 0 34px rgba(255,43,214,.5);letter-spacing:.01em;}
+  h1 .glitch{position:relative;display:inline-block;}
+  h1 .glitch::before,h1 .glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;overflow:hidden;}
+  h1 .glitch::before{color:var(--cyan);animation:glitch1 3.2s infinite linear alternate-reverse;clip-path:inset(0 0 55% 0);}
+  h1 .glitch::after{color:var(--pink);animation:glitch2 2.6s infinite linear alternate-reverse;clip-path:inset(55% 0 0 0);}
+  @keyframes glitch1{0%,90%,100%{transform:translate(0,0);}92%{transform:translate(-3px,1px);}94%{transform:translate(3px,-1px);}96%{transform:translate(-2px,2px);}}
+  @keyframes glitch2{0%,90%,100%{transform:translate(0,0);}91%{transform:translate(2px,-2px);}95%{transform:translate(-3px,1px);}97%{transform:translate(2px,2px);}}
+  .lead{max-width:520px;margin-top:30px;color:var(--dim);}
+
+  [data-pin]{height:340vh;position:relative;}
+  [data-pin-sticky]{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;border-top:1px solid rgba(255,43,214,.25);border-bottom:1px solid rgba(57,242,255,.25);}
+  [data-pin-track]{white-space:nowrap;font-family:'Orbitron',sans-serif;font-weight:700;font-size:clamp(2.4rem,10vw,8rem);letter-spacing:.02em;will-change:transform;}
+  [data-pin-track] span{margin-right:.6em;}
+  [data-pin-track] span:nth-child(odd){color:var(--pink);text-shadow:0 0 18px rgba(255,43,214,.6);}
+  [data-pin-track] span:nth-child(even){color:var(--cyan);text-shadow:0 0 18px rgba(57,242,255,.6);}
+
+  section.grid-sec{padding:160px clamp(20px,4vw,56px);}
+  .section-head{max-width:560px;margin-bottom:56px;}
+  .section-head h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.8rem,3.4vw,2.6rem);margin:0;color:var(--cyan);}
+  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease), transform .8s var(--ease);}
+  [data-reveal].in{opacity:1;transform:translateY(0);}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08);}
+  @media (max-width:800px){.cards{grid-template-columns:1fr;}}
+  .cards div{background:var(--bg);padding:34px 26px;}
+  .cards h3{font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--pink);margin:0 0 10px;}
+  .cards p{color:var(--dim);font-size:.9rem;margin:0;}
+
+  .cta{padding:160px clamp(20px,4vw,56px);text-align:center;}
+  .cta h2{font-family:'Orbitron',sans-serif;font-size:clamp(2rem,5vw,3.2rem);margin:0 0 30px;color:var(--fg);}
+  .btn{display:inline-block;border:1px solid var(--cyan);color:var(--cyan);padding:15px 30px;border-radius:2px;font-size:.9rem;transition:background .25s,color .25s,box-shadow .25s;}
+  .btn:hover{background:var(--cyan);color:var(--bg);box-shadow:0 0 24px rgba(57,242,255,.6);}
+  footer{display:flex;justify-content:space-between;padding:30px clamp(20px,4vw,56px);border-top:1px solid rgba(255,255,255,.08);font-size:.82rem;color:var(--dim);}
+  footer a:hover{color:var(--pink);}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="brand">← GALERIE</a>
+  <nav><a href="/">Lullin Web</a></nav>
+</header>
+
+<section class="hero">
+  <p class="eyebrow" data-reveal>Style 02 — Néon Cyber</p>
+  <h1 data-reveal><span class="glitch" data-text="LA NUIT">LA NUIT</span><br>NUMÉRIQUE.</h1>
+  <p class="lead" data-reveal>Néons saturés, glitch discret, typographie technique. Pour les marques qui veulent une présence qu'on n'oublie pas.</p>
+</section>
+
+<section data-pin>
+  <div data-pin-sticky>
+    <div data-pin-track>
+      <span>VITESSE</span><span>IMPACT</span><span>ÉNERGIE</span><span>RUPTURE</span><span>SIGNAL</span><span>FUTUR</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid-sec">
+  <div class="section-head" data-reveal><h2>// CARACTÉRISTIQUES</h2></div>
+  <div class="cards">
+    <div data-reveal><h3>01. Contraste extrême</h3><p>Fond quasi noir, accents saturés, aucune zone tiède.</p></div>
+    <div data-reveal><h3>02. Typo technique</h3><p>Une display géométrique pour un ton affirmé, presque brut.</p></div>
+    <div data-reveal><h3>03. Mouvement discret</h3><p>Glitch et lueurs utilisés avec parcimonie, jamais criards.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 data-reveal>Ce style vous branche ?</h2>
+  <a href="/#contact" class="btn" data-reveal>Demander un devis</a>
+</section>
+
+<footer>
+  <a href="minimal.html">← Minimal Mono</a>
+  <a href="index.html">Galerie</a>
+  <a href="glass.html">Glassmorphism →</a>
+</footer>
+
+<script src="theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Éditorial — Styles Lullin Web</title>
+<meta name="robots" content="noindex, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f4ede0;--fg:#1c1712;--dim:#6c5f4f;--line:rgba(28,23,18,.16);--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,4vw,64px);background:var(--bg);border-bottom:1px solid var(--line);}
+  .brand{font-family:'Playfair Display',serif;font-weight:700;font-style:italic;}
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(20px,4vw,64px);max-width:1100px;}
+  .eyebrow{font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:24px;}
+  h1{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(2.4rem,7vw,6rem);line-height:1.05;margin:0;}
+  h1 em{font-style:italic;font-weight:500;}
+  .lead{max-width:540px;margin-top:30px;color:var(--dim);font-size:1.1rem;font-family:'Playfair Display',serif;font-style:italic;}
+
+  [data-pin]{height:340vh;position:relative;}
+  [data-pin-sticky]{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  [data-pin-track]{white-space:nowrap;font-family:'Playfair Display',serif;font-style:italic;font-weight:500;font-size:clamp(2.4rem,9vw,7rem);will-change:transform;}
+  [data-pin-track] span{margin-right:.5em;color:var(--fg);}
+  [data-pin-track] span:nth-child(even){color:var(--dim);}
+
+  section.grid-sec{padding:150px clamp(20px,4vw,64px);}
+  .section-head{max-width:600px;margin-bottom:56px;}
+  .section-head h2{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.4vw,2.6rem);margin:0;font-weight:500;}
+  [data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .9s var(--ease), transform .9s var(--ease);}
+  [data-reveal].in{opacity:1;transform:translateY(0);}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;}
+  @media (max-width:800px){.cols{grid-template-columns:1fr;}}
+  .cols .n{font-family:'Playfair Display',serif;font-style:italic;font-size:1.6rem;color:var(--dim);}
+  .cols h3{font-size:1.05rem;margin:14px 0 10px;font-weight:600;}
+  .cols p{color:var(--dim);font-size:.92rem;margin:0;}
+
+  .cta{padding:150px clamp(20px,4vw,64px);text-align:center;}
+  .cta h2{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(2rem,5vw,3.4rem);margin:0 0 30px;}
+  .btn{display:inline-block;border-bottom:1px solid var(--fg);padding-bottom:4px;font-size:.95rem;}
+  footer{display:flex;justify-content:space-between;padding:30px clamp(20px,4vw,64px);border-top:1px solid var(--line);font-size:.85rem;color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="brand">← Galerie</a>
+  <nav><a href="/">Lullin Web</a></nav>
+</header>
+
+<section class="hero">
+  <p class="eyebrow" data-reveal>Style 05 — Éditorial</p>
+  <h1 data-reveal>Écrire une<br><em>histoire</em>, pas<br>remplir une page.</h1>
+  <p class="lead" data-reveal>Une mise en page qui respire, une serif élégante, du texte traité comme du contenu — pas comme du remplissage.</p>
+</section>
+
+<section data-pin>
+  <div data-pin-sticky>
+    <div data-pin-track>
+      <span>Narration</span> <span>Élégance</span> <span>Rythme</span> <span>Nuance</span> <span>Retenue</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid-sec">
+  <div class="section-head" data-reveal><h2>Ce qui compte.</h2></div>
+  <div class="cols">
+    <div data-reveal><span class="n">01</span><h3>Une typo qui parle</h3><p>La serif porte le ton : chaleureux, cultivé, jamais froid.</p></div>
+    <div data-reveal><span class="n">02</span><h3>Des marges généreuses</h3><p>Le texte a de la place pour respirer, comme dans un livre.</p></div>
+    <div data-reveal><span class="n">03</span><h3>Peu de couleur</h3><p>Un fond crème, une encre sombre — le contenu fait le reste.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 data-reveal>Envie de raconter votre histoire ?</h2>
+  <a href="/#contact" class="btn" data-reveal>Demander un devis</a>
+</section>
+
+<footer>
+  <a href="brutalist.html">← Brutalist</a>
+  <a href="index.html">Galerie</a>
+  <a href="corporate.html">Corporate →</a>
+</footer>
+
+<script src="theme.js"></script>
+</body>
+</html>
