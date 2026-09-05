@@ -15,7 +15,7 @@
       intro.classList.add('done');
     } else {
       document.documentElement.style.overflow = 'hidden';
-      var introTimer = setTimeout(finishIntro, 3050);
+      var introTimer = setTimeout(finishIntro, 6900);
 
       intro.querySelector('.intro-skip').addEventListener('click', finishIntro);
       intro.addEventListener('click', function (e) {
