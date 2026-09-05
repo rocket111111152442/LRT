@@ -4,6 +4,13 @@
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  /* ---------- vidéo hero ---------- */
+  var heroVideo = document.querySelector('.hero-video');
+  if (heroVideo && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    heroVideo.removeAttribute('autoplay');
+    heroVideo.pause();
+  }
+
   /* ---------- écran d'ouverture (accueil) ---------- */
   var intro = document.getElementById('intro');
   if (intro) {

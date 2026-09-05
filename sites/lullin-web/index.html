@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=14">
+<link rel="stylesheet" href="/assets/css/style.css?v=15">
 </head>
 <body>
 
@@ -74,8 +74,10 @@
 <main>
 
   <section class="hero">
-    <canvas id="hero-canvas" aria-hidden="true"></canvas>
-    <img src="/assets/img/blackhole-logo-hero.jpg" class="hero-blackhole" alt="" aria-hidden="true">
+    <video class="hero-video" autoplay muted loop playsinline preload="auto" poster="/assets/img/blackhole-logo-hero.jpg" aria-hidden="true">
+      <source src="/assets/video/blackhole-hero.mp4" type="video/mp4">
+    </video>
+    <div class="hero-video-overlay" aria-hidden="true"></div>
     <div class="hero-inner">
       <p class="eyebrow" data-reveal>Agence web — sites &amp; maintenance</p>
       <h1 class="hero-title" data-split>
