@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offres — Lullin Web</title>
+<meta name="description" content="Trois formules d'accompagnement Lullin Web : Essentiel, Business et Sur-mesure.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://lullin-web.com/offres.html">
+<link rel="icon" href="/assets/img/blackhole-logo-icon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--fg:#f2ead9;--gold:#d4af6a;--dim:#a89877;--line:rgba(212,175,106,.22);--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  header{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,4vw,64px);background:rgba(10,10,10,.9);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.06em;color:var(--gold);}
+  .brand-hole{width:24px;height:24px;flex-shrink:0;display:block;border-radius:50%;object-fit:cover;animation:blackholeSpin 70s linear infinite;}
+  @keyframes blackholeSpin{to{transform:rotate(360deg);}}
+  .main-nav{display:flex;align-items:center;gap:26px;font-size:.88rem;}
+  .main-nav a:not(.nav-cta){opacity:.85;transition:opacity .2s;}
+  .main-nav a:not(.nav-cta):hover{opacity:1;color:var(--gold);}
+  .nav-cta{border:1px solid var(--gold);color:var(--gold);padding:9px 18px;letter-spacing:.06em;transition:background .3s,color .3s;}
+  .nav-cta:hover{background:var(--gold);color:var(--bg);}
+  .nav-toggle{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;}
+  .nav-toggle span{width:22px;height:1.5px;background:var(--fg);}
+  @media (max-width:860px){
+    .main-nav{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(320px,80vw);background:var(--bg);flex-direction:column;align-items:flex-start;padding:100px 32px 32px;gap:24px;border-left:1px solid var(--line);transform:translateX(100%);transition:transform .4s var(--ease);}
+    .main-nav.open{transform:translateX(0);}
+    .nav-toggle{display:flex;}
+  }
+
+  .hero{min-height:64vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:60px clamp(20px,4vw,64px);}
+  .eyebrow{font-size:.75rem;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);margin-bottom:26px;}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(2.2rem,6.5vw,5rem);line-height:1.1;margin:0;}
+  .lead{max-width:520px;margin-top:26px;color:var(--dim);font-size:1.02rem;}
+
+  [data-pin]{height:340vh;position:relative;}
+  [data-pin-sticky]{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  [data-pin-track]{white-space:nowrap;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:clamp(2.2rem,9vw,6.5rem);color:var(--gold);will-change:transform;}
+  [data-pin-track] span{margin-right:.5em;}
+
+  section.offres-sec{padding:140px clamp(20px,4vw,64px);}
+  .section-head{max-width:580px;margin:0 auto 56px;text-align:center;}
+  .section-head h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(1.8rem,3.4vw,2.4rem);margin:0;color:var(--gold);}
+  [data-reveal]{opacity:0;transform:translateY(24px);transition:opacity 1s var(--ease), transform 1s var(--ease);}
+  [data-reveal].in{opacity:1;transform:translateY(0);}
+  .offres-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  @media (max-width:860px){.offres-grid{grid-template-columns:1fr;}}
+  .offre{background:var(--bg);padding:40px 32px;display:flex;flex-direction:column;gap:16px;}
+  .offre.highlight{background:#120e04;}
+  .offre h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);}
+  .offre .price{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--fg);}
+  .offre .price small{display:block;font-family:'Inter',sans-serif;font-size:.75rem;color:var(--dim);margin-top:4px;}
+  .offre p{color:var(--dim);font-size:.92rem;margin:0;}
+  .offre ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.88rem;flex:1;}
+  .offre li{padding-left:16px;position:relative;}
+  .offre li::before{content:'—';position:absolute;left:0;color:var(--gold);}
+  .offre .btn{margin-top:8px;display:inline-block;border:1px solid var(--gold);color:var(--gold);padding:12px 22px;text-align:center;letter-spacing:.06em;font-size:.85rem;transition:background .3s,color .3s;}
+  .offre .btn:hover{background:var(--gold);color:var(--bg);}
+
+  .cta{padding:140px clamp(20px,4vw,64px);text-align:center;}
+  .cta h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(2rem,5vw,3rem);margin:0 0 30px;color:var(--fg);}
+  .btn-lg{display:inline-block;border:1px solid var(--gold);color:var(--gold);padding:15px 34px;letter-spacing:.1em;font-size:.85rem;text-transform:uppercase;transition:background .3s,color .3s;}
+  .btn-lg:hover{background:var(--gold);color:var(--bg);}
+  footer{display:flex;justify-content:space-between;padding:30px clamp(20px,4vw,64px);border-top:1px solid var(--line);font-size:.82rem;color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="brand"><img src="/assets/img/blackhole-logo-icon.jpg" class="brand-hole" alt="">Lullin Web</a>
+  <nav class="main-nav" aria-label="Navigation principale">
+    <a href="/services.html">Services</a>
+    <a href="/methode.html">Méthode</a>
+    <a href="/a-propos.html">À propos</a>
+    <a href="/realisations.html">Réalisations</a>
+    <a href="/offres.html">Offres</a>
+    <a href="/faq.html">FAQ</a>
+    <a href="/contact.html" class="nav-cta">Devis</a>
+  </nav>
+  <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<section class="hero">
+  <p class="eyebrow" data-reveal>Offres</p>
+  <h1 data-reveal>Un accompagnement<br>qui s'adapte à vous.</h1>
+  <p class="lead" data-reveal>Trois formules, du site vitrine au sur-mesure complet. Les tarifs ci-dessous sont indicatifs — chaque devis est ajusté à votre projet.</p>
+</section>
+
+<section data-pin>
+  <div data-pin-sticky>
+    <div data-pin-track>
+      <span>Essentiel</span> <span>Business</span> <span>Sur-mesure</span> <span>Essentiel</span> <span>Business</span> <span>Sur-mesure</span>
+    </div>
+  </div>
+</section>
+
+<section class="offres-sec">
+  <div class="section-head" data-reveal><h2>Trois formules.</h2></div>
+  <div class="offres-grid">
+    <div class="offre" data-reveal>
+      <h3>Essentiel</h3>
+      <p class="price">À partir de 690&nbsp;€<small>/ projet</small></p>
+      <p>Site vitrine one-page, idéal pour lancer votre présence en ligne rapidement.</p>
+      <ul><li>Design sur-mesure</li><li>Responsive mobile</li><li>Formulaire de contact</li></ul>
+      <a href="/contact.html" class="btn">Demander un devis</a>
+    </div>
+    <div class="offre highlight" data-reveal>
+      <h3>Business</h3>
+      <p class="price">À partir de 1&nbsp;490&nbsp;€<small>+ maintenance dès 49&nbsp;€/mois</small></p>
+      <p>Site multi-pages complet avec maintenance incluse pour une entreprise établie.</p>
+      <ul><li>Toutes les pages nécessaires</li><li>SEO technique inclus</li><li>Maintenance mensuelle</li><li>Support prioritaire</li></ul>
+      <a href="/contact.html" class="btn">Demander un devis</a>
+    </div>
+    <div class="offre" data-reveal>
+      <h3>Sur-mesure</h3>
+      <p class="price">Sur devis</p>
+      <p>E-commerce, application métier ou besoin spécifique : on construit ensemble.</p>
+      <ul><li>Cahier des charges dédié</li><li>Intégrations spécifiques</li><li>Accompagnement long terme</li></ul>
+      <a href="/contact.html" class="btn">En discuter</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 data-reveal>Prêt à en discuter ?</h2>
+  <a href="/contact.html" class="btn-lg" data-reveal>Demander un devis</a>
+</section>
+
+<footer>
+  <a href="/realisations.html">← Réalisations</a>
+  <a href="/contact.html">Contact →</a>
+</footer>
+
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

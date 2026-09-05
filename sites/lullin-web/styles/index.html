@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galerie de styles — Lullin Web</title>
+<meta name="description" content="9 directions artistiques différentes pour votre futur site, chacune avec ses propres animations au scroll.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0c'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='800' font-size='58' fill='%23fff' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0c;--fg:#f5f5f2;--fg-dim:#a6a6ac;--line:rgba(245,245,242,.14);--radius:18px;--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;line-height:1.5;}
+  a{color:inherit;text-decoration:none;}
+  header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,4vw,56px);background:linear-gradient(to bottom, rgba(10,10,12,.94), rgba(10,10,12,.7) 80%, transparent);backdrop-filter:blur(6px);}
+  .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;}
+  .brand span{color:var(--fg-dim);}
+  .back{border:1px solid var(--line);padding:9px 18px;border-radius:999px;font-size:.88rem;transition:background .2s,color .2s;}
+  .back:hover{background:var(--fg);color:var(--bg);}
+  main{padding:60px clamp(20px,4vw,56px) 100px;max-width:1280px;margin:0 auto;}
+  .eyebrow{font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-dim);margin-bottom:16px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.2rem,5vw,3.6rem);margin:0 0 18px;letter-spacing:-.02em;}
+  .lead{color:var(--fg-dim);max-width:620px;margin-bottom:56px;font-size:1.05rem;}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:640px){.grid{grid-template-columns:1fr;}}
+  .card{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3;display:flex;flex-direction:column;justify-content:flex-end;padding:22px;transition:transform .4s var(--ease), border-color .4s var(--ease);}
+  .card:hover{transform:translateY(-6px);border-color:rgba(245,245,242,.35);}
+  .card h2{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;margin:0 0 6px;position:relative;z-index:1;}
+  .card p{margin:0;font-size:.85rem;color:rgba(255,255,255,.75);position:relative;z-index:1;}
+  .card .num{position:absolute;top:18px;left:20px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;color:rgba(255,255,255,.55);z-index:1;}
+  footer{text-align:center;padding:40px;color:var(--fg-dim);font-size:.82rem;}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="brand">Lullin<span>Web</span></a>
+  <a href="/contact.html" class="back">Demander un devis</a>
+</header>
+<main>
+  <p class="eyebrow">Galerie de styles</p>
+  <h1>9 directions artistiques.<br>Un seul savoir-faire.</h1>
+  <p class="lead">Chaque carte est une page complète, avec sa propre identité visuelle et ses propres animations au scroll. C'est un aperçu de ce qu'on peut construire pour vous — cliquez pour explorer.</p>
+  <div class="grid">
+    <a class="card" href="/styles/minimal.html" style="background:linear-gradient(135deg,#111,#000);">
+      <span class="num">01</span><h2>Minimal Mono</h2><p>Noir &amp; blanc, épuré, typographie XL</p>
+    </a>
+    <a class="card" href="/styles/neon.html" style="background:linear-gradient(135deg,#1a0033,#00040d);">
+      <span class="num">02</span><h2>Néon Cyber</h2><p>Néons, glitch, ambiance nocturne</p>
+    </a>
+    <a class="card" href="/styles/glass.html" style="background:linear-gradient(135deg,#3a1c71,#5b2a86);">
+      <span class="num">03</span><h2>Glassmorphism</h2><p>Verre flouté, dégradés doux</p>
+    </a>
+    <a class="card" href="/styles/brutalist.html" style="background:#e9e6df;color:#111;">
+      <span class="num" style="color:#111;">04</span><h2 style="color:#111;">Brutalist</h2><p style="color:#333;">Brut, contrasté, sans détour</p>
+    </a>
+    <a class="card" href="/styles/editorial.html" style="background:linear-gradient(135deg,#f3ede3,#e4d9c4);color:#1c1712;">
+      <span class="num" style="color:#1c1712;">05</span><h2 style="color:#1c1712;">Éditorial</h2><p style="color:#5a4f42;">Magazine, serif élégante</p>
+    </a>
+    <a class="card" href="/styles/corporate.html" style="background:linear-gradient(135deg,#0b2545,#13315c);">
+      <span class="num">06</span><h2>Corporate</h2><p>Sobre, rassurant, professionnel</p>
+    </a>
+    <a class="card" href="/styles/retro.html" style="background:linear-gradient(135deg,#2b0b3f,#ff6ec7 150%);">
+      <span class="num">07</span><h2>Rétro Vaporwave</h2><p>Grille horizon, néons 80s</p>
+    </a>
+    <a class="card" href="/styles/organic.html" style="background:linear-gradient(135deg,#3f3324,#6b5941);">
+      <span class="num">08</span><h2>Organique</h2><p>Tons terreux, formes douces</p>
+    </a>
+    <a class="card" href="/styles/luxury.html" style="background:linear-gradient(135deg,#0a0a0a,#1a1408);">
+      <span class="num" style="color:#d4af6a;">09</span><h2 style="color:#e8cf98;">Luxe Noir &amp; Or</h2><p style="color:#b8a373;">Premium, feutré, raffiné</p>
+    </a>
+  </div>
+</main>
+<footer>© <span id="year"></span> Lullin Web — Une galerie de démonstration, pas des sites clients.</footer>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
