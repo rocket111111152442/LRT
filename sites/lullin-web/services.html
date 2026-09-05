@@ -6,8 +6,8 @@
 <title>Services — Lullin Web</title>
 <meta name="description" content="Site vitrine sur-mesure, refonte, e-commerce, référencement technique, maintenance : les services de Lullin Web.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://lullinweb.fr/services.html">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0c'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='800' font-size='58' fill='%23fff' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+<link rel="canonical" href="https://lullin-web.com/services.html">
+<link rel="icon" href="/assets/img/blackhole.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -19,7 +19,9 @@
     background-image:radial-gradient(circle at 20% 10%, rgba(255,43,214,.18), transparent 45%),radial-gradient(circle at 80% 30%, rgba(57,242,255,.16), transparent 45%);}
   a{color:inherit;text-decoration:none;}
   header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:22px clamp(20px,4vw,56px);background:linear-gradient(to bottom, rgba(5,1,9,.92), transparent);}
-  .brand{font-family:'Orbitron',sans-serif;font-weight:700;color:var(--cyan);}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-family:'Orbitron',sans-serif;font-weight:700;color:var(--cyan);}
+  .brand-hole{width:24px;height:24px;flex-shrink:0;display:block;animation:blackholeSpin 70s linear infinite;}
+  @keyframes blackholeSpin{to{transform:rotate(360deg);}}
   .main-nav{display:flex;align-items:center;gap:26px;font-size:.85rem;}
   .main-nav a:not(.nav-cta){opacity:.85;transition:opacity .2s;}
   .main-nav a:not(.nav-cta):hover{opacity:1;color:var(--pink);}
@@ -68,7 +70,7 @@
 </head>
 <body>
 <header>
-  <a href="/" class="brand">Lullin<span>Web</span></a>
+  <a href="/" class="brand"><img src="/assets/img/blackhole.svg" class="brand-hole" alt="">Lullin<span>Web</span></a>
   <nav class="main-nav" aria-label="Navigation principale">
     <a href="/services.html">Services</a>
     <a href="/methode.html">Méthode</a>

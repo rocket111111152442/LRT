@@ -98,8 +98,10 @@ p{margin:0;}
   padding:22px clamp(20px,4vw,56px);
   background:linear-gradient(to bottom, rgba(10,10,12,.92), rgba(10,10,12,.55) 70%, rgba(10,10,12,0));
 }
-.brand{font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:-.02em;}
+.brand{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:-.02em;}
 .brand span{color:var(--fg-dim);}
+.brand-hole{width:26px;height:26px;flex-shrink:0;display:block;animation:blackholeSpin 70s linear infinite;}
+@keyframes blackholeSpin{to{transform:rotate(360deg);}}
 .main-nav{display:flex;align-items:center;gap:32px;font-size:.92rem;}
 .main-nav a:not(.nav-cta){opacity:.8;transition:opacity .2s;position:relative;}
 .main-nav a:not(.nav-cta):hover{opacity:1;}
@@ -121,6 +123,12 @@ p{margin:0;}
   padding:120px clamp(20px,4vw,56px) 80px;overflow:hidden;
 }
 #hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.45;}
+.hero-blackhole{
+  position:absolute;top:50%;right:clamp(-160px,-4vw,-40px);transform:translateY(-50%);
+  width:min(64vw,720px);max-width:none;z-index:0;opacity:.85;pointer-events:none;
+  animation:blackholeSpin 240s linear infinite;
+}
+@media (max-width:920px){.hero-blackhole{opacity:.35;width:110vw;right:-30vw;}}
 .hero-inner{position:relative;z-index:1;max-width:980px;}
 .eyebrow{
   font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-dim);margin-bottom:18px;
@@ -308,4 +316,5 @@ div.work-card{cursor:default;}
   html{scroll-behavior:auto;}
   [data-reveal],.split-line>span{transition:none;opacity:1;transform:none;}
   .marquee-track,.scroll-cue span{animation:none;}
+  .brand-hole,.hero-blackhole{animation:none;}
 }

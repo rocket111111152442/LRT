@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lullinweb.fr/sitemap.xml
+Sitemap: https://lullin-web.com/sitemap.xml
