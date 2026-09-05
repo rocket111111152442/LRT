@@ -230,6 +230,18 @@ div.work-card{cursor:default;}
 .page-card h3{font-size:1.4rem;margin:0 0 8px;position:relative;z-index:1;}
 .page-card p{margin:0;font-size:.9rem;color:rgba(255,255,255,.78);position:relative;z-index:1;}
 
+/* méthode teaser (accueil) */
+.process-more{margin-top:36px;}
+.process-more a{color:var(--fg-dim);text-decoration:underline;text-underline-offset:3px;transition:color .2s;}
+.process-more a:hover{color:var(--fg);}
+
+/* FAQ teaser (accueil) */
+.faq-teaser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+@media (max-width:860px){.faq-teaser-grid{grid-template-columns:1fr;}}
+.faq-teaser-item{border:1px solid var(--line);border-radius:var(--radius);padding:28px;}
+.faq-teaser-item h3{font-size:1.05rem;margin-bottom:10px;}
+.faq-teaser-item p{color:var(--fg-dim);font-size:.92rem;}
+
 /* footer */
 .site-footer{border-top:1px solid var(--line);padding:64px clamp(20px,4vw,56px) 40px;}
 .footer-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;flex-wrap:wrap;gap:20px;}
