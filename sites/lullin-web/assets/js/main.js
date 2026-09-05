@@ -4,6 +4,34 @@
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  /* ---------- écran d'ouverture (accueil) ---------- */
+  var intro = document.getElementById('intro');
+  if (intro) {
+    var reduceMotionIntro = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var seen = false;
+    try { seen = sessionStorage.getItem('lullinIntroSeen') === '1'; } catch (e) {}
+
+    if (reduceMotionIntro || seen) {
+      intro.classList.add('done');
+    } else {
+      document.documentElement.style.overflow = 'hidden';
+      var introTimer = setTimeout(finishIntro, 3050);
+
+      intro.querySelector('.intro-skip').addEventListener('click', finishIntro);
+      intro.addEventListener('click', function (e) {
+        if (e.target.closest('.intro-skip')) return;
+        finishIntro();
+      });
+
+      function finishIntro() {
+        clearTimeout(introTimer);
+        intro.classList.add('done');
+        document.documentElement.style.overflow = '';
+        try { sessionStorage.setItem('lullinIntroSeen', '1'); } catch (e) {}
+      }
+    }
+  }
+
   /* ---------- menu mobile ---------- */
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.querySelector('.main-nav');

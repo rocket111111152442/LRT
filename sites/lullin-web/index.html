@@ -17,9 +17,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css?v=7">
+<link rel="stylesheet" href="/assets/css/style.css?v=8">
 </head>
 <body>
+
+<script>
+  try {
+    if (sessionStorage.getItem('lullinIntroSeen') === '1') {
+      document.write('<style>#intro{display:none!important;}</style>');
+    }
+  } catch (e) {}
+</script>
+<div class="intro" id="intro">
+  <div class="intro-bg"></div>
+  <div class="intro-inner">
+    <span class="intro-eyebrow">Lullin Web</span>
+    <span class="intro-mark">Des sites qui<br>font grandir<span>votre entreprise.</span></span>
+    <span class="intro-line"></span>
+  </div>
+  <button class="intro-skip" type="button">Passer l'intro</button>
+</div>
 
 <div class="noise" aria-hidden="true"></div>
 <div class="cursor-dot" aria-hidden="true"></div>
