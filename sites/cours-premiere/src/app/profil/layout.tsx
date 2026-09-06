@@ -18,7 +18,7 @@ export default async function ProfilLayout({ children }: { children: React.React
       <header className="border-b border-brand-border bg-brand-card">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
           <Link href="/profil" className="font-bold text-brand-ink">
-            Mes cours de Première
+            Mes cours
           </Link>
           <nav className="flex flex-wrap gap-1 text-sm">
             {NAV_LINKS.map((link) => (

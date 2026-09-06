@@ -10,12 +10,12 @@ export default async function HomePage() {
     <main className="min-h-screen flex items-center justify-center px-6">
       <div className="max-w-xl text-center space-y-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-brand-ink">
-          Ton espace personnel pour la Première
+          Ton espace personnel pour tes cours
         </h1>
         <p className="text-slate-600 text-lg">
-          Fiches de cours, agenda, notes et documents — adaptés à ta classe et
-          à tes spécialités. Accessible depuis ton téléphone et ton
-          ordinateur, protégé par un compte rien qu&apos;à toi.
+          Fiches de cours, agenda, notes et documents — quel que soit ton
+          niveau. Accessible depuis ton téléphone et ton ordinateur, protégé
+          par un compte rien qu&apos;à toi.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Link
