@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EventType {
+  COURS
+  DEVOIR
+  CONTROLE
+  AUTRE
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  firstName      String?
+  classe         String   @default("Première")
+  specialtySlugs String[] @default([])
+  createdAt      DateTime @default(now())
+
+  notes     Note[]
+  grades    Grade[]
+  events    Event[]
+  documents Document[]
+
+  @@map("users")
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectSlug String
+  title       String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, subjectSlug])
+  @@map("notes")
+}
+
+model Grade {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectSlug String
+  label       String
+  value       Float
+  maxValue    Float    @default(20)
+  coefficient Float    @default(1)
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([userId, subjectSlug])
+  @@map("grades")
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectSlug String?
+  title       String
+  description String?
+  date        DateTime
+  type        EventType @default(AUTRE)
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, date])
+  @@map("events")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectSlug String?
+  filename    String
+  mimeType    String
+  size        Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@map("documents")
+}
