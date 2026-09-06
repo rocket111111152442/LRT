@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import { createEventAction, type EventFormState } from "./actions";
-import type { Subject } from "@/lib/subjects";
 
 const initialState: EventFormState = {};
 
@@ -13,7 +12,7 @@ const TYPE_LABELS: Record<string, string> = {
   AUTRE: "Autre",
 };
 
-export function EventForm({ subjects }: { subjects: Subject[] }) {
+export function EventForm({ subjects }: { subjects: { id: string; name: string }[] }) {
   const [state, formAction, pending] = useActionState(createEventAction, initialState);
 
   return (
@@ -65,18 +64,18 @@ export function EventForm({ subjects }: { subjects: Subject[] }) {
       </div>
 
       <div className="space-y-1 sm:col-span-2">
-        <label htmlFor="subjectSlug" className="text-sm font-medium text-brand-ink">
+        <label htmlFor="subjectId" className="text-sm font-medium text-brand-ink">
           Matière (optionnel)
         </label>
         <select
-          id="subjectSlug"
-          name="subjectSlug"
+          id="subjectId"
+          name="subjectId"
           defaultValue=""
           className="w-full rounded-lg border border-brand-border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
         >
           <option value="">Aucune / général</option>
           {subjects.map((s) => (
-            <option key={s.slug} value={s.slug}>
+            <option key={s.id} value={s.id}>
               {s.name}
             </option>
           ))}

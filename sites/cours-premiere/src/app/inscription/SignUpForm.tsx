@@ -1,28 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { signUpAction, type SignUpState } from "./actions";
-import type { Subject } from "@/lib/subjects";
 
 const initialState: SignUpState = {};
 
-export function SignUpForm({
-  specialites,
-  maxSpecialites,
-}: {
-  specialites: Subject[];
-  maxSpecialites: number;
-}) {
+export function SignUpForm() {
   const [state, formAction, pending] = useActionState(signUpAction, initialState);
-  const [selected, setSelected] = useState<string[]>([]);
-
-  function toggle(slug: string) {
-    setSelected((current) => {
-      if (current.includes(slug)) return current.filter((s) => s !== slug);
-      if (current.length >= maxSpecialites) return current;
-      return [...current, slug];
-    });
-  }
 
   return (
     <form action={formAction} className="space-y-5 rounded-xl border border-brand-border bg-brand-card p-6">
@@ -35,6 +19,19 @@ export function SignUpForm({
           name="firstName"
           type="text"
           autoComplete="given-name"
+          className="w-full rounded-lg border border-brand-border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label htmlFor="classe" className="text-sm font-medium text-brand-ink">
+          Classe / niveau (optionnel)
+        </label>
+        <input
+          id="classe"
+          name="classe"
+          type="text"
+          placeholder="Terminale, BTS SIO, Licence 2..."
           className="w-full rounded-lg border border-brand-border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
         />
       </div>
@@ -81,39 +78,6 @@ export function SignUpForm({
           autoComplete="new-password"
           className="w-full rounded-lg border border-brand-border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
         />
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-brand-ink">
-          Tes spécialités ({selected.length}/{maxSpecialites})
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {specialites.map((s) => {
-            const checked = selected.includes(s.slug);
-            const disabled = !checked && selected.length >= maxSpecialites;
-            return (
-              <label
-                key={s.slug}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
-                  checked
-                    ? "border-brand-primary bg-indigo-50"
-                    : "border-brand-border"
-                } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
-              >
-                <input
-                  type="checkbox"
-                  name="specialites"
-                  value={s.slug}
-                  checked={checked}
-                  disabled={disabled}
-                  onChange={() => toggle(s.slug)}
-                  className="accent-indigo-600"
-                />
-                {s.name}
-              </label>
-            );
-          })}
-        </div>
       </div>
 
       {state.error && (

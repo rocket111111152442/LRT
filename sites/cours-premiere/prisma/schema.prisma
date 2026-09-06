@@ -15,41 +15,53 @@ enum EventType {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  passwordHash   String
-  firstName      String?
-  classe         String   @default("Première")
-  specialtySlugs String[] @default([])
-  createdAt      DateTime @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String?
+  classe       String?
+  createdAt    DateTime @default(now())
 
-  notes     Note[]
-  grades    Grade[]
+  subjects  Subject[]
   events    Event[]
   documents Document[]
 
   @@map("users")
 }
 
-model Note {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjectSlug String
-  title       String
-  content     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Subject {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
 
-  @@index([userId, subjectSlug])
+  notes     Note[]
+  grades    Grade[]
+  events    Event[]
+  documents Document[]
+
+  @@index([userId])
+  @@map("subjects")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subjectId])
   @@map("notes")
 }
 
 model Grade {
   id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjectSlug String
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   label       String
   value       Float
   maxValue    Float    @default(20)
@@ -57,7 +69,7 @@ model Grade {
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
 
-  @@index([userId, subjectSlug])
+  @@index([subjectId])
   @@map("grades")
 }
 
@@ -65,7 +77,8 @@ model Event {
   id          String    @id @default(cuid())
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjectSlug String?
+  subjectId   String?
+  subject     Subject?  @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   title       String
   description String?
   date        DateTime
@@ -77,15 +90,16 @@ model Event {
 }
 
 model Document {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjectSlug String?
-  filename    String
-  mimeType    String
-  size        Int
-  data        Bytes
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId String?
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  filename  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@map("documents")

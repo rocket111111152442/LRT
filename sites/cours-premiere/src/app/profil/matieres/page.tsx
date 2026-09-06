@@ -1,42 +1,57 @@
 import Link from "next/link";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getUserSubjects } from "@/lib/subjects";
+import { SubjectForm } from "./SubjectForm";
+import { deleteSubjectAction } from "./actions";
 
 export default async function MatieresPage() {
   const user = await requireCurrentUser();
-  const subjects = getUserSubjects(user.specialtySlugs);
 
-  const counts = await prisma.note.groupBy({
-    by: ["subjectSlug"],
+  const subjects = await prisma.subject.findMany({
     where: { userId: user.id },
-    _count: { _all: true },
+    orderBy: { name: "asc" },
+    include: { _count: { select: { notes: true } } },
   });
-  const countBySlug = new Map(counts.map((c) => [c.subjectSlug, c._count._all]));
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-brand-ink">Matières</h1>
         <p className="text-slate-600 mt-1">
-          Adaptées à ta classe et tes spécialités. Modifiable dans les
-          paramètres.
+          Ajoute les matières de ton année — quel que soit ton niveau.
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {subjects.map((subject) => (
-          <Link
-            key={subject.slug}
-            href={`/profil/matieres/${subject.slug}`}
-            className="rounded-xl border border-brand-border bg-brand-card px-4 py-4 flex items-center justify-between hover:border-brand-primary transition"
-          >
-            <span className="font-medium text-brand-ink">{subject.name}</span>
-            <span className="text-sm text-slate-500">
-              {countBySlug.get(subject.slug) ?? 0} fiche(s)
-            </span>
-          </Link>
-        ))}
-      </div>
+
+      <SubjectForm />
+
+      {subjects.length === 0 ? (
+        <p className="text-slate-500 text-sm">Aucune matière pour l&apos;instant.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {subjects.map((subject) => (
+            <div
+              key={subject.id}
+              className="rounded-xl border border-brand-border bg-brand-card px-4 py-4 flex items-center justify-between gap-3"
+            >
+              <Link
+                href={`/profil/matieres/${subject.id}`}
+                className="flex-1 hover:text-brand-primary transition"
+              >
+                <span className="font-medium text-brand-ink">{subject.name}</span>
+                <span className="block text-sm text-slate-500">
+                  {subject._count.notes} fiche(s)
+                </span>
+              </Link>
+              <form action={deleteSubjectAction}>
+                <input type="hidden" name="subjectId" value={subject.id} />
+                <button type="submit" className="text-sm text-red-600 hover:underline">
+                  Supprimer
+                </button>
+              </form>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

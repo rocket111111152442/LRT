@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidUserSubjectSlug } from "@/lib/subjects";
 
 export type EventFormState = { error?: string };
 
@@ -23,7 +22,7 @@ export async function createEventAction(
   const description = String(formData.get("description") ?? "").trim();
   const dateRaw = String(formData.get("date") ?? "");
   const type = String(formData.get("type") ?? "AUTRE");
-  const subjectSlug = String(formData.get("subjectSlug") ?? "");
+  const subjectId = String(formData.get("subjectId") ?? "");
 
   if (!title) return { error: "Le titre est requis." };
   if (!isValidType(type)) return { error: "Type invalide." };
@@ -31,8 +30,11 @@ export async function createEventAction(
   const date = new Date(dateRaw);
   if (Number.isNaN(date.getTime())) return { error: "Date invalide." };
 
-  if (subjectSlug && !isValidUserSubjectSlug(user.specialtySlugs, subjectSlug)) {
-    return { error: "Matière invalide." };
+  if (subjectId) {
+    const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+    if (!subject || subject.userId !== user.id) {
+      return { error: "Matière invalide." };
+    }
   }
 
   await prisma.event.create({
@@ -42,7 +44,7 @@ export async function createEventAction(
       description: description || null,
       date,
       type,
-      subjectSlug: subjectSlug || null,
+      subjectId: subjectId || null,
     },
   });
 

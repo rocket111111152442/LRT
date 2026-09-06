@@ -1,5 +1,4 @@
 import { requireCurrentUser } from "@/lib/auth";
-import { SPECIALITES, MAX_SPECIALITES } from "@/lib/subjects";
 import { ProfileForm } from "./ProfileForm";
 import { PasswordForm } from "./PasswordForm";
 
@@ -15,12 +14,7 @@ export default async function SettingsPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-brand-ink">Profil</h2>
-        <ProfileForm
-          specialites={SPECIALITES}
-          maxSpecialites={MAX_SPECIALITES}
-          firstName={user.firstName ?? ""}
-          currentSpecialtySlugs={user.specialtySlugs}
-        />
+        <ProfileForm firstName={user.firstName ?? ""} classe={user.classe ?? ""} />
       </section>
 
       <section className="space-y-3">

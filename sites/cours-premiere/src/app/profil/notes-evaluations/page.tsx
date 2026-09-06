@@ -1,26 +1,20 @@
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getUserSubjects } from "@/lib/subjects";
 import { computeAverage } from "@/lib/grades";
 import { GradeForm } from "./GradeForm";
 import { deleteGradeAction } from "./actions";
 
 export default async function GradesPage() {
   const user = await requireCurrentUser();
-  const subjects = getUserSubjects(user.specialtySlugs);
 
-  const grades = await prisma.grade.findMany({
+  const subjects = await prisma.subject.findMany({
     where: { userId: user.id },
-    orderBy: { date: "desc" },
+    orderBy: { name: "asc" },
+    include: { grades: { orderBy: { date: "desc" } } },
   });
 
-  const generalAverage = computeAverage(grades);
-  const gradesBySubject = new Map<string, typeof grades>();
-  for (const grade of grades) {
-    const list = gradesBySubject.get(grade.subjectSlug) ?? [];
-    list.push(grade);
-    gradesBySubject.set(grade.subjectSlug, list);
-  }
+  const allGrades = subjects.flatMap((s) => s.grades);
+  const generalAverage = computeAverage(allGrades);
 
   return (
     <div className="space-y-8">
@@ -41,12 +35,11 @@ export default async function GradesPage() {
 
       <div className="space-y-6">
         {subjects.map((subject) => {
-          const subjectGrades = gradesBySubject.get(subject.slug) ?? [];
-          if (subjectGrades.length === 0) return null;
-          const average = computeAverage(subjectGrades);
+          if (subject.grades.length === 0) return null;
+          const average = computeAverage(subject.grades);
 
           return (
-            <section key={subject.slug} className="space-y-2">
+            <section key={subject.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-brand-ink">{subject.name}</h2>
                 <span className="text-sm font-medium text-slate-600">
@@ -54,7 +47,7 @@ export default async function GradesPage() {
                 </span>
               </div>
               <ul className="divide-y divide-brand-border rounded-xl border border-brand-border bg-brand-card">
-                {subjectGrades.map((grade) => (
+                {subject.grades.map((grade) => (
                   <li key={grade.id} className="px-4 py-3 flex items-center justify-between gap-3">
                     <div>
                       <p className="font-medium text-brand-ink">{grade.label}</p>
@@ -80,7 +73,7 @@ export default async function GradesPage() {
             </section>
           );
         })}
-        {grades.length === 0 && (
+        {allGrades.length === 0 && (
           <p className="text-slate-500 text-sm">Aucune note enregistrée pour l&apos;instant.</p>
         )}
       </div>

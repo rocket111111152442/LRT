@@ -6,11 +6,11 @@ import { createNoteAction, updateNoteAction, type NoteFormState } from "./action
 const initialState: NoteFormState = {};
 
 export function NoteForm({
-  subjectSlug,
+  subjectId,
   mode,
   note,
 }: {
-  subjectSlug: string;
+  subjectId: string;
   mode: "create" | "edit";
   note?: { id: string; title: string; content: string };
 }) {
@@ -19,7 +19,7 @@ export function NoteForm({
 
   return (
     <form action={formAction} className="space-y-4 rounded-xl border border-brand-border bg-brand-card p-6">
-      <input type="hidden" name="subjectSlug" value={subjectSlug} />
+      <input type="hidden" name="subjectId" value={subjectId} />
       {note && <input type="hidden" name="noteId" value={note.id} />}
 
       <div className="space-y-1">

@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidUserSubjectSlug } from "@/lib/subjects";
 
 export type DocumentFormState = { error?: string };
 
@@ -14,7 +13,7 @@ export async function uploadDocumentAction(
   formData: FormData,
 ): Promise<DocumentFormState> {
   const user = await requireCurrentUser();
-  const subjectSlug = String(formData.get("subjectSlug") ?? "");
+  const subjectId = String(formData.get("subjectId") ?? "");
   const file = formData.get("file");
 
   if (!(file instanceof File) || file.size === 0) {
@@ -23,8 +22,11 @@ export async function uploadDocumentAction(
   if (file.size > MAX_FILE_SIZE_BYTES) {
     return { error: "Fichier trop volumineux (4 Mo maximum)." };
   }
-  if (subjectSlug && !isValidUserSubjectSlug(user.specialtySlugs, subjectSlug)) {
-    return { error: "Matière invalide." };
+  if (subjectId) {
+    const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+    if (!subject || subject.userId !== user.id) {
+      return { error: "Matière invalide." };
+    }
   }
 
   const arrayBuffer = await file.arrayBuffer();
@@ -32,7 +34,7 @@ export async function uploadDocumentAction(
   await prisma.document.create({
     data: {
       userId: user.id,
-      subjectSlug: subjectSlug || null,
+      subjectId: subjectId || null,
       filename: file.name || "document",
       mimeType: file.type || "application/octet-stream",
       size: file.size,

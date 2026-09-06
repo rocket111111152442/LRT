@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { createSession, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidSpecialtySlug, MAX_SPECIALITES } from "@/lib/subjects";
 
 export type SignUpState = { error?: string };
 
@@ -17,7 +16,7 @@ export async function signUpAction(
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
   const firstName = String(formData.get("firstName") ?? "").trim();
-  const specialtySlugs = formData.getAll("specialites").map(String);
+  const classe = String(formData.get("classe") ?? "").trim();
 
   if (!EMAIL_RE.test(email)) {
     return { error: "Adresse email invalide." };
@@ -27,12 +26,6 @@ export async function signUpAction(
   }
   if (password !== confirmPassword) {
     return { error: "Les deux mots de passe ne correspondent pas." };
-  }
-  if (specialtySlugs.length === 0 || specialtySlugs.length > MAX_SPECIALITES) {
-    return { error: `Choisis entre 1 et ${MAX_SPECIALITES} spécialités.` };
-  }
-  if (!specialtySlugs.every(isValidSpecialtySlug)) {
-    return { error: "Spécialité invalide." };
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -46,7 +39,7 @@ export async function signUpAction(
       email,
       passwordHash,
       firstName: firstName || null,
-      specialtySlugs,
+      classe: classe || null,
     },
   });
 

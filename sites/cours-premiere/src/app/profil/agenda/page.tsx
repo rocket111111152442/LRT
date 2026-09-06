@@ -1,6 +1,5 @@
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getSubjectName, getUserSubjects } from "@/lib/subjects";
 import { EventForm } from "./EventForm";
 import { deleteEventAction } from "./actions";
 
@@ -14,16 +13,18 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
 
 export default async function AgendaPage() {
   const user = await requireCurrentUser();
-  const subjects = getUserSubjects(user.specialtySlugs);
 
-  const [upcoming, past] = await Promise.all([
+  const [subjects, upcoming, past] = await Promise.all([
+    prisma.subject.findMany({ where: { userId: user.id }, orderBy: { name: "asc" } }),
     prisma.event.findMany({
       where: { userId: user.id, date: { gte: new Date() } },
       orderBy: { date: "asc" },
+      include: { subject: true },
     }),
     prisma.event.findMany({
       where: { userId: user.id, date: { lt: new Date() } },
       orderBy: { date: "desc" },
+      include: { subject: true },
     }),
   ]);
 
@@ -55,7 +56,7 @@ function EventList({
     description: string | null;
     date: Date;
     type: string;
-    subjectSlug: string | null;
+    subject: { name: string } | null;
   }>;
   empty: string;
   muted?: boolean;
@@ -72,7 +73,7 @@ function EventList({
               <div>
                 <p className="font-medium text-brand-ink">{event.title}</p>
                 <p className="text-sm text-slate-500">
-                  {event.subjectSlug ? getSubjectName(event.subjectSlug) : "Général"} · {event.type}
+                  {event.subject?.name ?? "Général"} · {event.type}
                   {event.description ? ` — ${event.description}` : ""}
                 </p>
               </div>

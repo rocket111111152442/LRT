@@ -2,12 +2,19 @@
 
 import { useActionState } from "react";
 import { createGradeAction, type GradeFormState } from "./actions";
-import type { Subject } from "@/lib/subjects";
 
 const initialState: GradeFormState = {};
 
-export function GradeForm({ subjects }: { subjects: Subject[] }) {
+export function GradeForm({ subjects }: { subjects: { id: string; name: string }[] }) {
   const [state, formAction, pending] = useActionState(createGradeAction, initialState);
+
+  if (subjects.length === 0) {
+    return (
+      <p className="text-sm text-slate-500 rounded-xl border border-brand-border bg-brand-card p-6">
+        Ajoute d&apos;abord une matière dans l&apos;onglet Matières pour pouvoir y noter des évaluations.
+      </p>
+    );
+  }
 
   return (
     <form
@@ -15,17 +22,17 @@ export function GradeForm({ subjects }: { subjects: Subject[] }) {
       className="grid grid-cols-2 sm:grid-cols-4 gap-4 rounded-xl border border-brand-border bg-brand-card p-6"
     >
       <div className="space-y-1 col-span-2 sm:col-span-4">
-        <label htmlFor="subjectSlug" className="text-sm font-medium text-brand-ink">
+        <label htmlFor="subjectId" className="text-sm font-medium text-brand-ink">
           Matière
         </label>
         <select
-          id="subjectSlug"
-          name="subjectSlug"
+          id="subjectId"
+          name="subjectId"
           required
           className="w-full rounded-lg border border-brand-border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
         >
           {subjects.map((s) => (
-            <option key={s.slug} value={s.slug}>
+            <option key={s.id} value={s.id}>
               {s.name}
             </option>
           ))}

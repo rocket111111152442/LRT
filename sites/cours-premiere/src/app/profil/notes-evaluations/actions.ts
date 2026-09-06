@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidUserSubjectSlug } from "@/lib/subjects";
 
 export type GradeFormState = { error?: string };
 
@@ -12,14 +11,15 @@ export async function createGradeAction(
   formData: FormData,
 ): Promise<GradeFormState> {
   const user = await requireCurrentUser();
-  const subjectSlug = String(formData.get("subjectSlug") ?? "");
+  const subjectId = String(formData.get("subjectId") ?? "");
   const label = String(formData.get("label") ?? "").trim();
   const value = Number(formData.get("value"));
   const maxValue = Number(formData.get("maxValue") || 20);
   const coefficient = Number(formData.get("coefficient") || 1);
   const dateRaw = String(formData.get("date") ?? "");
 
-  if (!isValidUserSubjectSlug(user.specialtySlugs, subjectSlug)) {
+  const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+  if (!subject || subject.userId !== user.id) {
     return { error: "Matière invalide." };
   }
   if (!label) return { error: "L'intitulé est requis." };
@@ -32,7 +32,7 @@ export async function createGradeAction(
   if (Number.isNaN(date.getTime())) return { error: "Date invalide." };
 
   await prisma.grade.create({
-    data: { userId: user.id, subjectSlug, label, value, maxValue, coefficient, date },
+    data: { subjectId, label, value, maxValue, coefficient, date },
   });
 
   revalidatePath("/profil/notes-evaluations");
@@ -44,8 +44,11 @@ export async function deleteGradeAction(formData: FormData): Promise<void> {
   const user = await requireCurrentUser();
   const gradeId = String(formData.get("gradeId") ?? "");
 
-  const existing = await prisma.grade.findUnique({ where: { id: gradeId } });
-  if (existing && existing.userId === user.id) {
+  const existing = await prisma.grade.findUnique({
+    where: { id: gradeId },
+    include: { subject: true },
+  });
+  if (existing && existing.subject.userId === user.id) {
     await prisma.grade.delete({ where: { id: gradeId } });
   }
 

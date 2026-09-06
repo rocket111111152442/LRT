@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentUser, verifyPassword, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidSpecialtySlug, MAX_SPECIALITES } from "@/lib/subjects";
 
 export type ProfileFormState = { error?: string; success?: string };
 
@@ -13,22 +12,14 @@ export async function updateProfileAction(
 ): Promise<ProfileFormState> {
   const user = await requireCurrentUser();
   const firstName = String(formData.get("firstName") ?? "").trim();
-  const specialtySlugs = formData.getAll("specialites").map(String);
-
-  if (specialtySlugs.length === 0 || specialtySlugs.length > MAX_SPECIALITES) {
-    return { error: `Choisis entre 1 et ${MAX_SPECIALITES} spécialités.` };
-  }
-  if (!specialtySlugs.every(isValidSpecialtySlug)) {
-    return { error: "Spécialité invalide." };
-  }
+  const classe = String(formData.get("classe") ?? "").trim();
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { firstName: firstName || null, specialtySlugs },
+    data: { firstName: firstName || null, classe: classe || null },
   });
 
   revalidatePath("/profil");
-  revalidatePath("/profil/matieres");
   revalidatePath("/profil/parametres");
   return { success: "Profil mis à jour." };
 }

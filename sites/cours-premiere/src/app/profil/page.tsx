@@ -1,25 +1,25 @@
 import Link from "next/link";
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getSubjectName, getUserSubjects } from "@/lib/subjects";
 import { computeAverage } from "@/lib/grades";
 
 export default async function DashboardPage() {
   const user = await requireCurrentUser();
-  const subjects = getUserSubjects(user.specialtySlugs);
 
-  const [upcomingEvents, recentGrades, notesCount, documentsCount] = await Promise.all([
+  const [subjects, upcomingEvents, recentGrades, notesCount, documentsCount] = await Promise.all([
+    prisma.subject.findMany({ where: { userId: user.id }, orderBy: { name: "asc" } }),
     prisma.event.findMany({
       where: { userId: user.id, date: { gte: new Date() } },
       orderBy: { date: "asc" },
       take: 5,
+      include: { subject: true },
     }),
     prisma.grade.findMany({
-      where: { userId: user.id },
+      where: { subject: { userId: user.id } },
       orderBy: { date: "desc" },
       take: 20,
     }),
-    prisma.note.count({ where: { userId: user.id } }),
+    prisma.note.count({ where: { subject: { userId: user.id } } }),
     prisma.document.count({ where: { userId: user.id } }),
   ]);
 
@@ -32,11 +32,8 @@ export default async function DashboardPage() {
           Salut{user.firstName ? `, ${user.firstName}` : ""} 👋
         </h1>
         <p className="text-slate-600 mt-1">
-          {user.classe} — {subjects.length} matières ({subjects
-            .slice(6)
-            .map((s) => s.name)
-            .join(", ") || "aucune spécialité choisie"}
-          )
+          {user.classe ? `${user.classe} — ` : ""}
+          {subjects.length} matière{subjects.length > 1 ? "s" : ""}
         </p>
       </div>
 
@@ -71,8 +68,7 @@ export default async function DashboardPage() {
                 <div>
                   <p className="font-medium text-brand-ink">{event.title}</p>
                   <p className="text-sm text-slate-500">
-                    {event.subjectSlug ? getSubjectName(event.subjectSlug) : "Général"} ·{" "}
-                    {event.type}
+                    {event.subject?.name ?? "Général"} · {event.type}
                   </p>
                 </div>
                 <time className="text-sm text-slate-500 whitespace-nowrap">
@@ -90,18 +86,32 @@ export default async function DashboardPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-brand-ink">Tes matières</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {subjects.map((subject) => (
-            <Link
-              key={subject.slug}
-              href={`/profil/matieres/${subject.slug}`}
-              className="rounded-lg border border-brand-border bg-brand-card px-4 py-3 hover:border-brand-primary transition"
-            >
-              <span className="text-sm font-medium text-brand-ink">{subject.name}</span>
-            </Link>
-          ))}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-brand-ink">Tes matières</h2>
+          <Link href="/profil/matieres" className="text-sm text-brand-primary">
+            Gérer
+          </Link>
         </div>
+        {subjects.length === 0 ? (
+          <p className="text-slate-500 text-sm">
+            Aucune matière pour l&apos;instant.{" "}
+            <Link href="/profil/matieres" className="text-brand-primary">
+              En ajouter une
+            </Link>
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {subjects.map((subject) => (
+              <Link
+                key={subject.id}
+                href={`/profil/matieres/${subject.id}`}
+                className="rounded-lg border border-brand-border bg-brand-card px-4 py-3 hover:border-brand-primary transition"
+              >
+                <span className="text-sm font-medium text-brand-ink">{subject.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

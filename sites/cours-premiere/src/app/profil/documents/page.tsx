@@ -1,6 +1,5 @@
 import { requireCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getSubjectName, getUserSubjects } from "@/lib/subjects";
 import { UploadForm } from "./UploadForm";
 import { deleteDocumentAction } from "./actions";
 
@@ -12,20 +11,22 @@ function formatSize(bytes: number): string {
 
 export default async function DocumentsPage() {
   const user = await requireCurrentUser();
-  const subjects = getUserSubjects(user.specialtySlugs);
 
-  const documents = await prisma.document.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      filename: true,
-      mimeType: true,
-      size: true,
-      subjectSlug: true,
-      createdAt: true,
-    },
-  });
+  const [subjects, documents] = await Promise.all([
+    prisma.subject.findMany({ where: { userId: user.id }, orderBy: { name: "asc" } }),
+    prisma.document.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        filename: true,
+        mimeType: true,
+        size: true,
+        createdAt: true,
+        subject: { select: { name: true } },
+      },
+    }),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -50,7 +51,7 @@ export default async function DocumentsPage() {
                   {doc.filename}
                 </a>
                 <p className="text-sm text-slate-500">
-                  {doc.subjectSlug ? getSubjectName(doc.subjectSlug) : "Général"} ·{" "}
+                  {doc.subject?.name ?? "Général"} ·{" "}
                   {formatSize(doc.size)} ·{" "}
                   {new Intl.DateTimeFormat("fr-FR").format(doc.createdAt)}
                 </p>

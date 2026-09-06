@@ -1,11 +1,10 @@
-# Mes cours de Première
+# Mes cours
 
-Application web personnelle pour suivre les cours de Première : fiches de
-cours, agenda, suivi des notes/évaluations et documents. Multi-comptes :
-chaque élève crée son propre compte protégé par mot de passe et ne voit
-que ses données. Le profil s'adapte automatiquement à la classe (Première)
-et aux spécialités choisies à l'inscription (3 maximum, modifiables plus
-tard dans les paramètres).
+Application web personnelle pour suivre ses cours, quel que soit le
+niveau : fiches de cours, agenda, suivi des notes/évaluations et
+documents. Multi-comptes : chaque personne crée son propre compte protégé
+par mot de passe et ne voit que ses données. Les matières sont libres —
+chacun ajoute les siennes (collège, lycée, BTS, licence, etc.).
 
 C'est une application Next.js **indépendante** du reste de ce dépôt (elle
 n'importe aucun code de Qoravo) : son propre `package.json`, son propre
@@ -62,18 +61,17 @@ npm run dev
 3. La commande de build (`npm run build`) exécute automatiquement
    `prisma generate`. Pensez à lancer `npx prisma migrate deploy` (avec
    `DATABASE_URL` de production) après la première mise en ligne pour créer
-   les tables.
+   les tables — sans ça, le site est en ligne mais toutes les pages qui
+   touchent la base (inscription, connexion...) renvoient une erreur 500.
 
 ## Fonctionnement
 
-- **Comptes** : inscription libre (email + mot de passe + choix des
-  spécialités), chaque compte est isolé — un élève ne voit jamais les
-  données d'un autre.
-- **Matières** : calculées automatiquement à partir du tronc commun de
-  Première générale (Français, Histoire-Géo/EMC, LV A, LV B, Enseignement
-  scientifique, EPS) + les spécialités choisies. Le catalogue des
-  spécialités est dans `src/lib/subjects.ts` — modifiable si de nouvelles
-  options apparaissent.
+- **Comptes** : inscription libre (email + mot de passe + prénom et
+  classe/niveau en texte libre, optionnels), chaque compte est isolé — une
+  personne ne voit jamais les données d'une autre.
+- **Matières** : entièrement libres. Chacun ajoute ses propres matières
+  dans l'onglet Matières (`Subject` en base) — aucun catalogue figé, ça
+  marche pour n'importe quel niveau ou filière.
 - **Notes de cours** : fiches texte libres par matière.
 - **Agenda** : cours, devoirs, contrôles avec date et matière optionnelle.
 - **Notes/évaluations** : ajout de notes avec barème et coefficient,
