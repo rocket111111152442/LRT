@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS "documents" (
 CREATE INDEX IF NOT EXISTS "documents_userId_idx" ON "documents"("userId");
 `;
 
-export async function POST(request: Request) {
+async function runSetup(request: Request) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get("secret");
 
@@ -100,3 +100,6 @@ export async function POST(request: Request) {
     await client.end();
   }
 }
+
+export const GET = runSetup;
+export const POST = runSetup;
