@@ -56,12 +56,54 @@ export function verifyRepairEmail(
   repair: Pick<RepairAccessRecord, "email">,
   email: string | null | undefined,
 ) {
-  if (!email) {
+  const expected = repair.email.trim().toLowerCase();
+
+  // Une fiche sans email ne peut pas etre verifiee par email.
+  if (!email || !expected) {
     return false;
   }
 
-  return safeEqual(
-    repair.email.trim().toLowerCase(),
-    email.trim().toLowerCase(),
-  );
+  return safeEqual(expected, email.trim().toLowerCase());
+}
+
+function phoneDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+// Compare deux numeros sur leurs 9 derniers chiffres pour tolerer les
+// ecritures "+33 6..." / "06..." / "0033 6...".
+function comparablePhone(value: string) {
+  const digits = phoneDigits(value);
+  return digits.length > 9 ? digits.slice(-9) : digits;
+}
+
+export function verifyRepairPhone(
+  repair: { phone: string },
+  phone: string | null | undefined,
+) {
+  if (!phone) {
+    return false;
+  }
+
+  const expected = comparablePhone(repair.phone);
+  const provided = comparablePhone(phone);
+
+  if (expected.length < 6 || provided.length < 6) {
+    return false;
+  }
+
+  return safeEqual(expected, provided);
+}
+
+// Verification client par email OU telephone du dossier : les fiches creees
+// au comptoir n'ont pas forcement d'email.
+export function verifyRepairContact(
+  repair: Pick<RepairAccessRecord, "email"> & { phone: string },
+  contact: string | null | undefined,
+) {
+  if (!contact?.trim()) {
+    return false;
+  }
+
+  return verifyRepairEmail(repair, contact) || verifyRepairPhone(repair, contact);
 }

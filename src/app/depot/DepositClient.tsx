@@ -77,7 +77,7 @@ export function DepositClient({ proAccountSlug, shopName }: DepositClientProps) 
           Confirmer le depot chez {shopName}
         </h1>
         <p className="max-w-2xl text-sm leading-6 text-slate-600">
-          Entrez le numero de ticket recu par email. Cette confirmation prouve
+          Entrez le numero de ticket recu par email ou indique sur votre recu. Cette confirmation prouve
           que l&apos;appareil a ete depose au magasin et met la fiche en statut
           pas encore en reparation.
         </p>
@@ -97,12 +97,12 @@ export function DepositClient({ proAccountSlug, shopName }: DepositClientProps) 
           />
         </label>
         <label className="grid gap-2 text-sm font-medium text-slate-800">
-          Email du dossier
+          Email ou telephone du dossier
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
+            autoComplete="on"
             required
             className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
           />

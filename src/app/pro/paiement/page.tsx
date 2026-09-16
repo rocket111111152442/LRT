@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 import { readSignupToken } from "@/lib/pro/signupToken";
 import { PaymentClient } from "./PaymentClient";
 
+export const metadata: Metadata = {
+  title: "Paiement — Compte professionnel",
+  robots: { index: false },
+};
 export const dynamic = "force-dynamic";
 
 type PaymentPageProps = {

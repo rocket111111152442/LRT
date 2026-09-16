@@ -32,8 +32,13 @@ function createPrismaClient() {
     throw new Error("DATABASE_URL is not configured.");
   }
 
+  // DATABASE_POOL_MAX limite le nombre de connexions simultanees. Utile avec
+  // le serveur local `prisma dev`, qui coupe la connexion au-dela de quelques
+  // clients paralleles (mettre 1). Non defini = valeur par defaut de pg (10).
+  const poolMax = Number(process.env.DATABASE_POOL_MAX);
   const adapter = new PrismaPg({
     connectionString: resolvePostgresConnectionString(connectionString),
+    ...(Number.isInteger(poolMax) && poolMax > 0 ? { max: poolMax } : {}),
   });
 
   return new PrismaClient({

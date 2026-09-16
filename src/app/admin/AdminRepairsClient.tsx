@@ -113,7 +113,7 @@ function normalizeRepairs(value: unknown): RepairListItem[] {
     firstName: readString(repair.firstName, "-"),
     lastName: readString(repair.lastName),
     phone: readString(repair.phone, "-"),
-    email: readString(repair.email, "-"),
+    email: readString(repair.email).trim() || "-",
     deviceType: readString(repair.deviceType, "-"),
     brand: readString(repair.brand),
     model: readString(repair.model),

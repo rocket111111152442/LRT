@@ -12,7 +12,9 @@ import {
 import {
   createRepairAccessToken,
   verifyRepairAccessToken,
+  verifyRepairContact,
   verifyRepairEmail,
+  verifyRepairPhone,
 } from "../src/lib/repairAccess";
 import {
   isSameOriginRequest,
@@ -91,6 +93,47 @@ test("un lien client est lie a la fiche et a son email", () => {
   );
   assert.equal(verifyRepairEmail(repair, " CLIENT@example.com "), true);
   assert.equal(verifyRepairEmail(repair, "autre@example.com"), false);
+});
+
+test("un client sans email est verifie par son telephone, jamais par un email vide", () => {
+  const repair = { id: "repair-3", ticketNumber: "QOR-000003", email: "", phone: "06 12 34 56 78" };
+
+  assert.equal(verifyRepairEmail(repair, ""), false);
+  assert.equal(verifyRepairContact(repair, ""), false);
+  assert.equal(verifyRepairContact(repair, "   "), false);
+  assert.equal(verifyRepairPhone(repair, "0612345678"), true);
+  assert.equal(verifyRepairPhone(repair, "+33 6 12 34 56 78"), true);
+  assert.equal(verifyRepairContact(repair, "06.12.34.56.78"), true);
+  assert.equal(verifyRepairPhone(repair, "0612345679"), false);
+  assert.equal(verifyRepairPhone(repair, "12345"), false);
+  assert.equal(verifyRepairContact({ ...repair, email: "client@example.com" }, "client@example.com"), true);
+});
+
+test("l email est facultatif pour une fiche creee depuis l admin, requis pour le formulaire public", () => {
+  const input = {
+    firstName: "Jean",
+    lastName: "Dupont",
+    phone: "0612345678",
+    email: "",
+    deviceType: "Smartphone",
+    brand: "Apple",
+    model: "iPhone 13",
+    issueDescription: "Ecran casse suite a une chute",
+  };
+
+  const publicValidation = validateRepairInput(input);
+  assert.equal(publicValidation.ok, false);
+  assert.ok(!publicValidation.ok && publicValidation.errors.email);
+
+  const adminValidation = validateRepairInput(input, { requireEmail: false });
+  assert.equal(adminValidation.ok, true);
+  assert.ok(adminValidation.ok && adminValidation.data.email === "");
+
+  const invalidEmail = validateRepairInput(
+    { ...input, email: "pas-un-email" },
+    { requireEmail: false },
+  );
+  assert.equal(invalidEmail.ok, false);
 });
 
 test("REP2026 active l acces gratuit et le code serveur reste compatible", () => {

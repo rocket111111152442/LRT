@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminHeader } from "../../../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
@@ -7,6 +8,7 @@ type InvoicePageProps = {
   params: Promise<{ id: string }>;
 };
 
+export const metadata: Metadata = { title: "Facture — Qoravo Admin" };
 export const dynamic = "force-dynamic";
 
 function formatDate(value: unknown) {
@@ -256,7 +258,7 @@ export default async function RepairInvoicePage({ params }: InvoicePageProps) {
               />
               <InvoiceItem
                 label="Contact"
-                value={`${repair.phone ?? "-"} - ${repair.email ?? "-"}`}
+                value={[repair.phone, repair.email].filter(Boolean).join(" - ") || "-"}
               />
               <InvoiceItem
                 label="Adresse client"

@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Stripe from "stripe";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { activatePaidCheckoutSession } from "@/lib/pro/paymentActivation";
 import { restoreFullPremiumPriceForRenewals } from "@/lib/stripeDiscounts";
 
+export const metadata: Metadata = {
+  title: "Merci — Compte professionnel",
+  robots: { index: false },
+};
 export const dynamic = "force-dynamic";
 
 type ProThanksPageProps = {

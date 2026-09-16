@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Page introuvable — Qoravo" };
+export const metadata: Metadata = { title: "Page introuvable" };
 
 export default function NotFound() {
   return (

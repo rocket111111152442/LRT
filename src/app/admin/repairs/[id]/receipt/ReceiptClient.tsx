@@ -94,8 +94,15 @@ export function ReceiptClient({ repairId }: { repairId: string }) {
     );
   }
 
+  // Le QR pre-remplit le ticket : le client n'a plus qu'a confirmer son
+  // email ou son telephone sur la page de suivi.
+  const trackingPath = repair.ticketNumber
+    ? `/suivi?ticket=${encodeURIComponent(repair.ticketNumber)}`
+    : "/suivi";
   const trackingUrl =
-    typeof window === "undefined" ? "/suivi" : `${window.location.origin}/suivi`;
+    typeof window === "undefined"
+      ? trackingPath
+      : `${window.location.origin}${trackingPath}`;
 
   return (
     <section className="grid gap-5">
@@ -132,7 +139,7 @@ export function ReceiptClient({ repairId }: { repairId: string }) {
           <dl className="grid gap-4 sm:grid-cols-2">
             <ReceiptItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
             <ReceiptItem label="Telephone" value={repair.phone} />
-            <ReceiptItem label="Email" value={repair.email} />
+            <ReceiptItem label="Email" value={repair.email || "-"} />
             <ReceiptItem
               label="Adresse"
               value={

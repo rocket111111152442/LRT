@@ -105,7 +105,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const validation = validateRepairInput(body);
+  // Creation manuelle au comptoir : l'email du client est facultatif.
+  const validation = validateRepairInput(body, { requireEmail: false });
 
   if (!validation.ok) {
     return NextResponse.json({ errors: validation.errors }, { status: 400 });

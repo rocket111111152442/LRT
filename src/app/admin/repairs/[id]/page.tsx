@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { AdminHeader } from "../../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { RepairDetailClient } from "./RepairDetailClient";
+
+export const metadata: Metadata = { title: "Fiche réparation — Qoravo Admin" };
 
 type RepairDetailPageProps = {
   params: Promise<{ id: string }>;

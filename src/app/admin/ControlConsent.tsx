@@ -32,6 +32,14 @@ const PEER_CONFIGURATION: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
+// Cadence de verification des demandes de prise en main. Une demande support
+// est rare : 15 s au repos suffit largement et evite des milliers d'appels
+// serveur par heure et par onglet ouvert. On accelere seulement pendant une
+// session (demande en attente ou acceptee) et on se met en pause quand
+// l'onglet est masque.
+const IDLE_POLL_MS = 15_000;
+const ACTIVE_POLL_MS = 3_000;
+
 async function postSignal(kind: "OFFER" | "ICE" | "END", payload = "{}") {
   const response = await fetch("/api/admin/control-session", {
     method: "POST",
@@ -232,8 +240,35 @@ export function ControlConsent() {
 
   useEffect(() => {
     let active = true;
+    let timerId: number | null = null;
+    let sessionActive = false;
+
+    function scheduleNext() {
+      if (!active) {
+        return;
+      }
+
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
+
+      timerId = window.setTimeout(
+        () => void pollRequest(),
+        sessionActive ? ACTIVE_POLL_MS : IDLE_POLL_MS,
+      );
+    }
 
     async function pollRequest() {
+      if (!active) {
+        return;
+      }
+
+      // Onglet masque : on ne sollicite pas le serveur, on reprend au retour.
+      if (document.visibilityState === "hidden") {
+        scheduleNext();
+        return;
+      }
+
       try {
         const response = await fetch("/api/admin/control-request", {
           cache: "no-store",
@@ -250,6 +285,7 @@ export function ControlConsent() {
         }
 
         if (data.pending) {
+          sessionActive = true;
           setPending({
             requestId: data.requestId,
             reason: data.reason ?? null,
@@ -260,27 +296,40 @@ export function ControlConsent() {
           setPending(null);
 
           if (data.accepted) {
+            sessionActive = true;
             setAccepted({
               requestId: data.requestId,
               reason: data.reason ?? null,
             });
             setScreenSharePending(Boolean(data.screenSharePending));
           } else if (!streamRef.current) {
+            sessionActive = false;
             setAccepted(null);
             setScreenSharePending(false);
           }
         }
       } catch {
         // Une coupure reseau ne doit jamais accepter une demande implicitement.
+      } finally {
+        scheduleNext();
       }
     }
 
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        void pollRequest();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     void pollRequest();
-    const pollId = window.setInterval(pollRequest, 2_000);
 
     return () => {
       active = false;
-      window.clearInterval(pollId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
       closePeer(true);
     };
   }, [closePeer]);

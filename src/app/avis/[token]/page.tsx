@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { ReviewClient } from "./ReviewClient";
+
+export const metadata: Metadata = {
+  title: "Donner votre avis",
+  robots: { index: false },
+};
 
 type ReviewPageProps = {
   params: Promise<{ token: string }>;

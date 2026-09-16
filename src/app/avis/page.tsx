@@ -5,7 +5,7 @@ import { QoravoLogo } from "@/components/QoravoLogo";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Avis clients — Qoravo",
+  title: "Avis clients",
   description:
     "Tous les avis des utilisateurs de Qoravo, le logiciel de gestion pour réparateurs.",
 };

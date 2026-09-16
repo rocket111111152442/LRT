@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminHeader } from "../../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { AdminRepairCreateForm } from "./AdminRepairCreateForm";
+
+export const metadata: Metadata = { title: "Nouvelle réparation — Qoravo Admin" };
 
 export default async function NewRepairPage() {
   const admin = await requireAdminPage();

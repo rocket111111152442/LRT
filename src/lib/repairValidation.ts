@@ -63,6 +63,13 @@ type ValidationResult =
   | { ok: true; data: RepairInput }
   | { ok: false; errors: RepairInputErrors };
 
+export type RepairValidationOptions = {
+  // Le formulaire public exige l'email (suivi + notifications). Une fiche
+  // creee manuellement depuis l'admin peut s'en passer : le client est au
+  // comptoir et n'a pas toujours d'adresse a donner.
+  requireEmail?: boolean;
+};
+
 const requiredFields: Array<
   keyof Omit<
     RepairInput,
@@ -76,12 +83,12 @@ const requiredFields: Array<
     | "city"
     | "imei"
     | "serialNumber"
+    | "email"
   >
 > = [
   "firstName",
   "lastName",
   "phone",
-  "email",
   "deviceType",
   "brand",
   "model",
@@ -200,7 +207,12 @@ export function emptyRepairInput(): RepairInput {
   };
 }
 
-export function validateRepairInput(input: unknown): ValidationResult {
+export function validateRepairInput(
+  input: unknown,
+  options: RepairValidationOptions = {},
+): ValidationResult {
+  const requireEmail = options.requireEmail ?? true;
+
   if (!isRecord(input)) {
     return {
       ok: false,
@@ -238,6 +250,10 @@ export function validateRepairInput(input: unknown): ValidationResult {
     if (!data[field]) {
       errors[field] = `${fieldLabels[field]} est requis.`;
     }
+  }
+
+  if (requireEmail && !data.email) {
+    errors.email = `${fieldLabels.email} est requis.`;
   }
 
   for (const [field, limit] of Object.entries(textLimits) as Array<

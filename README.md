@@ -69,6 +69,11 @@ npm run prisma:seed
 
 Si `DATABASE_PROVIDER="firebase"`, les commandes de migration Prisma ne sont pas necessaires.
 
+Sans Postgres installe, `npx prisma dev` demarre une base locale et affiche la
+`DATABASE_URL` a copier dans `.env`. Ce serveur local coupe la connexion quand
+plusieurs requetes partent en parallele : ajoutez `DATABASE_POOL_MAX="1"` dans
+`.env` (ne pas definir cette variable en production).
+
 Lancer l'application :
 
 ```bash
@@ -90,6 +95,10 @@ http://localhost:3000/admin/guide
 ## Notes
 
 Le statut initial d'une reparation creee par l'API publique est `PAS_ENCORE_EN_REPARATION`.
+
+L'email du client est obligatoire sur le formulaire public (suivi et notifications), mais facultatif pour une fiche creee manuellement depuis `/admin/repairs/new`. Sans email, aucune notification automatique ne part et le client s'identifie sur le suivi, le depot et la signature avec son numero de telephone.
+
+Le dossier `drip/` et le dossier `sites/` sont des projets independants : ils sont exclus du `tsconfig.json` principal pour ne pas casser le build Vercel de Qoravo.
 
 La configuration email peut etre saisie dans l'admin sur `/admin/email`. Les variables SMTP du fichier `.env` restent disponibles comme secours.
 

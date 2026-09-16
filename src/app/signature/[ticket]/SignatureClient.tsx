@@ -66,12 +66,12 @@ export function SignatureClient({
       />
       {!accessToken ? (
         <label className="grid gap-2 text-sm font-medium text-slate-800">
-          Email du dossier
+          Email ou telephone du dossier
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
+            autoComplete="on"
             required
             className="min-h-11 rounded-md border border-slate-300 px-3 py-2"
           />

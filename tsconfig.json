@@ -39,6 +39,10 @@
   ],
   "exclude": [
     "node_modules",
-    "assurio"
+    "assurio",
+    "drip",
+    "sites",
+    "serveur-interne",
+    "work"
   ]
 }

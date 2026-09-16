@@ -47,6 +47,29 @@ function formatOptionalDate(value: string | null) {
   return value ? formatDate(value) : "-";
 }
 
+// Libelles lisibles par le client (au lieu des codes internes NONE / NON_PAYE).
+const quoteStatusLabels: Record<string, string> = {
+  NONE: "Aucun devis",
+  SENT: "En attente de votre reponse",
+  ACCEPTED: "Accepte",
+  REFUSED: "Refuse",
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  NON_PAYE: "Non paye",
+  ACOMPTE: "Acompte verse",
+  PAYE: "Paye",
+  REMBOURSE: "Rembourse",
+};
+
+function quoteStatusLabel(status: string) {
+  return quoteStatusLabels[status] ?? status;
+}
+
+function paymentStatusLabel(status: string) {
+  return paymentStatusLabels[status] ?? status.replaceAll("_", " ").toLowerCase();
+}
+
 function formatPrice(cents: number | null) {
   if (cents === null) {
     return "-";
@@ -106,7 +129,8 @@ export function TrackingClient() {
       if (effectiveAccessToken) {
         params.set("access", effectiveAccessToken);
       } else if (email.trim()) {
-        params.set("email", email.trim());
+        // Email ou telephone du dossier.
+        params.set("contact", email.trim());
       }
 
       const response = await fetch(
@@ -135,9 +159,15 @@ export function TrackingClient() {
     const accessFromUrl = params.get("access") ?? "";
     if (fromUrl) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTicket(fromUrl);
+      setTicket(normalizeTicket(fromUrl));
       setAccessToken(accessFromUrl);
-      void runSearch(fromUrl, accessFromUrl);
+
+      // Sans lien securise (QR du recu ou de l'etiquette), on pre-remplit
+      // seulement le ticket : le client confirme d'abord son email ou son
+      // telephone, au lieu de voir une erreur avant d'avoir rien saisi.
+      if (accessFromUrl) {
+        void runSearch(fromUrl, accessFromUrl);
+      }
     }
   }, [runSearch]);
 
@@ -158,11 +188,11 @@ export function TrackingClient() {
         />
         {!accessToken ? (
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Email utilise pour la reparation"
-            autoComplete="email"
+            placeholder="Email ou telephone utilise pour la reparation"
+            autoComplete="on"
             required
             className="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
           />
@@ -218,7 +248,7 @@ export function TrackingClient() {
               Statut actuel : <strong>{repairStatusLabel(repair.status)}</strong>
             </p>
             <p>
-              Devis : <strong>{repair.quoteStatus}</strong>
+              Devis : <strong>{quoteStatusLabel(repair.quoteStatus)}</strong>
             </p>
             <p>
               Prix estime : <strong>{formatPrice(repair.estimatedPriceCents)}</strong>
@@ -226,7 +256,7 @@ export function TrackingClient() {
             <p>
               Paiement :{" "}
               <strong>
-                {repair.paymentStatus} ({formatPrice(repair.paidAmountCents)})
+                {paymentStatusLabel(repair.paymentStatus)} ({formatPrice(repair.paidAmountCents)})
               </strong>
             </p>
             <p>

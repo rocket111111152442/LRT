@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import {
   createRepairAccessToken,
   verifyRepairAccessToken,
-  verifyRepairEmail,
+  verifyRepairContact,
 } from "@/lib/repairAccess";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
@@ -63,7 +63,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const ticketNumber = normalizeTicket(searchParams.get("ticket") ?? "");
   const accessToken = searchParams.get("access");
-  const email = searchParams.get("email");
+  // `contact` = email ou telephone du dossier (`email` conserve pour les anciens liens).
+  const contact = searchParams.get("contact") ?? searchParams.get("email");
 
   if (!ticketNumber) {
     return NextResponse.json({ error: "Ticket requis." }, { status: 400 });
@@ -77,6 +78,7 @@ export async function GET(request: Request) {
       proAccountId: true,
       firstName: true,
       email: true,
+      phone: true,
       deviceType: true,
       brand: true,
       model: true,
@@ -99,12 +101,12 @@ export async function GET(request: Request) {
 
   if (
     !verifyRepairAccessToken(repair, accessToken) &&
-    !verifyRepairEmail(repair, email)
+    !verifyRepairContact(repair, contact)
   ) {
     return NextResponse.json(
       {
         error:
-          "Verification requise. Utilisez le lien recu par email ou saisissez l email du dossier.",
+          "Verification requise. Utilisez le lien recu par email ou saisissez l email ou le telephone du dossier.",
       },
       { status: 403 },
     );

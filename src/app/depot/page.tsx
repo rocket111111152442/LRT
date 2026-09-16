@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { isProAccountActive } from "@/lib/accountStatus";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +8,10 @@ type DepositPageProps = {
   searchParams: Promise<{ compte?: string }>;
 };
 
+export const metadata: Metadata = {
+  title: "Confirmer le dépôt de votre appareil",
+  robots: { index: false },
+};
 export const dynamic = "force-dynamic";
 
 export default async function DepositPage({ searchParams }: DepositPageProps) {

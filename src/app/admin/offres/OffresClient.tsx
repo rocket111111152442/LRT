@@ -334,26 +334,6 @@ export function OffresClient() {
           offre ou un devis sur mesure, contactez-nous : nous configurons votre
           compte sous 24h.
         </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-          {data.provider.consoleUrl ? (
-            <a
-              href={data.provider.consoleUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-sky-700 hover:underline"
-            >
-              Consulter la console {data.provider.name}
-            </a>
-          ) : null}
-          <a
-            href={data.provider.pricingUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-slate-600 hover:text-sky-700 hover:underline"
-          >
-            Voir les tarifs officiels Firebase
-          </a>
-        </div>
       </div>
     </section>
   );

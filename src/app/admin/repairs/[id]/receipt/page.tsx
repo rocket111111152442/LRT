@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { AdminHeader } from "../../../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
 import { ReceiptClient } from "./ReceiptClient";
+
+export const metadata: Metadata = { title: "Reçu de dépôt — Qoravo Admin" };
 
 type ReceiptPageProps = {
   params: Promise<{ id: string }>;

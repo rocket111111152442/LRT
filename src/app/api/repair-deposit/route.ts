@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { normalizeTicketNumber } from "@/lib/ticketFormat";
 import {
   verifyRepairAccessToken,
-  verifyRepairEmail,
+  verifyRepairContact,
 } from "@/lib/repairAccess";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
 
   const slug = readString(body.proAccountSlug);
   const ticketNumber = normalizeTicketNumber(readString(body.ticketNumber));
-  const email = readString(body.email);
+  // Email ou telephone du dossier (le champ s'appelle encore `email` cote client).
+  const contact = readString(body.contact) || readString(body.email);
   const accessToken = readString(body.accessToken);
 
   if (!slug) {
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
       ticketNumber: true,
       firstName: true,
       email: true,
+      phone: true,
       deviceType: true,
       brand: true,
       model: true,
@@ -98,7 +100,7 @@ export async function POST(request: Request) {
 
   if (
     !verifyRepairAccessToken(repair, accessToken) &&
-    !verifyRepairEmail(repair, email)
+    !verifyRepairContact(repair, contact)
   ) {
     return NextResponse.json(
       { error: "Verification client invalide." },

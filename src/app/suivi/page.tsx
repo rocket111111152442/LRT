@@ -5,7 +5,7 @@ import { TrackingClient } from "./TrackingClient";
 export const metadata: Metadata = {
   title: "Suivre une réparation",
   description:
-    "Suivez l'avancement de votre réparation Qoravo en toute sécurité avec votre numéro de ticket et votre adresse email.",
+    "Suivez l'avancement de votre réparation Qoravo en toute sécurité avec votre numéro de ticket et votre email ou votre téléphone.",
   alternates: { canonical: "/suivi" },
 };
 
@@ -28,7 +28,7 @@ export default function TrackingPage() {
           </h1>
           <p className="text-sm leading-6 text-slate-600">
             Utilisez le lien sécurisé reçu par email ou entrez votre ticket et
-            l&apos;adresse email utilisée pour la réparation.
+            l&apos;email ou le téléphone utilisé pour la réparation.
           </p>
         </header>
         <TrackingClient />

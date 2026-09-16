@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminHeader } from "../../../AdminHeader";
 import { requireAdminPage } from "@/lib/auth";
@@ -5,6 +6,7 @@ import { getPublicAppUrl } from "@/lib/appUrl";
 import { prisma } from "@/lib/prisma";
 import { RepairLabel } from "./RepairLabel";
 
+export const metadata: Metadata = { title: "Étiquette QR — Qoravo Admin" };
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
@@ -62,6 +64,21 @@ export default async function RepairLabelPage({ params }: Props) {
   const ticket = repair.ticketNumber ?? repair.id.slice(0, 8);
   const trackingUrl = `${getPublicAppUrl()}/suivi?ticket=${encodeURIComponent(ticket)}`;
 
+  // Nom de l'atelier sur l'etiquette (et non l'email de connexion de l'admin).
+  let shopName = admin.email;
+
+  if (admin.proAccountId) {
+    try {
+      const account = await prisma.proAccount.findUnique({
+        where: { id: admin.proAccountId },
+        select: { companyName: true },
+      });
+      shopName = account?.companyName?.trim() || shopName;
+    } catch {
+      // On garde l'email en secours.
+    }
+  }
+
   return (
     <>
       <AdminHeader {...headerProps} />
@@ -79,7 +96,7 @@ export default async function RepairLabelPage({ params }: Props) {
             ticketNumber={ticket}
             customerName={`${repair.firstName} ${repair.lastName}`.trim()}
             device={`${repair.deviceType} ${repair.brand} ${repair.model}`.trim()}
-            shopName={admin.email}
+            shopName={shopName}
             trackingUrl={trackingUrl}
             storageLocation={repair.storageLocation}
           />

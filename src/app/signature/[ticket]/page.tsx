@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { QoravoLogo } from "@/components/QoravoLogo";
 import { SignatureClient } from "./SignatureClient";
+
+export const metadata: Metadata = {
+  title: "Signature de récupération",
+  robots: { index: false },
+};
 
 type SignaturePageProps = {
   params: Promise<{ ticket: string }>;

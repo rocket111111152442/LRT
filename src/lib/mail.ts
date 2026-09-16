@@ -513,6 +513,12 @@ function renderTemplate(
   );
 }
 
+// Une fiche creee manuellement peut ne pas avoir d'email client : dans ce
+// cas, on ignore l'envoi au lieu de laisser nodemailer echouer.
+function hasRecipient(to: string | null | undefined): to is string {
+  return typeof to === "string" && to.trim().length > 0;
+}
+
 async function sendWithRepairSmtp(input: {
   to: string;
   subject: string;
@@ -520,6 +526,10 @@ async function sendWithRepairSmtp(input: {
   html?: string;
   proAccountId?: string | null;
 }): Promise<SendMailResult> {
+  if (!hasRecipient(input.to)) {
+    return { sent: false, skipped: true };
+  }
+
   const smtpConfig = await getShopSmtpConfig(input.proAccountId);
 
   if (!smtpConfig) {
@@ -790,6 +800,10 @@ export async function sendReadyReminderEmail(
 export async function sendReadyRepairEmail(
   repair: ReadyRepairEmailInput,
 ): Promise<SendMailResult> {
+  if (!hasRecipient(repair.email)) {
+    return { sent: false, skipped: true };
+  }
+
   const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
@@ -910,6 +924,10 @@ function buildRepairStatusEmail(repair: RepairStatusEmailInput) {
 export async function sendRepairStatusEmail(
   repair: RepairStatusEmailInput,
 ): Promise<SendMailResult> {
+  if (!hasRecipient(repair.email)) {
+    return { sent: false, skipped: true };
+  }
+
   const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {
@@ -963,6 +981,10 @@ export async function sendRepairDelayEmail(
     expectedPickupAt: Date | string;
   },
 ): Promise<SendMailResult> {
+  if (!hasRecipient(repair.email)) {
+    return { sent: false, skipped: true };
+  }
+
   const smtpConfig = await getShopSmtpConfig(repair.proAccountId);
 
   if (!smtpConfig) {

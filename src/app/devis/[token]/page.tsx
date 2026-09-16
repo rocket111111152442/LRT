@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { QuoteDecisionClient } from "./QuoteDecisionClient";
+
+export const metadata: Metadata = {
+  title: "Votre devis de réparation",
+  robots: { index: false },
+};
 
 type QuotePageProps = {
   params: Promise<{ token: string }>;

@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { requireModPage } from "@/lib/modAuth";
 import { AccountDetail } from "./AccountDetail";
 
+export const metadata: Metadata = {
+  title: "Compte atelier — Modération",
+  robots: { index: false },
+};
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };

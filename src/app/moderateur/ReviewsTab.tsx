@@ -23,25 +23,35 @@ export function ReviewsTab() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/moderateur/reviews", { cache: "no-store" });
-      if (res.status === 401) {
-        window.location.href = "/moderateur/login";
-        return;
-      }
-      const payload = await res.json();
-      setReviews(Array.isArray(payload.reviews) ? payload.reviews : []);
-    } catch {
-      /* ignore */
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    let cancelled = false;
+
+    // `loading` démarre à true : on ne le repasse à false qu'une fois la réponse reçue.
+    async function load() {
+      try {
+        const res = await fetch("/api/moderateur/reviews", { cache: "no-store" });
+        if (res.status === 401) {
+          window.location.href = "/moderateur/login";
+          return;
+        }
+        const payload = await res.json();
+        if (!cancelled) {
+          setReviews(Array.isArray(payload.reviews) ? payload.reviews : []);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
     void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function sendPrompt() {

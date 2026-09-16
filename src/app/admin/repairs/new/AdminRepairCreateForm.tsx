@@ -25,13 +25,20 @@ type FieldConfig = {
   autoComplete?: string;
   inputMode?: "text" | "numeric";
   wide?: boolean;
+  hint?: string;
 };
 
 const customerFields: FieldConfig[] = [
   { name: "firstName", label: "Prenom", autoComplete: "given-name" },
   { name: "lastName", label: "Nom", autoComplete: "family-name" },
   { name: "phone", label: "Telephone", type: "tel", autoComplete: "tel" },
-  { name: "email", label: "Email", type: "email", autoComplete: "email" },
+  {
+    name: "email",
+    label: "Email (facultatif)",
+    type: "email",
+    autoComplete: "email",
+    hint: "Sans email, le client ne recevra pas les notifications automatiques.",
+  },
   {
     name: "streetAddress",
     label: "Rue",
@@ -135,7 +142,7 @@ export function AdminRepairCreateForm() {
     event.preventDefault();
     setSubmitError("");
 
-    const validation = validateRepairInput(values);
+    const validation = validateRepairInput(values, { requireEmail: false });
 
     if (!validation.ok) {
       setErrors(validation.errors);
@@ -350,6 +357,10 @@ function FormField({
   onChange: (name: keyof RepairInput, value: string) => void;
 }) {
   const id = `admin-repair-${field.name}`;
+  const describedBy =
+    [error ? `${id}-error` : null, field.hint ? `${id}-hint` : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
   const inputClassName =
     "min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10";
 
@@ -370,7 +381,7 @@ function FormField({
           onChange={(event) => onChange(field.name, event.target.value)}
           className={inputClassName}
           aria-invalid={Boolean(error)}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-describedby={describedBy}
         />
       ) : (
         <input
@@ -382,12 +393,17 @@ function FormField({
           onChange={(event) => onChange(field.name, event.target.value)}
           className={inputClassName}
           aria-invalid={Boolean(error)}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-describedby={describedBy}
         />
       )}
       {error ? (
         <p id={`${id}-error`} className="text-sm text-red-700">
           {error}
+        </p>
+      ) : null}
+      {field.hint ? (
+        <p id={`${id}-hint`} className="text-xs text-slate-500">
+          {field.hint}
         </p>
       ) : null}
     </div>

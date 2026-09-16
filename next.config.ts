@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
+// En developpement, React a besoin d'eval() et Vercel Analytics charge son
+// script de debug depuis va.vercel-scripts.com. En production, rien de tout
+// cela n'est autorise.
+const devScriptSources = isDev
+  ? " 'unsafe-eval' https://va.vercel-scripts.com"
+  : "";
+
 const securityHeaders = [
   // Empêche l'affichage du site dans une iframe tierce (clickjacking).
   { key: "X-Frame-Options", value: "DENY" },
@@ -29,7 +38,7 @@ const securityHeaders = [
       "object-src 'none'",
       "frame-ancestors 'none'",
       "form-action 'self'",
-      "script-src 'self' 'unsafe-inline' https://widget.trustpilot.com",
+      `script-src 'self' 'unsafe-inline' https://widget.trustpilot.com${devScriptSources}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://images.unsplash.com https://*.trustpilot.com",
       "font-src 'self' data:",

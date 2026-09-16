@@ -163,7 +163,10 @@ export default async function DocumentsPage({
 
           <dl className="grid gap-4 sm:grid-cols-2">
             <DocumentItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
-            <DocumentItem label="Contact" value={`${repair.phone} - ${repair.email}`} />
+            <DocumentItem
+              label="Contact"
+              value={[repair.phone, repair.email].filter(Boolean).join(" - ") || "-"}
+            />
             <DocumentItem
               label="Adresse"
               value={

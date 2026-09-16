@@ -419,7 +419,19 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
       );
       requestLocalBackupSynchronization();
 
-      if (payload.mail?.delayAttempted && payload.mail?.delaySent) {
+      const mailAttempted = Boolean(
+        payload.mail?.attempted ||
+          payload.mail?.quoteAttempted ||
+          payload.mail?.acceptedTicketAttempted ||
+          payload.mail?.reviewAttempted ||
+          payload.mail?.delayAttempted,
+      );
+
+      if (mailAttempted && payload.mail?.noCustomerEmail) {
+        setMessage(
+          "Mise a jour enregistree. Aucun email envoye : cette fiche n'a pas d'adresse email client.",
+        );
+      } else if (payload.mail?.delayAttempted && payload.mail?.delaySent) {
         setMessage(
           "Retard enregistre. Le client a recu la nouvelle date par email.",
         );
@@ -786,7 +798,7 @@ export function RepairDetailClient({ repairId }: RepairDetailClientProps) {
               <DetailItem label="Client" value={`${repair.firstName} ${repair.lastName}`} />
               <DetailItem label="Type client" value={repair.customerType} />
               <DetailItem label="Telephone" value={repair.phone} />
-              <DetailItem label="Email" value={repair.email} />
+              <DetailItem label="Email" value={repair.email.trim() || "Non renseigne"} />
               <DetailItem
                 label="Adresse"
                 value={

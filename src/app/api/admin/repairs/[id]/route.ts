@@ -254,11 +254,24 @@ async function getCustomerHistory(repair: {
   email: string;
   phone: string;
 }) {
+  // Sans email (fiche creee au comptoir), on ne rapproche que par telephone :
+  // sinon toutes les fiches sans email seraient considerees du meme client.
+  const email = repair.email.trim();
+  const phone = repair.phone.trim();
+  const contactMatches = [
+    ...(email ? [{ email: repair.email }] : []),
+    ...(phone ? [{ phone: repair.phone }] : []),
+  ];
+
+  if (contactMatches.length === 0) {
+    return [];
+  }
+
   return prisma.repair.findMany({
     where: {
       id: { not: repair.id },
       ...(repair.proAccountId ? { proAccountId: repair.proAccountId } : {}),
-      OR: [{ email: repair.email }, { phone: repair.phone }],
+      OR: contactMatches,
     },
     orderBy: { createdAt: "desc" },
     take: 8,
@@ -1200,6 +1213,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       createdAt: readDateStringWithFallback(item.createdAt),
     })),
     mail: {
+      // Permet d'expliquer a l'admin pourquoi rien n'est parti (fiche sans email).
+      noCustomerEmail: !readString(repair.email).trim(),
       attempted: shouldSendStatusEmail,
       sent: statusEmailSentNow,
       quoteAttempted: sendQuote,

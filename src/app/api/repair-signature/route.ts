@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { addRepairEvent } from "@/lib/repairEvents";
 import {
   verifyRepairAccessToken,
-  verifyRepairEmail,
+  verifyRepairContact,
 } from "@/lib/repairAccess";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
@@ -63,7 +63,10 @@ export async function POST(request: Request) {
     typeof body.signature === "string" ? body.signature.trim() : "";
   const accessToken =
     typeof body.accessToken === "string" ? body.accessToken.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
+  // Email ou telephone du dossier (le champ s'appelle encore `email` cote client).
+  const contact =
+    (typeof body.contact === "string" ? body.contact.trim() : "") ||
+    (typeof body.email === "string" ? body.email.trim() : "");
 
   if (!ticketNumber) {
     return NextResponse.json({ error: "Ticket requis." }, { status: 400 });
@@ -80,6 +83,7 @@ export async function POST(request: Request) {
       proAccountId: true,
       ticketNumber: true,
       email: true,
+      phone: true,
       status: true,
       customerPickupSignature: true,
     },
@@ -91,7 +95,7 @@ export async function POST(request: Request) {
 
   if (
     !verifyRepairAccessToken(repair, accessToken) &&
-    !verifyRepairEmail(repair, email)
+    !verifyRepairContact(repair, contact)
   ) {
     return NextResponse.json(
       { error: "Verification client invalide." },

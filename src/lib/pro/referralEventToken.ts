@@ -36,6 +36,13 @@ function decode(value: string) {
   return Buffer.from(value, "base64url");
 }
 
+// Un segment altere sur ses bits de bourrage (dernier caractere base64)
+// decode vers les memes octets : on exige la forme canonique pour que toute
+// modification du jeton soit rejetee.
+function isCanonicalBase64Url(value: string) {
+  return /^[A-Za-z0-9_-]+$/.test(value) && encode(decode(value)) === value;
+}
+
 function isReferralEvent(value: unknown): value is ReferralEvent & { expiresAt: number } {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
   const record = value as Record<string, unknown>;
@@ -75,6 +82,7 @@ export function createReferralEventToken(event: ReferralEvent) {
 export function readReferralEventToken(token: string) {
   const [version, iv, tag, encrypted] = token.split(".");
   if (version !== TOKEN_VERSION || !iv || !tag || !encrypted) return null;
+  if (![iv, tag, encrypted].every(isCanonicalBase64Url)) return null;
 
   try {
     const decipher = createDecipheriv("aes-256-gcm", getKey(), decode(iv));

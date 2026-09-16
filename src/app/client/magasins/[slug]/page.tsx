@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
@@ -10,6 +11,36 @@ import { prisma } from "@/lib/prisma";
 type ShopPageProps = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateMetadata({ params }: ShopPageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const shop = await prisma.proAccount.findUnique({
+      where: { slug },
+      select: {
+        companyName: true,
+        shopCity: true,
+        paymentStatus: true,
+        trialEndsAt: true,
+        publicListed: true,
+      },
+    });
+
+    if (shop && canPublishShop(shop) && shop.publicListed !== false) {
+      const where = shop.shopCity ? ` à ${shop.shopCity}` : "";
+      return {
+        title: `${shop.companyName} — Réparateur${where}`,
+        description: `Prenez rendez-vous chez ${shop.companyName}${where} et suivez votre réparation avec Qoravo.`,
+        alternates: { canonical: `/client/magasins/${slug}` },
+      };
+    }
+  } catch {
+    // Le titre generique suffit si la base est indisponible.
+  }
+
+  return { title: "Atelier de réparation" };
+}
 
 function addressLabel(shop: {
   shopAddress: string | null;
