@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organique — Styles Lullin Web</title>
+<meta name="robots" content="noindex, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f2ebe0;--fg:#3a2e22;--accent:#8a6a4a;--dim:#7a6a58;--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,4vw,56px);background:var(--bg);}
+  .brand{font-family:'Fraunces',serif;font-weight:600;}
+  .hero{min-height:96vh;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(20px,4vw,56px);position:relative;overflow:hidden;}
+  .blob{position:absolute;border-radius:44% 56% 62% 38% / 48% 42% 58% 52%;opacity:.55;filter:blur(2px);z-index:0;}
+  .blob1{width:420px;height:420px;background:#c9a97a;top:-60px;right:-80px;}
+  .blob2{width:260px;height:260px;background:#8a6a4a;bottom:-40px;left:-60px;opacity:.35;}
+  .eyebrow{position:relative;z-index:1;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:22px;}
+  h1{position:relative;z-index:1;font-family:'Fraunces',serif;font-weight:500;font-size:clamp(2.4rem,6.5vw,5.6rem);line-height:1.08;margin:0;letter-spacing:-.01em;}
+  h1 em{font-style:italic;color:var(--accent);}
+  .lead{position:relative;z-index:1;max-width:520px;margin-top:28px;color:var(--dim);}
+
+  [data-pin]{height:340vh;position:relative;}
+  [data-pin-sticky]{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;}
+  [data-pin-track]{white-space:nowrap;font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:clamp(2.4rem,9vw,7rem);will-change:transform;color:var(--accent);}
+  [data-pin-track] span{margin-right:.5em;}
+
+  section.grid-sec{padding:150px clamp(20px,4vw,56px);}
+  .section-head{max-width:580px;margin-bottom:56px;}
+  .section-head h2{font-family:'Fraunces',serif;font-size:clamp(1.8rem,3.4vw,2.6rem);margin:0;font-weight:500;}
+  [data-reveal]{opacity:0;transform:translateY(24px) scale(.97);transition:opacity .9s var(--ease), transform .9s var(--ease);}
+  [data-reveal].in{opacity:1;transform:translateY(0) scale(1);}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media (max-width:800px){.cards{grid-template-columns:1fr;}}
+  .cards div{background:#e9dfcf;border-radius:32px 12px 32px 12px;padding:32px;}
+  .cards h3{font-family:'Fraunces',serif;font-size:1.1rem;margin:0 0 10px;font-weight:600;}
+  .cards p{color:var(--dim);font-size:.9rem;margin:0;}
+
+  .cta{padding:150px clamp(20px,4vw,56px);text-align:center;}
+  .cta h2{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(2rem,5vw,3.2rem);margin:0 0 30px;}
+  .btn{display:inline-block;background:var(--accent);color:var(--bg);padding:15px 32px;border-radius:999px;font-size:.92rem;}
+  footer{display:flex;justify-content:space-between;padding:30px clamp(20px,4vw,56px);border-top:1px solid rgba(58,46,34,.15);font-size:.85rem;color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <a href="/styles/" class="brand">← Galerie</a>
+  <nav><a href="/">Lullin Web</a></nav>
+</header>
+
+<section class="hero">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <p class="eyebrow" data-reveal>Style 08 — Organique</p>
+  <h1 data-reveal>Des formes qui<br><em>respirent</em>, pas<br>qui s'imposent.</h1>
+  <p class="lead" data-reveal>Tons terreux, contours arrondis irréguliers, chaleur naturelle. Idéal pour le bien-être, l'artisanat, l'alimentation, le durable.</p>
+</section>
+
+<section data-pin>
+  <div data-pin-sticky>
+    <div data-pin-track>
+      <span>Douceur</span> <span>Nature</span> <span>Chaleur</span> <span>Authenticité</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid-sec">
+  <div class="section-head" data-reveal><h2>Ce qui donne le ton.</h2></div>
+  <div class="cards">
+    <div data-reveal><h3>Palette terreuse</h3><p>Beige, brun, ocre — jamais de blanc pur ni de noir franc.</p></div>
+    <div data-reveal><h3>Contours irréguliers</h3><p>Des formes organiques plutôt que des rectangles parfaits.</p></div>
+    <div data-reveal><h3>Serif chaleureuse</h3><p>Une typo au caractère affirmé, jamais froide.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 data-reveal>On sème la première graine ?</h2>
+  <a href="/contact.html" class="btn" data-reveal>Demander un devis</a>
+</section>
+
+<footer>
+  <a href="/styles/retro.html">← Rétro Vaporwave</a>
+  <a href="/styles/">Galerie</a>
+  <a href="/styles/luxury.html">Luxe Noir &amp; Or →</a>
+</footer>
+
+<script src="/styles/theme.js"></script>
+</body>
+</html>

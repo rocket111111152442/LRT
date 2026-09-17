@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="glow" cx="58%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#ffcf8a" stop-opacity=".28"/>
+      <stop offset="55%" stop-color="#e8a355" stop-opacity=".12"/>
+      <stop offset="100%" stop-color="#e8a355" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="bandBack" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#2a1608" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#8a4d1f" stop-opacity=".55"/>
+      <stop offset="50%" stop-color="#c98a49" stop-opacity=".65"/>
+      <stop offset="80%" stop-color="#8a4d1f" stop-opacity=".5"/>
+      <stop offset="100%" stop-color="#2a1608" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="bandFront" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#3a2410" stop-opacity="0"/>
+      <stop offset="14%" stop-color="#b56a29"/>
+      <stop offset="38%" stop-color="#ffdca3"/>
+      <stop offset="50%" stop-color="#fff3dc"/>
+      <stop offset="63%" stop-color="#ffcf8f"/>
+      <stop offset="86%" stop-color="#c17a35"/>
+      <stop offset="100%" stop-color="#2a1608" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe9c2" stop-opacity="0"/>
+      <stop offset="45%" stop-color="#ffe9c2" stop-opacity=".9"/>
+      <stop offset="100%" stop-color="#ffb35e" stop-opacity="0"/>
+    </linearGradient>
+
+    <radialGradient id="sphereShade" cx="40%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#0d0a10"/>
+      <stop offset="70%" stop-color="#050308"/>
+      <stop offset="100%" stop-color="#000"/>
+    </radialGradient>
+
+    <radialGradient id="moonShade" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#3a4452"/>
+      <stop offset="55%" stop-color="#12151b"/>
+      <stop offset="100%" stop-color="#050608"/>
+    </radialGradient>
+
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="1.6"/>
+    </filter>
+  </defs>
+
+  <circle cx="118" cy="100" r="96" fill="url(#glow)"/>
+
+  <path d="M 26 92 C 70 82, 96 88, 118 100 C 140 112, 168 108, 190 96"
+        fill="none" stroke="url(#bandBack)" stroke-width="22" stroke-linecap="round" filter="url(#soft)"/>
+
+  <path d="M 118 60 C 96 66, 88 84, 100 100 C 112 116, 138 118, 150 102"
+        fill="none" stroke="url(#arcGrad)" stroke-width="7" stroke-linecap="round" filter="url(#soft)"/>
+  <path d="M 118 52 C 90 60, 80 84, 96 104 C 110 122, 144 124, 158 102"
+        fill="none" stroke="url(#arcGrad)" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+
+  <circle cx="118" cy="100" r="45" fill="url(#sphereShade)"/>
+
+  <path d="M 10 108 C 54 96, 90 100, 118 102 C 150 105, 172 118, 196 128"
+        fill="none" stroke="url(#bandFront)" stroke-width="16" stroke-linecap="round" filter="url(#soft)"/>
+  <path d="M 10 106 C 54 95, 92 99, 120 101 C 152 104, 174 116, 196 126"
+        fill="none" stroke="#fff3dc" stroke-width="2.4" stroke-linecap="round" opacity=".55" filter="url(#soft)"/>
+
+  <path d="M 152 94 C 168 90, 182 86, 194 78"
+        fill="none" stroke="url(#arcGrad)" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+
+  <g transform="translate(58,70)">
+    <circle r="8.5" fill="url(#moonShade)"/>
+    <circle r="8.5" fill="none" stroke="#5c6a7c" stroke-width=".6" opacity=".5"/>
+  </g>
+
+  <g fill="#fff" opacity=".55">
+    <circle cx="24" cy="34" r=".7"/>
+    <circle cx="168" cy="24" r=".9"/>
+    <circle cx="182" cy="150" r=".7"/>
+    <circle cx="30" cy="150" r=".6"/>
+    <circle cx="142" cy="26" r=".6"/>
+  </g>
+</svg>

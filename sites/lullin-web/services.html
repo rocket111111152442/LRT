@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Services — Lullin Web</title>
+<meta name="description" content="Site vitrine sur-mesure, refonte, e-commerce, référencement technique, maintenance : les services de Lullin Web.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://lullin-web.com/services.html">
+<link rel="icon" href="/assets/img/blackhole-logo-icon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#050109;--pink:#ff2bd6;--cyan:#39f2ff;--fg:#f2f2ff;--dim:#9d8fc0;--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Space Mono',monospace;line-height:1.5;overflow-x:hidden;
+    background-image:radial-gradient(circle at 20% 10%, rgba(255,43,214,.18), transparent 45%),radial-gradient(circle at 80% 30%, rgba(57,242,255,.16), transparent 45%);}
+  a{color:inherit;text-decoration:none;}
+  header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:22px clamp(20px,4vw,56px);background:linear-gradient(to bottom, rgba(5,1,9,.92), transparent);}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-family:'Orbitron',sans-serif;font-weight:700;color:var(--cyan);}
+  .brand-hole{width:24px;height:24px;flex-shrink:0;display:block;border-radius:50%;object-fit:cover;animation:blackholeSpin 70s linear infinite;}
+  @keyframes blackholeSpin{to{transform:rotate(360deg);}}
+  .main-nav{display:flex;align-items:center;gap:26px;font-size:.85rem;}
+  .main-nav a:not(.nav-cta){opacity:.85;transition:opacity .2s;}
+  .main-nav a:not(.nav-cta):hover{opacity:1;color:var(--pink);}
+  .nav-cta{border:1px solid var(--cyan);color:var(--cyan);padding:9px 18px;border-radius:2px;transition:background .25s,color .25s;}
+  .nav-cta:hover{background:var(--cyan);color:var(--bg);}
+  .nav-toggle{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;}
+  .nav-toggle span{width:22px;height:1.5px;background:var(--fg);}
+  @media (max-width:860px){
+    .main-nav{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(320px,80vw);background:#0a0414;flex-direction:column;align-items:flex-start;padding:100px 32px 32px;gap:24px;border-left:1px solid rgba(255,43,214,.25);transform:translateX(100%);transition:transform .4s var(--ease);}
+    .main-nav.open{transform:translateX(0);}
+    .nav-toggle{display:flex;}
+  }
+
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px clamp(20px,4vw,56px) 60px;position:relative;}
+  .eyebrow{font-size:.78rem;letter-spacing:.3em;text-transform:uppercase;color:var(--pink);margin-bottom:22px;}
+  h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.2rem,7vw,5.6rem);line-height:1.05;margin:0;
+    text-shadow:0 0 12px var(--pink), 0 0 34px rgba(255,43,214,.5);}
+  .lead{max-width:560px;margin-top:26px;color:var(--dim);}
+
+  [data-pin]{height:340vh;position:relative;}
+  [data-pin-sticky]{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;border-top:1px solid rgba(255,43,214,.25);border-bottom:1px solid rgba(57,242,255,.25);}
+  [data-pin-track]{white-space:nowrap;font-family:'Orbitron',sans-serif;font-weight:700;font-size:clamp(2.4rem,10vw,8rem);will-change:transform;}
+  [data-pin-track] span{margin-right:.6em;}
+  [data-pin-track] span:nth-child(odd){color:var(--pink);text-shadow:0 0 18px rgba(255,43,214,.6);}
+  [data-pin-track] span:nth-child(even){color:var(--cyan);text-shadow:0 0 18px rgba(57,242,255,.6);}
+
+  section.grid-sec{padding:140px clamp(20px,4vw,56px);}
+  .section-head{max-width:560px;margin-bottom:56px;}
+  .section-head h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.8rem,3.4vw,2.4rem);margin:0;color:var(--cyan);}
+  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease), transform .8s var(--ease);}
+  [data-reveal].in{opacity:1;transform:translateY(0);}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08);}
+  @media (max-width:800px){.cards{grid-template-columns:1fr;}}
+  .cards div{background:var(--bg);padding:34px 26px;}
+  .cards .n{font-family:'Orbitron',sans-serif;color:var(--dim);font-size:.8rem;display:block;margin-bottom:18px;}
+  .cards h3{font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--pink);margin:0 0 10px;}
+  .cards p{color:var(--dim);font-size:.9rem;margin:0;}
+
+  .cta{padding:150px clamp(20px,4vw,56px);text-align:center;}
+  .cta h2{font-family:'Orbitron',sans-serif;font-size:clamp(2rem,5vw,3rem);margin:0 0 30px;color:var(--fg);}
+  .btn{display:inline-block;border:1px solid var(--cyan);color:var(--cyan);padding:15px 30px;border-radius:2px;font-size:.9rem;transition:background .25s,color .25s,box-shadow .25s;}
+  .btn:hover{background:var(--cyan);color:var(--bg);box-shadow:0 0 24px rgba(57,242,255,.6);}
+  footer{display:flex;justify-content:space-between;padding:30px clamp(20px,4vw,56px);border-top:1px solid rgba(255,255,255,.08);font-size:.82rem;color:var(--dim);}
+  footer a:hover{color:var(--pink);}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="brand"><img src="/assets/img/blackhole-logo-icon.jpg" class="brand-hole" alt="">Lullin<span>Web</span></a>
+  <nav class="main-nav" aria-label="Navigation principale">
+    <a href="/services.html">Services</a>
+    <a href="/methode.html">Méthode</a>
+    <a href="/a-propos.html">À propos</a>
+    <a href="/realisations.html">Réalisations</a>
+    <a href="/offres.html">Offres</a>
+    <a href="/faq.html">FAQ</a>
+    <a href="/contact.html" class="nav-cta">Devis</a>
+  </nav>
+  <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<section class="hero">
+  <p class="eyebrow" data-reveal>Services</p>
+  <h1 data-reveal>Ce qu'on<br>construit pour vous.</h1>
+  <p class="lead" data-reveal>Du site vitrine à la maintenance continue, chaque prestation est pensée pour durer et évoluer avec votre activité.</p>
+</section>
+
+<section data-pin>
+  <div data-pin-sticky>
+    <div data-pin-track>
+      <span>VITRINE</span><span>REFONTE</span><span>MAINTENANCE</span><span>E-COMMERCE</span><span>SEO</span><span>HÉBERGEMENT</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid-sec">
+  <div class="section-head" data-reveal><h2>// SIX SERVICES</h2></div>
+  <div class="cards">
+    <div data-reveal><span class="n">01</span><h3>Site vitrine sur-mesure</h3><p>Design unique, rapide, responsive, pensé pour convertir vos visiteurs en clients.</p></div>
+    <div data-reveal><span class="n">02</span><h3>Refonte de site existant</h3><p>Votre site vieillit ? On le modernise sans perdre votre référencement ni votre identité.</p></div>
+    <div data-reveal><span class="n">03</span><h3>Maintenance &amp; suivi</h3><p>Mises à jour, sécurité, sauvegardes, disponibilité surveillée. Vous gardez la tête libre.</p></div>
+    <div data-reveal><span class="n">04</span><h3>E-commerce</h3><p>Boutique en ligne performante, paiement sécurisé, gestion des commandes simplifiée.</p></div>
+    <div data-reveal><span class="n">05</span><h3>Référencement technique</h3><p>Vitesse, structure, balises : les fondations pour être visible sur Google.</p></div>
+    <div data-reveal><span class="n">06</span><h3>Nom de domaine &amp; hébergement</h3><p>On s'occupe de la partie technique : domaine, hébergement, certificats, e-mails pro.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 data-reveal>Un projet en tête ?</h2>
+  <a href="/contact.html" class="btn" data-reveal>Demander un devis</a>
+</section>
+
+<footer>
+  <a href="/">← Accueil</a>
+  <a href="/methode.html">Méthode →</a>
+</footer>
+
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

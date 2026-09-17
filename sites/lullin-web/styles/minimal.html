@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minimal Mono — Styles Lullin Web</title>
+<meta name="robots" content="noindex, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff;--fg:#0a0a0a;--dim:#6b6b6b;--line:rgba(10,10,10,.12);--ease:cubic-bezier(.16,1,.3,1);}
+  *,*::before,*::after{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;line-height:1.5;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  header{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:26px clamp(20px,4vw,56px);mix-blend-mode:difference;color:#fff;}
+  .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;}
+  nav a{margin-left:24px;font-size:.85rem;}
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(20px,4vw,56px);}
+  .eyebrow{font-size:.78rem;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:24px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(2.6rem,9vw,7.5rem);line-height:.95;letter-spacing:-.03em;margin:0;}
+  .lead{max-width:520px;margin-top:32px;color:var(--dim);font-size:1.05rem;}
+
+  [data-pin]{height:340vh;position:relative;}
+  [data-pin-sticky]{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;}
+  [data-pin-track]{white-space:nowrap;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(3rem,14vw,11rem);letter-spacing:-.03em;will-change:transform;}
+  [data-pin-track] span{opacity:.12;-webkit-text-stroke:1px var(--fg);color:transparent;}
+  [data-pin-track] span.hi{opacity:1;color:var(--fg);-webkit-text-stroke:0;}
+
+  section.grid-sec{padding:160px clamp(20px,4vw,56px);}
+  .section-head{max-width:560px;margin-bottom:56px;}
+  .section-head h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.8rem,3.4vw,2.6rem);margin:0;letter-spacing:-.02em;}
+  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease), transform .8s var(--ease);}
+  [data-reveal].in{opacity:1;transform:translateY(0);}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);}
+  @media (max-width:800px){.cols{grid-template-columns:1fr;}}
+  .cols div{padding:36px 0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding-left:24px;}
+  .cols div:last-child{border-right:none;}
+  .cols h3{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;margin:0 0 10px;}
+  .cols p{color:var(--dim);font-size:.92rem;margin:0;}
+
+  .cta{padding:160px clamp(20px,4vw,56px);text-align:center;}
+  .cta h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-.02em;margin:0 0 30px;}
+  .btn{display:inline-block;border:1px solid var(--fg);padding:15px 30px;border-radius:999px;font-size:.92rem;transition:background .25s,color .25s;}
+  .btn:hover{background:var(--fg);color:var(--bg);}
+  footer{display:flex;justify-content:space-between;padding:30px clamp(20px,4vw,56px);border-top:1px solid var(--line);font-size:.85rem;color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <a href="/styles/" class="brand">← Galerie</a>
+  <nav><a href="/">Lullin Web</a></nav>
+</header>
+
+<section class="hero">
+  <p class="eyebrow" data-reveal>Style 01 — Minimal Mono</p>
+  <h1 data-reveal>Moins,<br>mais mieux.</h1>
+  <p class="lead" data-reveal>L'espace blanc comme matière première. Une seule typo, un seul niveau de gris, et une hiérarchie qui ne laisse aucune place au doute.</p>
+</section>
+
+<section data-pin>
+  <div data-pin-sticky>
+    <div data-pin-track>
+      <span>CLARTÉ&nbsp;</span><span class="hi">—&nbsp;RIGUEUR&nbsp;</span><span>—&nbsp;ESPACE&nbsp;</span><span class="hi">—&nbsp;SILENCE&nbsp;</span><span>—&nbsp;PRÉCISION&nbsp;</span><span class="hi">—&nbsp;VIDE UTILE&nbsp;</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid-sec">
+  <div class="section-head" data-reveal>
+    <h2>Trois principes.</h2>
+  </div>
+  <div class="cols">
+    <div data-reveal><h3>Contraste maîtrisé</h3><p>Le noir et le blanc suffisent quand la mise en page fait le travail.</p></div>
+    <div data-reveal><h3>Typo comme structure</h3><p>Les tailles remplacent les couleurs pour hiérarchiser l'information.</p></div>
+    <div data-reveal><h3>Rythme régulier</h3><p>Une grille stricte, respirée, jamais chargée.</p></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 data-reveal>C'est ce style qui vous parle ?</h2>
+  <a href="/contact.html" class="btn" data-reveal>Demander un devis</a>
+</section>
+
+<footer>
+  <a href="/styles/neon.html">Style suivant → Néon Cyber</a>
+  <a href="/styles/">Retour à la galerie</a>
+</footer>
+
+<script src="/styles/theme.js"></script>
+</body>
+</html>
