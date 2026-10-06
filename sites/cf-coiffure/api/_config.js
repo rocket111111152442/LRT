@@ -48,12 +48,38 @@ const STAFF = [
   { id: 'salon', name: 'Salon', color: '#c8312b' },
 ];
 
-// Prestations affichées sur la page d'accueil (sans prix : tarifs au salon).
-const SERVICES = [
-  { cat: 'Femme', items: ['Coupe et brushing', 'Brushing', 'Coupes courtes'] },
-  { cat: 'Homme', items: ['Coupe', 'Dégradé', 'Barbe'] },
-  { cat: 'Enfant', items: ['Coupe enfant'] },
-  { cat: 'Couleur', items: ['Coloration', 'Racines', 'Mèches et balayage'] },
+// Grille tarifaire affichée sur le site (page Tarifs et aperçu sur l'accueil).
+// ⚠ PRIX PROVISOIRES : moyennes du secteur dans le Var, à remplacer par les tarifs réels du salon.
+// `from: true` affiche « dès » devant le prix.
+const PRICES = [
+  { cat: 'Femme', note: 'Shampoing, soin et coiffage compris.', items: [
+    { name: 'Coupe et brushing — cheveux courts', price: 35 },
+    { name: 'Coupe et brushing — cheveux mi-longs', price: 42 },
+    { name: 'Coupe et brushing — cheveux longs', price: 49 },
+    { name: 'Shampoing et brushing — courts', price: 22 },
+    { name: 'Shampoing et brushing — mi-longs / longs', price: 28 },
+    { name: 'Coupe seule, sans brushing', price: 25 },
+  ] },
+  { cat: 'Homme', note: 'Shampoing compris.', items: [
+    { name: 'Coupe homme', price: 20 },
+    { name: 'Dégradé / fade', price: 23 },
+    { name: 'Coupe et barbe', price: 30 },
+    { name: 'Taille de barbe et contours', price: 12 },
+  ] },
+  { cat: 'Enfant', note: '', items: [
+    { name: 'Coupe enfant (moins de 10 ans)', price: 13 },
+    { name: 'Coupe junior (10 à 15 ans)', price: 16 },
+  ] },
+  { cat: 'Couleur', note: 'Prix selon la longueur et l’épaisseur des cheveux.', items: [
+    { name: 'Couleur racines', price: 39, from: true },
+    { name: 'Coloration complète', price: 49, from: true },
+    { name: 'Mèches / balayage', price: 65, from: true },
+    { name: 'Patine / gloss', price: 20 },
+  ] },
+  { cat: 'Soins et coiffage', note: '', items: [
+    { name: 'Soin profond', price: 10 },
+    { name: 'Chignon / coiffure d’événement', price: 40, from: true },
+  ] },
 ];
 
-module.exports = { SALON, STEP, BOOKING, RULES, HOURS, STAFF, SERVICES };
+module.exports = { SALON, STEP, BOOKING, RULES, HOURS, STAFF, PRICES };

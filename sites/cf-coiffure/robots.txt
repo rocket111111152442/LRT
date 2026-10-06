@@ -1,4 +1,4 @@
+# Site en préparation : indexation bloquée tant que les tarifs et horaires
+# ne sont pas validés par le salon. Remplacer par « Disallow: /admin.html » etc. au lancement.
 User-agent: *
-Disallow: /admin.html
-Disallow: /rdv.html
-Disallow: /api/
+Disallow: /

@@ -13,10 +13,11 @@ HEADER = '''<div class="topbar">
 <header class="site-header">
   <div class="wrap">
     <a class="logo" href="/" aria-label="CF Coiffure, accueil"><b>CF</b><span>Coiffure</span></a>
-    <nav class="nav">
-      <a href="/#salon">Le salon</a>
-      <a href="/#prestations">Prestations</a>
-      <a href="/#infos">Horaires</a>
+    <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span></button>
+    <nav class="nav" id="nav">
+      <a href="/le-salon.html">Le salon</a>
+      <a href="/tarifs.html">Tarifs</a>
+      <a href="/infos.html">Infos pratiques</a>
       <a class="btn small" href="/reserver.html">Prendre rendez-vous</a>
     </nav>
   </div>
@@ -24,15 +25,28 @@ HEADER = '''<div class="topbar">
 
 FOOTER = '''<div class="martini" aria-hidden="true"></div>
 <footer class="site-footer">
-  <div class="wrap">
+  <div class="wrap footer-grid">
     <div>
       <a class="logo" href="/"><b>CF</b><span>Coiffure</span></a>
-      <p style="margin:8px 0 0">Imm. Le Beaugency, La Planche<br>83140 Six-Fours-les-Plages</p>
+      <p>Salon de coiffure femmes, hommes et enfants à Six-Fours-les-Plages.</p>
+      <p>Imm. Le Beaugency, La Planche<br>83140 Six-Fours-les-Plages</p>
     </div>
     <div>
-      <p style="margin:0"><a href="/reserver.html">Prendre rendez-vous</a></p>
-      <p style="margin:6px 0 0"><a href="/mentions-legales.html">Mentions légales</a> · <a href="/admin.html">Espace salon</a></p>
-      <p style="margin:6px 0 0">© <span data-year></span> CF Coiffure</p>
+      <h4>Le site</h4>
+      <ul>
+        <li><a href="/le-salon.html">Le salon</a></li>
+        <li><a href="/tarifs.html">Tarifs</a></li>
+        <li><a href="/infos.html">Horaires et accès</a></li>
+        <li><a href="/reserver.html">Prendre rendez-vous</a></li>
+      </ul>
     </div>
+    <div>
+      <h4>Horaires</h4>
+      <ul data-hours-short></ul>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>© <span data-year></span> CF Coiffure</span>
+    <span><a href="/mentions-legales.html">Mentions légales</a> · <a href="/admin.html">Espace salon</a></span>
   </div>
 </footer>'''

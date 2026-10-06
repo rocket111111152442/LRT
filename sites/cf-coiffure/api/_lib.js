@@ -16,7 +16,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { SALON, STEP, BOOKING, RULES, HOURS, STAFF, SERVICES } = require('./_config');
+const { SALON, STEP, BOOKING, RULES, HOURS, STAFF, PRICES } = require('./_config');
 
 class ConflictError extends Error {}
 /** Erreur de saisie, dont le message peut être montré tel quel au visiteur. */
@@ -408,7 +408,7 @@ function validateContact(c) {
 }
 
 module.exports = {
-  SALON, STEP, BOOKING, RULES, HOURS, STAFF, SERVICES,
+  SALON, STEP, BOOKING, RULES, HOURS, STAFF, PRICES,
   ConflictError, UserError, availability, loadDay, createBooking, cancelBooking, findBooking, updateBooking, publicBooking,
   createBlock, deleteBlock, notifyCreated, notifyCancelled,
   parisNow, addDays, isValidDate, send, readBody, query, isAdmin, safeEqual, clean, validateContact,

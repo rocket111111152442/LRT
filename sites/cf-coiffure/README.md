@@ -7,7 +7,10 @@ HTML/CSS/JS sans framework + fonctions serverless Vercel. Seule dépendance : `@
 ## Pages
 
 ```
-index.html              accueil (salon, prestations, avis, horaires, plan)
+index.html              accueil (points forts, salon, aperçu des tarifs, réservation, avis, horaires, plan)
+le-salon.html           présentation, galerie, prestations
+tarifs.html             grille tarifaire complète + questions fréquentes
+infos.html              horaires, adresse, plan, questions fréquentes
 reserver.html           réservation : jour, heure, nom, téléphone
 rdv.html                consulter / annuler un rendez-vous (lien personnel)
 admin.html              espace salon : agenda jour/semaine/liste, création, blocages, export CSV
@@ -53,6 +56,11 @@ python3 _build/build.py   # régénère les pages depuis _build/pages (en-tête/
 Sans `BLOB_READ_WRITE_TOKEN`, l'API écrit dans `.data/` (pratique pour tester en local).
 
 ## À compléter avant mise en service réelle
+
+- **Tarifs : les prix de `PRICES` (api/_config.js) sont PROVISOIRES** — moyennes du secteur dans le
+  Var, aucun tarif public du salon n'a été trouvé. À remplacer par les vrais prix avant toute diffusion.
+- **Indexation bloquée** (robots.txt + en-tête `X-Robots-Tag: noindex` dans vercel.json) tant que
+  tarifs et horaires ne sont pas validés. À retirer au lancement.
 
 - Téléphone (`SALON.phone` dans `api/_config.js`), SIRET et responsable dans les mentions légales.
 - Vérifier l'adresse (« Imm. Le Beaugency, La Planche » provient d'un annuaire en ligne).

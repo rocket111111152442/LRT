@@ -25,13 +25,31 @@
 
   $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 
-  /* Prestations (accueil) */
-  const services = $('#services');
-  if (services) CF.config().then((cfg) => {
-    services.innerHTML = cfg.services.map((g) => `<div class="service"><h3>${CF.esc(g.cat)}</h3><ul>${g.items.map((i) => `<li>${CF.esc(i)}</li>`).join('')}</ul></div>`).join('');
-  }).catch(() => {});
+  /* Menu mobile */
+  const burger = $('.burger');
+  if (burger) burger.addEventListener('click', () => {
+    burger.setAttribute('aria-expanded', document.body.classList.toggle('menu-open'));
+  });
+
+  /* Tarifs : page complète (#prices) et aperçu sur l'accueil (#price-preview) */
+  const euro = (n) => n.toLocaleString('fr-FR') + ' €';
+  const group = (g, items) => `<div class="price-group"><h3>${CF.esc(g.cat)}</h3>${g.note ? `<p class="note">${CF.esc(g.note)}</p>` : ''}
+    ${items.map((i) => `<div class="price-row"><span>${CF.esc(i.name)}</span><b>${i.from ? '<small>dès</small>' : ''}${euro(i.price)}</b></div>`).join('')}</div>`;
+  const prices = $('#prices');
+  const preview = $('#price-preview');
+  if (prices || preview) CF.config().then((cfg) => {
+    if (prices) prices.innerHTML = cfg.prices.map((g) => group(g, g.items)).join('');
+    if (preview) preview.innerHTML = cfg.prices.slice(0, 2).map((g) => group(g, g.items.slice(0, 4))).join('');
+  }).catch(() => { if (prices) prices.innerHTML = '<p>Les tarifs n’ont pas pu être chargés. Ils sont affichés au salon.</p>'; });
 
   /* Horaires, ouvert / fermé, téléphone */
+  /* Horaires courts dans le pied de page */
+  const short = $('[data-hours-short]');
+  if (short) CF.config().then((cfg) => {
+    const open = [1, 2, 3, 4, 5, 6, 0].filter((d) => (cfg.hours[d] || []).length);
+    short.innerHTML = open.map((d) => `<li>${DAYS[d]} : ${cfg.hours[d].map(([a, b]) => CF.h(a) + '–' + CF.h(b)).join(', ')}</li>`).join('');
+  }).catch(() => {});
+
   const hours = $('#hours');
   if (hours) CF.config().then((cfg) => {
     const now = new Date(new Date().toLocaleString('en-US', { timeZone: cfg.salon.timezone }));
