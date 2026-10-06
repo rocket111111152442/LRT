@@ -1,20 +1,14 @@
 'use strict';
 
 const {
-  store, STAFF, createBooking, cancelBooking, findBooking, saveBooking, createBlock, deleteBlock, notifyCancelled,
+  STAFF, loadDay, createBooking, cancelBooking, updateBooking, createBlock, deleteBlock,
   ConflictError, UserError, isAdmin, isValidDate, addDays, readBody, query, send, clean, validateContact,
 } = require('./_lib');
 
 const STATUSES = ['confirmed', 'done', 'noshow'];
 
-async function readAll(prefix) {
-  const paths = await store.list(prefix);
-  const items = await Promise.all(paths.map((p) => store.get(p).catch(() => null)));
-  return items.filter(Boolean);
-}
-
 function strip(b) {
-  const { token, locks, ...rest } = b; // eslint-disable-line no-unused-vars
+  const { token, ...rest } = b; // eslint-disable-line no-unused-vars
   return rest;
 }
 
@@ -36,55 +30,48 @@ module.exports = async (req, res) => {
       const from = q.get('from');
       const days = Math.min(Math.max(Number(q.get('days')) || 1, 1), 31);
       if (!isValidDate(from || '')) return send(res, 400, { error: 'Date invalide.' });
-      const dates = Array.from({ length: days }, (_, i) => addDays(from, i));
-      const [bookings, blocks] = await Promise.all([
-        Promise.all(dates.map((d) => readAll(`bookings/${d}/`))).then((x) => x.flat()),
-        Promise.all(dates.map((d) => readAll(`blocks/${d}/`))).then((x) => x.flat()),
-      ]);
-      bookings.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-      return send(res, 200, { staff: STAFF, bookings: bookings.map(strip), blocks: blocks.map(({ locks, ...b }) => b) }); // eslint-disable-line no-unused-vars
+      const loaded = await Promise.all(Array.from({ length: days }, (_, i) => loadDay(addDays(from, i))));
+      const bookings = loaded.flatMap(({ day }) => day.bookings).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+      const blocks = loaded.flatMap(({ day }) => day.blocks);
+      return send(res, 200, { staff: STAFF, bookings: bookings.map(strip), blocks });
     }
 
     if (req.method !== 'POST') return send(res, 405, { error: 'Méthode non autorisée.' });
     const body = await readBody(req);
+    const id = String(body.id || '');
 
     switch (body.action) {
       case 'create': {
-        const contact = { name: clean(body.name, 80), phone: clean(body.phone, 20), email: clean(body.email, 160).toLowerCase(), note: clean(body.note, 400) };
+        const contact = { name: clean(body.name, 80), phone: clean(body.phone, 20), note: clean(body.note, 400) };
         if (!contact.phone) contact.phone = '0000000000';
         const invalid = validateContact(contact);
         if (invalid) return send(res, 400, { error: invalid });
-        const b = await createBooking({ services: body.services, staff: body.staff, date: body.date, time: body.time, ...contact, source: 'salon' });
+        const b = await createBooking({
+          date: body.date, time: body.time, staff: body.staff, duration: body.duration, label: body.label, ...contact, source: 'salon',
+        });
         return send(res, 201, { booking: strip(b) });
       }
       case 'cancel': {
-        const b = await findBooking(body.id);
-        if (!b) return send(res, 404, { error: 'Introuvable.' });
-        await cancelBooking(b, 'le salon');
-        if (body.notify) await notifyCancelled(b);
-        return send(res, 200, { booking: strip(b) });
+        const b = await cancelBooking(id, 'le salon');
+        return b ? send(res, 200, { booking: strip(b) }) : send(res, 404, { error: 'Introuvable.' });
       }
       case 'status': {
-        const b = await findBooking(body.id);
-        if (!b) return send(res, 404, { error: 'Introuvable.' });
-        if (!STATUSES.includes(body.status) || b.status === 'cancelled') return send(res, 400, { error: 'Statut invalide.' });
-        b.status = body.status;
-        b.history.push({ at: new Date().toISOString(), what: 'statut → ' + body.status });
-        await saveBooking(b);
-        return send(res, 200, { booking: strip(b) });
+        if (!STATUSES.includes(body.status)) return send(res, 400, { error: 'Statut invalide.' });
+        const b = await updateBooking(id, (x) => {
+          if (x.status === 'cancelled') throw new UserError('Ce rendez-vous est annulé.');
+          x.status = body.status;
+          x.history.push({ at: new Date().toISOString(), what: 'statut → ' + body.status });
+        });
+        return b ? send(res, 200, { booking: strip(b) }) : send(res, 404, { error: 'Introuvable.' });
       }
       case 'note': {
-        const b = await findBooking(body.id);
-        if (!b) return send(res, 404, { error: 'Introuvable.' });
-        b.salonNote = clean(body.salonNote, 400);
-        await saveBooking(b);
-        return send(res, 200, { booking: strip(b) });
+        const b = await updateBooking(id, (x) => { x.salonNote = clean(body.salonNote, 400); });
+        return b ? send(res, 200, { booking: strip(b) }) : send(res, 404, { error: 'Introuvable.' });
       }
       case 'block': {
         const staff = body.staff === 'all' ? 'all' : String(body.staff || '');
         const block = await createBlock({ date: body.date, staff, start: body.start, end: body.end, reason: body.reason });
-        const { locks, ...rest } = block; // eslint-disable-line no-unused-vars
-        return send(res, 201, { block: rest });
+        return send(res, 201, { block });
       }
       case 'unblock': {
         const ok = await deleteBlock(String(body.date || ''), String(body.id || ''));

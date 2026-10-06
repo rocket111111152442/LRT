@@ -1,5 +1,38 @@
-HEAD = '<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">\n  <link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=Monoton&family=Yellowtail&display=swap" rel="stylesheet">\n  <link rel="stylesheet" href="/assets/css/style.css">'
+HEAD = '''<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&family=Yellowtail&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css">'''
 
-HEADER = '<header class="site-header">\n  <div class="wrap">\n    <a class="logo" href="/" aria-label="CF Coiffure, accueil">\n      <span class="neon flicker">CF</span><span class="neon-script">Coiffure</span>\n    </a>\n    <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span></button>\n    <nav class="nav" id="nav">\n      <a href="/#salon">Le salon</a>\n      <a href="/#carte">La carte</a>\n      <a href="/#galerie">Galerie</a>\n      <a href="/#avis">Avis</a>\n      <a href="/#infos">Infos</a>\n      <a class="btn small" href="reserver.html">Réserver</a>\n    </nav>\n  </div>\n</header>'
+HEADER = '''<div class="topbar">
+  <div class="wrap">
+    <span>Du mardi au samedi · <span class="hide-sm">Imm. Le Beaugency, La Planche, </span>Six-Fours-les-Plages</span>
+    <a class="hide-sm" href="https://www.google.com/maps/search/?api=1&amp;query=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener">★ 4,9 sur Google</a>
+  </div>
+</div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="CF Coiffure, accueil"><b>CF</b><span>Coiffure</span></a>
+    <nav class="nav">
+      <a href="/#salon">Le salon</a>
+      <a href="/#prestations">Prestations</a>
+      <a href="/#infos">Horaires</a>
+      <a class="btn small" href="/reserver.html">Prendre rendez-vous</a>
+    </nav>
+  </div>
+</header>'''
 
-FOOTER = '<footer class="site-footer">\n  <div class="checker" aria-hidden="true"></div>\n  <div class="stripe-h" aria-hidden="true"></div>\n  <div class="wrap footer-grid">\n    <div>\n      <a class="logo" href="/"><span class="neon">CF</span><span class="neon-script">Coiffure</span></a>\n      <p>Salon de coiffure à l\'ambiance américaine rétro, à Six-Fours-les-Plages (Var).</p>\n    </div>\n    <div>\n      <h4>Navigation</h4>\n      <ul><li><a href="/#carte">La carte</a></li><li><a href="reserver.html">Réserver</a></li><li><a href="reserver.html#mes-rdv">Mes rendez-vous</a></li><li><a href="/#infos">Horaires &amp; accès</a></li></ul>\n    </div>\n    <div>\n      <h4>Le salon</h4>\n      <ul><li>Imm. Le Beaugency, La Planche</li><li>83140 Six-Fours-les-Plages</li><li><a href="mentions-legales.html">Mentions légales</a></li><li><a href="admin.html">Espace salon</a></li></ul>\n    </div>\n  </div>\n  <div class="wrap footer-bottom"><span>© <span data-year></span> CF Coiffure</span><span>Made with ♥ &amp; rock\'n\'roll</span></div>\n</footer>'
+FOOTER = '''<div class="martini" aria-hidden="true"></div>
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <a class="logo" href="/"><b>CF</b><span>Coiffure</span></a>
+      <p style="margin:8px 0 0">Imm. Le Beaugency, La Planche<br>83140 Six-Fours-les-Plages</p>
+    </div>
+    <div>
+      <p style="margin:0"><a href="/reserver.html">Prendre rendez-vous</a></p>
+      <p style="margin:6px 0 0"><a href="/mentions-legales.html">Mentions légales</a> · <a href="/admin.html">Espace salon</a></p>
+      <p style="margin:6px 0 0">© <span data-year></span> CF Coiffure</p>
+    </div>
+  </div>
+</footer>'''

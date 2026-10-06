@@ -3,129 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Réserver — CF Coiffure, Six-Fours-les-Plages</title>
-  <meta name="description" content="Réservez votre rendez-vous chez CF Coiffure en ligne : choisissez vos prestations, votre fauteuil et votre créneau en temps réel.">
-  <meta name="theme-color" content="#17110e">
+  <title>Prendre rendez-vous — CF Coiffure, Six-Fours-les-Plages</title>
+  <meta name="description" content="Réservez votre rendez-vous chez CF Coiffure : choisissez le jour et l'heure, c'est tout.">
+  <meta name="theme-color" content="#12305c">
   {{HEAD}}
 </head>
-<body class="booking-page tex-floor">
-
-<div class="progress" aria-hidden="true"></div>
+<body>
 {{HEADER}}
 
-<main>
-  <section class="page-hero">
-    <div class="wrap">
-      <span class="eyebrow reveal">Réservation en ligne</span>
-      <h1 class="reveal" style="--d:.1s"><span class="neon">Book</span> <span class="neon-script">your chair</span></h1>
-    </div>
-  </section>
-
-  <div class="wrap" id="app">
-    <div id="replace-banner" class="banner" hidden></div>
-
-    <ol class="stepper" id="stepper">
-      <li><button type="button" data-goto="0"><span class="dot">1</span>Prestations</button></li>
-      <li><button type="button" data-goto="1"><span class="dot">2</span>Fauteuil</button></li>
-      <li><button type="button" data-goto="2"><span class="dot">3</span>Créneau</button></li>
-      <li><button type="button" data-goto="3"><span class="dot">4</span>Vos infos</button></li>
-    </ol>
-
-    <div class="booking-layout" id="wizard">
-      <div>
-        <!-- 1. Prestations -->
-        <section class="panel active" data-step="0" aria-labelledby="t1">
-          <h2 id="t1">Qu'est-ce qu'on vous fait&nbsp;?</h2>
-          <p class="hint">Sélectionnez une ou plusieurs prestations — la durée du rendez-vous s'ajuste toute seule.</p>
-          <div id="services"></div>
-          <div class="panel-nav"><span></span><button class="btn" data-next disabled>Continuer →</button></div>
-        </section>
-
-        <!-- 2. Fauteuil -->
-        <section class="panel" data-step="1" aria-labelledby="t2">
-          <h2 id="t2">Quel fauteuil&nbsp;?</h2>
-          <p class="hint">Pas de préférence&nbsp;? On vous propose tous les créneaux libres.</p>
-          <div class="staff-grid" id="staff"></div>
-          <div class="panel-nav"><button class="btn ghost" data-prev>← Retour</button><button class="btn" data-next>Continuer →</button></div>
-        </section>
-
-        <!-- 3. Date & heure -->
-        <section class="panel" data-step="2" aria-labelledby="t3">
-          <h2 id="t3">Quand passez-vous&nbsp;?</h2>
-          <p class="hint">Disponibilités en temps réel. <button type="button" class="btn small cream" id="first-slot" style="margin-left:8px">⚡ Premier créneau libre</button></p>
-          <div class="date-layout">
-            <div class="cal" id="calendar"></div>
-            <div>
-              <div class="slots-head" id="slots-head">Choisissez un jour</div>
-              <div id="slots"></div>
-            </div>
-          </div>
-          <div class="panel-nav"><button class="btn ghost" data-prev>← Retour</button><button class="btn" data-next disabled>Continuer →</button></div>
-        </section>
-
-        <!-- 4. Coordonnées -->
-        <section class="panel" data-step="3" aria-labelledby="t4">
-          <h2 id="t4">On vous note&nbsp;!</h2>
-          <p class="hint">Vos coordonnées servent uniquement à gérer ce rendez-vous.</p>
-          <form id="form" novalidate>
-            <div class="form-grid">
-              <div class="field"><label for="f-name">Nom et prénom *</label><input id="f-name" name="name" autocomplete="name" required maxlength="80"></div>
-              <div class="field"><label for="f-phone">Téléphone *</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" required maxlength="20" placeholder="06 12 34 56 78"></div>
-              <div class="field full"><label for="f-email">E-mail (pour recevoir la confirmation)</label><input id="f-email" name="email" type="email" autocomplete="email" maxlength="160"></div>
-              <div class="field full"><label for="f-note">Un message pour le salon&nbsp;?</label><textarea id="f-note" name="note" maxlength="400" placeholder="Longueur actuelle, envie particulière, allergie…"></textarea></div>
-              <div class="hp" aria-hidden="true"><label>Site web <input name="website" tabindex="-1" autocomplete="off"></label></div>
-              <label class="check full field"><input type="checkbox" name="consent" required> <span>J'accepte que CF Coiffure utilise ces informations pour gérer mon rendez-vous (voir <a href="mentions-legales.html#donnees">données personnelles</a>).</span></label>
-            </div>
-            <div id="form-error" role="alert"></div>
-            <div class="panel-nav"><button type="button" class="btn ghost" data-prev>← Retour</button><button class="btn" type="submit" id="submit">Confirmer le rendez-vous ✓</button></div>
-          </form>
-        </section>
-      </div>
-
-      <aside class="ticket" aria-live="polite">
-        <h3>CF COIFFURE</h3>
-        <div class="sub">ORDER TICKET</div>
-        <ul id="t-items"><li class="empty-t">Aucune prestation sélectionnée</li></ul>
-        <div class="line"></div>
-        <div class="row"><span>Durée</span><span id="t-dur">—</span></div>
-        <div class="row"><span>Fauteuil</span><span id="t-staff">Sans préférence</span></div>
-        <div class="row"><span>Date</span><span id="t-date">—</span></div>
-        <div class="row"><span>Heure</span><span id="t-time">—</span></div>
-        <div class="line"></div>
-        <div class="row"><span>Total indicatif</span><span class="total" id="t-total">0 €</span></div>
-        <div class="barcode" aria-hidden="true"></div>
-      </aside>
-    </div>
-    <div class="mbar" id="mbar" aria-hidden="true"><span id="mb-info"></span><strong id="mb-total"></strong></div>
-
-    <!-- Confirmation -->
-    <section id="done" class="done-card" hidden>
-      <h2><span class="neon red flicker">Yeah!</span></h2>
-      <p class="lead" style="margin:10px auto 26px">Votre rendez-vous est confirmé. On vous garde le fauteuil au chaud.</p>
-      <div class="ticket">
-        <h3>RENDEZ-VOUS CONFIRMÉ</h3>
-        <div class="code" id="d-code"></div>
-        <div id="d-body"></div>
-        <div class="barcode" aria-hidden="true"></div>
-      </div>
-      <div class="done-actions">
-        <a class="btn blue small" id="d-gcal" target="_blank" rel="noopener">Google Agenda</a>
-        <button class="btn blue small" id="d-ics">Fichier .ics (iPhone, Outlook)</button>
-        <a class="btn small" id="d-manage">Gérer / annuler</a>
-      </div>
-      <p class="hint" style="margin-top:22px" id="d-mailnote"></p>
-    </section>
-
-    <section class="mine" id="mes-rdv" hidden>
-      <span class="eyebrow">Sur cet appareil</span>
-      <h2 style="font-size:2rem;margin-top:8px">Mes rendez-vous</h2>
-      <div class="mine-list" id="mine-list"></div>
-    </section>
+<main class="wrap">
+  <div class="page-title">
+    <h1>Prendre rendez-vous</h1>
+    <p>Choisissez un jour, une heure, laissez votre nom et votre numéro. C'est tout.</p>
   </div>
+
+  <div id="mine"></div>
+
+  <div class="book" id="book">
+    <div class="card">
+      <p class="step-title"><span>1</span>Le jour</p>
+      <div id="calendar"></div>
+    </div>
+
+    <div>
+      <div class="card">
+        <p class="step-title"><span>2</span>L'heure</p>
+        <div id="slots"><p class="muted" style="margin:0">Choisissez d'abord un jour.</p></div>
+      </div>
+
+      <form class="card" id="form" novalidate>
+        <p class="step-title"><span>3</span>Vos coordonnées</p>
+        <div class="form-row">
+          <div class="field"><label for="f-name">Nom et prénom</label><input id="f-name" name="name" autocomplete="name" maxlength="80" required></div>
+          <div class="field"><label for="f-phone">Téléphone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" maxlength="20" placeholder="06 12 34 56 78" required></div>
+        </div>
+        <div class="hp" aria-hidden="true"><label>Ne pas remplir <input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <div class="recap" id="recap">Aucun créneau choisi.</div>
+        <button class="btn" id="submit" style="width:100%" disabled>Réserver</button>
+        <div id="error" role="alert"></div>
+        <p class="small-print">Votre nom et votre numéro servent uniquement au salon pour ce rendez-vous. <a href="/mentions-legales.html#donnees">En savoir plus</a></p>
+      </form>
+    </div>
+  </div>
+
+  <section class="done" id="done" hidden></section>
 </main>
 
 {{FOOTER}}
-
 <script src="/assets/js/main.js" defer></script>
 <script src="/assets/js/booking.js" defer></script>
 </body>

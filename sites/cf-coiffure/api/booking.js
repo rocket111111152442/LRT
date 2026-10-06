@@ -9,7 +9,7 @@ async function load(id, token) {
 }
 
 /**
- * GET  /api/booking?id=CF-XXXXXX&t=jeton       consulter son rendez-vous
+ * GET  /api/booking?id=CF-XXXXXX&t=jeton            consulter son rendez-vous
  * POST /api/booking { id, token, action: 'cancel' }  l'annuler
  */
 module.exports = async (req, res) => {
@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET') {
       const q = query(req);
       const b = await load(q.get('id'), q.get('t'));
-      if (!b) return send(res, 404, { error: 'Rendez-vous introuvable. Vérifiez le lien reçu.' });
+      if (!b) return send(res, 404, { error: 'Rendez-vous introuvable. Vérifiez le lien.' });
       return send(res, 200, { booking: publicBooking(b) });
     }
     if (req.method === 'POST') {
@@ -26,11 +26,11 @@ module.exports = async (req, res) => {
       if (!b) return send(res, 404, { error: 'Rendez-vous introuvable.' });
       if (body.action !== 'cancel') return send(res, 400, { error: 'Action inconnue.' });
       if (!publicBooking(b).canCancel) {
-        return send(res, 409, { error: `L’annulation en ligne n’est plus possible à moins de ${RULES.cancelNoticeHours} h du rendez-vous : appelez le salon.` });
+        return send(res, 409, { error: `L’annulation en ligne n’est plus possible à moins de ${RULES.cancelNoticeHours} h du rendez-vous. Prévenez directement le salon.` });
       }
-      await cancelBooking(b, 'client');
-      await notifyCancelled(b);
-      return send(res, 200, { booking: publicBooking(b) });
+      const updated = await cancelBooking(b.id, 'le client');
+      await notifyCancelled(updated);
+      return send(res, 200, { booking: publicBooking(updated) });
     }
     send(res, 405, { error: 'Méthode non autorisée.' });
   } catch (err) {

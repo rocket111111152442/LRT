@@ -1,38 +1,40 @@
 # CF Coiffure — site vitrine + réservation en ligne
 
-Site du salon **CF Coiffure** (Six-Fours-les-Plages), dans l'esprit de sa déco : garage américain
-rétro (planches de bois, plaques d'immatriculation, rayures Martini, brique, tôle alu, néons).
+Site du salon **CF Coiffure** (Six-Fours-les-Plages), dans l'esprit de sa déco américaine
+(planches de bois, plaques d'immatriculation, rayures Martini), volontairement sobre.
 HTML/CSS/JS sans framework + fonctions serverless Vercel. Seule dépendance : `@vercel/blob`.
 
 ## Pages
 
 ```
-index.html              accueil (salon, carte, galerie, avis, horaires, plan)
-reserver.html           assistant de réservation en 4 étapes
-rdv.html                consulter / déplacer / annuler un rendez-vous (lien personnel)
+index.html              accueil (salon, prestations, avis, horaires, plan)
+reserver.html           réservation : jour, heure, nom, téléphone
+rdv.html                consulter / annuler un rendez-vous (lien personnel)
 admin.html              espace salon : agenda jour/semaine/liste, création, blocages, export CSV
 mentions-legales.html
 ```
 
 ## Réservation — fonctionnement
 
-- Prestations multiples (la durée s'additionne), choix du fauteuil ou « sans préférence »
-  (attribution au fauteuil le moins chargé), créneaux calculés en temps réel par pas de 15 min.
-- Anti double réservation : chaque quart d'heure occupé est un verrou créé sans écrasement
-  possible ; si deux clients valident le même créneau en même temps, le second reçoit un 409.
-- Le client reçoit un code (`CF-XXXXXX`) et un lien secret pour gérer son RDV : ajout à Google
-  Agenda / fichier .ics, déplacement, annulation (jusqu'à 2 h avant, réglable).
-- Espace salon (`/admin.html`, mot de passe = variable `ADMIN_PASSWORD`) : agenda par fauteuil,
-  fiche client, statut honoré/absent, note interne, annulation, RDV saisis au téléphone,
-  blocage de plages ou de journées (congés), export CSV, rafraîchissement auto chaque minute.
-- E-mails (optionnels) : confirmation/annulation au client et notification au salon via Resend.
+- Le client choisit **un jour et une heure**, puis donne **son nom et son téléphone**. Rien d'autre.
+- Chaque rendez-vous dure **35 minutes** ; les créneaux proposés s'enchaînent depuis l'ouverture
+  (9h00, 9h35, 10h10…). Un créneau pris disparaît pour les autres.
+- Anti double réservation : un document par jour, écrit seulement si personne ne l'a modifié
+  entre-temps (ETag). Deux clients qui valident le même créneau au même instant : un seul passe.
+- Après réservation : récapitulatif, ajout à l'agenda, lien pour annuler (jusqu'à 2 h avant).
+- Espace salon (`/admin.html`, mot de passe = `ADMIN_PASSWORD`) : agenda jour / semaine / liste,
+  fiche client (appel en un clic, venu / pas venu, note interne, annulation), saisie d'un rendez-vous
+  pris par téléphone **avec la durée voulue** (couleur, mèches…), blocage de créneaux ou de congés,
+  export CSV.
 
 ### Réglages : `api/_config.js`
 
-Prestations, prix, durées, horaires, fauteuils, délais (préavis minimum, horizon de réservation,
-délai d'annulation). **Les valeurs actuelles sont provisoires et doivent être validées par le
-salon** : tarifs, durées, horaires (mar.–ven. 9h–19h, sam. 9h–18h supposés), noms des fauteuils
-(« Route 66 », « Miami » — à remplacer par les prénoms des coiffeurs·ses), téléphone.
+Horaires, durée d'un rendez-vous (`BOOKING.duration`), délais, liste des prestations affichée sur
+l'accueil, nombre de postes (`STAFF`). **Valeurs à faire valider par le salon** : horaires
+(mar.–ven. 9h–19h, sam. 9h–18h supposés) et téléphone.
+
+Avec un seul poste dans `STAFF`, un seul client par créneau. Si deux personnes coiffent en même
+temps, ajouter un second poste : deux clients pourront réserver la même heure.
 
 ### Variables d'environnement (Vercel)
 
@@ -40,9 +42,7 @@ salon** : tarifs, durées, horaires (mar.–ven. 9h–19h, sam. 9h–18h suppos�
 |---|---|
 | `BLOB_READ_WRITE_TOKEN` | stockage des RDV (Vercel Blob privé) — ajouté automatiquement |
 | `ADMIN_PASSWORD` | mot de passe de l'espace salon |
-| `RESEND_API_KEY`, `MAIL_FROM` | optionnel : envoi des e-mails (expéditeur vérifié chez Resend) |
-| `SALON_EMAIL` | optionnel : adresse qui reçoit chaque nouvelle réservation |
-| `SITE_URL` | optionnel : URL publique utilisée dans les e-mails (sinon déduite de la requête) |
+| `RESEND_API_KEY`, `MAIL_FROM`, `SALON_EMAIL` | optionnel : e-mail au salon à chaque réservation / annulation |
 
 ## Développement
 
@@ -57,5 +57,5 @@ Sans `BLOB_READ_WRITE_TOKEN`, l'API écrit dans `.data/` (pratique pour tester e
 - Téléphone (`SALON.phone` dans `api/_config.js`), SIRET et responsable dans les mentions légales.
 - Vérifier l'adresse (« Imm. Le Beaugency, La Planche » provient d'un annuaire en ligne).
 - Photos : actuellement recadrées depuis la fiche Google, en basse définition — à remplacer.
-- Limite connue : Vercel Blob convient au volume d'un salon ; au-delà de quelques milliers de
-  RDV par mois, migrer vers une base Postgres.
+- Le client ne précise pas la prestation : une couleur ou des mèches réservées en ligne n'occupent
+  que 35 min. Pour ces prestations longues, mieux vaut que le salon les saisisse lui-même.

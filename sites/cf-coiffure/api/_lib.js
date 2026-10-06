@@ -1,18 +1,14 @@
 /**
  * Moteur de réservation partagé par les fonctions serverless.
  *
- * Stockage : Vercel Blob en accès privé (variable BLOB_READ_WRITE_TOKEN, injectée
- * automatiquement par Vercel quand le store est relié au projet). En local, sans
- * jeton, les données vont dans le dossier .data/ pour pouvoir tester.
+ * Stockage : Vercel Blob en accès privé (BLOB_READ_WRITE_TOKEN, injectée par Vercel quand
+ * le store est relié au projet). En local, sans jeton, les données vont dans .data/.
  *
- * Organisation des données :
- *   bookings/{date}/{id}.json      un rendez-vous
- *   ids/{id}.json                  { date } — retrouve un rendez-vous par son code
- *   blocks/{date}/{id}.json        une indisponibilité posée par le salon
- *   locks/{date}/{staff}/{HHMM}    un créneau de 15 min occupé
- *
- * Les verrous sont créés un par un sans écrasement possible : si deux clients
- * visent le même créneau au même instant, le second échoue proprement (409).
+ * Un seul document par jour, `days/{date}.json` = { bookings: [...], blocks: [...] },
+ * plus un pointeur `ids/{code}.json` = { date } pour retrouver un rendez-vous par son code.
+ * Chaque écriture d'un jour est conditionnée à sa version (ETag) : si deux clients réservent
+ * au même moment, le second relit le jour, voit le créneau pris et reçoit un refus propre.
+ * Ce schéma limite le nombre d'opérations Blob (quota du plan gratuit).
  */
 
 'use strict';
@@ -20,94 +16,62 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { SALON, STEP, RULES, HOURS, STAFF, SERVICES } = require('./_config');
-
-/* ------------------------------------------------------------------ store */
-
-const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
-let blob = null;
-if (useBlob) blob = require('@vercel/blob');
-const LOCAL_DIR = path.join(process.cwd(), '.data');
+const { SALON, STEP, BOOKING, RULES, HOURS, STAFF, SERVICES } = require('./_config');
 
 class ConflictError extends Error {}
 /** Erreur de saisie, dont le message peut être montré tel quel au visiteur. */
 class UserError extends Error {}
+/** La version du document a changé entre la lecture et l'écriture. */
+class StaleError extends Error {}
+
+/* ------------------------------------------------------------------ store */
+
+const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const blob = useBlob ? require('@vercel/blob') : null;
+const LOCAL_DIR = path.join(process.cwd(), '.data');
 
 const store = {
-  async put(pathname, data, { overwrite = true } = {}) {
-    const body = typeof data === 'string' ? data : JSON.stringify(data);
+  /** @returns {Promise<{ data: object, etag: string } | null>} */
+  async get(pathname) {
+    if (useBlob) {
+      const res = await blob.get(pathname, { access: 'private', useCache: false });
+      if (!res || res.statusCode !== 200 || !res.stream) return null;
+      const text = await new Response(res.stream).text();
+      return { data: JSON.parse(text), etag: res.blob.etag };
+    }
+    const file = path.join(LOCAL_DIR, pathname);
+    if (!fs.existsSync(file)) return null;
+    const text = fs.readFileSync(file, 'utf8');
+    return { data: JSON.parse(text), etag: crypto.createHash('md5').update(text).digest('hex') };
+  },
+
+  /**
+   * Écrit un document. `etag` : n'écrire que si la version n'a pas changé ;
+   * `create` : n'écrire que si le document n'existe pas encore. Lève StaleError sinon.
+   */
+  async put(pathname, data, { etag, create } = {}) {
+    const body = JSON.stringify(data);
     if (useBlob) {
       try {
         await blob.put(pathname, body, {
-          access: 'private',
-          addRandomSuffix: false,
-          allowOverwrite: overwrite,
-          contentType: 'application/json',
-          cacheControlMaxAge: 60,
+          access: 'private', addRandomSuffix: false, contentType: 'application/json', cacheControlMaxAge: 60,
+          allowOverwrite: !create, ...(etag ? { ifMatch: etag } : {}),
         });
       } catch (err) {
-        if (!overwrite && /already exists/i.test(String(err && err.message))) throw new ConflictError(pathname);
+        const msg = String(err && err.message);
+        if (/precondition|already exists/i.test(msg) || (err && err.name === 'BlobPreconditionFailedError')) throw new StaleError(pathname);
         throw err;
       }
       return;
     }
     const file = path.join(LOCAL_DIR, pathname);
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    try {
-      fs.writeFileSync(file, body, { flag: overwrite ? 'w' : 'wx' });
-    } catch (err) {
-      if (err.code === 'EEXIST') throw new ConflictError(pathname);
-      throw err;
+    if (create && fs.existsSync(file)) throw new StaleError(pathname);
+    if (etag) {
+      const cur = fs.existsSync(file) ? crypto.createHash('md5').update(fs.readFileSync(file, 'utf8')).digest('hex') : null;
+      if (cur !== etag) throw new StaleError(pathname);
     }
-  },
-
-  async get(pathname) {
-    if (useBlob) {
-      const res = await blob.get(pathname, { access: 'private', useCache: false });
-      if (!res || res.statusCode !== 200 || !res.stream) return null;
-      const text = await new Response(res.stream).text();
-      return JSON.parse(text);
-    }
-    const file = path.join(LOCAL_DIR, pathname);
-    if (!fs.existsSync(file)) return null;
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
-  },
-
-  async list(prefix) {
-    if (useBlob) {
-      const out = [];
-      let cursor;
-      do {
-        const res = await blob.list({ prefix, cursor, limit: 1000 });
-        res.blobs.forEach((b) => out.push(b.pathname));
-        cursor = res.hasMore ? res.cursor : undefined;
-      } while (cursor);
-      return out;
-    }
-    const dir = path.join(LOCAL_DIR, prefix);
-    const out = [];
-    const walk = (d) => {
-      if (!fs.existsSync(d)) return;
-      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-        const p = path.join(d, e.name);
-        if (e.isDirectory()) walk(p);
-        else out.push(path.relative(LOCAL_DIR, p).split(path.sep).join('/'));
-      }
-    };
-    walk(dir);
-    return out;
-  },
-
-  async del(pathnames) {
-    const list = [].concat(pathnames).filter(Boolean);
-    if (!list.length) return;
-    if (useBlob) {
-      for (let i = 0; i < list.length; i += 100) await blob.del(list.slice(i, i + 100));
-      return;
-    }
-    list.forEach((p) => {
-      try { fs.unlinkSync(path.join(LOCAL_DIR, p)); } catch (_) { /* déjà supprimé */ }
-    });
+    fs.writeFileSync(file, body);
   },
 };
 
@@ -122,9 +86,6 @@ function toMin(hhmm) {
 }
 function toHHMM(min) {
   return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
-}
-function key(min) {
-  return toHHMM(min).replace(':', '');
 }
 
 /** Date et minute courantes à Paris. */
@@ -153,102 +114,85 @@ function isValidDate(date) {
   return new Date(date + 'T12:00:00Z').toISOString().slice(0, 10) === date;
 }
 
-/** Minutes écoulées avant un rendez-vous (négatif s'il est passé). */
+/** Minutes restantes avant un rendez-vous (négatif s'il est passé). */
 function minutesUntil(date, time) {
   const now = parisNow();
   return daysBetween(now.date, date) * 1440 + toMin(time) - now.minutes;
 }
 
-/* --------------------------------------------------------------- services */
+/* -------------------------------------------------------------------- day */
 
-function resolveServices(ids) {
-  if (!Array.isArray(ids) || !ids.length || ids.length > RULES.maxServices) return null;
-  const uniq = [...new Set(ids)];
-  const list = uniq.map((id) => SERVICES.find((s) => s.id === id));
-  if (list.some((s) => !s)) return null;
-  return {
-    items: list.map(({ id, name, duration, price }) => ({ id, name, duration, price })),
-    duration: list.reduce((n, s) => n + s.duration, 0),
-    price: list.reduce((n, s) => n + s.price, 0),
-  };
+const dayPath = (date) => `days/${date}.json`;
+
+async function loadDay(date) {
+  const got = await store.get(dayPath(date));
+  return got ? { day: got.data, etag: got.etag } : { day: { bookings: [], blocks: [] }, etag: null };
+}
+
+/**
+ * Lit le jour, applique `fn(day)` puis réécrit à condition que personne n'ait écrit entre-temps ;
+ * recommence sinon (jusqu'à 5 fois). Renvoie ce que renvoie `fn`.
+ */
+async function updateDay(date, fn) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { day, etag } = await loadDay(date);
+    const result = await fn(day);
+    try {
+      await store.put(dayPath(date), day, etag ? { etag } : { create: true });
+      return result;
+    } catch (err) {
+      if (!(err instanceof StaleError)) throw err;
+      await new Promise((r) => setTimeout(r, 40 + Math.random() * 120));
+    }
+  }
+  throw new ConflictError('busy');
+}
+
+/** Intervalles occupés [début, fin[ en minutes pour un poste. */
+function busy(day, staff) {
+  const out = [];
+  day.bookings.forEach((b) => { if (b.staff === staff && b.status !== 'cancelled') out.push([toMin(b.time), toMin(b.end)]); });
+  day.blocks.forEach((k) => { if (k.staff === staff || k.staff === 'all') out.push([toMin(k.start), toMin(k.end)]); });
+  return out;
+}
+function isFree(day, staff, start, end) {
+  return busy(day, staff).every(([a, b]) => end <= a || start >= b);
 }
 
 /* ----------------------------------------------------------- availability */
 
-async function occupied(date) {
-  const paths = await store.list(`locks/${date}/`);
-  const set = new Set();
-  paths.forEach((p) => {
-    const [, , staff, hhmm] = p.split('/');
-    set.add(staff + '/' + hhmm.replace(/\.json$/, ''));
-  });
-  return set;
-}
-
 function dayIsBookable(date) {
-  const now = parisNow();
-  const diff = daysBetween(now.date, date);
+  const diff = daysBetween(parisNow().date, date);
   return diff >= 0 && diff <= RULES.maxDaysAhead && (HOURS[weekday(date)] || []).length > 0;
 }
 
-/**
- * Créneaux disponibles pour une durée donnée.
- * @returns [{ time: 'HH:MM', staff: [ids] }]
- */
-async function availability(date, duration, staffPref) {
-  if (!dayIsBookable(date)) return [];
-  const taken = await occupied(date);
-  const now = parisNow();
-  const earliest = date === now.date ? now.minutes + RULES.minNoticeMinutes : -1;
-  const staffList = staffPref && staffPref !== 'any' ? STAFF.filter((s) => s.id === staffPref) : STAFF;
-  const slots = new Map();
-
-  for (const [open, close] of HOURS[weekday(date)]) {
-    for (let t = toMin(open); t + duration <= toMin(close); t += STEP) {
-      if (t < earliest) continue;
-      for (const s of staffList) {
-        let free = true;
-        for (let m = t; m < t + duration; m += STEP) {
-          if (taken.has(s.id + '/' + key(m))) { free = false; break; }
-        }
-        if (free) {
-          const hh = toHHMM(t);
-          if (!slots.has(hh)) slots.set(hh, []);
-          slots.get(hh).push(s.id);
-        }
-      }
-    }
+/** Heures de début proposées en ligne : grille de `BOOKING.duration` depuis chaque ouverture. */
+function gridStarts(date) {
+  const out = [];
+  for (const [open, close] of HOURS[weekday(date)] || []) {
+    for (let t = toMin(open); t + BOOKING.duration <= toMin(close); t += BOOKING.duration) out.push(t);
   }
-  return [...slots.entries()].map(([time, staff]) => ({ time, staff }));
+  return out;
 }
 
-/** Pose les verrous d'un intervalle ; annule tout si un créneau est déjà pris. */
-async function claim(date, staff, start, duration, owner) {
-  const made = [];
-  try {
-    for (let m = toMin(start); m < toMin(start) + duration; m += STEP) {
-      const p = `locks/${date}/${staff}/${key(m)}.json`;
-      await store.put(p, owner, { overwrite: false });
-      made.push(p);
-    }
-    return made;
-  } catch (err) {
-    await store.del(made);
-    throw err;
-  }
+/** Créneaux libres du jour (heures 'HH:MM'). */
+async function availability(date) {
+  if (!dayIsBookable(date)) return [];
+  const { day } = await loadDay(date);
+  const now = parisNow();
+  const earliest = date === now.date ? now.minutes + RULES.minNoticeMinutes : -1;
+  return gridStarts(date)
+    .filter((t) => t >= earliest && STAFF.some((s) => isFree(day, s.id, t, t + BOOKING.duration)))
+    .map(toHHMM);
 }
 
 /* --------------------------------------------------------------- bookings */
 
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function newCode() {
-  const bytes = crypto.randomBytes(6);
   let s = '';
-  for (const b of bytes) s += CODE_CHARS[b % CODE_CHARS.length];
+  for (const b of crypto.randomBytes(6)) s += CODE_CHARS[b % CODE_CHARS.length];
   return 'CF-' + s;
-}
-function newToken() {
-  return crypto.randomBytes(24).toString('base64url');
 }
 
 function safeEqual(a, b) {
@@ -261,101 +205,86 @@ async function findBooking(id) {
   if (!/^CF-[A-Z0-9]{6}$/.test(String(id))) return null;
   const ref = await store.get(`ids/${id}.json`);
   if (!ref) return null;
-  return store.get(`bookings/${ref.date}/${id}.json`);
+  const { day } = await loadDay(ref.data.date);
+  return day.bookings.find((b) => b.id === id) || null;
 }
 
-async function saveBooking(b) {
-  b.updatedAt = new Date().toISOString();
-  await store.put(`bookings/${b.date}/${b.id}.json`, b);
+/** Modifie un rendez-vous existant via `fn(booking)`. */
+async function updateBooking(id, fn) {
+  const ref = await store.get(`ids/${id}.json`);
+  if (!ref) return null;
+  return updateDay(ref.data.date, (day) => {
+    const b = day.bookings.find((x) => x.id === id);
+    if (!b) return null;
+    fn(b);
+    b.updatedAt = new Date().toISOString();
+    return b;
+  });
 }
 
 /**
- * Crée un rendez-vous. Lève ConflictError si le créneau vient d'être pris.
- * @param input { services, staff, date, time, name, phone, email, note, source }
+ * Crée un rendez-vous. Lève ConflictError si le créneau n'est plus libre.
+ * @param input { date, time, name, phone, note?, staff?, duration?, label?, source }
  */
 async function createBooking(input) {
-  const svc = resolveServices(input.services);
-  if (!svc) throw new UserError('Prestations invalides.');
   const { date, time } = input;
-  if (!isValidDate(date) || !TIME_RE.test(time)) throw new UserError('Date ou heure invalide.');
-
   const isAdmin = input.source === 'salon';
+  if (!isValidDate(date) || !TIME_RE.test(time) || toMin(time) % STEP) throw new UserError('Date ou heure invalide.');
+
+  let duration = BOOKING.duration;
+  if (isAdmin && input.duration) {
+    duration = Number(input.duration);
+    if (!Number.isInteger(duration) || duration < STEP || duration > 300 || duration % STEP) throw new UserError('Durée invalide.');
+  }
+  const start = toMin(time);
+  const end = start + duration;
+  if (end > 24 * 60) throw new UserError('Heure invalide.');
+
   if (!isAdmin) {
     if (!dayIsBookable(date)) throw new UserError('Ce jour n’est pas réservable.');
+    if (!gridStarts(date).includes(start)) throw new UserError('Créneau hors des horaires d’ouverture.');
     if (minutesUntil(date, time) < RULES.minNoticeMinutes) throw new UserError('Ce créneau est trop proche.');
-    const inHours = (HOURS[weekday(date)] || []).some(([o, c]) => toMin(time) >= toMin(o) && toMin(time) + svc.duration <= toMin(c));
-    if (!inHours || toMin(time) % STEP) throw new UserError('Créneau hors des horaires d’ouverture.');
   }
+  if (input.staff && input.staff !== 'any' && !STAFF.some((s) => s.id === input.staff)) throw new UserError('Poste inconnu.');
 
-  // Choix du fauteuil : celui demandé, sinon le moins chargé de la journée parmi les libres.
-  let candidates;
-  if (input.staff && input.staff !== 'any') {
-    if (!STAFF.some((s) => s.id === input.staff)) throw new UserError('Fauteuil inconnu.');
-    candidates = [input.staff];
-  } else {
-    const taken = await occupied(date);
-    const load = (id) => [...taken].filter((k) => k.startsWith(id + '/')).length;
-    candidates = STAFF.map((s) => s.id).sort((a, b) => load(a) - load(b) || Math.random() - 0.5);
-  }
-
-  const id = newCode();
-  let locks = null;
-  let staff = null;
-  for (const c of candidates) {
-    try {
-      locks = await claim(date, c, time, svc.duration, { booking: id });
-      staff = c;
-      break;
-    } catch (err) {
-      if (!(err instanceof ConflictError)) throw err;
-    }
-  }
-  if (!locks) throw new ConflictError('slot');
-
-  const booking = {
-    id,
-    token: newToken(),
-    status: 'confirmed',
-    date,
-    time,
-    end: toHHMM(toMin(time) + svc.duration),
-    duration: svc.duration,
-    price: svc.price,
-    services: svc.items,
-    staff,
-    staffRequested: input.staff || 'any',
-    name: input.name,
-    phone: input.phone,
-    email: input.email || '',
-    note: input.note || '',
-    source: input.source || 'web',
-    locks,
-    createdAt: new Date().toISOString(),
-    history: [{ at: new Date().toISOString(), what: 'créé (' + (input.source || 'web') + ')' }],
-  };
-  await saveBooking(booking);
-  await store.put(`ids/${id}.json`, { date });
+  const now = new Date().toISOString();
+  const booking = await updateDay(date, (day) => {
+    const wanted = input.staff && input.staff !== 'any' ? [input.staff] : STAFF.map((s) => s.id);
+    const load = (id) => busy(day, id).reduce((n, [a, b]) => n + b - a, 0);
+    const staff = wanted.filter((id) => isFree(day, id, start, end)).sort((a, b) => load(a) - load(b))[0];
+    if (!staff) throw new ConflictError('slot');
+    const b = {
+      id: newCode(),
+      token: crypto.randomBytes(24).toString('base64url'),
+      status: 'confirmed',
+      date, time, end: toHHMM(end), duration,
+      label: clean(input.label, 80) || BOOKING.label,
+      staff,
+      name: input.name, phone: input.phone, note: input.note || '',
+      source: input.source || 'web',
+      createdAt: now, updatedAt: now,
+      history: [{ at: now, what: 'créé (' + (input.source || 'web') + ')' }],
+    };
+    day.bookings.push(b);
+    return b;
+  });
+  await store.put(`ids/${booking.id}.json`, { date });
   return booking;
 }
 
-async function cancelBooking(b, by) {
-  if (b.status === 'cancelled') return b;
-  await store.del(b.locks || []);
-  b.status = 'cancelled';
-  b.locks = [];
-  b.history = (b.history || []).concat({ at: new Date().toISOString(), what: 'annulé par ' + by });
-  await saveBooking(b);
-  return b;
+async function cancelBooking(id, by) {
+  return updateBooking(id, (b) => {
+    if (b.status === 'cancelled') return;
+    b.status = 'cancelled';
+    b.history.push({ at: new Date().toISOString(), what: 'annulé par ' + by });
+  });
 }
 
-/** Version publique (sans jeton ni verrous). */
+/** Version publique (sans jeton). */
 function publicBooking(b) {
-  const staff = STAFF.find((s) => s.id === b.staff);
   return {
-    id: b.id, status: b.status, date: b.date, time: b.time, end: b.end,
-    duration: b.duration, price: b.price, services: b.services,
-    staff: b.staff, staffName: staff ? staff.name : b.staff,
-    name: b.name, phone: b.phone, email: b.email, note: b.note,
+    id: b.id, status: b.status, date: b.date, time: b.time, end: b.end, duration: b.duration, label: b.label,
+    name: b.name, phone: b.phone,
     canCancel: b.status === 'confirmed' && minutesUntil(b.date, b.time) >= RULES.cancelNoticeHours * 60,
   };
 }
@@ -366,34 +295,19 @@ async function createBlock({ date, staff, start, end, reason }) {
   if (!isValidDate(date) || !TIME_RE.test(start) || !TIME_RE.test(end) || toMin(end) <= toMin(start)) {
     throw new UserError('Plage invalide.');
   }
-  const targets = staff === 'all' ? STAFF.map((s) => s.id) : [staff];
-  if (targets.some((t) => !STAFF.some((s) => s.id === t))) throw new UserError('Fauteuil inconnu.');
-  const id = 'BL-' + crypto.randomBytes(4).toString('hex');
-  const locks = [];
-  const s0 = Math.floor(toMin(start) / STEP) * STEP;
-  for (const t of targets) {
-    for (let m = s0; m < toMin(end); m += STEP) {
-      const p = `locks/${date}/${t}/${key(m)}.json`;
-      try {
-        await store.put(p, { block: id }, { overwrite: false });
-        locks.push(p);
-      } catch (err) {
-        if (!(err instanceof ConflictError)) throw err; // déjà occupé : on laisse
-      }
-    }
-  }
-  const block = { id, date, staff, start, end, reason: String(reason || '').slice(0, 120), locks, createdAt: new Date().toISOString() };
-  await store.put(`blocks/${date}/${id}.json`, block);
+  if (staff !== 'all' && !STAFF.some((s) => s.id === staff)) throw new UserError('Poste inconnu.');
+  const block = { id: 'BL-' + crypto.randomBytes(4).toString('hex'), date, staff, start, end, reason: clean(reason, 120), createdAt: new Date().toISOString() };
+  await updateDay(date, (day) => { day.blocks.push(block); });
   return block;
 }
 
 async function deleteBlock(date, id) {
-  const p = `blocks/${date}/${id}.json`;
-  const block = await store.get(p);
-  if (!block) return false;
-  await store.del(block.locks || []);
-  await store.del(p);
-  return true;
+  if (!isValidDate(date)) return false;
+  return updateDay(date, (day) => {
+    const n = day.blocks.length;
+    day.blocks = day.blocks.filter((k) => k.id !== id);
+    return day.blocks.length !== n;
+  });
 }
 
 /* ------------------------------------------------------------------ email */
@@ -437,41 +351,20 @@ function mailTemplate(title, body) {
 }
 
 function bookingSummaryHtml(b) {
-  const staff = STAFF.find((s) => s.id === b.staff);
   return `<p><strong>${escapeHtml(frDate(b.date))}</strong> à <strong>${escapeHtml(b.time)}</strong> (${b.duration} min)<br>
-  ${b.services.map((s) => escapeHtml(s.name)).join(' + ')}<br>
-  ${staff ? escapeHtml(staff.name) + '<br>' : ''}Total indicatif : ${b.price} €<br>Code : <strong>${escapeHtml(b.id)}</strong></p>`;
+  ${escapeHtml(b.name)} — ${escapeHtml(b.phone)}<br>Code : ${escapeHtml(b.id)}</p>`;
 }
 
-function siteUrl(req) {
-  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, '');
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  return `${proto}://${host}`;
-}
 
-async function notifyCreated(b, req) {
-  const link = `${siteUrl(req)}/rdv.html?id=${encodeURIComponent(b.id)}&t=${encodeURIComponent(b.token)}`;
-  const tasks = [];
-  if (b.email) {
-    tasks.push(sendMail(b.email, `Rendez-vous confirmé — ${frDate(b.date)} à ${b.time}`, mailTemplate('C’est noté, à bientôt !',
-      `<p>Bonjour ${escapeHtml(b.name)},</p>${bookingSummaryHtml(b)}
-       <p>Adresse : ${escapeHtml(SALON.address)}</p>
-       <p><a href="${link}" style="display:inline-block;background:#d6262c;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none">Gérer mon rendez-vous</a></p>`)));
-  }
-  if (process.env.SALON_EMAIL) {
-    tasks.push(sendMail(process.env.SALON_EMAIL, `Nouveau RDV ${b.date} ${b.time} — ${b.name}`, mailTemplate('Nouveau rendez-vous',
-      `${bookingSummaryHtml(b)}<p>${escapeHtml(b.name)} — ${escapeHtml(b.phone)} ${b.email ? '— ' + escapeHtml(b.email) : ''}</p>
-       ${b.note ? `<p>Note : ${escapeHtml(b.note)}</p>` : ''}`)));
-  }
-  await Promise.all(tasks);
+/** Prévient le salon par e-mail (si Resend et SALON_EMAIL sont configurés). */
+async function notifyCreated(b) {
+  if (!process.env.SALON_EMAIL) return;
+  await sendMail(process.env.SALON_EMAIL, `Nouveau RDV ${b.date} ${b.time} — ${b.name}`, mailTemplate('Nouveau rendez-vous', bookingSummaryHtml(b)));
 }
 
 async function notifyCancelled(b) {
-  const tasks = [];
-  if (b.email) tasks.push(sendMail(b.email, `Rendez-vous annulé — ${frDate(b.date)} à ${b.time}`, mailTemplate('Rendez-vous annulé', bookingSummaryHtml(b))));
-  if (process.env.SALON_EMAIL) tasks.push(sendMail(process.env.SALON_EMAIL, `Annulation ${b.date} ${b.time} — ${b.name}`, mailTemplate('Annulation', bookingSummaryHtml(b))));
-  await Promise.all(tasks);
+  if (!process.env.SALON_EMAIL) return;
+  await sendMail(process.env.SALON_EMAIL, `Annulation ${b.date} ${b.time} — ${b.name}`, mailTemplate('Rendez-vous annulé', bookingSummaryHtml(b)));
 }
 
 /* ------------------------------------------------------------------- http */
@@ -511,14 +404,12 @@ function clean(v, max) {
 function validateContact(c) {
   if (c.name.length < 2) return 'Merci d’indiquer votre nom.';
   if (!/^[+0-9 ().-]{8,20}$/.test(c.phone) || c.phone.replace(/\D/g, '').length < 9) return 'Numéro de téléphone invalide.';
-  if (c.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.email)) return 'Adresse e-mail invalide.';
   return null;
 }
 
 module.exports = {
-  SALON, STEP, RULES, HOURS, STAFF, SERVICES,
-  store, ConflictError, UserError, availability, createBooking, cancelBooking, findBooking, saveBooking, publicBooking,
-  createBlock, deleteBlock, resolveServices, notifyCreated, notifyCancelled,
-  parisNow, addDays, isValidDate, minutesUntil, send, readBody, query, isAdmin, safeEqual, clean, validateContact,
-  TIME_RE,
+  SALON, STEP, BOOKING, RULES, HOURS, STAFF, SERVICES,
+  ConflictError, UserError, availability, loadDay, createBooking, cancelBooking, findBooking, updateBooking, publicBooking,
+  createBlock, deleteBlock, notifyCreated, notifyCancelled,
+  parisNow, addDays, isValidDate, send, readBody, query, isAdmin, safeEqual, clean, validateContact,
 };

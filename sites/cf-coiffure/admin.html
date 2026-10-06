@@ -5,31 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Espace salon — CF Coiffure</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#17110e">
+  <meta name="theme-color" content="#12305c">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=Monoton&family=Yellowtail&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&family=Yellowtail&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-<body class="admin tex-floor">
+<body class="admin">
 
 <header class="admin-bar">
   <div class="wrap">
-    <a class="logo" href="/"><span class="neon">CF</span><span class="neon-script">Salon</span></a>
+    <a class="logo" href="/"><b>CF</b><span>Salon</span></a>
     <div class="bar-actions" id="bar-actions" hidden>
       <button class="btn small" data-open="create">+ Rendez-vous</button>
-      <button class="btn small blue" data-open="block">Bloquer un créneau</button>
-      <button class="btn small ghost" id="export">Export CSV</button>
-      <button class="btn small ghost" id="logout">Déconnexion</button>
+      <button class="btn small outline" data-open="block">Bloquer</button>
+      <button class="btn small outline" id="export">Export</button>
+      <button class="btn small outline" id="logout">Quitter</button>
     </div>
   </div>
 </header>
 
 <main class="admin-main">
-  <form class="login-card" id="login">
-    <h1>Espace salon</h1>
-    <input type="password" name="pw" placeholder="Mot de passe" autocomplete="current-password" required>
+  <form class="card login-card" id="login">
+    <h1 style="font-size:1.8rem">Espace salon</h1>
+    <div class="field"><input type="password" name="pw" placeholder="Mot de passe" autocomplete="current-password" required></div>
     <button class="btn" style="width:100%">Entrer</button>
     <div id="login-err" role="alert"></div>
   </form>
@@ -38,7 +38,7 @@
     <div class="toolbar">
       <div class="group">
         <button class="icon-btn" data-nav="-1" aria-label="Précédent">‹</button>
-        <button class="btn small cream" data-nav="0">Aujourd'hui</button>
+        <button class="btn small outline" data-nav="0">Aujourd'hui</button>
         <button class="icon-btn" data-nav="1" aria-label="Suivant">›</button>
         <input type="date" id="pick" aria-label="Aller à la date">
         <h2 id="title"></h2>
