@@ -47,11 +47,20 @@
       ]
     },
     {
-      "source": "/assets/(css|js)/(.*)",
+      "source": "/assets/(css|js|vendor)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=300, stale-while-revalidate=86400"
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }

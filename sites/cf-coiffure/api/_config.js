@@ -11,7 +11,7 @@
 const SALON = {
   name: 'CF Coiffure',
   city: 'Six-Fours-les-Plages',
-  address: 'Imm. Le Beaugency, La Planche, 83140 Six-Fours-les-Plages',
+  address: '273 avenue Joseph Raynaud, 83140 Six-Fours-les-Plages',
   phone: '', // à compléter, ex. '04 94 00 00 00'
   timezone: 'Europe/Paris',
 };

@@ -5,18 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Horaires et accès — CF Coiffure, Six-Fours-les-Plages</title>
   <meta name="description" content="Horaires d'ouverture, adresse, plan d'accès et questions fréquentes de CF Coiffure à Six-Fours-les-Plages.">
-  <meta name="theme-color" content="#12305c">
+  <meta name="theme-color" content="#120d0a">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&family=Yellowtail&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&family=Bebas+Neue&family=Yellowtail&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css?v=87a8dbb1">
+  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('anim');</script>
+  <script src="/assets/vendor/gsap.min.js?v=2d26f4c0" defer></script>
+  <script src="/assets/vendor/ScrollTrigger.min.js?v=489bcf6d" defer></script>
+  <script src="/assets/vendor/lenis.min.js?v=44dcd10f" defer></script>
+  <script src="/assets/js/main.js?v=e1c0911c" defer></script>
 </head>
-<body>
+<body class="overlay-header">
+<div class="grain" aria-hidden="true"></div>
+<div class="curtain" aria-hidden="true"><i></i><i></i><i></i><div class="curtain-logo">CF</div></div>
+<div class="cursor" aria-hidden="true"></div><div class="cursor-ring" aria-hidden="true"><span></span></div>
 <div class="topbar">
   <div class="wrap">
-    <span>Du mardi au samedi · <span class="hide-sm">Imm. Le Beaugency, La Planche, </span>Six-Fours-les-Plages</span>
-    <a class="hide-sm" href="https://www.google.com/maps/search/?api=1&amp;query=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener">★ 4,9 sur Google</a>
+    <span>Du mardi au samedi · <span class="hide-sm">273 av. Joseph Raynaud, </span>Six-Fours-les-Plages</span>
+    <a class="hide-sm" href="https://www.google.com/maps/search/?api=1&amp;query=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener"><span class="stars">★★★★★</span> 4,9 sur Google</a>
   </div>
 </div>
 <header class="site-header">
@@ -27,70 +35,70 @@
       <a href="/le-salon.html">Le salon</a>
       <a href="/tarifs.html">Tarifs</a>
       <a href="/infos.html">Infos pratiques</a>
-      <a class="btn small" href="/reserver.html">Prendre rendez-vous</a>
+      <a class="btn small" href="/reserver.html" data-magnetic data-cursor="Go">Réserver</a>
     </nav>
   </div>
 </header>
 
-<div class="page-band wood">
-  <div class="wrap">
-    <div class="sign">
-      <p class="label">Infos pratiques</p>
-      <h1>Horaires et accès</h1>
-      <p>Imm. Le Beaugency, quartier La Planche, 83140 Six-Fours-les-Plages.</p>
-    </div>
-  </div>
-</div>
-<div class="martini" aria-hidden="true"></div>
-
 <main>
-  <section class="block">
+  <section class="page-hero">
+    <div class="bg" data-speed="0.2"><img src="/assets/img/route66.jpg" alt=""></div>
+    <div class="wrap">
+      <p class="label" data-hero>Infos pratiques</p>
+      <h1 class="display">Pit stop</h1>
+      <p data-hero>273 avenue Joseph Raynaud, 83140 Six-Fours-les-Plages.</p>
+    </div>
+    <span class="credit">Photo d'ambiance : Dietmar Rabich, CC BY-SA 4.0</span>
+  </section>
+
+  <section class="light pad on-light">
     <div class="wrap infos-grid">
       <div>
-        <h2>Horaires</h2>
-        <p style="margin:14px 0 0"><span class="status" id="open-status" hidden></span></p>
+        <h2 class="info-title split" data-split>Horaires</h2>
+        <p style="margin:20px 0 0"><span class="status" id="open-status" hidden></span></p>
         <table class="hours"><tbody id="hours"></tbody></table>
-        <h2 style="margin-top:10px">Adresse</h2>
-        <p>Imm. Le Beaugency, quartier La Planche<br>83140 Six-Fours-les-Plages<span id="phone-line"></span></p>
+        <h2 class="info-title" style="font-size:2.6rem;margin-top:10px">Adresse</h2>
+        <p>273 avenue Joseph Raynaud<br>83140 Six-Fours-les-Plages<span id="phone-line"></span></p>
         <p>Le salon est accessible en fauteuil roulant.</p>
-        <a class="btn outline" href="https://www.google.com/maps/dir/?api=1&amp;destination=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener">Itinéraire</a>
+        <div class="hero-actions">
+          <a class="btn" href="/reserver.html" data-magnetic>Prendre rendez-vous</a>
+          <a class="btn ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener">Itinéraire</a>
+        </div>
       </div>
-      <div class="map">
+      <div class="map" data-reveal>
         <iframe title="Plan d'accès CF Coiffure" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
           src="https://maps.google.com/maps?q=CF%20Coiffure%20Six-Fours-les-Plages&amp;z=15&amp;output=embed"></iframe>
       </div>
     </div>
   </section>
 
-  <section class="block wood on-wood">
+  <section class="wood wall">
     <div class="wrap">
-      <div class="section-head"><p class="label">Questions fréquentes</p><h2>Vous vous demandez…</h2></div>
-      <div class="faq">
-        <details><summary>Comment prendre rendez-vous ?</summary><p>En ligne, sur la page « Prendre rendez-vous » : choisissez un jour, une heure, laissez votre nom et votre numéro. Vous pouvez aussi prendre rendez-vous directement au salon.</p></details>
-        <details><summary>Combien de temps dure un rendez-vous ?</summary><p>Un rendez-vous en ligne dure 35 minutes, le temps d'une coupe. Pour une couleur, des mèches ou un chignon, prenez rendez-vous au salon pour qu'on bloque le temps nécessaire.</p></details>
-        <details><summary>Comment annuler mon rendez-vous ?</summary><p>Après votre réservation, un lien vous permet d'annuler en ligne jusqu'à 2 heures avant. Ce lien reste aussi accessible depuis la page de réservation, sur le même téléphone. Passé ce délai, prévenez directement le salon.</p></details>
-        <details><summary>Jusqu'à quand puis-je réserver ?</summary><p>Jusqu'à 60 jours à l'avance, et au plus tard 1 heure avant le créneau.</p></details>
-        <details><summary>Vous coiffez les enfants ?</summary><p>Oui, avec des tarifs enfant (moins de 10 ans) et junior (10 à 15 ans).</p></details>
-        <details><summary>Le salon est-il accessible en fauteuil roulant ?</summary><p>Oui.</p></details>
+      <div class="salon-card" data-reveal>
+        <p class="label">Questions fréquentes</p>
+        <h2>Vous vous demandez…</h2>
+        <div class="faq">
+          <details><summary>Comment prendre rendez-vous ?</summary><p>En ligne, sur la page « Prendre rendez-vous » : choisissez un jour, une heure, laissez votre nom et votre numéro. Vous pouvez aussi prendre rendez-vous directement au salon.</p></details>
+          <details><summary>Combien de temps dure un rendez-vous ?</summary><p>Un rendez-vous en ligne dure 35 minutes, le temps d'une coupe. Pour une couleur, des mèches ou un chignon, prenez rendez-vous au salon pour qu'on bloque le temps nécessaire.</p></details>
+          <details><summary>Comment annuler mon rendez-vous ?</summary><p>Après votre réservation, un lien vous permet d'annuler en ligne jusqu'à 2 heures avant. Il reste accessible depuis la page de réservation, sur le même téléphone. Passé ce délai, prévenez directement le salon.</p></details>
+          <details><summary>Jusqu'à quand puis-je réserver ?</summary><p>Jusqu'à 60 jours à l'avance, et au plus tard 1 heure avant le créneau.</p></details>
+          <details><summary>Vous coiffez les enfants ?</summary><p>Oui, avec des tarifs enfant (moins de 10 ans) et junior (10 à 15 ans).</p></details>
+          <details><summary>Le salon est-il accessible en fauteuil roulant ?</summary><p>Oui.</p></details>
+        </div>
       </div>
     </div>
-  </section>
-
-  <section class="cta-band">
-    <div class="wrap">
-      <div><h2>Une place vous attend</h2><p>Réservation en ligne, sans inscription.</p></div>
-      <a class="btn" href="/reserver.html">Prendre rendez-vous</a>
-    </div>
+    <div class="diamond" aria-hidden="true"></div>
   </section>
 </main>
 
-<div class="martini" aria-hidden="true"></div>
+<div class="martini-line" aria-hidden="true"></div>
 <footer class="site-footer">
+  <div class="footer-big" aria-hidden="true">CF Coiffure</div>
   <div class="wrap footer-grid">
     <div>
       <a class="logo" href="/"><b>CF</b><span>Coiffure</span></a>
-      <p>Salon de coiffure femmes, hommes et enfants à Six-Fours-les-Plages.</p>
-      <p>Imm. Le Beaugency, La Planche<br>83140 Six-Fours-les-Plages</p>
+      <p>Salon de coiffure femmes, hommes et enfants à Six-Fours-les-Plages, dans une ambiance de garage américain.</p>
+      <p>273 avenue Joseph Raynaud<br>83140 Six-Fours-les-Plages</p>
     </div>
     <div>
       <h4>Le site</h4>
@@ -108,9 +116,8 @@
   </div>
   <div class="wrap footer-bottom">
     <span>© <span data-year></span> CF Coiffure</span>
-    <span><a href="/mentions-legales.html">Mentions légales</a> · <a href="/admin.html">Espace salon</a></span>
+    <span><a href="/mentions-legales.html">Mentions légales et crédits photos</a> · <a href="/admin.html">Espace salon</a></span>
   </div>
 </footer>
-<script src="/assets/js/main.js" defer></script>
 </body>
 </html>

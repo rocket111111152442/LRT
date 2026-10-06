@@ -63,12 +63,27 @@ Sans `BLOB_READ_WRITE_TOKEN`, l'API écrit dans `.data/` (pratique pour tester e
   tarifs et horaires ne sont pas validés. À retirer au lancement.
 
 - Téléphone (`SALON.phone` dans `api/_config.js`), SIRET et responsable dans les mentions légales.
-- Vérifier l'adresse (« Imm. Le Beaugency, La Planche » provient d'un annuaire en ligne).
+- Adresse : « 273 avenue Joseph Raynaud » d'après la fiche Google Maps du salon, à confirmer.
 - Photos : actuellement recadrées depuis la fiche Google, en basse définition — à remplacer.
 - Le client ne précise pas la prestation : une couleur ou des mèches réservées en ligne n'occupent
   que 35 min. Pour ces prestations longues, mieux vaut que le salon les saisisse lui-même.
 
-## Crédits textures
+## Animations
 
-Bois (`assets/img/bois.jpg`, `assets/img/bois-fonce.jpg`) : textures « wood_planks » et
-« wood_plank_wall » de [Poly Haven](https://polyhaven.com), licence CC0.
+GSAP 3.12.5 + ScrollTrigger et Lenis 1.1.13, copiés dans `assets/vendor/` (pas de dépendance à un
+CDN). Rideau Martini entre les pages, titres révélés, texte qui s'allume au défilement, galerie
+horizontale épinglée (ordinateur), parallaxe, plaques qui se balancent, curseur et boutons aimantés.
+Tout est coupé si le visiteur a demandé « réduire les animations », et le contenu reste visible si
+les scripts ne chargent pas.
+
+`_build/build.py` ajoute une empreinte `?v=…` aux CSS/JS : on peut les mettre en cache longtemps
+sans qu'un navigateur garde une ancienne version.
+
+## Crédits images
+
+- Bois : textures « wood_planks » et « wood_plank_wall » de [Poly Haven](https://polyhaven.com), CC0.
+- Photos d'ambiance (Wikimedia Commons) — elles ne représentent pas le salon, crédits affichés sur
+  les pages et dans les mentions légales : Route 66 à Amboy (Dietmar Rabich, CC BY-SA 4.0),
+  fauteuils de barbier vintage (PattayaPatrol, CC BY-SA 4.0), « Frank's by night » (Chad K,
+  CC BY 2.0), panneau Route 66 Santa Monica (APK, CC BY-SA 4.0), fauteuil « Star » (Eric Polk,
+  CC BY-SA 4.0).

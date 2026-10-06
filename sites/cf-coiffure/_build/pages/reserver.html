@@ -5,23 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prendre rendez-vous — CF Coiffure, Six-Fours-les-Plages</title>
   <meta name="description" content="Réservez votre rendez-vous chez CF Coiffure : choisissez le jour et l'heure, c'est tout.">
-  <meta name="theme-color" content="#12305c">
+  <meta name="theme-color" content="#120d0a">
   {{HEAD}}
 </head>
-<body>
+<body class="overlay-header page-light">
 {{HEADER}}
 
-<div class="page-band wood" id="band">
+<section class="page-hero" id="band">
+  <div class="bg" data-speed="0.2"><img src="/assets/img/fauteuils-rouges.jpg" alt=""></div>
   <div class="wrap">
-    <div class="sign">
-      <h1>Prendre rendez-vous</h1>
-      <p>Choisissez un jour, une heure, laissez votre nom et votre numéro. C'est tout.</p>
-    </div>
+    <p class="label" data-hero>Réservation en ligne</p>
+    <h1 class="display">Prendre rendez-vous</h1>
+    <p data-hero>Un jour, une heure, votre nom et votre numéro. C'est tout.</p>
   </div>
-</div>
-<div class="martini" aria-hidden="true"></div>
+  <span class="credit">Photo d'ambiance : PattayaPatrol, CC BY-SA 4.0</span>
+</section>
+<div class="martini-line" aria-hidden="true"></div>
 
-<main class="wrap" style="padding-top:26px">
+<main class="wrap" style="padding-top:40px">
   <div id="mine"></div>
 
   <div class="book" id="book">
@@ -55,7 +56,6 @@
 </main>
 
 {{FOOTER}}
-<script src="/assets/js/main.js" defer></script>
 <script src="/assets/js/booking.js" defer></script>
 </body>
 </html>

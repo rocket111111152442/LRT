@@ -5,18 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tarifs — CF Coiffure, Six-Fours-les-Plages</title>
   <meta name="description" content="Tarifs de CF Coiffure : coupes femmes, hommes et enfants, couleur, mèches, soins.">
-  <meta name="theme-color" content="#12305c">
+  <meta name="theme-color" content="#120d0a">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&family=Yellowtail&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&family=Bebas+Neue&family=Yellowtail&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css?v=87a8dbb1">
+  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('anim');</script>
+  <script src="/assets/vendor/gsap.min.js?v=2d26f4c0" defer></script>
+  <script src="/assets/vendor/ScrollTrigger.min.js?v=489bcf6d" defer></script>
+  <script src="/assets/vendor/lenis.min.js?v=44dcd10f" defer></script>
+  <script src="/assets/js/main.js?v=e1c0911c" defer></script>
 </head>
-<body>
+<body class="overlay-header">
+<div class="grain" aria-hidden="true"></div>
+<div class="curtain" aria-hidden="true"><i></i><i></i><i></i><div class="curtain-logo">CF</div></div>
+<div class="cursor" aria-hidden="true"></div><div class="cursor-ring" aria-hidden="true"><span></span></div>
 <div class="topbar">
   <div class="wrap">
-    <span>Du mardi au samedi · <span class="hide-sm">Imm. Le Beaugency, La Planche, </span>Six-Fours-les-Plages</span>
-    <a class="hide-sm" href="https://www.google.com/maps/search/?api=1&amp;query=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener">★ 4,9 sur Google</a>
+    <span>Du mardi au samedi · <span class="hide-sm">273 av. Joseph Raynaud, </span>Six-Fours-les-Plages</span>
+    <a class="hide-sm" href="https://www.google.com/maps/search/?api=1&amp;query=CF+Coiffure+Six-Fours-les-Plages" target="_blank" rel="noopener"><span class="stars">★★★★★</span> 4,9 sur Google</a>
   </div>
 </div>
 <header class="site-header">
@@ -27,54 +35,57 @@
       <a href="/le-salon.html">Le salon</a>
       <a href="/tarifs.html">Tarifs</a>
       <a href="/infos.html">Infos pratiques</a>
-      <a class="btn small" href="/reserver.html">Prendre rendez-vous</a>
+      <a class="btn small" href="/reserver.html" data-magnetic data-cursor="Go">Réserver</a>
     </nav>
   </div>
 </header>
 
-<div class="page-band wood">
-  <div class="wrap">
-    <div class="sign">
-      <p class="label">Tarifs</p>
-      <h1>Nos prix</h1>
-      <p>Pour la couleur, les mèches et le coiffage, le prix dépend de la longueur et de l'épaisseur des cheveux.</p>
-    </div>
-  </div>
-</div>
-<div class="martini" aria-hidden="true"></div>
-
 <main>
-  <section class="block">
+  <section class="page-hero">
+    <div class="bg" data-speed="0.2"><img src="/assets/img/fauteuil-ancien.jpg" alt="" style="object-position:50% 35%"></div>
     <div class="wrap">
-      <div class="price-groups" id="prices"><p class="muted">Chargement des tarifs…</p></div>
+      <p class="label" data-hero>Tarifs</p>
+      <h1 class="display">The Menu</h1>
+      <p data-hero>Pour la couleur, les mèches et le coiffage, le prix dépend de la longueur et de l'épaisseur des cheveux.</p>
+    </div>
+    <span class="credit">Photo d'ambiance : Eric Polk, CC BY-SA 4.0</span>
+  </section>
+
+  <section class="dark pad" style="padding-top:60px">
+    <div class="wrap">
+      <div class="price-groups" id="prices"><p>Chargement des tarifs…</p></div>
     </div>
   </section>
 
-  <section class="block" style="padding-top:0">
+  <section class="light pad on-light">
     <div class="wrap">
-      <div class="section-head"><h2>Bon à savoir</h2></div>
-      <div class="faq">
+      <h2 class="info-title split" data-split>Bon à savoir</h2>
+      <div class="faq" style="margin-top:36px">
         <details><summary>Pourquoi certains prix commencent par « dès » ?</summary><p>Pour la couleur, les mèches ou un chignon, la quantité de produit et le temps passé varient selon vos cheveux. Le prix exact vous est donné au salon avant de commencer.</p></details>
         <details><summary>Je veux une couleur ou des mèches : comment réserver ?</summary><p>Ces prestations demandent plus de temps qu'un créneau en ligne. Prenez rendez-vous directement au salon pour qu'on vous réserve le temps nécessaire.</p></details>
       </div>
     </div>
   </section>
 
-  <section class="cta-band">
+  <section class="cta-big" style="min-height:70svh">
+    <div class="bg" data-speed="0.2"><img src="/assets/img/fauteuils-rouges.jpg" alt="" loading="lazy"></div>
     <div class="wrap">
-      <div><h2>Prêt pour une coupe ?</h2><p>Choisissez votre jour et votre heure en ligne.</p></div>
-      <a class="btn" href="/reserver.html">Prendre rendez-vous</a>
+      <h2 class="display split" data-split>Prêt pour la coupe ?</h2>
+      <span class="script">choisissez votre heure</span>
+      <a class="btn" href="/reserver.html" data-magnetic data-cursor="Go">Prendre rendez-vous <span class="arrow">→</span></a>
     </div>
+    <span class="credit">Photo d'ambiance : PattayaPatrol, CC BY-SA 4.0</span>
   </section>
 </main>
 
-<div class="martini" aria-hidden="true"></div>
+<div class="martini-line" aria-hidden="true"></div>
 <footer class="site-footer">
+  <div class="footer-big" aria-hidden="true">CF Coiffure</div>
   <div class="wrap footer-grid">
     <div>
       <a class="logo" href="/"><b>CF</b><span>Coiffure</span></a>
-      <p>Salon de coiffure femmes, hommes et enfants à Six-Fours-les-Plages.</p>
-      <p>Imm. Le Beaugency, La Planche<br>83140 Six-Fours-les-Plages</p>
+      <p>Salon de coiffure femmes, hommes et enfants à Six-Fours-les-Plages, dans une ambiance de garage américain.</p>
+      <p>273 avenue Joseph Raynaud<br>83140 Six-Fours-les-Plages</p>
     </div>
     <div>
       <h4>Le site</h4>
@@ -92,9 +103,8 @@
   </div>
   <div class="wrap footer-bottom">
     <span>© <span data-year></span> CF Coiffure</span>
-    <span><a href="/mentions-legales.html">Mentions légales</a> · <a href="/admin.html">Espace salon</a></span>
+    <span><a href="/mentions-legales.html">Mentions légales et crédits photos</a> · <a href="/admin.html">Espace salon</a></span>
   </div>
 </footer>
-<script src="/assets/js/main.js" defer></script>
 </body>
 </html>
