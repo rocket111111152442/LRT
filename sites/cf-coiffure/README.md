@@ -59,3 +59,8 @@ Sans `BLOB_READ_WRITE_TOKEN`, l'API écrit dans `.data/` (pratique pour tester e
 - Photos : actuellement recadrées depuis la fiche Google, en basse définition — à remplacer.
 - Le client ne précise pas la prestation : une couleur ou des mèches réservées en ligne n'occupent
   que 35 min. Pour ces prestations longues, mieux vaut que le salon les saisisse lui-même.
+
+## Crédits textures
+
+Bois (`assets/img/bois.jpg`, `assets/img/bois-fonce.jpg`) : textures « wood_planks » et
+« wood_plank_wall » de [Poly Haven](https://polyhaven.com), licence CC0.

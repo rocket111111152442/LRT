@@ -153,13 +153,13 @@
     CF.mine.add({ id: b.id, token, date: b.date, time: b.time });
     $('#book').hidden = true;
     $('#mine').hidden = true;
-    $('.page-title').hidden = true;
+    $('#band').hidden = true;
     const done = $('#done');
     done.hidden = false;
     done.innerHTML = `
       <h1>C'est réservé, merci&nbsp;!</h1>
       <p class="muted">À bientôt au salon.</p>
-      <div class="ticket pop">
+      <div class="ticket">
         <p class="when">${esc(CF.frDate(b.date))}<br>à ${CF.h(b.time)}</p>
         <dl>
           <dt>Nom</dt><dd>${esc(b.name)}</dd>

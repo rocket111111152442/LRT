@@ -23,12 +23,6 @@
     return d.toISOString().slice(0, 10);
   };
 
-  /* Apparition douce des blocs au défilement */
-  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }), { threshold: 0.15 });
-  $$('.reveal').forEach((el) => io.observe(el));
-
   $$('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 
   /* Prestations (accueil) */
