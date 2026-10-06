@@ -1,0 +1,8 @@
+{
+  "name": "cf-coiffure",
+  "private": true,
+  "description": "Site et réservation en ligne de CF Coiffure (Six-Fours-les-Plages)",
+  "dependencies": {
+    "@vercel/blob": "2.8.1"
+  }
+}

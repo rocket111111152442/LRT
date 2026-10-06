@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Espace salon — CF Coiffure</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#17110e">
+  {{HEAD}}
+</head>
+<body class="admin tex-floor">
+
+<header class="admin-bar">
+  <div class="wrap">
+    <a class="logo" href="/"><span class="neon">CF</span><span class="neon-script">Salon</span></a>
+    <div class="bar-actions" id="bar-actions" hidden>
+      <button class="btn small" data-open="create">+ Rendez-vous</button>
+      <button class="btn small blue" data-open="block">Bloquer un créneau</button>
+      <button class="btn small ghost" id="export">Export CSV</button>
+      <button class="btn small ghost" id="logout">Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<main class="admin-main">
+  <form class="login-card" id="login">
+    <h1>Espace salon</h1>
+    <input type="password" name="pw" placeholder="Mot de passe" autocomplete="current-password" required>
+    <button class="btn" style="width:100%">Entrer</button>
+    <div id="login-err" role="alert"></div>
+  </form>
+
+  <div id="dash" hidden>
+    <div class="toolbar">
+      <div class="group">
+        <button class="icon-btn" data-nav="-1" aria-label="Précédent">‹</button>
+        <button class="btn small cream" data-nav="0">Aujourd'hui</button>
+        <button class="icon-btn" data-nav="1" aria-label="Suivant">›</button>
+        <input type="date" id="pick" aria-label="Aller à la date">
+        <h2 id="title"></h2>
+      </div>
+      <div class="seg" role="group" aria-label="Vue">
+        <button data-view="day" aria-pressed="true">Jour</button>
+        <button data-view="week" aria-pressed="false">Semaine</button>
+        <button data-view="list" aria-pressed="false">Liste</button>
+      </div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div id="view"></div>
+  </div>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="modal-card" id="modal-card"></div></div>
+
+<script src="/assets/js/main.js" defer></script>
+<script src="/assets/js/admin.js" defer></script>
+</body>
+</html>
