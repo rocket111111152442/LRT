@@ -1,0 +1,11 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './style.css';
+import './mobile.css';
+import './mobile-pages.css';
+import './fx.css';
+import './fx';
+const root=document.getElementById('root')!;
+root.replaceChildren();
+ReactDOM.createRoot(root).render(<React.StrictMode><App /></React.StrictMode>);
