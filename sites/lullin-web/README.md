@@ -5,9 +5,14 @@ il est déployé depuis le poste de travail avec le Vercel CLI, sur le projet Ve
 `lullin-web-maquette`. Ce dossier contient seulement les fichiers ajoutés ou modifiés
 pour la couche d'animations :
 
-- `src/fx.ts` — nouveau. Apparitions au défilement, curseur personnalisé, halo,
-  cartes en 3D avec reflet, boutons magnétiques, compteurs sur les prix, éclats au
-  clic, parallaxe du héros, bandeau qui se déforme selon la vitesse de défilement.
+- `src/fx.ts` — nouveau. Grandes apparitions au défilement (titres en rideau
+  flouté, cartes de prix et étapes qui basculent en 3D, valeurs et services qui
+  arrivent des côtés, pastilles métiers qui s'assemblent depuis tout l'écran, images
+  qui se dévoilent, zoom sur le titre de contact et la signature du pied de page),
+  textes géants qui défilent en fond, héros qui s'éloigne en se floutant, titres qui
+  glissent, déformation selon la vitesse de défilement, onde de choc et éclats au
+  clic, compteurs sur les prix. Côté souris, volontairement léger : un petit anneau
+  autour du curseur normal, cartes 3D et boutons magnétiques très discrets.
 - `src/fx.css` — nouveau. Styles associés.
 - `src/main.tsx` — modifié : deux lignes `import './fx.css'` et `import './fx'`.
 - `tsconfig.json` — inchangé, copié pour pouvoir vérifier le typage de `fx.ts`.
@@ -20,6 +25,6 @@ Garde-fous :
 
 - rien ne s'active si l'appareil demande moins d'animations (`prefers-reduced-motion`) ;
 - l'interrupteur « Motion on / off » du site (`html[data-motion="off"]`) coupe tous les effets ;
-- curseur, cartes 3D et boutons magnétiques uniquement avec une souris ;
+- effets de souris uniquement avec une souris ; amplitudes réduites sur petit écran ;
 - seuls des attributs `data-fx-*` et des propriétés CSS individuelles (`translate`,
   `rotate`, `scale`) sont utilisés, pour ne pas entrer en conflit avec Motion ni avec React.

@@ -1,36 +1,45 @@
 // Couche d'animations de lullin-web.com.
 // Volontairement indépendante de React : elle s'accroche au DOM rendu, ne touche
-// qu'à des attributs data-fx-* et aux propriétés CSS individuelles (translate,
-// rotate, scale) pour ne pas entrer en conflit avec Motion ni avec les classes React.
-// Tout est désactivé si l'appareil demande moins d'animations.
+// qu'à des attributs data-fx-*, à des variables CSS et aux propriétés individuelles
+// (translate, rotate, scale) pour ne pas entrer en conflit avec Motion ni avec React.
+// Tout est désactivé si l'appareil demande moins d'animations, ou via le bouton
+// « Motion on / off » du site.
 
 const doc = () => document.documentElement;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-type RevealKind = 'up' | 'title' | 'label' | 'image' | 'pop';
+type RevealKind = 'up' | 'title' | 'zoom' | 'label' | 'image' | 'flip' | 'swing' | 'scatter';
 
 const REVEALS: Array<[string, RevealKind]> = [
-  ['.section-heading h2, .home-statement h2, .home-faq h2, .contact-band h2', 'title'],
+  ['.contact-band h2', 'zoom'],
+  ['.section-heading h2, .home-statement h2, .home-faq h2', 'title'],
   ['.section-label', 'label'],
-  ['.statement-copy > *, .section-heading > p, .price-note', 'up'],
+  ['.statement-copy > *, .section-heading > p, .price-note, .section-heading > a', 'up'],
   ['.client-strip span', 'up'],
   ['.project-card', 'up'],
   ['.project-visual', 'image'],
-  ['.service-rows > div', 'up'],
-  ['.filter-bar .filter', 'pop'],
-  ['.steps-grid > div, .price-card, .values-grid > div, .faq-item', 'up'],
+  ['.service-rows > div', 'swing'],
+  ['.filter-bar .filter', 'scatter'],
+  ['.price-card, .steps-grid > div', 'flip'],
+  ['.values-grid > div', 'swing'],
+  ['.faq-item', 'up'],
   ['.contact-band-bottom > *', 'up'],
-  ['.footer-top > *, .footer-nav a, .footer-signature, .footer-bottom > *', 'up'],
+  ['.footer-signature', 'zoom'],
+  ['.footer-top > *, .footer-nav a, .footer-bottom > *', 'up'],
 ];
 
 const TILT = '.price-card, .values-grid > div, .steps-grid > div, .project-card';
 const MAGNETIC = '.action, .header-contact, .text-link, .menu-trigger, .footer-top a';
 const INTERACTIVE = 'a, button, [role="button"], summary, label, .filter';
 const COUNTER = '.price-value';
+// Amplitude des grands mouvements : réduite sur petit écran pour ne rien pousser hors cadre.
+const amp = () => clamp(window.innerWidth / 1440, 0.3, 1);
+const KINETIC_TEXT = 'LULLIN WEB — DESIGN — CODE — IMPACT — ';
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
 // Le site a son propre interrupteur « Motion on / off » (html[data-motion]).
 const motionOff = () => doc().dataset.motion === 'off';
@@ -60,7 +69,7 @@ const revealObserver = new IntersectionObserver(
       if (el.matches(COUNTER) || el.querySelector(COUNTER)) countUp(el);
     }
   },
-  { threshold: 0.12 },
+  { threshold: 0.1 },
 );
 
 function scanReveals(root: ParentNode) {
@@ -68,8 +77,19 @@ function scanReveals(root: ParentNode) {
     root.querySelectorAll<HTMLElement>(selector).forEach((el) => {
       if (el.hasAttribute('data-fx-reveal') || el.closest('.hero') || ownedByMotion(el)) return;
       const siblings = el.parentElement ? Array.from(el.parentElement.children) : [el];
-      const index = Math.min(siblings.indexOf(el), 7);
-      el.style.setProperty('--fx-d', `${Math.max(index, 0) * 85}ms`);
+      const index = Math.max(siblings.indexOf(el), 0);
+      const step = kind === 'scatter' ? 45 : 110;
+      el.style.setProperty('--fx-d', `${Math.min(index, 8) * step}ms`);
+      if (kind === 'swing') {
+        const side = index % 2 === 0 ? -1 : 1;
+        el.style.setProperty('--fx-side', `${(side * 220 * amp()).toFixed(0)}px`);
+        el.style.setProperty('--fx-rot', `${side * 9}deg`);
+      }
+      if (kind === 'scatter') {
+        el.style.setProperty('--fx-sx', `${(rand(-420, 420) * amp()).toFixed(0)}px`);
+        el.style.setProperty('--fx-sy', `${(rand(-260, 260) * amp()).toFixed(0)}px`);
+        el.style.setProperty('--fx-sr', `${rand(-180, 180).toFixed(0)}deg`);
+      }
       el.setAttribute('data-fx-reveal', kind);
       revealObserver.observe(el);
     });
@@ -96,7 +116,7 @@ function countUp(scope: HTMLElement) {
       const value = Number(match[0].replace(/\D/g, ''));
       if (!Number.isFinite(value) || value < 10) continue;
       const start = performance.now();
-      const duration = 1400;
+      const duration = 1600;
       const tick = (now: number) => {
         // On ne touche plus au texte si React l'a remplacé entre-temps.
         if (!node.isConnected) return;
@@ -115,13 +135,31 @@ function countUp(scope: HTMLElement) {
   }
 }
 
-/* ---------- Cartes en 3D au survol ---------- */
+/* ---------- Grands textes qui défilent en fond ---------- */
+
+function addKinetic(root: ParentNode) {
+  root.querySelectorAll<HTMLElement>('.contact-band, .method-home').forEach((section) => {
+    if (section.querySelector(':scope > .fx-kinetic')) return;
+    const band = document.createElement('div');
+    band.className = 'fx-kinetic';
+    band.setAttribute('aria-hidden', 'true');
+    for (let row = 0; row < 2; row += 1) {
+      const line = document.createElement('div');
+      line.className = 'fx-kinetic-row';
+      line.textContent = KINETIC_TEXT.repeat(4);
+      band.appendChild(line);
+    }
+    section.prepend(band);
+  });
+}
+
+/* ---------- Cartes en 3D au survol (léger) ---------- */
 
 function bindTilt(root: ParentNode) {
   root.querySelectorAll<HTMLElement>(TILT).forEach((card) => {
     if (card.hasAttribute('data-fx-tilt')) return;
     card.setAttribute('data-fx-tilt', '');
-    const strength = card.matches('.project-card') ? 4 : 8;
+    const strength = card.matches('.project-card') ? 2 : 4;
     card.addEventListener('pointermove', (event) => {
       const rect = card.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width;
@@ -140,7 +178,7 @@ function bindTilt(root: ParentNode) {
   });
 }
 
-/* ---------- Boutons magnétiques ---------- */
+/* ---------- Boutons magnétiques (léger) ---------- */
 
 function bindMagnetic(root: ParentNode) {
   root.querySelectorAll<HTMLElement>(MAGNETIC).forEach((el) => {
@@ -150,8 +188,8 @@ function bindMagnetic(root: ParentNode) {
       const rect = el.getBoundingClientRect();
       const dx = event.clientX - (rect.left + rect.width / 2);
       const dy = event.clientY - (rect.top + rect.height / 2);
-      el.style.setProperty('--fx-mx', `${(dx * 0.28).toFixed(1)}px`);
-      el.style.setProperty('--fx-my', `${(dy * 0.38).toFixed(1)}px`);
+      el.style.setProperty('--fx-mx', `${(dx * 0.12).toFixed(1)}px`);
+      el.style.setProperty('--fx-my', `${(dy * 0.16).toFixed(1)}px`);
     });
     el.addEventListener('pointerleave', () => {
       el.style.setProperty('--fx-mx', '0px');
@@ -160,13 +198,10 @@ function bindMagnetic(root: ParentNode) {
   });
 }
 
-/* ---------- Curseur, halo et éclats au clic ---------- */
+/* ---------- Souris : un simple anneau discret autour du curseur normal ---------- */
 
 function startCursor() {
-  doc().classList.add('fx-cursor');
-  const dot = make('div', 'fx-cursor-dot');
   const ring = make('div', 'fx-cursor-ring');
-  const spot = make('div', 'fx-spot');
   let mx = -100;
   let my = -100;
   let rx = mx;
@@ -174,8 +209,8 @@ function startCursor() {
   let running = false;
 
   const loop = () => {
-    rx = lerp(rx, mx, 0.18);
-    ry = lerp(ry, my, 0.18);
+    rx = lerp(rx, mx, 0.22);
+    ry = lerp(ry, my, 0.22);
     ring.style.translate = `${rx.toFixed(1)}px ${ry.toFixed(1)}px`;
     if (Math.abs(rx - mx) + Math.abs(ry - my) > 0.2) {
       requestAnimationFrame(loop);
@@ -190,9 +225,6 @@ function startCursor() {
       if (event.pointerType !== 'mouse') return;
       mx = event.clientX;
       my = event.clientY;
-      dot.style.translate = `${mx}px ${my}px`;
-      spot.style.setProperty('--fx-x', `${mx}px`);
-      spot.style.setProperty('--fx-y', `${my}px`);
       doc().classList.add('fx-cursor-live');
       if (!running) {
         running = true;
@@ -204,32 +236,53 @@ function startCursor() {
 
   document.addEventListener('pointerover', (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    const card = target?.closest('.project-card');
-    const interactive = target?.closest(INTERACTIVE);
-    ring.toggleAttribute('data-hover', Boolean(interactive));
-    ring.toggleAttribute('data-view', Boolean(card));
+    ring.toggleAttribute('data-hover', Boolean(target?.closest(INTERACTIVE)));
   });
   document.addEventListener('pointerleave', () => doc().classList.remove('fx-cursor-live'));
-  document.addEventListener('pointerdown', () => ring.setAttribute('data-press', ''));
-  document.addEventListener('pointerup', () => ring.removeAttribute('data-press'));
 }
 
+/* ---------- Clic : onde de choc et éclats ---------- */
+
 function burst(x: number, y: number) {
-  const count = 12;
+  const wave = make('span', 'fx-wave');
+  wave.style.left = `${x}px`;
+  wave.style.top = `${y}px`;
+  wave.addEventListener('animationend', () => wave.remove(), { once: true });
+
+  const count = 18;
   for (let i = 0; i < count; i += 1) {
     const spark = make('span', 'fx-spark');
     const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
-    const distance = 38 + Math.random() * 46;
+    const distance = rand(60, 140);
     spark.style.left = `${x}px`;
     spark.style.top = `${y}px`;
-    spark.style.setProperty('--fx-tx', `${Math.cos(angle) * distance}px`);
-    spark.style.setProperty('--fx-ty', `${Math.sin(angle) * distance}px`);
+    spark.style.setProperty('--fx-tx', `${(Math.cos(angle) * distance).toFixed(1)}px`);
+    spark.style.setProperty('--fx-ty', `${(Math.sin(angle) * distance).toFixed(1)}px`);
     spark.addEventListener('animationend', () => spark.remove(), { once: true });
   }
 }
 
-/* ---------- Défilement : parallaxe et vitesse ---------- */
+/* ---------- Défilement : parallaxe, vitesse, textes géants ---------- */
 // La barre de progression existe déjà dans le site (.page-progress).
+
+// Position d'un élément par rapport au centre de l'écran : -1 (en dessous) → 1 (au-dessus).
+function viewProgress(el: Element) {
+  const rect = el.getBoundingClientRect();
+  const center = rect.top + rect.height / 2;
+  return clamp((window.innerHeight / 2 - center) / (window.innerHeight / 2 + rect.height / 2), -1, 1);
+}
+
+const SCROLL_STYLED = '.hero-heading, .hero-orbital, .contact-star, .section-heading > div:first-child';
+
+function clearScrollStyles() {
+  document.querySelectorAll<HTMLElement>(SCROLL_STYLED).forEach((el) => {
+    el.style.removeProperty('translate');
+    el.style.removeProperty('scale');
+    el.style.removeProperty('rotate');
+    el.style.removeProperty('filter');
+  });
+  doc().style.removeProperty('--fx-skew');
+}
 
 function startScrollEffects() {
   let lastY = window.scrollY;
@@ -239,7 +292,8 @@ function startScrollEffects() {
   const update = () => {
     ticking = false;
     const y = window.scrollY;
-    const max = Math.max(doc().scrollHeight - window.innerHeight, 1);
+    const vh = window.innerHeight;
+    const max = Math.max(doc().scrollHeight - vh, 1);
     // Arrivé tout en bas, plus rien ne doit rester caché.
     if (y >= max - 4) {
       document.querySelectorAll('[data-fx-reveal]:not([data-fx-in])').forEach((el) => el.setAttribute('data-fx-in', ''));
@@ -248,35 +302,53 @@ function startScrollEffects() {
     velocity = lerp(velocity, y - lastY, 0.25);
     lastY = y;
 
-    const orbital = document.querySelector<HTMLElement>('.hero-orbital');
-    const marquee = document.querySelector<HTMLElement>('.marquee');
-    const star = document.querySelector<HTMLElement>('.contact-star');
     if (motionOff()) {
-      orbital?.style.removeProperty('translate');
-      orbital?.style.removeProperty('scale');
-      marquee?.style.removeProperty('--fx-skew');
-      star?.style.removeProperty('rotate');
+      clearScrollStyles();
       return;
     }
 
+    // Le héros s'éloigne : il recule, se floute et s'efface vers le haut.
+    const heroP = clamp(y / vh, 0, 1.2);
+    const heading = document.querySelector<HTMLElement>('.hero-heading');
+    if (heading) {
+      heading.style.translate = `0 ${(heroP * -140).toFixed(1)}px`;
+      heading.style.scale = `${(1 - heroP * 0.18).toFixed(3)}`;
+      heading.style.filter = heroP > 0.02 ? `blur(${(heroP * 10).toFixed(1)}px)` : '';
+    }
+    const orbital = document.querySelector<HTMLElement>('.hero-orbital');
     if (orbital) {
-      const p = clamp(y / window.innerHeight, 0, 1.2);
-      orbital.style.translate = `0 ${(p * 90).toFixed(1)}px`;
-      orbital.style.scale = `${(1 + p * 0.12).toFixed(3)}`;
+      orbital.style.translate = `0 ${(heroP * 220).toFixed(1)}px`;
+      orbital.style.scale = `${(1 + heroP * 0.45).toFixed(3)}`;
+      orbital.style.rotate = `${(heroP * 25).toFixed(1)}deg`;
     }
 
-    if (marquee) marquee.style.setProperty('--fx-skew', `${clamp(velocity * -0.25, -9, 9).toFixed(2)}deg`);
+    // Déformation liée à la vitesse : bandeau défilant et visuels des projets.
+    doc().style.setProperty('--fx-skew', `${clamp(velocity * -0.3, -12, 12).toFixed(2)}deg`);
 
-    if (star) star.style.rotate = `${(y * 0.12).toFixed(1)}deg`;
-
-    const signature = document.querySelector<HTMLElement>('.footer-signature');
-    if (signature) {
-      const rect = signature.getBoundingClientRect();
-      const p = clamp(1 - rect.top / window.innerHeight, 0, 1);
-      signature.style.setProperty('--fx-sig', `${((1 - p) * 60).toFixed(1)}px`);
+    const star = document.querySelector<HTMLElement>('.contact-star');
+    if (star) {
+      star.style.rotate = `${(y * 0.35).toFixed(1)}deg`;
+      star.style.scale = `${(1 + clamp(viewProgress(star) + 1, 0, 2) * 0.25).toFixed(3)}`;
     }
 
-    // On laisse la déformation du bandeau revenir à zéro après un arrêt brusque.
+    // Les grands titres de section glissent latéralement.
+    const slide = window.innerWidth < 760 ? 0 : 70;
+    document.querySelectorAll<HTMLElement>('.section-heading > div:first-child').forEach((el, i) => {
+      const p = viewProgress(el);
+      if (slide) el.style.translate = `${(p * (i % 2 === 0 ? -slide : slide)).toFixed(1)}px 0`;
+      else el.style.removeProperty('translate');
+    });
+
+    // Textes géants en fond, en sens opposés.
+    document.querySelectorAll<HTMLElement>('.fx-kinetic').forEach((band) => {
+      const p = viewProgress(band);
+      band.querySelectorAll<HTMLElement>('.fx-kinetic-row').forEach((row, i) => {
+        const dir = i % 2 === 0 ? 1 : -1;
+        row.style.translate = `${(-25 + dir * p * 25).toFixed(2)}% 0`;
+      });
+    });
+
+    // On laisse les déformations revenir à zéro après un arrêt brusque.
     if (Math.abs(velocity) > 0.3) requestTick();
   };
 
@@ -294,6 +366,7 @@ function startScrollEffects() {
 /* ---------- Mise en route ---------- */
 
 function scan(root: ParentNode) {
+  addKinetic(root);
   scanReveals(root);
   if (finePointer) {
     bindTilt(root);

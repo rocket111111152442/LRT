@@ -1,4 +1,11 @@
-/* Couche d'animations — voir fx.ts. Rien ne s'applique sans html.fx-on. */
+/* Couche d'animations — voir fx.ts. Rien ne s'applique sans html.fx-on,
+   ni quand le bouton « Motion » du site est sur off. */
+
+/* Les grandes entrées latérales ne doivent jamais créer de défilement horizontal. */
+html.fx-on,
+html.fx-on body {
+  overflow-x: clip;
+}
 
 /* ---------- Grain de film ---------- */
 .fx-grain {
@@ -20,234 +27,242 @@
   100% { translate: 0 0; }
 }
 
-/* ---------- Curseur personnalisé ---------- */
-html.fx-cursor:not([data-motion="off"]),
-html.fx-cursor:not([data-motion="off"]) a,
-html.fx-cursor:not([data-motion="off"]) button,
-html.fx-cursor:not([data-motion="off"]) [role="button"],
-html.fx-cursor:not([data-motion="off"]) summary,
-html.fx-cursor:not([data-motion="off"]) label {
-  cursor: none;
-}
-
-html.fx-cursor:not([data-motion="off"]) input,
-html.fx-cursor:not([data-motion="off"]) textarea,
-html.fx-cursor:not([data-motion="off"]) select {
-  cursor: auto;
-}
-
-.fx-cursor-dot,
+/* ---------- Souris : anneau discret, le curseur normal reste visible ---------- */
 .fx-cursor-ring {
   position: fixed;
   top: 0;
   left: 0;
   z-index: 10001;
-  pointer-events: none;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1px solid rgba(210, 253, 121, 0.45);
   border-radius: 50%;
+  pointer-events: none;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, scale 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s;
 }
 
-html.fx-cursor-live:not([data-motion="off"]) .fx-cursor-dot,
 html.fx-cursor-live:not([data-motion="off"]) .fx-cursor-ring {
   opacity: 1;
 }
 
-.fx-cursor-dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background: var(--accent, #d2fd79);
-}
-
-.fx-cursor-ring {
-  width: 38px;
-  height: 38px;
-  margin: -19px 0 0 -19px;
-  border: 1px solid rgba(210, 253, 121, 0.65);
-  mix-blend-mode: difference;
-  display: grid;
-  place-items: center;
-  transition: opacity 0.3s, scale 0.45s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s, border-color 0.3s;
-}
-
 .fx-cursor-ring[data-hover] {
-  scale: 1.8;
-  background: rgba(210, 253, 121, 0.16);
-  border-color: transparent;
+  scale: 1.5;
+  border-color: rgba(210, 253, 121, 0.8);
 }
 
-.fx-cursor-ring[data-view] {
-  scale: 2.4;
-  background: var(--accent, #d2fd79);
-  border-color: transparent;
-  mix-blend-mode: normal;
-}
-
-.fx-cursor-ring[data-view]::after {
-  content: "Voir";
-  color: #111211;
-  font: 600 6px/1 "Space Grotesk", sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.fx-cursor-ring[data-press] {
-  scale: 0.7;
-}
-
-/* ---------- Halo qui suit la souris ---------- */
-.fx-spot {
+/* ---------- Clic : onde de choc et éclats ---------- */
+.fx-wave {
   position: fixed;
-  inset: 0;
-  z-index: 9996;
+  z-index: 10002;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--accent, #d2fd79);
+  border-radius: 50%;
   pointer-events: none;
-  mix-blend-mode: screen;
-  background: radial-gradient(520px circle at var(--fx-x, -999px) var(--fx-y, -999px), rgba(210, 253, 121, 0.075), transparent 65%);
+  animation: fx-wave 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ---------- Éclats au clic ---------- */
+@keyframes fx-wave {
+  from { scale: 0.2; opacity: 1; }
+  to { scale: 14; opacity: 0; border-width: 0.5px; }
+}
+
 .fx-spark {
   position: fixed;
   z-index: 10002;
-  width: 5px;
-  height: 5px;
-  margin: -2.5px 0 0 -2.5px;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
   border-radius: 50%;
   pointer-events: none;
   background: var(--accent, #d2fd79);
-  box-shadow: 0 0 8px rgba(210, 253, 121, 0.9);
-  animation: fx-spark 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  box-shadow: 0 0 10px rgba(210, 253, 121, 0.9);
+  animation: fx-spark 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes fx-spark {
-  from { translate: 0 0; scale: 1; opacity: 1; }
+  from { translate: 0 0; scale: 1.4; opacity: 1; }
   to { translate: var(--fx-tx) var(--fx-ty); scale: 0; opacity: 0; }
 }
 
-/* ---------- Apparitions au défilement ---------- */
-html.fx-on:not([data-motion="off"]) [data-fx-reveal] {
-  transition:
-    all 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    translate 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    scale 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    clip-path 1.3s cubic-bezier(0.77, 0, 0.18, 1) var(--fx-d, 0ms),
-    letter-spacing 1.2s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms);
-}
-
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="up"]:not([data-fx-in]) {
+/* ---------- Grandes apparitions au défilement ----------
+   Au repos : seulement opacity 0 (un clip-path empêcherait l'IntersectionObserver
+   de voir l'élément). L'animation joue une fois, puis l'élément retrouve ses
+   propres styles (remplissage « backwards »). */
+html.fx-on:not([data-motion="off"]) [data-fx-reveal]:not([data-fx-in]) {
   opacity: 0;
-  translate: 0 48px;
-  filter: blur(8px);
 }
 
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="pop"]:not([data-fx-in]) {
-  opacity: 0;
-  scale: 0.6;
-  translate: 0 18px;
+html.fx-on:not([data-motion="off"]) [data-fx-reveal][data-fx-in] {
+  animation-duration: 1.2s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: var(--fx-d, 0ms);
+  animation-fill-mode: backwards;
 }
 
-/* Pas de clip-path au repos : Chrome compterait le titre comme invisible
-   et l'IntersectionObserver ne le déclencherait jamais. */
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="title"]:not([data-fx-in]) {
-  opacity: 0;
-  translate: 0 0.45em;
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="up"][data-fx-in] { animation-name: fx-up; }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="title"][data-fx-in] { animation-name: fx-title; animation-duration: 1.5s; }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="zoom"][data-fx-in] { animation-name: fx-zoom; animation-duration: 1.6s; }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="label"][data-fx-in] { animation-name: fx-label; }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="image"][data-fx-in] { animation-name: fx-image; animation-duration: 1.6s; animation-timing-function: cubic-bezier(0.77, 0, 0.18, 1); }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="flip"][data-fx-in] { animation-name: fx-flip; animation-duration: 1.4s; }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="swing"][data-fx-in] { animation-name: fx-swing; animation-duration: 1.3s; }
+html.fx-on:not([data-motion="off"]) [data-fx-reveal="scatter"][data-fx-in] { animation-name: fx-scatter; animation-duration: 1.4s; }
+
+@keyframes fx-up {
+  from { opacity: 0; transform: translateY(110px) scale(0.92); filter: blur(12px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
 }
 
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="title"][data-fx-in] {
-  animation: fx-title-wipe 1.3s cubic-bezier(0.77, 0, 0.18, 1) var(--fx-d, 0ms) both;
+@keyframes fx-title {
+  from { opacity: 0; transform: translateY(0.6em) skewY(9deg) scale(1.2); filter: blur(16px); clip-path: inset(0 0 100% 0); }
+  50% { opacity: 1; }
+  to { opacity: 1; transform: none; filter: blur(0); clip-path: inset(-20% -10% -30% -10%); }
 }
 
-@keyframes fx-title-wipe {
-  from { clip-path: inset(0 0 100% 0); }
-  to { clip-path: inset(-10% -5% -20% -5%); }
+@keyframes fx-zoom {
+  from { opacity: 0; transform: scale(0.35) rotate(-6deg); filter: blur(24px); letter-spacing: 0.3em; }
+  60% { opacity: 1; }
+  to { opacity: 1; transform: none; filter: blur(0); }
 }
 
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="label"]:not([data-fx-in]) {
-  opacity: 0;
-  letter-spacing: 0.6em;
+@keyframes fx-label {
+  from { opacity: 0; letter-spacing: 1.1em; filter: blur(6px); }
+  to { opacity: 1; filter: blur(0); }
 }
 
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="image"] {
-  clip-path: inset(0 0 0 0);
+@keyframes fx-image {
+  from { opacity: 1; clip-path: inset(100% 0 0 0); transform: scale(1.4) translateY(80px); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); transform: none; }
 }
 
-html.fx-on:not([data-motion="off"]) [data-fx-reveal="image"]:not([data-fx-in]) {
-  clip-path: inset(18% 12% 18% 12%);
-  scale: 1.08;
+@keyframes fx-flip {
+  from { opacity: 0; transform-origin: 50% 0; transform: perspective(1200px) translateY(140px) rotateX(-85deg) scale(0.9); }
+  70% { opacity: 1; }
+  to { opacity: 1; transform-origin: 50% 0; transform: perspective(1200px) translateY(0) rotateX(0) scale(1); }
 }
 
-/* ---------- Cartes en 3D + reflet ---------- */
+@keyframes fx-swing {
+  from { opacity: 0; transform: translateX(var(--fx-side, -220px)) rotate(var(--fx-rot, -9deg)) scale(0.85); filter: blur(10px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes fx-scatter {
+  from { opacity: 0; transform: translate(var(--fx-sx, 0px), var(--fx-sy, 0px)) rotate(var(--fx-sr, 0deg)) scale(0.2); }
+  70% { opacity: 1; }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Cartes en 3D (léger) + reflet ---------- */
 html.fx-on:not([data-motion="off"]) [data-fx-tilt] {
   transform: perspective(1000px) rotateX(var(--fx-rx, 0deg)) rotateY(var(--fx-ry, 0deg));
-  /* « all » garde les transitions d'origine, les suivantes priment pour nos propriétés. */
-  transition:
-    all 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    translate 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    scale 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  /* « all » garde les transitions d'origine ; la dernière prime pour transform. */
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html.fx-on:not([data-motion="off"]) [data-fx-tilt][data-fx-hover] {
-  transition:
-    all 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    translate 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    scale 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-d, 0ms),
-    transform 0.15s linear;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s linear;
 }
 
 html.fx-on:not([data-motion="off"]) .price-card[data-fx-hover],
 html.fx-on:not([data-motion="off"]) .values-grid > div[data-fx-hover],
 html.fx-on:not([data-motion="off"]) .steps-grid > div[data-fx-hover] {
-  background-image: radial-gradient(420px circle at var(--fx-gx, 50%) var(--fx-gy, 50%), rgba(210, 253, 121, 0.13), transparent 60%);
-  box-shadow: 0 30px 60px -30px rgba(210, 253, 121, 0.35);
+  background-image: radial-gradient(420px circle at var(--fx-gx, 50%) var(--fx-gy, 50%), rgba(210, 253, 121, 0.1), transparent 60%);
 }
 
-/* ---------- Boutons magnétiques ---------- */
+/* La formule mise en avant respire en continu. */
+html.fx-on:not([data-motion="off"]) .price-featured {
+  animation: fx-glow 3.2s ease-in-out infinite;
+}
+
+html.fx-on:not([data-motion="off"]) .price-featured[data-fx-reveal][data-fx-in] {
+  animation: fx-flip 1.4s cubic-bezier(0.16, 1, 0.3, 1) var(--fx-d, 0ms) backwards, fx-glow 3.2s ease-in-out calc(var(--fx-d, 0ms) + 1.4s) infinite;
+}
+
+@keyframes fx-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(210, 253, 121, 0); }
+  50% { box-shadow: 0 0 60px 6px rgba(210, 253, 121, 0.35); }
+}
+
+/* ---------- Boutons magnétiques (léger) ---------- */
 html.fx-on:not([data-motion="off"]) [data-fx-magnetic] {
   translate: var(--fx-mx, 0px) var(--fx-my, 0px);
   transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1), translate 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- Effets liés au défilement ---------- */
-html.fx-on:not([data-motion="off"]) .marquee > div {
-  transform-origin: 50% 50%;
+html.fx-on:not([data-motion="off"]) .action:hover {
+  box-shadow: 0 0 0 1px rgba(210, 253, 121, 0.4), 0 12px 40px -12px rgba(210, 253, 121, 0.75);
 }
 
+/* ---------- Déformation selon la vitesse de défilement ---------- */
 html.fx-on:not([data-motion="off"]) .marquee {
   transform: skewX(var(--fx-skew, 0deg));
   transition: transform 0.25s ease-out;
 }
 
-html.fx-on:not([data-motion="off"]) .footer-signature[data-fx-in] {
-  translate: 0 var(--fx-sig, 0px);
-  transition: opacity 0.9s, translate 0.2s linear, filter 0.9s;
+html.fx-on:not([data-motion="off"]) .project-visual {
+  transform: skewY(calc(var(--fx-skew, 0deg) * 0.5));
+  transition: transform 0.3s ease-out;
 }
 
-/* Lueur sur les boutons principaux au survol */
-html.fx-on:not([data-motion="off"]) .action:hover {
-  box-shadow: 0 0 0 1px rgba(210, 253, 121, 0.4), 0 12px 40px -12px rgba(210, 253, 121, 0.75);
+/* ---------- Textes géants en fond ---------- */
+.fx-kinetic {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.05em;
+  overflow: hidden;
+  pointer-events: none;
+  font-family: var(--heading, "Space Grotesk", sans-serif);
+  font-size: clamp(90px, 16vw, 260px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(210, 253, 121, 0.14);
 }
 
+.fx-kinetic-row {
+  width: max-content;
+  will-change: translate;
+}
+
+.method-home .fx-kinetic {
+  -webkit-text-stroke-color: rgba(17, 18, 17, 0.12);
+}
+
+html.fx-on .method-home {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+html.fx-on .method-home > .wrap,
+html.fx-on .contact-band > .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-motion="off"] .fx-kinetic,
 html[data-motion="off"] .fx-grain,
-html[data-motion="off"] .fx-spot,
-html[data-motion="off"] .fx-cursor-dot,
 html[data-motion="off"] .fx-cursor-ring,
+html[data-motion="off"] .fx-wave,
 html[data-motion="off"] .fx-spark {
   display: none;
 }
 
 @media print {
+  .fx-kinetic,
   .fx-grain,
-  .fx-spot,
-  .fx-cursor-dot,
   .fx-cursor-ring,
+  .fx-wave,
   .fx-spark {
     display: none;
   }
