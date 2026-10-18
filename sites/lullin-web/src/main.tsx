@@ -5,6 +5,7 @@ import './style.css';
 import './mobile.css';
 import './mobile-pages.css';
 import './fx.css';
+import './fx-brand.css';
 import './fx';
 const root=document.getElementById('root')!;
 root.replaceChildren();

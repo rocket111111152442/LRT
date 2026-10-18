@@ -17,11 +17,19 @@ pour la couche d'animations :
 - `public/images/lullin-logo-spin.svg` — nouveau. Logo vectorisé qui tourne sur
   lui-même dans le héros, à la place de la vidéo du trou noir (la vidéo n'est plus
   téléchargée). Ajouté par `fx.ts`, il reste immobile si les animations sont réduites.
-- `src/main.tsx` — modifié : deux lignes `import './fx.css'` et `import './fx'`.
+- `src/fx-brand.css` — nouveau. Le nouveau logo partout : remplace les astérisques
+  dessinés (après « simplement. » et en fond de la bande contact) et retire la
+  mention « Une autre dimension ».
+- `public/images/lullin-mark.svg`, `public/favicon.svg`, `public/favicon-48.png`,
+  `public/apple-touch-icon.png`, `public/images/favicon-512.png` — remplacés par
+  le nouveau logo (en-tête, pied de page, intro, pages, icônes d'onglet et de téléphone).
+- `src/main.tsx` — modifié : trois lignes `import './fx.css'`, `import './fx-brand.css'`
+  et `import './fx'`.
 - `tsconfig.json` — inchangé, copié pour pouvoir vérifier le typage de `fx.ts`.
 
 Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` et
-`src/fx.css` dans son dossier `src/`, `public/images/lullin-logo-spin.svg` dans `public/images/`, et ajouter les deux imports dans `src/main.tsx`.
+`src/fx.css` et `src/fx-brand.css` dans son dossier `src/`, le contenu de `public/`
+par-dessus son dossier `public/`, et ajouter les trois imports dans `src/main.tsx`.
 Sinon, le prochain `vercel deploy` fait depuis l'ancienne copie supprimera les animations.
 
 Garde-fous :

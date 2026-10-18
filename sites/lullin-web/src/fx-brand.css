@@ -1,0 +1,23 @@
+/* Identité : le nouveau logo partout — voir fx.ts pour le logo qui tourne. */
+
+/* ---------- Le nouveau logo partout ---------- */
+/* Retrait de la mention « Une autre dimension » à côté du logo du héros. */
+.hero-orbital .orbit-label-top {
+  display: none;
+}
+
+/* Les astérisques dessinés (après « simplement. » et en fond de la bande contact)
+   sont remplacés par le logo, à la même taille. */
+.headline-star,
+.contact-star {
+  background: url("/images/lullin-mark.svg") center / contain no-repeat;
+}
+
+.headline-star > svg,
+.contact-star > svg {
+  visibility: hidden;
+}
+
+.contact-star {
+  opacity: 0.05;
+}
