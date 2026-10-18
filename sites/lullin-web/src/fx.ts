@@ -405,6 +405,54 @@ function start() {
   );
 }
 
+/* ---------- Logo à la place de la vidéo du trou noir ----------
+   Actif même quand les animations sont réduites : le logo reste alors immobile. */
+
+const HERO_LOGO = '/images/lullin-logo-spin.svg';
+
+function swapHeroMedia() {
+  document.querySelectorAll<HTMLElement>('.hero-orbital').forEach((orbital) => {
+    // On coupe la vidéo pour ne pas la télécharger pour rien.
+    orbital.querySelectorAll<HTMLVideoElement>('video.hero-video').forEach((video) => {
+      if (!video.getAttribute('src') && !video.hasAttribute('data-fx-muted')) return;
+      video.setAttribute('data-fx-muted', '');
+      if (video.getAttribute('src')) {
+        video.pause();
+        video.removeAttribute('src');
+        video.removeAttribute('poster');
+        video.load();
+      }
+    });
+    if (orbital.querySelector(':scope > .fx-hero-logo')) return;
+    const logo = document.createElement('img');
+    logo.className = 'fx-hero-logo';
+    logo.src = HERO_LOGO;
+    logo.alt = '';
+    logo.width = 520;
+    logo.height = 520;
+    logo.decoding = 'async';
+    logo.setAttribute('aria-hidden', 'true');
+    orbital.prepend(logo);
+  });
+}
+
+function startHeroLogo() {
+  doc().classList.add('fx-logo');
+  swapHeroMedia();
+  // Synchrone (pas de délai) pour couper la vidéo avant qu'elle ne se charge.
+  new MutationObserver(swapHeroMedia).observe(document.getElementById('root') ?? document.body, {
+    childList: true,
+    subtree: true,
+  });
+  window.addEventListener('resize', swapHeroMedia, { passive: true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startHeroLogo, { once: true });
+} else {
+  startHeroLogo();
+}
+
 if (!reduceMotion && 'IntersectionObserver' in window) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start, { once: true });

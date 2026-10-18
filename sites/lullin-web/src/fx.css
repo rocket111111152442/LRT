@@ -7,6 +7,39 @@ html.fx-on body {
   overflow-x: clip;
 }
 
+/* ---------- Logo qui tourne à la place de la vidéo ---------- */
+html.fx-logo .hero-orbital > .hero-video {
+  display: none;
+}
+
+/* Spécificité renforcée : le site a déjà une règle « .hero-orbital > img ». */
+.hero-orbital > img.fx-hero-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  opacity: 1;
+  animation: none;
+  z-index: 0;
+  height: min(76%, 330px);
+  width: auto;
+  aspect-ratio: 1;
+  margin: 0;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 0 28px rgba(210, 253, 121, 0.18));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="off"]) .hero-orbital > img.fx-hero-logo {
+    animation: fx-logo-spin 18s linear infinite;
+  }
+}
+
+@keyframes fx-logo-spin {
+  to { rotate: 360deg; }
+}
+
 /* ---------- Grain de film ---------- */
 .fx-grain {
   position: fixed;
