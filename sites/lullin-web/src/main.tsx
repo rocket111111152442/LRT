@@ -7,6 +7,7 @@ import './mobile-pages.css';
 import './fx.css';
 import './fx-brand.css';
 import './fx';
+import './fx-tech';
 const root=document.getElementById('root')!;
 root.replaceChildren();
 ReactDOM.createRoot(root).render(<React.StrictMode><App /></React.StrictMode>);

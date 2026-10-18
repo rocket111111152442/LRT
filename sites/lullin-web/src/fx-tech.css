@@ -1,0 +1,71 @@
+/* Fond technique — voir fx-tech.ts. */
+
+.fx-topo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* Rail de mesures en direct, le long du bord droit (grands écrans uniquement). */
+.fx-rail {
+  position: fixed;
+  top: 50%;
+  right: 14px;
+  z-index: 30;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  writing-mode: vertical-rl;
+  translate: 0 -50%;
+  pointer-events: none;
+  font: 500 9.5px/1 ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.14em;
+  color: rgba(240, 240, 232, 0.42);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-rail i {
+  width: 1px;
+  height: 22px;
+  background: rgba(210, 253, 121, 0.35);
+}
+
+.fx-rail-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent, #d2fd79);
+  box-shadow: 0 0 8px rgba(210, 253, 121, 0.9);
+  animation: fx-rail-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes fx-rail-pulse {
+  50% { opacity: 0.25; }
+}
+
+@media (min-width: 1280px) {
+  .fx-rail {
+    display: flex;
+  }
+}
+
+html[data-motion="off"] .fx-rail-dot {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-rail-dot {
+    animation: none;
+  }
+}
+
+@media print {
+  .fx-topo,
+  .fx-rail {
+    display: none;
+  }
+}

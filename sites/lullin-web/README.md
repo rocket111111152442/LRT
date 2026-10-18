@@ -23,13 +23,18 @@ pour la couche d'animations :
 - `public/images/lullin-mark.svg`, `public/favicon.svg`, `public/favicon-48.png`,
   `public/apple-touch-icon.png`, `public/images/favicon-512.png` — remplacés par
   le nouveau logo (en-tête, pied de page, intro, pages, icônes d'onglet et de téléphone).
-- `src/main.tsx` — modifié : trois lignes `import './fx.css'`, `import './fx-brand.css'`
-  et `import './fx'`.
+- `src/fx-tech.ts` + `src/fx-tech.css` — nouveaux. Fond technique : carte
+  topographique animée en WebGL2 (courbes de niveau calculées par la carte graphique,
+  qui se creusent autour de la souris, grille de points façon plan) et rail de mesures
+  en direct sur le bord droit (grands écrans). Arrêtée si l'onglet est masqué, si le
+  bouton « Motion » est sur off ou si l'appareil demande moins d'animations.
+- `src/main.tsx` — modifié : quatre lignes `import './fx.css'`, `import './fx-brand.css'`,
+  `import './fx'` et `import './fx-tech'`.
 - `tsconfig.json` — inchangé, copié pour pouvoir vérifier le typage de `fx.ts`.
 
 Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` et
-`src/fx.css` et `src/fx-brand.css` dans son dossier `src/`, le contenu de `public/`
-par-dessus son dossier `public/`, et ajouter les trois imports dans `src/main.tsx`.
+`src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts` et `src/fx-tech.css` dans son dossier `src/`, le contenu de `public/`
+par-dessus son dossier `public/`, et ajouter les quatre imports dans `src/main.tsx`.
 Sinon, le prochain `vercel deploy` fait depuis l'ancienne copie supprimera les animations.
 
 Garde-fous :
