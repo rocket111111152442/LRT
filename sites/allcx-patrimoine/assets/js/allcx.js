@@ -7,6 +7,24 @@
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------------------------------------------------------------------
+     Intro d'entrée : une seule fois par session, passée sous silence
+     si l'utilisateur préfère moins de mouvement
+     --------------------------------------------------------------------- */
+  var intro = document.querySelector('[data-intro]');
+  if (intro) {
+    if (reduceMotion || intro.classList.contains('intro--skip')) {
+      intro.remove();
+    } else {
+      document.body.classList.add('no-scroll');
+      setTimeout(function () {
+        intro.classList.add('is-done');
+        document.body.classList.remove('no-scroll');
+        setTimeout(function () { intro.remove(); }, 650);
+      }, 1150);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      En-tête : état « collé » au défilement
      --------------------------------------------------------------------- */
   var header = document.querySelector('[data-header]');

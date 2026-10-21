@@ -508,7 +508,9 @@ def _more(B):
 
     <h2 class="display-md mt-6" data-reveal>Recherche pour le compte de l’acquéreur</h2>
     <ul class="list-rule mt-3" data-reveal>
-      <li><span class="k">Mandat de recherche</span><span class="v">5 % TTC du prix d’acquisition</span></li>
+      <li><span class="k">Bien en-dessous de 100 000 €</span><span class="v">Forfait de 7 000 € TTC</span></li>
+      <li><span class="k">Bien au prix compris entre 100 000 € et 200 000 €</span><span class="v">7 % TTC</span></li>
+      <li><span class="k">Bien au prix supérieur à 200 000 €</span><span class="v">6 % TTC</span></li>
       <li><span class="k">Honoraires à la charge de</span><span class="v">l’acquéreur</span></li>
     </ul>
 
