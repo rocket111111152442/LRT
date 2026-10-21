@@ -219,11 +219,24 @@ FONTS_PATRIMOINE = ("https://fonts.googleapis.com/css2?family=Cormorant+Garamond
 FONTS = {"patrimoine": FONTS_PATRIMOINE}
 
 
+INTRO_MARK = MARK_PATRIMOINE.replace('class="logo__mark"', 'class="intro__svg"')
+
+INTRO_SKIP_SCRIPT = (
+    "<script>(function(){try{"
+    "if(sessionStorage.getItem('allcx-intro-seen')){"
+    "document.currentScript.previousElementSibling.className='intro intro--skip';"
+    "}else{sessionStorage.setItem('allcx-intro-seen','1');}"
+    "}catch(e){}})();</script>"
+)
+
+
 def page(brand, filename, title, description, body):
     """Écrit une page complète."""
     path = filename
     doc = [head(brand, title, description, path, FONTS[brand])]
     doc.append(f'<body data-brand="{brand}">')
+    doc.append(f'<div class="intro" data-intro aria-hidden="true">{INTRO_MARK}</div>')
+    doc.append(INTRO_SKIP_SCRIPT)
     doc.append(header(brand, filename))
     doc.append('<main id="contenu">')
     doc.append(body)

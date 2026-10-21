@@ -24,7 +24,7 @@ def pages(B):
       </div>
       <div data-reveal>
         <figure class="hero-figure hero-figure--fill">
-          <img src="assets/img/haussmann.svg" alt="Façade haussmannienne : pierre de taille, balcons en fer forgé et toiture en zinc." width="1200" height="900" loading="eager">
+          <img src="assets/img/haussmann.webp" alt="Façade haussmannienne : pierre de taille, balcons en fer forgé et toiture en zinc." width="1600" height="1200" loading="eager">
         </figure>
       </div>
     </div>
@@ -125,7 +125,7 @@ def pages(B):
       <article class="estate" data-reveal>
         <div class="estate__media">
           <span class="estate__tag">Immeuble de rapport</span>
-          <img src="assets/img/haussmann.svg" alt="Façade d’immeuble haussmannien." width="1200" height="900" loading="lazy">
+          <img src="assets/img/haussmann.webp" alt="Façade d’immeuble haussmannien." width="1600" height="1200" loading="lazy">
         </div>
         <div class="estate__body">
           <h3>Haussmannien de centre-ville</h3>
@@ -136,7 +136,7 @@ def pages(B):
       <article class="estate" data-reveal>
         <div class="estate__media">
           <span class="estate__tag">Résidence</span>
-          <img src="assets/img/villa.svg" alt="Villa contemporaine avec piscine et terrasse." width="1200" height="900" loading="lazy">
+          <img src="assets/img/villa.webp" alt="Villa contemporaine avec piscine et terrasse." width="1600" height="1200" loading="lazy">
         </div>
         <div class="estate__body">
           <h3>Villa et maison d’exception</h3>
@@ -147,7 +147,7 @@ def pages(B):
       <article class="estate" data-reveal>
         <div class="estate__media">
           <span class="estate__tag">Fonds de commerce</span>
-          <img src="assets/img/hotel.svg" alt="Façade d’un hôtel avec marquise et stores." width="1200" height="900" loading="lazy">
+          <img src="assets/img/hotel.webp" alt="Façade d’un hôtel avec marquise et stores." width="1600" height="1200" loading="lazy">
         </div>
         <div class="estate__body">
           <h3>Hôtellerie et actifs d’exploitation</h3>
@@ -246,7 +246,7 @@ def pages(B):
       </div>
       <div data-reveal>
         <figure class="figure-frame">
-          <img src="assets/img/interieur.svg" alt="Intérieur haussmannien : moulures, cheminée en marbre et parquet à bâtons rompus." width="1200" height="900" loading="lazy">
+          <img src="assets/img/interieur.webp" alt="Intérieur haussmannien : moulures, cheminée en marbre et parquet à bâtons rompus." width="1600" height="1200" loading="lazy">
         </figure>
       </div>
     </div>

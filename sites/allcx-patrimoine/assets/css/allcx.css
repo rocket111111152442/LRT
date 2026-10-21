@@ -748,6 +748,7 @@ body.no-scroll { overflow: hidden; }
 
 .hero-figure {
   position: relative;
+  overflow: hidden;
   border: 1px solid var(--line);
   background: var(--paper);
   box-shadow: var(--shadow-md);
@@ -1497,15 +1498,68 @@ body[data-brand="portail"] { background: var(--bordeaux-950); }
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity .85s var(--ease), transform .85s var(--ease);
+  transform: translateY(18px) scale(.985);
+  filter: blur(5px);
+  transition: opacity .85s var(--ease), transform .85s var(--ease), filter .85s var(--ease);
   transition-delay: var(--reveal-delay, 0ms);
 }
-[data-reveal].is-visible { opacity: 1; transform: none; }
-.no-js [data-reveal] { opacity: 1; transform: none; }
+[data-reveal].is-visible { opacity: 1; transform: none; filter: blur(0); }
+.no-js [data-reveal] { opacity: 1; transform: none; filter: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] { opacity: 1 !important; transform: none !important; }
+  [data-reveal] { opacity: 1 !important; transform: none !important; filter: none !important; }
+}
+
+/* --------------------------------------------------------------------------
+   14b. Mouvement d'image — hero
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-figure--fill img { animation: kenburns 13s var(--ease) both; }
+}
+@keyframes kenburns {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   14c. Intro d'entrée
+   -------------------------------------------------------------------------- */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-deep);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .6s var(--ease), visibility 0s linear 0s;
+}
+.intro__svg {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: var(--gold-300);
+  opacity: 0;
+  transform: scale(.8);
+  animation: intro-mark .9s var(--ease) .15s forwards;
+}
+.intro.is-done {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .6s var(--ease), visibility 0s linear .6s;
+}
+.intro--skip,
+.no-js .intro { display: none !important; }
+
+@keyframes intro-mark {
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro { display: none !important; }
 }
 
 /* --------------------------------------------------------------------------
