@@ -478,26 +478,24 @@ def _more(B):
 <section class="section">
   <div class="shell shell--narrow">
     <div class="card" data-reveal>
-      <p class="index-num">À compléter avant mise en ligne</p>
-      <p>Les montants ci-dessous doivent être renseignés par le titulaire de la carte professionnelle avant
-      la publication du site. L’affichage d’un barème complet, en euros toutes taxes comprises, est
-      obligatoire et contrôlé.</p>
+      <p class="index-num">Encore à compléter</p>
+      <p>Les tarifs de location classique (hors relocation) et la date d’entrée en vigueur du barème restent
+      à renseigner par le titulaire de la carte professionnelle avant la publication du site. L’affichage
+      d’un barème complet, en euros toutes taxes comprises, est obligatoire et contrôlé.</p>
     </div>
 
     <h2 class="display-md mt-6" data-reveal>Transaction — vente</h2>
     <ul class="list-rule mt-3" data-reveal>
-      <li><span class="k">Tranche de prix jusqu’à 100 000 €</span><span class="v">""" + TODO + """ € TTC</span></li>
-      <li><span class="k">De 100 001 € à 300 000 €</span><span class="v">""" + TODO + """ % TTC</span></li>
-      <li><span class="k">De 300 001 € à 600 000 €</span><span class="v">""" + TODO + """ % TTC</span></li>
-      <li><span class="k">Au-delà de 600 000 €</span><span class="v">""" + TODO + """ % TTC</span></li>
-      <li><span class="k">Honoraires à la charge de</span><span class="v">""" + TODO + """</span></li>
+      <li><span class="k">Bien en-dessous de 100 000 €</span><span class="v">Forfait de 7 000 € TTC</span></li>
+      <li><span class="k">Bien au prix compris entre 100 000 € et 200 000 €</span><span class="v">7 % TTC</span></li>
+      <li><span class="k">Bien au prix supérieur à 200 000 €</span><span class="v">6 % TTC</span></li>
+      <li><span class="k">Honoraires à la charge de</span><span class="v">le vendeur</span></li>
     </ul>
 
-    <h2 class="display-md mt-6" data-reveal>Fonds de commerce et murs commerciaux</h2>
+    <h2 class="display-md mt-6" data-reveal>Fonds de commerce et locaux commerciaux</h2>
     <ul class="list-rule mt-3" data-reveal>
-      <li><span class="k">Cession de fonds de commerce</span><span class="v">""" + TODO + """ % TTC</span></li>
-      <li><span class="k">Cession de murs commerciaux</span><span class="v">""" + TODO + """ % TTC</span></li>
-      <li><span class="k">Honoraires minimum</span><span class="v">""" + TODO + """ € TTC</span></li>
+      <li><span class="k">Fonds de commerce et locaux commerciaux</span><span class="v">10 % TTC</span></li>
+      <li><span class="k">Honoraires à la charge de</span><span class="v">le vendeur</span></li>
     </ul>
 
     <h2 class="display-md mt-6" data-reveal>Location et relocation</h2>
@@ -505,13 +503,13 @@ def _more(B):
       <li><span class="k">Visite, constitution du dossier et rédaction du bail (locataire)</span><span class="v">""" + TODO + """ € TTC / m² de surface habitable</span></li>
       <li><span class="k">État des lieux (locataire)</span><span class="v">""" + TODO + """ € TTC / m² de surface habitable</span></li>
       <li><span class="k">Entremise et négociation (bailleur)</span><span class="v">""" + TODO + """ € TTC</span></li>
-      <li><span class="k">Accompagnement à l’installation (prestation distincte)</span><span class="v">""" + TODO + """ € TTC</span></li>
+      <li><span class="k">Relocation — accompagnement complet à l’installation</span><span class="v">1 mois de loyer hors charges</span></li>
     </ul>
 
     <h2 class="display-md mt-6" data-reveal>Recherche pour le compte de l’acquéreur</h2>
     <ul class="list-rule mt-3" data-reveal>
-      <li><span class="k">Mandat de recherche</span><span class="v">""" + TODO + """ % TTC du prix d’acquisition</span></li>
-      <li><span class="k">Honoraires minimum</span><span class="v">""" + TODO + """ € TTC</span></li>
+      <li><span class="k">Mandat de recherche</span><span class="v">5 % TTC du prix d’acquisition</span></li>
+      <li><span class="k">Honoraires à la charge de</span><span class="v">l’acquéreur</span></li>
     </ul>
 
     <div class="prose mt-6" data-reveal>
