@@ -43,7 +43,7 @@ def pages(B):
       </div>
       <div data-reveal>
         <figure class="figure-frame">
-          <img src="assets/img/haussmann.svg" alt="Immeuble haussmannien de centre-ville." width="1200" height="900" loading="lazy">
+          <img src="assets/img/haussmann.webp" alt="Immeuble haussmannien de centre-ville." width="1600" height="1200" loading="lazy">
         </figure>
         <div class="card mt-3">
           <p class="index-num">Rappel</p>
@@ -61,7 +61,7 @@ def pages(B):
     <div class="split split--wide-right split--top">
       <div data-reveal>
         <figure class="figure-frame">
-          <img src="assets/img/hotel.svg" alt="Façade d’un hôtel avec marquise." width="1200" height="900" loading="lazy">
+          <img src="assets/img/hotel.webp" alt="Façade d’un hôtel avec marquise." width="1600" height="1200" loading="lazy">
         </figure>
       </div>
       <div data-reveal>
@@ -187,7 +187,7 @@ def pages(B):
       </div>
       <div data-reveal>
         <figure class="figure-frame">
-          <img src="assets/img/villa.svg" alt="Villa contemporaine avec piscine." width="1200" height="900" loading="lazy">
+          <img src="assets/img/villa.webp" alt="Villa contemporaine avec piscine." width="1600" height="1200" loading="lazy">
         </figure>
       </div>
     </div>
@@ -239,7 +239,7 @@ def pages(B):
           informé avant toute présentation. Aucun partenaire n’est recommandé sur ce seul critère.</p>
         </div>
         <figure class="figure-frame mt-3">
-          <img src="assets/img/interieur.svg" alt="Intérieur haussmannien avec cheminée et parquet." width="1200" height="900" loading="lazy">
+          <img src="assets/img/interieur.webp" alt="Intérieur haussmannien avec cheminée et parquet." width="1600" height="1200" loading="lazy">
         </figure>
       </div>
     </div>
@@ -377,7 +377,7 @@ def _more(B):
         return f"""<article class="estate" data-reveal>
         <div class="estate__media">
           <span class="estate__tag">{tag}</span>
-          <img src="assets/img/{img}" alt="{alt}" width="1200" height="900" loading="lazy">
+          <img src="assets/img/{img}" alt="{alt}" width="1600" height="1200" loading="lazy">
         </div>
         <div class="estate__body">
           <h3>{title}</h3>
@@ -397,42 +397,42 @@ def _more(B):
   <div class="shell">
     <div class="grid grid-3" data-reveal-group>
       """ + estate(
-        "Immeuble de rapport", "haussmann.svg",
+        "Immeuble de rapport", "haussmann.webp",
         "Façade d’immeuble haussmannien en pierre de taille.",
         "Haussmannien de centre-ville",
         "Appartements de rapport et lots à diviser, dans les secteurs où la demande locative reste soutenue "
         "toute l’année. Attention particulière aux charges de copropriété et aux travaux votés.",
         ["Locatif", "Centre-ville", "France entière"],
     ) + estate(
-        "Résidence", "villa.svg",
+        "Résidence", "villa.webp",
         "Villa contemporaine avec piscine et terrasse.",
         "Villa et maison d’exception",
         "Résidence principale ou secondaire, en direct ou par l’intermédiaire de nos partenaires spécialisés "
         "dans l’immobilier de prestige. Accès à des biens présentés de manière confidentielle.",
         ["Acquisition", "Prestige", "Sur dossier"],
     ) + estate(
-        "Fonds de commerce", "hotel.svg",
+        "Fonds de commerce", "hotel.webp",
         "Façade d’un hôtel avec marquise et stores.",
         "Hôtellerie et actifs d’exploitation",
         "Reprise d’exploitation, murs seuls ou murs et fonds. Analyse du compte d’exploitation, du bail "
         "commercial et des engagements repris avant toute offre.",
         ["Investissement", "Exploitation", "Négociation"],
     ) + estate(
-        "Commerce", "commerce.svg",
+        "Commerce", "commerce.webp",
         "Local commercial en pied d’immeuble avec vitrine et store banne.",
         "Local et murs commerciaux",
         "Pieds d’immeuble, commerces de détail et locaux de services. Emplacement, flux de passage, "
         "destination du bail et loyer de marché constituent l’essentiel de l’analyse.",
         ["Murs", "Bail commercial", "Rendement"],
     ) + estate(
-        "Résidence principale", "interieur.svg",
+        "Résidence principale", "interieur.webp",
         "Intérieur haussmannien avec moulures, cheminée et parquet à bâtons rompus.",
         "Appartement de caractère",
         "Biens anciens à réhabiliter ou déjà rénovés. Chiffrage des travaux, contraintes de copropriété et "
         "performance énergétique instruits avant l’offre.",
         ["Acquisition", "Ancien", "Travaux"],
     ) + estate(
-        "Mobilité", "residence.svg",
+        "Mobilité", "residence.webp",
         "Résidence contemporaine avec balcons et jardins.",
         "Location pour personnes en mobilité",
         "Maisons et appartements destinés à la location meublée ou nue pour des séjours professionnels, "
