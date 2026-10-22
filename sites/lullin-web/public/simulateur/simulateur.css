@@ -130,28 +130,6 @@
 .simu-link-grid span { color: var(--muted); font-size: 13px; line-height: 1.55; }
 .simu-link-grid svg { position: absolute; top: 22px; right: 20px; color: var(--accent); }
 
-/* Types de sites, critères de prix et exemples */
-.simu-table td.simu-price { color: var(--accent); font-weight: 600; }
-.simu-table td.simu-ideal { min-width: 240px; white-space: normal; line-height: 1.55; }
-.simu-table > p a { color: var(--paper); }
-.simu-factors { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin: 0; padding: 0; list-style: none; counter-reset: factor; }
-.simu-factors li { counter-increment: factor; padding: 24px 24px 26px; border: 1px solid var(--line); background: var(--surface); }
-.simu-factors li::before { content: counter(factor, decimal-leading-zero); display: block; margin-bottom: 12px; color: var(--accent); font-family: var(--heading); font-size: 13px; }
-.simu-factors h3 { margin: 0 0 10px; font-size: 19px; font-weight: 600; letter-spacing: -.03em; line-height: 1.3; }
-.simu-factors p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
-.simu-factors-section .section-heading p a, .simu-examples-section .section-heading p a { color: var(--paper); }
-.simu-examples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-.simu-example { display: flex; flex-direction: column; padding: 26px 24px 24px; border: 1px solid var(--line); background: var(--surface); }
-.simu-example h3 { margin: 0 0 8px; font-size: 19px; font-weight: 600; letter-spacing: -.03em; }
-.simu-example > p { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.simu-example .simu-example-total { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
-.simu-example .simu-example-total small { color: var(--muted); font-size: 13px; }
-.simu-example .simu-example-total strong { color: var(--accent); font-family: var(--heading); font-size: 34px; font-weight: 600; letter-spacing: -.05em; line-height: 1; }
-.simu-example .simu-lines { flex: 1; }
-.simu-example .simu-example-year { margin: 0 0 16px; font-size: 13px; }
-.simu-example .simu-example-year b { color: var(--paper); font-weight: 600; }
-.simu-page .simu-example > a { align-self: flex-start; color: var(--accent); font-size: 13px; font-weight: 600; }
-
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1100px) {
@@ -159,7 +137,6 @@
   .simu-panel { position: static; }
   .simu-howto { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .simu-link-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .simu-examples { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 700px) {
@@ -177,18 +154,7 @@
   .simu-tables { grid-template-columns: minmax(0, 1fr); }
   .simu-table th, .simu-table td { padding: 10px 14px; }
   .simu-table td { white-space: normal; }
-  .simu-howto, .simu-link-grid, .simu-factors { grid-template-columns: minmax(0, 1fr); }
-  .simu-factors li, .simu-example { padding: 20px 18px; }
-  /* Types de sites : une carte par ligne au lieu d'un tableau à faire défiler. */
-  .simu-types thead, .simu-types td.simu-na { display: none; }
-  .simu-types caption { display: block; }
-  .simu-types, .simu-types tbody { display: block; }
-  .simu-types tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; padding: 14px; border-top: 1px solid var(--line); }
-  .simu-table .simu-types th, .simu-table .simu-types td { padding: 0; border: 0; white-space: normal; }
-  .simu-types td.simu-price { grid-column: 2; grid-row: 1; text-align: right; }
-  .simu-types td[data-label] { grid-column: 1 / -1; font-size: 13px; }
-  .simu-types td[data-label]::before { content: attr(data-label) " : "; color: var(--muted); }
-  .simu-table .simu-types td.simu-ideal { grid-column: 1 / -1; min-width: 0; font-size: 13px; }
+  .simu-howto, .simu-link-grid { grid-template-columns: minmax(0, 1fr); }
 
   .simu-ready .simu-bar { position: fixed; z-index: 40; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border: 1px solid #d2fd7966; background: #161815f2; backdrop-filter: blur(10px); box-shadow: 0 12px 40px #00000080; transition: transform .35s var(--ease), opacity .35s; }
   .simu-bar.is-hidden { transform: translateY(140%); opacity: 0; pointer-events: none; }

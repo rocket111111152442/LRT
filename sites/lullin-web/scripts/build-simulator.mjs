@@ -277,6 +277,7 @@ const head = `<!doctype html>
     <meta name="twitter:image" content="${SITE}/images/og-cover.jpg" />
     ${headAssets}
     <link rel="stylesheet" href="/simulateur/simulateur.css?v=${version('simulateur/simulateur.css')}" />
+    <link rel="stylesheet" href="/simulateur/simulateur-contenu.css?v=${version('simulateur/simulateur-contenu.css')}" />
     <link rel="modulepreload" href="/simulateur/tarifs.js" />
     <style>[hidden]{display:none !important}</style>
     ${jsonLd({
