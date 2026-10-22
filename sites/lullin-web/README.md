@@ -28,13 +28,21 @@ pour la couche d'animations :
   qui se creusent autour de la souris, grille de points façon plan) et rail de mesures
   en direct sur le bord droit (grands écrans). Arrêtée si l'onglet est masqué, si le
   bouton « Motion » est sur off ou si l'appareil demande moins d'animations.
-- `src/main.tsx` — modifié : quatre lignes `import './fx.css'`, `import './fx-brand.css'`,
-  `import './fx'` et `import './fx-tech'`.
+- `api/google-reviews.ts` — nouveau. Fonction serveur qui lit la note, le nombre
+  d'avis et les derniers avis Google via l'API Google Places (New). Clé dans la
+  variable Vercel `GOOGLE_PLACES_API_KEY` ; fiche trouvée par `GOOGLE_PLACE_ID` si
+  défini, sinon par recherche « Lullin Web ». Réponse en cache 12 h sur le CDN.
+- `src/fx-reviews.ts` + `src/fx-reviews.css` — nouveaux. Section « Avis Google »
+  insérée juste avant la FAQ ; rien n'est affiché si l'API ne répond pas.
+- `src/main.tsx` — modifié : lignes `import './fx.css'`, `import './fx-brand.css'`,
+  `import './fx'`, `import './fx-tech'` et `import './fx-reviews'` (en plus de
+  `import './communication.css'` ajouté de ton côté).
 - `tsconfig.json` — inchangé, copié pour pouvoir vérifier le typage de `fx.ts`.
 
 Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` et
-`src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts` et `src/fx-tech.css` dans son dossier `src/`, le contenu de `public/`
-par-dessus son dossier `public/`, et ajouter les quatre imports dans `src/main.tsx`.
+`src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts`, `src/fx-tech.css`, `src/fx-reviews.ts`
+et `src/fx-reviews.css` dans son dossier `src/`, `api/google-reviews.ts` dans `api/`, le contenu de `public/`
+par-dessus son dossier `public/`, et reprendre `src/main.tsx`.
 Sinon, le prochain `vercel deploy` fait depuis l'ancienne copie supprimera les animations.
 
 Garde-fous :
