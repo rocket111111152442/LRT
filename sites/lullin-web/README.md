@@ -43,6 +43,8 @@ pour la couche d'animations :
     vers `/contact?offre=…&type=…&maintenance=…`, événements anonymes dans
     `window.dataLayer` (`simulator_view`, `simulator_change`, `simulator_suggestion_click`,
     `simulator_cta_click`).
+  - `public/simulateur/simulateur-contenu.css` — nouveau. Styles du contenu éditorial de la
+    page (types de sites, critères de prix, exemples de budgets).
   - `scripts/build-simulator.mjs` — nouveau, lancé à la fin de `npm run build`. Génère
     la page statique (en-tête, pied de page et CSS repris de `dist/blog/index.html`,
     métadonnées, JSON-LD WebPage + BreadcrumbList + FAQPage), l'ajoute à
