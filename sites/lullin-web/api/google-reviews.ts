@@ -1,11 +1,13 @@
 // Avis Google de Lullin Web, lus via l'API Google Places (New).
 // La clé reste côté serveur (variable d'environnement GOOGLE_PLACES_API_KEY).
 // La fiche est trouvée par son identifiant GOOGLE_PLACE_ID s'il est défini, sinon
-// par une recherche « Lullin Web » dont le résultat doit porter le nom Lullin.
+// par une recherche dont le résultat doit s'appeler « Lullin web ».
 // Réponse mise en cache 12 h sur le CDN de Vercel : environ deux appels Google par jour.
 
 const PLACES = 'https://places.googleapis.com/v1';
-const SEARCH_QUERY = 'Lullin Web';
+const SEARCH_QUERIES = ['Lullin web', 'Lullin web création de site internet', 'Lullin web agence web'];
+// « Lullin » seul désigne aussi une commune de Haute-Savoie : on exige « Lullin web ».
+const NAME_PATTERN = /lullin[\s-]*web/i;
 const CACHE_OK = 'public, max-age=0, s-maxage=43200, stale-while-revalidate=86400';
 const CACHE_ERROR = 'public, max-age=0, s-maxage=600';
 
@@ -32,22 +34,33 @@ function reply(status: number, body: Record<string, unknown>, cache: string) {
   return Response.json(body, { status, headers: { 'Cache-Control': cache } });
 }
 
-async function findPlaceId(key: string): Promise<string | null> {
+type Match = { id: string | null; candidates: string[] };
+
+async function findPlaceId(key: string): Promise<Match> {
   const fromEnv = process.env.GOOGLE_PLACE_ID?.trim();
-  if (fromEnv) return fromEnv;
-  // Masque « places.id » seul : recherche facturée au niveau le plus bas.
-  const res = await fetch(`${PLACES}/places:searchText`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': key,
-      'X-Goog-FieldMask': 'places.id',
-    },
-    body: JSON.stringify({ textQuery: SEARCH_QUERY, languageCode: 'fr', regionCode: 'FR' }),
-  });
-  if (!res.ok) throw new Error(`search ${res.status}`);
-  const data = (await res.json()) as { places?: Array<{ id?: string }> };
-  return data.places?.[0]?.id ?? null;
+  if (fromEnv) return { id: fromEnv, candidates: [] };
+  const candidates: string[] = [];
+  // Plusieurs formulations : une fiche sans adresse publique (zone desservie) ne sort
+  // pas toujours en premier. On garde le premier résultat nommé « Lullin web ».
+  for (const textQuery of SEARCH_QUERIES) {
+    const res = await fetch(`${PLACES}/places:searchText`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': key,
+        'X-Goog-FieldMask': 'places.id,places.displayName',
+      },
+      body: JSON.stringify({ textQuery, languageCode: 'fr', pageSize: 10 }),
+    });
+    if (!res.ok) throw new Error(`search ${res.status}`);
+    const data = (await res.json()) as { places?: Array<{ id?: string; displayName?: { text?: string } }> };
+    for (const place of data.places ?? []) {
+      const name = place.displayName?.text ?? '';
+      if (candidates.length < 10) candidates.push(name);
+      if (place.id && NAME_PATTERN.test(name)) return { id: place.id, candidates };
+    }
+  }
+  return { id: null, candidates };
 }
 
 async function loadPlace(key: string, id: string): Promise<GooglePlace> {
@@ -64,12 +77,13 @@ export async function GET() {
   if (!key) return reply(503, { ok: false, reason: 'not_configured' }, CACHE_ERROR);
 
   try {
-    const id = await findPlaceId(key);
-    if (!id) return reply(404, { ok: false, reason: 'not_found' }, CACHE_ERROR);
+    const { id, candidates } = await findPlaceId(key);
+    // Les noms trouvés aident à diagnostiquer une fiche introuvable (données publiques).
+    if (!id) return reply(404, { ok: false, reason: 'not_found', candidates }, CACHE_ERROR);
     const place = await loadPlace(key, id);
     const name = place.displayName?.text ?? '';
     // Garde-fou : sans identifiant fixé, on n'affiche jamais les avis d'une autre entreprise.
-    if (!process.env.GOOGLE_PLACE_ID && !/lullin/i.test(name)) {
+    if (!process.env.GOOGLE_PLACE_ID && !NAME_PATTERN.test(name)) {
       return reply(404, { ok: false, reason: 'not_found' }, CACHE_ERROR);
     }
 
