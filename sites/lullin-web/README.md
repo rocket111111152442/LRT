@@ -34,15 +34,35 @@ pour la couche d'animations :
   défini, sinon par recherche « Lullin Web ». Réponse en cache 12 h sur le CDN.
 - `src/fx-reviews.ts` + `src/fx-reviews.css` — nouveaux. Section « Avis Google »
   insérée juste avant la FAQ ; rien n'est affiché si l'API ne répond pas.
+- Simulateur de prix `/simulateur-prix-site-internet` (pas encore déployé) :
+  - `public/simulateur/tarifs.js` — nouveau. Les tarifs de la page Offres (formules,
+    pages supplémentaires, options, maintenance). **Si un prix change dans
+    `src/content.ts`, le changer aussi ici.**
+  - `public/simulateur/simulateur.js` + `simulateur.css` — nouveaux. Calcul en direct,
+    résumé, barre d'estimation sur mobile, bouton « Recevoir mon devis personnalisé »
+    vers `/contact?offre=…&type=…&maintenance=…`, événements anonymes dans
+    `window.dataLayer` (`simulator_view`, `simulator_change`, `simulator_suggestion_click`,
+    `simulator_cta_click`).
+  - `scripts/build-simulator.mjs` — nouveau, lancé à la fin de `npm run build`. Génère
+    la page statique (en-tête, pied de page et CSS repris de `dist/blog/index.html`,
+    métadonnées, JSON-LD WebPage + BreadcrumbList + FAQPage), l'ajoute à
+    `dist/sitemap.xml` et place un encart vers le simulateur dans l'article
+    « Combien coûte un site internet ».
+  - `src/fx-simulator.ts` — nouveau. Sur `/contact`, coche les options et préremplit la
+    description à partir des choix du simulateur (événement `simulator_prefill`) ;
+    sur `/offres`, ajoute un encart vers le simulateur.
+  - `vercel.json` — une réécriture ajoutée pour `/simulateur-prix-site-internet`.
+  - `package.json` — `&& node scripts/build-simulator.mjs` ajouté au script `build`.
 - `src/main.tsx` — modifié : lignes `import './fx.css'`, `import './fx-brand.css'`,
-  `import './fx'`, `import './fx-tech'` et `import './fx-reviews'` (en plus de
-  `import './communication.css'` ajouté de ton côté).
+  `import './fx'`, `import './fx-tech'`, `import './fx-reviews'` et
+  `import './fx-simulator'` (en plus de `import './communication.css'` ajouté de ton côté).
 - `tsconfig.json` — inchangé, copié pour pouvoir vérifier le typage de `fx.ts`.
 
 Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` et
 `src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts`, `src/fx-tech.css`, `src/fx-reviews.ts`
 et `src/fx-reviews.css` dans son dossier `src/`, `api/google-reviews.ts` dans `api/`, le contenu de `public/`
-par-dessus son dossier `public/`, et reprendre `src/main.tsx`.
+par-dessus son dossier `public/`, et reprendre `src/main.tsx`. Pour le simulateur, copier
+aussi `src/fx-simulator.ts`, `scripts/build-simulator.mjs`, `vercel.json` et `package.json`.
 Sinon, le prochain `vercel deploy` fait depuis l'ancienne copie supprimera les animations.
 
 Garde-fous :

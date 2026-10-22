@@ -10,6 +10,7 @@ import './communication.css';
 import './fx';
 import './fx-tech';
 import './fx-reviews';
+import './fx-simulator';
 const root=document.getElementById('root')!;
 root.replaceChildren();
 ReactDOM.createRoot(root).render(<React.StrictMode><App /></React.StrictMode>);
