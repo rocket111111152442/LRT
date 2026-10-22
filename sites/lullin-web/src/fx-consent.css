@@ -1,0 +1,90 @@
+/* Bandeau de consentement à la mesure d'audience (public/analytics/consent.js).
+   N'apparaît que si Google Analytics est configuré. Les deux choix ont le même poids visuel. */
+
+.fx-consent {
+  position: fixed;
+  z-index: 120;
+  left: 20px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 640px;
+  padding: 20px 22px;
+  border: 1px solid var(--line, #ffffff24);
+  background: #161815f7;
+  color: var(--paper, #f0f0e8);
+  box-shadow: 0 16px 50px #00000099;
+  backdrop-filter: blur(10px);
+}
+
+.fx-consent p {
+  margin: 0;
+  color: var(--muted, #a4a79d);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.fx-consent b {
+  color: var(--paper, #f0f0e8);
+  font-weight: 600;
+}
+
+.fx-consent a {
+  color: var(--paper, #f0f0e8);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.fx-consent div {
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.fx-consent button {
+  min-width: 96px;
+  padding: 11px 18px;
+  border: 1px solid var(--paper, #f0f0e8);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--paper, #f0f0e8);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fx-consent button:hover {
+  border-color: var(--accent, #d2fd79);
+  color: var(--accent, #d2fd79);
+}
+
+.fx-consent-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.fx-consent-link:hover {
+  color: var(--accent, #d2fd79);
+}
+
+@media (width <= 700px) {
+  .fx-consent {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .fx-consent div > button {
+    flex: 1;
+  }
+}

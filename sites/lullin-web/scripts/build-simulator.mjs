@@ -1,11 +1,14 @@
 // Génère dist/simulateur-prix-site-internet/index.html (simulateur de prix).
 // Lancé en dernier dans « npm run build » : reprend l'en-tête, le menu mobile, le pied
 // de page et la feuille de style hashée de dist/blog/index.html, ajoute la page au
-// sitemap et un encart vers le simulateur dans l'article sur le prix d'un site.
+// sitemap, des encarts vers le simulateur dans les articles du blog, les boutons d'accès au
+// simulateur (navigation, menu mobile, pied de page, bouton flottant) et la mesure d'audience
+// sur les pages statiques. Le site React reçoit les mêmes boutons de src/fx-simulator.ts,
+// avec les styles de src/fx-simulator.css et src/fx-consent.css.
 // Les tarifs viennent de public/simulateur/tarifs.js (même fichier que le navigateur).
 
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,6 +36,23 @@ const version = (file) => createHash('sha1').update(readFileSync(join(root, 'pub
 const ARROW =
   '<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>';
 
+/* ---------- Boutons d'accès (mêmes classes que src/fx-simulator.ts) ---------- */
+
+function addEntryButtons(html, current = false) {
+  if (html.includes('fx-simu-nav')) return html;
+  const here = current ? ' aria-current="page"' : '';
+  return html
+    .replace('<a href="/offres">Offres<span></span></a>', (m) => `${m}<a href="${PATH}" class="fx-simu-nav"${here}><i aria-hidden="true">€</i>Simulateur de prix</a>`)
+    .replace('<nav aria-label="Navigation mobile">', (m) => `${m}<a href="${PATH}" class="fx-simu-menu"${here}><small>Gratuit</small>Simulateur de prix</a>`)
+    .replace(/<nav class="footer-nav"[^>]*>[\s\S]*?<a href="\/offres">Offres<\/a>/, (m) => `${m}<a href="${PATH}"${here}>Simulateur de prix</a>`);
+}
+
+// Mesure d'audience soumise au consentement, inactive sans identifiant GA4 (voir plus bas).
+const CONSENT = '<script type="module" src="/analytics/consent.js"></script>\n';
+
+// Bouton flottant sur mobile (pas sur le simulateur, qui a sa propre barre d'estimation).
+const FLOAT = `<a href="${PATH}" class="fx-simu-float" aria-label="Simulateur de prix"><i aria-hidden="true">€</i>Estimer mon prix</a>\n`;
+
 /* ---------- Gabarit ---------- */
 
 const templatePath = join(dist, 'blog', 'index.html');
@@ -46,8 +66,11 @@ const mainEnd = template.indexOf('</main>');
 const bodyEnd = template.lastIndexOf('</body>');
 if ([iconsStart, bodyStart, mainStart, mainEnd, bodyEnd].includes(-1) || !cssMatch) fail('structure de dist/blog/index.html inattendue.');
 const headAssets = template.slice(iconsStart, cssMatch.index + cssMatch[0].length);
-const top = template.slice(bodyStart, mainStart).replace(/ aria-current="page"/g, '');
-const bottom = template.slice(mainEnd, bodyEnd);
+// Le gabarit peut déjà contenir les ajouts d'un build précédent (dist réutilisé) : on les retire.
+const strip = (part) =>
+  part.replace(FLOAT, '').replace(CONSENT, '').replace(new RegExp(`<a href="${PATH}"[^>]*>.*?</a>`, 'g'), '');
+const top = strip(template.slice(bodyStart, mainStart)).replace(/ aria-current="page"/g, '');
+const bottom = strip(template.slice(mainEnd, bodyEnd));
 
 /* ---------- Contenu ---------- */
 
@@ -242,7 +265,7 @@ const head = `<!doctype html>
   `;
 
 const script = `<script type="module" src="/simulateur/simulateur.js?v=${version('simulateur/simulateur.js')}"></script>\n  `;
-const html = `${head}${top}${main}${bottom}${script}</body>\n</html>\n`;
+const html = addEntryButtons(`${head}${top}${main}${bottom}${CONSENT}${script}</body>\n</html>\n`, true);
 const outDir = join(dist, PATH.slice(1));
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, 'index.html'), html);
@@ -257,18 +280,61 @@ if (!sitemap.includes(`<loc>${PAGE_URL}</loc>`)) {
   writeFileSync(sitemapPath, sitemap.replace('</urlset>', `${entry}</urlset>`));
 }
 
-/* ---------- Lien depuis l'article sur le prix d'un site ---------- */
+/* ---------- Liens contextuels depuis les articles du blog ---------- */
 
-const articlePath = join(dist, 'blog', 'combien-coute-un-site-internet', 'index.html');
-const anchor = '<h2 id="trois-exemples-de-budget-sur-un-an">';
-if (existsSync(articlePath)) {
+// Encart placé juste avant l'intertitre indiqué. Un intertitre renommé n'interrompt pas le
+// build : l'encart est simplement omis, avec un avertissement.
+const ARTICLE_LINKS = [
+  {
+    slug: 'combien-coute-un-site-internet',
+    before: '<h2 id="trois-exemples-de-budget-sur-un-an">',
+    text: 'Envie d’un chiffre pour votre propre projet ? Notre simulateur gratuit calcule le prix de votre site selon le nombre de pages, les options et la maintenance, à partir de nos tarifs publics.',
+  },
+  {
+    slug: 'site-internet-artisan',
+    before: '<h2 id="etre-trouve-sur-google-quand-on-est-artisan">',
+    text: 'Combien coûterait votre site d’artisan ? Choisissez un site vitrine, le nombre de pages et les options utiles (réservation, fiche Google…) : le simulateur gratuit affiche le prix tout de suite.',
+  },
+];
+
+for (const { slug, before, text } of ARTICLE_LINKS) {
+  const articlePath = join(dist, 'blog', slug, 'index.html');
+  if (!existsSync(articlePath)) continue;
   const article = readFileSync(articlePath, 'utf8');
-  if (article.includes(anchor) && !article.includes(`href="${PATH}"`)) {
-    const aside = `<aside class="blog-cta" aria-label="Simulateur de prix"><p>Envie d’un chiffre pour votre propre projet ? Notre simulateur gratuit calcule le prix de votre site selon le nombre de pages, les options et la maintenance, à partir de nos tarifs publics.</p><a href="${PATH}" class="action"><span>Estimer le prix de mon site</span><i>${ARROW}</i></a></aside>\n`;
-    writeFileSync(articlePath, article.replace(anchor, `${aside}${anchor}`));
-  } else if (!article.includes(anchor)) {
-    console.warn('build-simulator : intertitre « Trois exemples de budget » introuvable, encart non ajouté.');
+  if (article.includes('aria-label="Simulateur de prix"><p>')) continue;
+  if (!article.includes(before)) {
+    console.warn(`build-simulator : intertitre introuvable dans ${slug}, encart non ajouté.`);
+    continue;
+  }
+  const aside = `<aside class="blog-cta" aria-label="Simulateur de prix"><p>${esc(text)}</p><a href="${PATH}" class="action"><span>Estimer gratuitement mon site</span><i>${ARROW}</i></a></aside>\n`;
+  writeFileSync(articlePath, article.replace(before, `${aside}${before}`));
+}
+
+/* ---------- Identifiant Google Analytics 4 ---------- */
+
+// Défini dans les variables d'environnement Vercel (GA_MEASUREMENT_ID=G-XXXXXXXXXX).
+// Sans lui, public/analytics/consent.js ne fait rien : ni bandeau, ni mesure.
+const gaId = (process.env.GA_MEASUREMENT_ID ?? '').trim();
+const consentPath = join(dist, 'analytics', 'consent.js');
+if (gaId && existsSync(consentPath)) {
+  if (!/^G-[A-Z0-9]{4,}$/.test(gaId)) fail(`GA_MEASUREMENT_ID invalide : « ${gaId} » (format attendu G-XXXXXXXXXX).`);
+  writeFileSync(consentPath, readFileSync(consentPath, 'utf8').replace('__GA_MEASUREMENT_ID__', gaId));
+}
+
+/* ---------- Boutons d'accès sur les pages statiques du blog ---------- */
+
+const walk = (dir) =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory() ? walk(join(dir, entry.name)) : entry.name.endsWith('.html') ? [join(dir, entry.name)] : [],
+  );
+let patched = 0;
+for (const file of walk(join(dist, 'blog'))) {
+  const page = readFileSync(file, 'utf8');
+  const next = page.includes('fx-simu-float') ? page : addEntryButtons(page).replace('</body>', `${FLOAT}${CONSENT}</body>`);
+  if (next !== page) {
+    writeFileSync(file, next);
+    patched += 1;
   }
 }
 
-console.log(`build-simulator : ${PATH} généré (${(html.length / 1024).toFixed(1)} Ko), estimation initiale ${euro(initial.creation)}.`);
+console.log(`build-simulator : ${PATH} généré (${(html.length / 1024).toFixed(1)} Ko), estimation initiale ${euro(initial.creation)}, boutons ajoutés sur ${patched} page(s) du blog, Google Analytics ${gaId ? `actif (${gaId}, après consentement)` : 'non configuré'}.`);

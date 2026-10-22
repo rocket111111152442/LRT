@@ -48,9 +48,18 @@ pour la couche d'animations :
     métadonnées, JSON-LD WebPage + BreadcrumbList + FAQPage), l'ajoute à
     `dist/sitemap.xml` et place un encart vers le simulateur dans l'article
     « Combien coûte un site internet ».
-  - `src/fx-simulator.ts` — nouveau. Sur `/contact`, coche les options et préremplit la
-    description à partir des choix du simulateur (événement `simulator_prefill`) ;
-    sur `/offres`, ajoute un encart vers le simulateur.
+  - `src/fx-simulator.ts` + `src/fx-simulator.css` — nouveaux. Sur `/contact`, coche les
+    options et préremplit la description à partir des choix du simulateur ; encarts vers le
+    simulateur sur `/offres` et `/services` ; boutons d'accès (lien « Simulateur de prix »
+    dans la barre de navigation et le pied de page, carte en tête du menu mobile, bouton
+    « Estimer gratuitement mon site » sur l'accueil, bouton flottant sur mobile) ;
+    événement `generate_lead` quand une demande de devis est envoyée.
+  - `public/analytics/consent.js` + `src/fx-consent.css` — nouveaux. Google Analytics 4
+    chargé seulement après accord du visiteur (bandeau Accepter / Refuser, lien « Gestion
+    des cookies » en bas de page). **Inactif tant que la variable Vercel
+    `GA_MEASUREMENT_ID` (G-XXXXXXXXXX) n'est pas définie** ; avant de l'activer, mettre à
+    jour la page Confidentialité (`src/legal.tsx`), qui dit aujourd'hui qu'aucun cookie de
+    mesure n'est utilisé.
   - `vercel.json` — une réécriture ajoutée pour `/simulateur-prix-site-internet`.
   - `package.json` — `&& node scripts/build-simulator.mjs` ajouté au script `build`.
 - `src/main.tsx` — modifié : lignes `import './fx.css'`, `import './fx-brand.css'`,
@@ -62,7 +71,8 @@ Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` e
 `src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts`, `src/fx-tech.css`, `src/fx-reviews.ts`
 et `src/fx-reviews.css` dans son dossier `src/`, `api/google-reviews.ts` dans `api/`, le contenu de `public/`
 par-dessus son dossier `public/`, et reprendre `src/main.tsx`. Pour le simulateur, copier
-aussi `src/fx-simulator.ts`, `scripts/build-simulator.mjs`, `vercel.json` et `package.json`.
+aussi `src/fx-simulator.ts`, `src/fx-simulator.css`, `src/fx-consent.css`,
+`scripts/build-simulator.mjs`, `vercel.json` et `package.json`.
 Sinon, le prochain `vercel deploy` fait depuis l'ancienne copie supprimera les animations.
 
 Garde-fous :

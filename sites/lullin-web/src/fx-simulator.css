@@ -1,0 +1,135 @@
+/* Boutons d'accès au simulateur de prix (voir fx-simulator.ts et scripts/build-simulator.mjs).
+   Ces styles sont dans la feuille principale, donc aussi chargés par les pages statiques. */
+
+.fx-simu-nav,
+.fx-simu-float,
+.fx-simu-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--accent);
+  border-radius: 30px;
+  color: var(--accent);
+  white-space: nowrap;
+  transition: background .25s, color .25s;
+}
+
+.fx-simu-nav i,
+.fx-simu-float i,
+.fx-simu-hero i {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  transition: background .25s, color .25s;
+}
+
+.fx-simu-nav:hover,
+.fx-simu-float:hover,
+.fx-simu-hero:hover,
+.fx-simu-nav[aria-current] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.fx-simu-nav:hover i,
+.fx-simu-float:hover i,
+.fx-simu-hero:hover i,
+.fx-simu-nav[aria-current] i {
+  background: var(--bg);
+  color: var(--accent);
+}
+
+/* Barre de navigation (ordinateur) : le soulignement des liens ne s'applique pas ici. */
+.desktop-nav a.fx-simu-nav {
+  margin-block: -2px;
+  padding: 7px 14px 7px 8px;
+  color: var(--accent);
+}
+
+.desktop-nav a.fx-simu-nav:hover,
+.desktop-nav a.fx-simu-nav[aria-current] {
+  color: var(--bg);
+}
+
+/* Mobile (barre de navigation masquée) : bouton flottant en bas à droite. Placé hors de
+   l'en-tête, dont le flou d'arrière-plan casserait le positionnement fixe. */
+.fx-simu-float {
+  display: none;
+}
+
+@media (width <= 800px) {
+  .fx-simu-float {
+    position: fixed;
+    z-index: 35;
+    right: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    display: inline-flex;
+    padding: 8px 16px 8px 8px;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px #00000080;
+  }
+
+  .fx-simu-float i {
+    background: var(--bg);
+    color: var(--accent);
+  }
+
+  .fx-simu-float[hidden] {
+    display: none;
+  }
+}
+
+/* Accueil, sous « Demander un devis ». */
+.fx-simu-hero {
+  margin-bottom: 6px;
+  min-height: 58px;
+  padding: 8px 24px 8px 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fx-simu-hero i {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+
+/* Menu mobile : carte mise en avant au-dessus des liens. */
+.mobile-menu nav > a.fx-simu-menu {
+  margin-bottom: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--accent);
+  background: #d2fd7914;
+  color: var(--accent);
+}
+
+.mobile-menu nav > a.fx-simu-menu > small {
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+@media (width <= 800px) {
+  .hero-under:has(.fx-simu-hero) {
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+
+  .hero-under .fx-simu-hero {
+    min-height: 54px;
+    font-size: 13px;
+  }
+}
