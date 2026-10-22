@@ -20,9 +20,12 @@ const { DEFAULT_STATE, estimate, renderSummary, contactHref, euro } = await impo
 const SITE = 'https://www.lullin-web.com';
 const PATH = '/simulateur-prix-site-internet';
 const PAGE_URL = `${SITE}${PATH}`;
-const TITLE = 'Simulateur prix site internet : estimez votre site | Lullin Web';
+// Positionnement : le prix d'un site professionnel chez Lullin Web, avec un outil pour le
+// calculer. Les prix du marché en général restent le sujet de l'article
+// /blog/combien-coute-un-site-internet, vers lequel la page renvoie (pas de doublon).
+const TITLE = 'Prix d’un site internet professionnel : simulateur gratuit | Lullin Web';
 const DESCRIPTION =
-  'Combien coûte votre site internet ? Estimez gratuitement son prix selon le type de site, le nombre de pages, les options et la maintenance. Tarifs Lullin Web dès 349 €.';
+  'Combien coûtera votre site internet professionnel ? Simulez son prix selon le type de site, les pages, les options et la maintenance. Dès 349 €, devis gratuit.';
 const TODAY = new Date().toISOString().slice(0, 10);
 
 const fail = (message) => {
@@ -78,41 +81,45 @@ const initial = estimate(DEFAULT_STATE);
 
 const FAQ = [
   {
-    q: 'Combien coûte un site internet chez Lullin Web ?',
-    a: `La création d’un site coûte de ${euro(349)} (formule Essentiel, à partir de) à ${euro(949)} (formule Premium), selon le nombre de pages et le niveau de personnalisation. Les options (blog, réservation, langue supplémentaire…) s’ajoutent selon vos besoins, et la maintenance est facultative : de ${euro(39)} à ${euro(119)} par mois.`,
+    q: 'Quel est le prix d’un site internet professionnel chez Lullin Web ?',
+    a: `La création coûte de ${euro(349)} (formule Essentiel, à partir de) à ${euro(949)} (formule Premium), en un seul paiement. Les options s’ajoutent selon vos besoins et la maintenance, facultative, coûte de ${euro(39)} à ${euro(119)} par mois. Les boutiques en ligne sont sur devis.`,
   },
   {
-    q: 'L’estimation du simulateur est-elle un devis ?',
-    a: 'Non. Elle applique nos tarifs publics, mais certaines options sont « à partir de » : leur prix exact dépend de votre projet. Ce sont des tarifs de lancement, confirmés par un devis gratuit et sans engagement. Aucune prestation n’est lancée sans devis accepté.',
+    q: 'Pourquoi une formule à 349 € et une autre à 949 € ?',
+    a: 'La différence tient surtout au nombre de pages (1 page en Essentiel, jusqu’à 12 en Premium) et au niveau de finition : design personnalisé pour Essentiel et Vitrine ; design entièrement personnalisé avec animations, référencement amélioré et accompagnement au lancement pour Business et Premium. Les adresses mail professionnelles sont incluses à partir de la formule Vitrine (une, deux en Premium).',
   },
   {
-    q: 'Combien coûte une page supplémentaire ?',
-    a: `${euro(PAGE.price)} par page au-delà des pages incluses dans votre formule (1 page en Essentiel, jusqu’à 5 en Vitrine, 8 en Business et 12 en Premium). Quand les pages supplémentaires coûtent presque autant que la formule supérieure, le simulateur vous le signale.`,
+    q: 'Quel budget prévoir sur la première année ?',
+    a: `Additionnez le prix de création, douze mois de maintenance si vous en choisissez une, et les éventuelles adresses mail supplémentaires (${euro(MAIL.price)} par an chacune). Par exemple, un site Vitrine avec la maintenance Business revient à ${euro(549)} + 12 × ${euro(69)}, soit ${euro(549 + 12 * 69)} la première année. Le simulateur fait ce calcul pour vous.`,
   },
   {
-    q: 'Quels frais prévoir après la mise en ligne ?',
-    a: `Le nom de domaine est inclus la première année. Ensuite, son renouvellement et l’hébergement sont compris dans les abonnements de maintenance (Essentielle ${euro(39)}, Business ${euro(69)}, Visibilité ${euro(119)} par mois). Chaque adresse mail professionnelle supplémentaire coûte ${euro(MAIL.price)} par an.`,
+    q: 'Vaut-il mieux ajouter des pages ou passer à la formule supérieure ?',
+    a: `Chaque page au-delà de celles incluses coûte ${euro(PAGE.price)}. Passé quelques pages, la formule supérieure devient souvent plus intéressante : une formule Essentiel avec 5 pages revient à ${euro(349 + 4 * PAGE.price)}, contre ${euro(549)} pour la formule Vitrine, qui inclut en plus une adresse mail professionnelle et les statistiques du site. Le simulateur vous le signale automatiquement.`,
   },
   {
-    q: 'Suis-je obligé de prendre un abonnement de maintenance ?',
-    a: 'Non. La création du site et la maintenance sont deux services différents : vous pouvez simplement acheter votre site, ou nous confier aussi sa gestion.',
+    q: 'Pourquoi certaines options sont-elles « à partir de » ?',
+    a: 'Le travail varie selon les projets : un système de réservation, une langue supplémentaire ou la rédaction des textes ne demandent pas le même temps pour une page que pour douze. Le simulateur affiche alors un prix minimum, signalé par « dès », et le montant exact est précisé dans le devis.',
+  },
+  {
+    q: 'Le prix change-t-il si je fournis mes textes et mes photos ?',
+    a: `Fournir vos textes n’ajoute rien au prix. Si vous préférez que nous les rédigions, l’option Rédaction des textes est proposée à partir de ${euro(59)}. Une activité, quelques photos et vos idées suffisent pour démarrer.`,
   },
   {
     q: 'Combien coûte une boutique en ligne ?',
     a: 'Elle est proposée sur devis : le prix dépend fortement du nombre de produits, des moyens de paiement et de la livraison. Choisissez « Boutique en ligne » dans le simulateur pour nous transmettre vos besoins.',
   },
   {
-    q: 'Pourquoi les prix varient-ils autant d’un prestataire à l’autre ?',
-    a: 'Un site fait soi-même, un freelance, une agence à forfaits ou une agence sur mesure n’incluent ni le même travail, ni le même suivi. Notre guide <a href="/blog/combien-coute-un-site-internet">Combien coûte un site internet professionnel</a> compare ces solutions avec des prix publics.',
+    q: 'L’estimation du simulateur est-elle un devis ?',
+    a: 'Non. Elle applique nos tarifs publics, mais les options « à partir de » dépendent de votre projet. Ce sont des tarifs de lancement, confirmés par un devis gratuit et sans engagement. Aucune prestation n’est lancée sans devis accepté.',
+  },
+  {
+    q: 'Comment se situent ces prix par rapport au marché ?',
+    a: 'Un site fait soi-même, un freelance, une agence à forfaits ou une agence sur mesure n’incluent ni le même travail, ni le même suivi. Notre guide <a href="/blog/combien-coute-un-site-internet">Combien coûte un site internet professionnel</a> compare ces solutions à partir de prix publics et de sources citées.',
     html: true,
   },
   {
     q: 'Que se passe-t-il quand je clique sur « Recevoir mon devis personnalisé » ?',
-    a: 'Vous arrivez sur notre formulaire de contact avec vos choix déjà remplis. Vous les vérifiez, ajoutez vos coordonnées et votre message : rien n’est envoyé tant que vous ne validez pas. Nous répondons sous 48 h ouvrées.',
-  },
-  {
-    q: 'Le simulateur enregistre-t-il mes informations ?',
-    a: 'Le simulateur ne demande aucune donnée personnelle. Vos choix restent dans votre navigateur, le temps de préremplir le formulaire de contact, et seules des statistiques anonymes d’utilisation peuvent être mesurées.',
+    a: 'Vous arrivez sur notre formulaire de contact avec vos choix déjà remplis. Vous les vérifiez, ajoutez vos coordonnées et votre message : rien n’est envoyé tant que vous ne validez pas. Nous répondons sous 48 h ouvrées. Le simulateur lui-même ne demande aucune donnée personnelle.',
   },
 ];
 
@@ -143,12 +150,23 @@ function stepper(name, label, value, min, max, unit) {
   return `<div class="simu-stepper"><button type="button" data-simu-step="-1" data-simu-field="${name}" aria-label="${esc(label)} : moins">−</button><output data-simu-${name}>${value}</output><button type="button" data-simu-step="1" data-simu-field="${name}" aria-label="${esc(label)} : plus">+</button><span>${unit}</span></div>`;
 }
 
-const formulesTable = FORMULES.filter((f) => !f.quote)
-  .map(
-    (f) =>
-      `<tr><th scope="row">${esc(f.name)}</th><td>${f.from ? 'à partir de ' : ''}${euro(f.price)}</td><td>${f.pages > 1 ? `jusqu’à ${f.pages}` : '1'}</td><td>${f.mails || '—'}</td></tr>`,
-  )
-  .join('');
+// Types de sites : libellés et publics repris de la page Offres (rien d'inventé).
+const TYPES = {
+  essentiel: { label: 'Site d’une page', ideal: 'Indépendants, artisans, petites entreprises ou projets ayant besoin d’une présence simple et professionnelle.' },
+  vitrine: { label: 'Site vitrine', ideal: 'Entreprises, commerces, agences et professionnels qui veulent présenter clairement leur activité et leurs services.' },
+  business: { label: 'Site vitrine complet', ideal: 'Entreprises qui veulent faire de leur site un véritable outil de développement.' },
+  premium: { label: 'Site professionnel étendu', ideal: 'Entreprises ayant besoin d’un site plus important, avec davantage de contenu et de fonctionnalités.' },
+  boutique: { label: 'Boutique en ligne', ideal: 'Vente en ligne : le prix dépend du nombre de produits, des moyens de paiement et de la livraison.' },
+};
+const typesTable = FORMULES.map((f) => {
+  const type = TYPES[f.id];
+  const price = f.quote ? 'Sur devis' : `${f.from ? 'à partir de ' : ''}${euro(f.price)}`;
+  const pages = f.quote ? '—' : f.pages > 1 ? `jusqu’à ${f.pages}` : '1';
+  const formule = f.quote ? '—' : esc(f.name);
+  const na = f.quote ? ' class="simu-na"' : '';
+  return `<tr><th scope="row">${esc(type.label)}</th><td data-label="Formule"${na}>${formule}</td><td class="simu-price">${price}</td><td data-label="Pages"${na}>${pages}</td><td class="simu-ideal">${esc(type.ideal)}</td></tr>`;
+}).join('');
+
 const optionsTable = [
   { title: PAGE.title, price: `+${euro(PAGE.price)}` },
   { title: MAIL.title, price: `+${euro(MAIL.price)} / an` },
@@ -166,18 +184,45 @@ const faqHtml = FAQ.map(
     `<details class="simu-faq-item"${i === 0 ? ' open' : ''}><summary><h3>${esc(item.q)}</h3></summary><p>${item.html ? item.a : esc(item.a)}</p></details>`,
 ).join('');
 
+// Ce que chaque critère change sur un devis Lullin Web (tarifs de la page Offres).
+const FACTORS = [
+  ['Le nombre de pages', `Chaque formule inclut un nombre de pages : 1 en Essentiel, jusqu’à 5 en Vitrine, 8 en Business et 12 en Premium. Au-delà, chaque page coûte ${euro(PAGE.price)}.`],
+  ['Le niveau de finition du design', `Les formules Essentiel et Vitrine ont un design personnalisé ; Business et Premium un design entièrement personnalisé avec animations. Des animations sur mesure sont aussi proposées en option, à partir de ${euro(79)}.`],
+  ['Les fonctionnalités', `Le formulaire de contact est toujours inclus. Un système de réservation (dès ${euro(99)}), un blog (${euro(129)}) ou une langue supplémentaire (dès ${euro(149)}) s’ajoutent au prix ; une boutique en ligne se chiffre sur devis.`],
+  ['Les contenus', `Si vous fournissez vos textes et vos photos, rien ne s’ajoute. La rédaction des textes est proposée à partir de ${euro(59)}.`],
+  ['La visibilité sur Google', `Le référencement de base est inclus, et amélioré en Business et Premium. Vous pouvez ajouter une optimisation SEO supplémentaire (dès ${euro(99)}) et la création ou l’optimisation de votre fiche Google Business (${euro(79)}).`],
+  ['Le délai', 'Une estimation du délai vous est communiquée avant le lancement. Si vous êtes pressé, la livraison prioritaire fait passer votre projet en premier, pour 25 % du prix de création.'],
+  ['L’après mise en ligne', `Le nom de domaine est inclus la première année. Ensuite, la maintenance est facultative : ${euro(39)}, ${euro(69)} ou ${euro(119)} par mois selon ce que vous nous confiez. Chaque adresse mail supplémentaire coûte ${euro(MAIL.price)} par an.`],
+];
+const factorsHtml = FACTORS.map(([title, text]) => `<li><h3>${esc(title)}</h3><p>${esc(text)}</p></li>`).join('');
+
+// Exemples de configurations, calculés avec le moteur du simulateur (aucun chiffre saisi à la main).
+const EXAMPLES = [
+  { title: 'Une présence simple', who: 'Un indépendant qui veut une page claire pour présenter son activité.', state: { formule: 'essentiel', pages: 1, options: [], mails: 0, priority: false, maintenance: 'aucune' } },
+  { title: 'Un site vitrine visible localement', who: 'Un artisan avec 5 pages et sa fiche Google Business, maintenance Essentielle.', state: { formule: 'vitrine', pages: 5, options: ['google'], mails: 0, priority: false, maintenance: 'essentielle' } },
+  { title: 'Un site avec prise de rendez-vous', who: 'Un cabinet ou un salon avec 8 pages et la réservation en ligne, maintenance Business.', state: { formule: 'business', pages: 8, options: ['reservation'], mails: 0, priority: false, maintenance: 'business' } },
+];
+const examplesHtml = EXAMPLES.map(({ title, who, state }) => {
+  const est = estimate(state);
+  const query = new URLSearchParams({ formule: state.formule, pages: String(state.pages), maintenance: state.maintenance });
+  if (state.options.length) query.set('options', state.options.join(','));
+  const lines = est.lines.map((line) => `<li><span>${esc(line.label)}</span><b>${line.from ? 'dès ' : ''}${euro(line.amount)}</b></li>`).join('');
+  const recurring = est.monthly ? `<p class="simu-example-year">Puis ${euro(est.monthly)} / mois de maintenance, soit <b>${est.from ? 'dès ' : ''}${euro(est.firstYear)}</b> la première année.</p>` : '<p class="simu-example-year">Sans abonnement de maintenance.</p>';
+  return `<article class="simu-example"><h3>${esc(title)}</h3><p>${esc(who)}</p><p class="simu-example-total">${est.from ? '<small>à partir de</small> ' : ''}<strong>${euro(est.creation)}</strong></p><ul class="simu-lines">${lines}</ul>${recurring}<a href="${PATH}?${query.toString().replace(/&/g, '&amp;')}#simu-title" rel="nofollow">Ouvrir dans le simulateur</a></article>`;
+}).join('');
+
 const LINKS = [
-  ['/offres', 'Nos offres en détail', 'Le contenu de chaque formule, des options et des abonnements.'],
-  ['/blog/combien-coute-un-site-internet', 'Combien coûte un site internet ?', 'Notre guide des prix du marché, du site fait soi-même à l’agence.'],
+  ['/blog/combien-coute-un-site-internet', 'Les prix du marché', 'Site fait soi-même, freelance, agence : notre guide compare les budgets, sources à l’appui.'],
+  ['/offres', 'Le détail de nos offres', 'Tout ce qui est inclus dans chaque formule, option et abonnement.'],
+  ['/blog/site-internet-artisan', 'Site internet pour artisan', 'Contenu, mentions obligatoires et budget d’un site d’artisan.'],
   ['/services', 'Création, gestion et visibilité', 'Ce que nous faisons avant, pendant et après la mise en ligne.'],
   ['/referencement-seo', 'Référencement SEO', 'Être trouvé sur Google : référencement local et contenus optimisés.'],
   ['/realisations', 'Nos réalisations', 'Des exemples de sites créés pour des indépendants et des TPE.'],
-  ['/faq', 'Questions fréquentes', 'Délais, contenus, nom de domaine, modifications…'],
 ];
 
 const main = `<main id="main" class="simu-page">
 <nav class="simu-breadcrumb wrap" aria-label="Fil d’Ariane"><ol><li><a href="/">Accueil</a></li><li><a href="/offres">Offres</a></li><li><span aria-current="page">Simulateur de prix</span></li></ol></nav>
-<section class="page-heading wrap simu-heading"><p class="section-label"><span>Simulateur /</span>Gratuit · sans inscription</p><h1>Combien coûte <em>votre site internet ?</em></h1><p>Choisissez le type de site, le nombre de pages et les fonctionnalités : le simulateur calcule instantanément le prix de création et les coûts mensuels, à partir des tarifs affichés sur notre page <a href="/offres">Offres</a>. Aucune donnée personnelle demandée.</p></section>
+<section class="page-heading wrap simu-heading"><p class="section-label"><span>Simulateur /</span>Gratuit · sans inscription</p><h1>Prix d’un site internet professionnel : <em>simulez le vôtre.</em></h1><p>Chez Lullin Web, la création d’un site professionnel coûte à partir de ${euro(349)} pour une page, jusqu’à ${euro(949)} pour un site de 12 pages, en un seul paiement ; la maintenance est facultative, de ${euro(39)} à ${euro(119)} par mois. Choisissez le type de site, le nombre de pages et les fonctionnalités : le simulateur calcule votre prix instantanément, avec les tarifs de notre page <a href="/offres">Offres</a>. Aucune donnée personnelle demandée.</p></section>
 <section class="wrap simu" aria-labelledby="simu-title">
 <h2 id="simu-title" class="sr-only">Simulateur de prix de création de site internet</h2>
 <form class="simu-form" data-simu-form novalidate>
@@ -191,12 +236,16 @@ const main = `<main id="main" class="simu-page">
 <aside class="simu-panel" aria-labelledby="simu-panel-title"><div class="simu-panel-inner"><p class="section-label" id="simu-panel-title"><span>Estimation /</span>mise à jour en direct</p><div data-simu-summary aria-live="polite">${renderSummary(initial)}</div><a href="${esc(contactHref(initial))}" class="action simu-cta" data-simu-cta><span>Recevoir mon devis personnalisé</span><i>${ARROW}</i></a><p class="simu-fine">Gratuit et sans engagement. Vos choix sont repris dans le formulaire, vous n’avez plus qu’à les vérifier. Tarifs de lancement, confirmés par un devis gratuit.</p></div></aside>
 </section>
 <div class="simu-bar" data-simu-bar aria-hidden="true"><div><small>Estimation</small><b data-simu-bar-total>${initial.from ? 'dès ' : ''}${euro(initial.creation)}</b><span data-simu-bar-monthly>sans abonnement</span></div><a href="#simu-panel-title" tabindex="-1">Voir le détail</a></div>
-<section class="section wrap simu-explain" aria-labelledby="simu-tarifs"><div class="section-heading"><div><p class="section-label"><span>Tarifs /</span>Ce qu’utilise le simulateur</p><h2 id="simu-tarifs">Des prix publics, <em>sans surprise.</em></h2></div><p>Le simulateur additionne exactement les tarifs de notre page <a href="/offres">Offres</a>. Le prix d’un site dépend surtout du nombre de pages, du design et des fonctionnalités : la majorité de nos créations restent sous 1 000 €.</p></div>
-<div class="simu-tables"><div class="simu-table"><table><caption>Formules de création</caption><thead><tr><th scope="col">Formule</th><th scope="col">Prix</th><th scope="col">Pages</th><th scope="col">Mails pro</th></tr></thead><tbody>${formulesTable}<tr><th scope="row">Boutique en ligne</th><td colspan="3">sur devis</td></tr></tbody></table></div>
+<section class="section wrap simu-explain" aria-labelledby="simu-tarifs"><div class="section-heading"><div><p class="section-label"><span>Tarifs /</span>Types de sites</p><h2 id="simu-tarifs">Combien coûte chaque <em>type de site ?</em></h2></div><p>Nos prix publics, sans frais cachés : la création se paie une fois, la maintenance est facultative. Le prix d’un site dépend surtout du nombre de pages, du design et des fonctionnalités ; la majorité de nos offres de création restent sous 1 000 €.</p></div>
+<div class="simu-tables"><div class="simu-table"><table class="simu-types"><caption>Prix de création par type de site</caption><thead><tr><th scope="col">Type de site</th><th scope="col">Formule</th><th scope="col">Prix</th><th scope="col">Pages</th><th scope="col">Pour qui</th></tr></thead><tbody>${typesTable}</tbody></table><p>Toutes les formules incluent le nom de domaine pendant 1 an, le certificat SSL, l’adaptation au mobile, le formulaire de contact et la mise en ligne. Le contenu complet de chaque formule est détaillé sur la page <a href="/offres">Offres</a>.</p></div>
 <div class="simu-table"><table><caption>Options</caption><tbody>${optionsTable}</tbody></table></div>
-<div class="simu-table"><table><caption>Maintenance (facultative)</caption><tbody>${maintenanceTable}</tbody></table><p>Toutes les formules incluent le nom de domaine pendant 1 an, le certificat SSL, l’adaptation au mobile et la mise en ligne.</p></div></div>
+<div class="simu-table"><table><caption>Maintenance (facultative)</caption><tbody>${maintenanceTable}</tbody></table></div></div></section>
+<section class="section wrap simu-factors-section" aria-labelledby="simu-factors-title"><div class="section-heading"><div><p class="section-label"><span>Le prix /</span>Ce qui le fait varier</p><h2 id="simu-factors-title">Ce qui change le prix <em>de votre site.</em></h2></div><p>Sept critères expliquent l’écart entre deux devis chez Lullin Web. Pour une comparaison plus large entre prestataires, voyez notre guide sur <a href="/blog/combien-coute-un-site-internet">les prix d’un site internet sur le marché</a>.</p></div>
+<ol class="simu-factors">${factorsHtml}</ol></section>
+<section class="section wrap simu-examples-section" aria-labelledby="simu-examples-title"><div class="section-heading"><div><p class="section-label"><span>Exemples /</span>Calculés avec nos tarifs</p><h2 id="simu-examples-title">Trois budgets <em>types.</em></h2></div><p>Des configurations fréquentes, calculées avec le même moteur que le simulateur. Ouvrez-les pour les adapter à votre projet.</p></div>
+<div class="simu-examples">${examplesHtml}</div>
 <ol class="simu-howto"><li><b>Formule</b>Le prix de départ correspond à la formule choisie et aux pages qu’elle inclut.</li><li><b>Pages et options</b>Chaque page au-delà est facturée ${euro(PAGE.price)} ; les options s’ajoutent à leur tarif affiché.</li><li><b>Livraison prioritaire</b>Elle ajoute 25 % au prix de création, options comprises.</li><li><b>Coûts récurrents</b>La maintenance et les adresses mail supplémentaires sont présentées à part, avec un budget sur la première année.</li></ol></section>
-<section class="section wrap simu-faq" aria-labelledby="simu-faq-title"><div class="section-heading"><div><p class="section-label"><span>FAQ /</span>Prix d’un site internet</p><h2 id="simu-faq-title">Vos questions <em>sur le prix.</em></h2></div></div><div class="simu-faq-list">${faqHtml}</div></section>
+<section class="section wrap simu-faq" aria-labelledby="simu-faq-title"><div class="section-heading"><div><p class="section-label"><span>FAQ /</span>Prix d’un site internet</p><h2 id="simu-faq-title">Questions fréquentes <em>sur le prix.</em></h2></div></div><div class="simu-faq-list">${faqHtml}</div></section>
 <section class="section wrap simu-links" aria-labelledby="simu-links-title"><p class="section-label"><span>Pour aller plus loin /</span>Avant de vous décider</p><h2 id="simu-links-title" class="sr-only">Pour aller plus loin</h2><div class="simu-link-grid">${LINKS.map(([href, title, text]) => `<a href="${href}"><b>${esc(title)}</b><span>${esc(text)}</span>${ARROW}</a>`).join('')}</div></section>
 `;
 
@@ -306,7 +355,7 @@ for (const { slug, before, text } of ARTICLE_LINKS) {
     console.warn(`build-simulator : intertitre introuvable dans ${slug}, encart non ajouté.`);
     continue;
   }
-  const aside = `<aside class="blog-cta" aria-label="Simulateur de prix"><p>${esc(text)}</p><a href="${PATH}" class="action"><span>Estimer gratuitement mon site</span><i>${ARROW}</i></a></aside>\n`;
+  const aside = `<aside class="blog-cta" aria-label="Simulateur de prix"><p>${esc(text)}</p><a href="${PATH}" class="action"><span>Simuler le prix de mon site</span><i>${ARROW}</i></a></aside>\n`;
   writeFileSync(articlePath, article.replace(before, `${aside}${before}`));
 }
 
@@ -319,6 +368,31 @@ const consentPath = join(dist, 'analytics', 'consent.js');
 if (gaId && existsSync(consentPath)) {
   if (!/^G-[A-Z0-9]{4,}$/.test(gaId)) fail(`GA_MEASUREMENT_ID invalide : « ${gaId} » (format attendu G-XXXXXXXXXX).`);
   writeFileSync(consentPath, readFileSync(consentPath, 'utf8').replace('__GA_MEASUREMENT_ID__', gaId));
+}
+
+/* ---------- Liens dans le texte statique des pages React ---------- */
+
+// generate-seo.mjs écrit pour chaque page React un contenu statique (<main class="seo-fallback">),
+// lu par les moteurs avant l'exécution du JavaScript. On y ajoute un lien vers le simulateur
+// sur les pages qui parlent de prix ou de création de site.
+const FALLBACK_LINK = `<p><a href="${PATH}">Simulateur de prix d’un site internet professionnel</a> : estimez gratuitement le coût de création et de maintenance de votre site avec nos tarifs.</p>`;
+for (const page of ['index.html', 'offres/index.html', 'services/index.html', 'faq/index.html']) {
+  const file = join(dist, page);
+  if (!existsSync(file)) continue;
+  const content = readFileSync(file, 'utf8');
+  const end = content.indexOf('</main>');
+  if (!content.includes('<main class="seo-fallback">') || end === -1 || content.includes(FALLBACK_LINK)) continue;
+  writeFileSync(file, content.slice(0, end) + FALLBACK_LINK + content.slice(end));
+}
+
+/* ---------- llms.txt ---------- */
+
+const llmsPath = join(dist, 'llms.txt');
+if (existsSync(llmsPath)) {
+  const llms = readFileSync(llmsPath, 'utf8');
+  if (!llms.includes(PAGE_URL)) {
+    writeFileSync(llmsPath, `${llms.trimEnd()}\n\n## Simulateur de prix\n\n- [Simulateur de prix d’un site internet professionnel](${PAGE_URL}) : estimation gratuite et instantanée du prix de création et de maintenance, à partir de nos tarifs de création et de maintenance.\n`);
+  }
 }
 
 /* ---------- Boutons d'accès sur les pages statiques du blog ---------- */
