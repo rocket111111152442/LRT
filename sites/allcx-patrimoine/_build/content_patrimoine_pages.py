@@ -477,13 +477,6 @@ def _more(B):
     ) + """
 <section class="section">
   <div class="shell shell--narrow">
-    <div class="card" data-reveal>
-      <p class="index-num">Encore à compléter</p>
-      <p>Les tarifs de location classique (hors relocation) et la date d’entrée en vigueur du barème restent
-      à renseigner par le titulaire de la carte professionnelle avant la publication du site. L’affichage
-      d’un barème complet, en euros toutes taxes comprises, est obligatoire et contrôlé.</p>
-    </div>
-
     <h2 class="display-md mt-6" data-reveal>Transaction — vente</h2>
     <ul class="list-rule mt-3" data-reveal>
       <li><span class="k">Bien en-dessous de 100 000 €</span><span class="v">Forfait de 7 000 € TTC</span></li>
@@ -498,20 +491,17 @@ def _more(B):
       <li><span class="k">Honoraires à la charge de</span><span class="v">le vendeur</span></li>
     </ul>
 
-    <h2 class="display-md mt-6" data-reveal>Location et relocation</h2>
-    <ul class="list-rule mt-3" data-reveal>
-      <li><span class="k">Visite, constitution du dossier et rédaction du bail (locataire)</span><span class="v">""" + TODO + """ € TTC / m² de surface habitable</span></li>
-      <li><span class="k">État des lieux (locataire)</span><span class="v">""" + TODO + """ € TTC / m² de surface habitable</span></li>
-      <li><span class="k">Entremise et négociation (bailleur)</span><span class="v">""" + TODO + """ € TTC</span></li>
-      <li><span class="k">Relocation — accompagnement complet à l’installation</span><span class="v">1 mois de loyer hors charges</span></li>
-    </ul>
-
     <h2 class="display-md mt-6" data-reveal>Recherche pour le compte de l’acquéreur</h2>
     <ul class="list-rule mt-3" data-reveal>
       <li><span class="k">Bien en-dessous de 100 000 €</span><span class="v">Forfait de 7 000 € TTC</span></li>
       <li><span class="k">Bien au prix compris entre 100 000 € et 200 000 €</span><span class="v">7 % TTC</span></li>
       <li><span class="k">Bien au prix supérieur à 200 000 €</span><span class="v">6 % TTC</span></li>
       <li><span class="k">Honoraires à la charge de</span><span class="v">l’acquéreur</span></li>
+    </ul>
+
+    <h2 class="display-md mt-6" data-reveal>Relocation</h2>
+    <ul class="list-rule mt-3" data-reveal>
+      <li><span class="k">Accompagnement complet à l’installation</span><span class="v">1 mois de loyer hors charges</span></li>
     </ul>
 
     <div class="prose mt-6" data-reveal>
@@ -525,7 +515,6 @@ def _more(B):
         <li>Aucun autre frais n’est facturé au client en dehors des montants figurant au présent barème.</li>
         <li>Le barème applicable est celui en vigueur à la date de signature du mandat.</li>
       </ul>
-      <p>Date d’entrée en vigueur du présent barème : """ + TODO + """.</p>
     </div>
   </div>
 </section>"""
