@@ -234,7 +234,8 @@ def page(brand, filename, title, description, body):
     """Écrit une page complète."""
     path = filename
     doc = [head(brand, title, description, path, FONTS[brand])]
-    doc.append(f'<body data-brand="{brand}">')
+    hero_dark_attr = " data-hero-dark" if path == "index.html" else ""
+    doc.append(f'<body data-brand="{brand}"{hero_dark_attr}>')
     doc.append(f'<div class="intro" data-intro aria-hidden="true">{INTRO_MARK}</div>')
     doc.append(INTRO_SKIP_SCRIPT)
     doc.append(header(brand, filename))
