@@ -6,29 +6,33 @@ def pages(B):
     A, TODO = B.ARROW, B.TODO
 
     accueil = """
-<section class="hero hero--frame">
+<section class="hero hero--immersive">
+  <div class="hero-bg" data-reveal>
+    <img src="assets/img/haussmann.webp" alt="Façade haussmannienne : pierre de taille, balcons en fer forgé et toiture en zinc." width="1600" height="1200" loading="eager">
+  </div>
+  <div class="hero-badge" data-reveal>
+    <span class="hero-badge__num" data-count="20" data-prefix="+">+20</span>
+    <span class="hero-badge__label">Projets<br>réalisés</span>
+  </div>
   <div class="shell hero__inner">
-    <div class="split split--wide-left" style="align-items:stretch">
-      <div style="align-self:center">
-        <p class="eyebrow" data-reveal>Transactions sur immeubles et fonds de commerce</p>
-        <h1 class="display-lg hero__title" data-reveal>L’immobilier traité comme un dossier, pas comme une annonce.</h1>
-        <p class="lede hero__lede" data-reveal>
-          ALLCX Patrimoine accompagne particuliers, investisseurs et sportifs professionnels dans
-          l’acquisition de biens immobiliers et de fonds de commerce, ainsi que dans leur installation
-          en France. Activité réglementée, exercée sous carte professionnelle.
-        </p>
-        <div class="btn-row hero__actions" data-reveal>
-          <a class="btn" href="contact.html"><span>Nous confier un projet</span></a>
-          <a class="btn btn--ghost" href="investissement.html"><span>Investir</span></a>
-        </div>
-      </div>
-      <div data-reveal>
-        <figure class="hero-figure hero-figure--fill">
-          <img src="assets/img/haussmann.webp" alt="Façade haussmannienne : pierre de taille, balcons en fer forgé et toiture en zinc." width="1600" height="1200" loading="eager">
-        </figure>
-      </div>
+    <p class="eyebrow" data-reveal>Transactions sur immeubles et fonds de commerce</p>
+    <h1 class="display-xl hero__title" data-reveal>L’immobilier traité comme un dossier, pas comme une annonce.</h1>
+    <p class="lede hero__lede" data-reveal>
+      ALLCX Patrimoine accompagne particuliers, investisseurs et sportifs professionnels dans
+      l’acquisition de biens immobiliers et de fonds de commerce, ainsi que dans leur installation
+      en France. Activité réglementée, exercée sous carte professionnelle.
+    </p>
+    <div class="btn-row hero__actions" data-reveal>
+      <a class="btn" href="contact.html"><span>Nous confier un projet</span></a>
+      <a class="btn btn--outline-light" href="investissement.html"><span>Investir</span></a>
     </div>
-    <div class="hero-meta hero-meta--light" data-reveal>
+  </div>
+  <p class="hero-scroll" aria-hidden="true">Découvrir</p>
+</section>
+
+<section class="hero-stats-float">
+  <div class="shell">
+    <div class="hero-stats-card" data-reveal>
       <div class="hero-meta__item"><span class="hero-meta__k" data-count="2.1" data-decimals="1" data-prefix="+" data-suffix=" M€">+2,1 M€</span><span class="hero-meta__v">Volume de transactions réalisées</span></div>
       <div class="hero-meta__item"><span class="hero-meta__k" data-count="20" data-prefix="+">+20</span><span class="hero-meta__v">Projets réalisés</span></div>
       <div class="hero-meta__item"><span class="hero-meta__k" data-count="5" data-prefix="+">+5</span><span class="hero-meta__v">Années d’expertise</span></div>

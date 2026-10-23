@@ -29,8 +29,11 @@
      --------------------------------------------------------------------- */
   var header = document.querySelector('[data-header]');
   if (header) {
+    var heroDark = document.body.hasAttribute('data-hero-dark');
     var onScroll = function () {
-      header.classList.toggle('is-stuck', window.scrollY > 12);
+      var stuck = window.scrollY > 12;
+      header.classList.toggle('is-stuck', stuck);
+      if (heroDark) header.classList.toggle('is-transparent', !stuck);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
