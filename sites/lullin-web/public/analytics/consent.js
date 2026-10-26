@@ -1,4 +1,7 @@
-// Mesure d'audience Google Analytics 4, chargée uniquement après accord du visiteur.
+// Mesure d'audience, chargée sur toutes les pages (site React et pages statiques).
+// 1. Vercel Web Analytics : visites et pages vues, sans cookie ni donnée personnelle
+//    (identifiant anonyme renouvelé chaque jour) ; chargé sans bandeau de consentement.
+// 2. Google Analytics 4, chargé uniquement après accord du visiteur.
 // Inactive tant que la variable Vercel GA_MEASUREMENT_ID (G-XXXXXXXXXX) n'est pas définie :
 // scripts/build-simulator.mjs remplace le marqueur ci-dessous au build.
 // Avant accord, rien n'est envoyé à Google (gtag.js n'est même pas téléchargé) ; les pages
@@ -55,6 +58,17 @@ function clearCookies() {
   });
 }
 
+function loadVercelAnalytics() {
+  if (document.querySelector('script[src="/_vercel/insights/script.js"]')) return;
+  window.va = window.va || function va() {
+    (window.vaq = window.vaq || []).push(arguments);
+  };
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = '/_vercel/insights/script.js';
+  document.head.appendChild(script);
+}
+
 let banner = null;
 function closeBanner() {
   banner?.remove();
@@ -101,6 +115,7 @@ function footerLink() {
 }
 
 function start() {
+  loadVercelAnalytics();
   if (!/^G-[A-Z0-9]{4,}$/.test(ID)) return;
   const choice = readChoice();
   if (choice === 'granted') load();
