@@ -1,4 +1,5 @@
-// Mesure d'audience, chargée sur toutes les pages (site React et pages statiques).
+// Script commun à toutes les pages (site React et pages statiques) : mesure d'audience, et
+// chargement des liens vers les avis Google (public/site/avis-google.js).
 // 1. Vercel Web Analytics : visites et pages vues, sans cookie ni donnée personnelle
 //    (identifiant anonyme renouvelé chaque jour) ; chargé sans bandeau de consentement.
 // 2. Google Analytics 4, chargé uniquement après accord du visiteur.
@@ -116,6 +117,9 @@ function footerLink() {
 
 function start() {
   loadVercelAnalytics();
+  import('/site/avis-google.js').catch(() => {
+    /* lien vers les avis : facultatif, la page fonctionne sans */
+  });
   if (!/^G-[A-Z0-9]{4,}$/.test(ID)) return;
   const choice = readChoice();
   if (choice === 'granted') load();

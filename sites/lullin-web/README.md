@@ -56,6 +56,9 @@ pour la couche d'animations :
     dans la barre de navigation et le pied de page, carte en tête du menu mobile, bouton
     « Estimer gratuitement mon site » sur l'accueil, bouton flottant sur mobile) ;
     événement `generate_lead` quand une demande de devis est envoyée.
+  - `public/site/avis-google.js` — nouveau, chargé par `consent.js` sur toutes les pages : lien
+    « Nos avis Google » dans le pied de page et encart avant la FAQ (accueil, offres), retiré
+    automatiquement quand la section complète des avis Google peut s'afficher.
   - `public/analytics/consent.js` + `src/fx-consent.css` — nouveaux. Google Analytics 4
     chargé seulement après accord du visiteur (bandeau Accepter / Refuser, lien « Gestion
     des cookies » en bas de page). **Inactif tant que la variable Vercel
