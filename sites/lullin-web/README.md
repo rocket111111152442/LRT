@@ -76,7 +76,9 @@ pour la couche d'animations :
   conformes à la production, ajoutées pour pouvoir modifier et reconstruire le site depuis ce dépôt.
 - Réalisations : BLOOMED, Le Pétrin de Pépiole, Empreinte de Violettes, AEI Côté Mer et Maison
   Pastier ajoutés en tête de `projects` (`src/content.ts`), vignettes en
-  `public/images/*.webp` (capture 1200×960 du site réduite à 960×768).
+  `public/images/*.webp` (capture 1200×960 du site réduite à 960×768). `scripts/fetch-images.mjs`, lancé en début de build, télécharge ces
+  vignettes depuis le dépôt GitHub (commit figé, empreinte SHA-1 vérifiée) si elles manquent ;
+  sans effet quand les fichiers sont présents.
 
 Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` et
 `src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts`, `src/fx-tech.css`, `src/fx-reviews.ts`
