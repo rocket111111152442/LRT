@@ -1,0 +1,4 @@
+# Résultat de npm run build
+dist/
+# Créé par un npm install local ; celui de la production n'est pas dans ce dépôt
+package-lock.json
