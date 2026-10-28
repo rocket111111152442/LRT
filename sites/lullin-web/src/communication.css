@@ -1,0 +1,129 @@
+/* Expertises (20/10/2026) : menu « Expertises », listes de tarifs et pages réseaux sociaux,
+   photographie, vidéo, référencement SEO et packs. Mêmes couleurs, typographies et rythmes
+   que style.css ; ce fichier est aussi chargé par les pages du blog (feuille de style commune). */
+
+/* ---------- Menu « Expertises » (en-tête du site et du blog) ---------- */
+.nav-group{position:relative;display:flex}
+.nav-group-trigger{position:relative;display:flex;align-items:center;gap:6px;padding:9px 0;background:none;border:0;color:#d3d5cb;font-size:inherit;line-height:inherit}
+.nav-group-trigger>svg{transition:transform .35s var(--ease)}
+.nav-group-trigger>span{position:absolute;bottom:0;left:0;width:100%;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease)}
+.nav-group-trigger:hover>span,.nav-group-trigger[data-current]>span,.nav-group-trigger[aria-expanded=true]>span{transform:scaleX(1)}
+.nav-group-trigger[data-current]{color:var(--accent)}
+.nav-group-trigger[aria-expanded=true]>svg{transform:rotate(180deg)}
+.nav-group-trigger:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.nav-group-panel{position:absolute;top:calc(100% + 18px);left:-26px;z-index:60;width:420px;display:grid;padding:8px;background:#161815;border:1px solid var(--line);box-shadow:0 30px 70px #000000b3;visibility:hidden;opacity:0;translate:0 -8px;transition:opacity .25s,translate .35s var(--ease),visibility 0s .35s}
+.nav-group-panel:before{content:'';position:absolute;left:0;right:0;bottom:100%;height:20px}
+.nav-group-trigger[aria-expanded=true]+.nav-group-panel{visibility:visible;opacity:1;translate:0 0;transition:opacity .25s,translate .35s var(--ease),visibility 0s}
+@media(hover:hover) and (pointer:fine){.nav-group:hover>.nav-group-panel{visibility:visible;opacity:1;translate:0 0;transition:opacity .25s,translate .35s var(--ease),visibility 0s}.nav-group:hover>.nav-group-trigger>span{transform:scaleX(1)}}
+.nav-group-title{font-size:10px;letter-spacing:.1em;color:var(--muted);padding:10px 16px 12px}
+.desktop-nav .nav-group-panel a{display:grid;grid-template-columns:1fr auto;column-gap:18px;row-gap:3px;padding:13px 16px;color:var(--paper);border-top:1px solid var(--line);transition:background .25s}
+.desktop-nav .nav-group-panel a strong{font-family:var(--heading);font-size:17px;font-weight:500;letter-spacing:-.02em;line-height:1.3}
+.desktop-nav .nav-group-panel a small{grid-column:1;font-size:12px;line-height:1.5;color:var(--muted)}
+.desktop-nav .nav-group-panel a em{grid-row:1/3;grid-column:2;align-self:center;font-style:normal;font-size:11px;color:var(--accent);white-space:nowrap}
+.desktop-nav .nav-group-panel a:hover,.desktop-nav .nav-group-panel a:focus-visible{background:#d2fd790d;outline:none}
+.desktop-nav .nav-group-panel a[aria-current] strong{color:var(--accent)}
+.desktop-nav .nav-group-panel a.nav-group-packs{background:var(--accent);color:var(--bg);border-top:0;margin-top:8px}
+.desktop-nav .nav-group-panel a.nav-group-packs small{color:#4b5935}
+.desktop-nav .nav-group-panel a.nav-group-packs em{color:var(--bg)}
+.desktop-nav .nav-group-panel a.nav-group-packs[aria-current] strong{color:var(--bg)}
+.desktop-nav .nav-group-panel a.nav-group-packs:hover,.desktop-nav .nav-group-panel a.nav-group-packs:focus-visible{background:var(--paper)}
+@media(max-width:1100px){.nav-group-panel{left:-60px}}
+
+/* Menu mobile : les expertises en pastilles, sous la navigation principale. */
+.menu-expertises{margin-top:30px}
+.menu-expertises>span{display:block;font-size:11px;letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
+.menu-expertises>div{display:flex;flex-wrap:wrap;gap:8px}
+.menu-expertises a{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:30px;font-size:14px;transition:border-color .25s,color .25s}
+.menu-expertises a:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Pied de page : ligne des expertises sous la navigation. */
+.footer-expertises{display:flex;justify-content:flex-end;flex-wrap:wrap;align-items:center;gap:10px 24px;font-size:12px;margin-top:16px;color:#c7ccbe}
+.footer-expertises>span{font-size:10px;letter-spacing:.08em;color:var(--muted)}
+.footer-expertises a:hover{color:var(--accent)}
+@media(max-width:800px){.footer-expertises{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;margin-top:28px;font-size:14px}.footer-expertises>span{grid-column:1/-1;padding-bottom:6px}.footer-expertises>a{display:flex;align-items:center;min-height:44px;border-bottom:1px solid var(--line)}}
+
+/* ---------- En-tête des pages de services ---------- */
+.service-heading h1{font-size:clamp(46px,5.5vw,86px)}
+.service-heading-actions{display:flex;align-items:center;gap:28px;flex-wrap:wrap;margin-top:36px;animation:rise .9s .35s var(--ease) both}
+.launch-tag{display:inline-flex;gap:10px;align-items:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#c5cbb9}
+.launch-tag>i{width:6px;height:6px;background:var(--accent);border-radius:50%;box-shadow:0 0 0 4px #d2fd7910;flex-shrink:0}
+.service-pricing+.service-pricing{padding-top:0}
+.partner-band{margin-top:70px;margin-bottom:0}
+.partner-band>a{white-space:nowrap}
+
+/* ---------- Listes de tarifs ---------- */
+.rate-list{border-top:1px solid var(--line)}
+.rate-row{display:grid;grid-template-columns:52px minmax(0,1fr) auto auto;align-items:center;gap:30px;padding:26px 0;border-bottom:1px solid var(--line);transition:padding .5s var(--ease),background .3s}
+.rate-row:hover{padding-inline:18px;background:#d2fd7906}
+.rate-index{font-family:var(--heading);font-size:12px;color:var(--muted);letter-spacing:.06em}
+.rate-name{min-width:0}
+.rate-name h3{font-size:clamp(22px,2.2vw,30px);letter-spacing:-.045em;line-height:1.2;overflow-wrap:break-word}
+.rate-name p{font-size:14px;color:var(--muted);line-height:1.75;margin-top:10px;max-width:660px}
+.rate-price{display:flex;align-items:baseline;justify-content:flex-end;gap:7px;min-width:150px;font-family:var(--heading);font-size:clamp(26px,2.6vw,36px);font-weight:500;letter-spacing:-.05em;line-height:1.1;white-space:nowrap;color:var(--paper)}
+.rate-price>small{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:500;letter-spacing:.1em;color:var(--muted)}
+.rate-price>span{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted)}
+.rate-cta{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 18px;border:1px solid #c3c6b57a;border-radius:30px;font-size:12px;white-space:nowrap;transition:background .25s,color .25s,border-color .25s}
+.rate-cta:hover,.rate-cta:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--bg);outline:none}
+.rate-cta>svg{transition:transform .35s var(--ease)}
+.rate-cta:hover>svg{transform:rotate(45deg)}
+.rate-row-detailed{align-items:start}
+.rate-row-detailed>.rate-index{padding-top:9px}
+.rate-row-detailed>.rate-price{padding-top:2px}
+
+/* Notes sous les tarifs (exclusions, éléments qui font varier le prix, tarifs de lancement). */
+.scope-note{display:flex;gap:14px;align-items:flex-start;margin-top:28px;padding:18px 20px;border:1px solid var(--line);border-left:2px solid var(--accent);background:#d2fd7906;font-size:14px;line-height:1.75;color:var(--muted)}
+.scope-note>svg{color:var(--accent);flex-shrink:0;margin-top:4px}
+.scope-note strong{color:var(--paper);font-weight:600}
+.scope-note a{color:var(--paper);text-decoration:underline;text-underline-offset:3px}
+.scope-note a:hover{color:var(--accent)}
+.launch-note{align-items:flex-start}
+.launch-note>span{display:flex;gap:10px;align-items:flex-start;max-width:760px;line-height:1.7}
+.launch-note>span>svg{flex-shrink:0;margin-top:3px;color:var(--accent)}
+
+/* Cartes d'abonnement et de packs (mêmes cartes que les offres de création). */
+.plan-grid .price-card h3{font-size:clamp(28px,2.5vw,37px)}
+@media(min-width:1101px){.plan-grid .price-card>p{min-height:72px}}
+.plan-list-title{display:block;width:100%;font-size:10px;letter-spacing:.1em;color:var(--muted);border-top:1px solid var(--line);padding-top:22px;margin-bottom:16px}
+.price-card>.plan-list-title+ul{border-top:0;padding-top:0}
+.price-card>.plan-benefits{margin-bottom:0}
+.price-card>ul+.plan-list-title{margin-top:26px}
+.price-card>.plan-benefits li{align-items:flex-start;line-height:1.55}
+.price-card>.plan-benefits li>svg{margin-top:2px}
+.price-featured>.plan-list-title{color:#4b5935;border-color:#11121130}
+
+/* Rangées « Au-delà du site » : le prix d'appel sous la description. */
+.digital-preview .service-row-tag{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:4px}
+.digital-preview .service-row-tag>b{font-weight:500;color:var(--accent);white-space:nowrap}
+
+/* ---------- Formulaire de contact : choix du service et de la prestation ---------- */
+.service-switch{border:0;padding:0;margin:26px 0 0;min-width:0}
+.service-switch legend{font-size:12px;padding:0;margin-bottom:10px}
+.service-switch>div{display:flex;flex-wrap:wrap;gap:8px}
+.service-switch label{position:relative;display:inline-flex;align-items:center;min-height:42px;padding:8px 16px;border:1px solid #c2c8b530;border-radius:30px;font-size:12px;cursor:pointer;transition:background .25s,border-color .25s,color .25s}
+.service-switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.service-switch label:hover{border-color:var(--accent)}
+.service-switch label.selected{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.service-switch label:has(:focus-visible){outline:2px solid var(--accent);outline-offset:3px}
+.rate-options label{min-height:76px;padding:14px 36px 14px 16px;flex-direction:column;align-items:flex-start;justify-content:center;gap:0}
+.rate-options label>span{font-size:13px;line-height:1.4}
+.rate-options label>span>small{display:block;margin:6px 0 0;font-size:11px;color:var(--accent)}
+.selected-offer>span{white-space:nowrap}
+
+/* ---------- Petits écrans ---------- */
+@media(max-width:1100px){.rate-row{grid-template-columns:40px minmax(0,1fr) auto;gap:14px 24px}.rate-cta{grid-column:2/-1;justify-self:start}}
+@media(max-width:800px){
+  .service-heading h1{font-size:clamp(38px,9.5vw,56px)}
+  .service-heading-actions{flex-direction:column;align-items:stretch;gap:18px;margin-top:30px}
+  .service-heading-actions .launch-tag{justify-content:center}
+  .rate-row{grid-template-columns:30px minmax(0,1fr);gap:10px 14px;padding:22px 0}
+  .rate-row:hover{padding-inline:0;background:none}
+  .rate-index,.rate-row-detailed>.rate-index{padding-top:7px;align-self:start}
+  .rate-name h3{font-size:21px}
+  .rate-name p{font-size:15px}
+  .rate-price{grid-column:2;justify-content:flex-start;min-width:0;font-size:28px;padding-top:4px}
+  .rate-cta{grid-column:2;justify-self:stretch;justify-content:space-between;min-height:48px;font-size:13px}
+  .scope-note{padding:16px;font-size:15px}
+  .partner-band{margin-top:40px}
+  .digital-preview .service-row-tag{display:none}
+  .rate-options{grid-template-columns:1fr}
+}

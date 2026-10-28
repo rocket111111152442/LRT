@@ -71,6 +71,12 @@ pour la couche d'animations :
   `import './fx'`, `import './fx-tech'`, `import './fx-reviews'` et
   `import './fx-simulator'` (en plus de `import './communication.css'` ajouté de ton côté).
 - `tsconfig.json` — inchangé, copié pour pouvoir vérifier le typage de `fx.ts`.
+- Sources complètes du site React (`src/App.tsx`, `src/content.ts`, `src/style.css`, CSS mobiles,
+  pages annexes, `src/seo.json`, scripts SEO et blog, `index.html`, `vite.config.ts`) — copies
+  conformes à la production, ajoutées pour pouvoir modifier et reconstruire le site depuis ce dépôt.
+- Réalisations : BLOOMED, Le Pétrin de Pépiole, Empreinte de Violettes, AEI Côté Mer et Maison
+  Pastier ajoutés en tête de `projects` (`src/content.ts`), vignettes en
+  `public/images/*.webp` (capture 1200×960 du site réduite à 960×768).
 
 Pour reporter ces changements dans la copie locale du site, copier `src/fx.ts` et
 `src/fx.css`, `src/fx-brand.css`, `src/fx-tech.ts`, `src/fx-tech.css`, `src/fx-reviews.ts`
