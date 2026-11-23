@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -36,7 +37,9 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
-  turbopack: { root: process.cwd() },
+  // Racine ancrée sur ce dossier : le dépôt contient d'autres projets Next
+  // (dont un middleware.ts à la racine) qui ne doivent pas être compilés ici.
+  turbopack: { root: path.resolve(__dirname) },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
